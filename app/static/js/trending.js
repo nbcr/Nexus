@@ -39,6 +39,23 @@ class TrendingManager {
                 </div>
                 <div class="trending-card-content">
                     <p class="trending-description">${trend.description || 'Latest trending topic in Canada'}</p>
+                    <div class="news-items">
+                        ${trend.news_items ? trend.news_items.map(news => `
+                            <div class="news-item">
+                                <div class="news-item-image">
+                                    ${news.picture ? 
+                                        `<img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none';">` :
+                                        '<div class="image-placeholder"></div>'
+                                    }
+                                </div>
+                                <div class="news-item-content">
+                                    <h4 class="news-item-title">${news.title}</h4>
+                                    <span class="news-source">${news.source}</span>
+                                    <a href="${news.url}" target="_blank" class="news-link">Read more</a>
+                                </div>
+                            </div>
+                        `).join('') : ''}
+                    </div>
                     <div class="trending-card-footer">
                         <a href="${trend.url}" target="_blank" class="source-link" 
                            onmouseover="window.trendingManager.preloadSummary(this, '${trend.url}')">
