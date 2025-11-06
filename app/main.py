@@ -1,6 +1,6 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
+from fastapi.staticfiles import StaticFiles # type: ignore
 import os
 
 from app.api.routes import topics, content, users, auth, session, trending
@@ -51,11 +51,11 @@ async def health_check():
 # Serve the frontend
 @app.get("/app")
 async def serve_frontend():
-    from fastapi.responses import FileResponse
+    from fastapi.responses import FileResponse # type: ignore
     return FileResponse("app/static/index.html")
 
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn # type: ignore
     uvicorn.run(
         "app.main:app",
         host=settings.api_host,

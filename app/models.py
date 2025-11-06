@@ -1,9 +1,9 @@
-from sqlalchemy import (
+from sqlalchemy import ( # type: ignore
     Column, Integer, String, DateTime, Float, Boolean, 
     ForeignKey, JSON, Text, Index, UUID as PGUUID
 )
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship # type: ignore
+from sqlalchemy.sql import func # type: ignore
 from datetime import datetime
 import uuid
 from app.database import Base

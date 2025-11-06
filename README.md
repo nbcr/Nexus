@@ -18,6 +18,7 @@ A FastAPI-based platform that automatically fetches trending Canadian news from 
 - **Deployment**: Uvicorn, Linux
 
 ## Project Structure
+
 nexus/
 ├── app/
 │ ├── api/routes/ # API endpoints
@@ -34,10 +35,12 @@ text
 ## Quick Start
 
 1. **Setup Environment**:
+
    ```bash
    python -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
+
 Database Setup:
 
 bash
@@ -48,9 +51,9 @@ bash
 python run_server.py
 Access Application:
 
-Main App: http://localhost:8000/app
+Main App: <http://localhost:8000/app>
 
-API Docs: http://localhost:8000/docs
+API Docs: <http://localhost:8000/docs>
 
 API Endpoints
 GET /api/v1/trending/enhanced-trends - Get trending topics with images and sources

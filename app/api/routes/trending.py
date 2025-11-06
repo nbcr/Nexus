@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks # type: ignore
+from sqlalchemy.ext.asyncio import AsyncSession # pyright: ignore[reportMissingImports]
 from typing import List
 
 from app.database import AsyncSessionLocal
@@ -39,7 +39,7 @@ async def get_current_trends(
     limit: int = 20
 ):
     """Get currently trending topics from database"""
-    from sqlalchemy import select
+    from sqlalchemy import select # pyright: ignore[reportMissingImports]
     from app.models import Topic
     
     try:
@@ -60,7 +60,7 @@ async def get_trending_content(
     limit: int = 10
 ):
     """Get content items for trending topics"""
-    from sqlalchemy import select
+    from sqlalchemy import select # type: ignore
     from app.models import ContentItem, Topic
     
     try:
