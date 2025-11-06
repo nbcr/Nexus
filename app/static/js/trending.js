@@ -9,6 +9,7 @@ class TrendingManager {
             Utils.hideError();
             const response = await Utils.apiCall('/api/v1/trending/enhanced-trends');
             this.enhancedTrends = response.trends || [];
+            console.log('Received trends data:', this.enhancedTrends);  // Debug log
             this.renderEnhancedTrends();
         } catch (error) {
             console.error('Error loading enhanced trends:', error);
@@ -35,41 +36,31 @@ class TrendingManager {
                         }
                     </div>
                     <h3 class="trending-title">${trend.title}</h3>
-                    <span class="source-flair">${trend.source}</span>
+                    ${trend.source !== 'News' ? `<span class="source-flair">${trend.source}</span>` : ''}
                 </div>
                 <div class="trending-card-content">
-                    <p class="trending-description">${trend.description || 'Latest trending topic in Canada'}</p>
-                    ${trend.news_items ? `
+                    ${trend.description ? `<p class="trending-description">${trend.description}</p>` : ''}
+                    ${trend.news_items && trend.news_items.length > 0 ? `
                         <div class="news-items">
                             ${trend.news_items.map(news => `
                                 <div class="news-item">
-                                    <div class="news-item-image">
-                                        ${news.picture ? 
-                                            `<img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none';">` :
-                                            ''
-                                        }
-                                    </div>
+                                    ${news.picture ? `
+                                        <div class="news-item-image">
+                                            <img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                                        </div>
+                                    ` : ''}
                                     <div class="news-item-content">
-                                        <h4>${news.title}</h4>
+                                        <h4>${news.title || 'News Update'}</h4>
                                         ${news.snippet ? `<p>${news.snippet}</p>` : ''}
                                         <div class="news-source">
                                             <span class="source-name">${news.source}</span>
-                                            <a href="${news.url}" target="_blank" class="source-link" 
-                                               onmouseover="window.trendingManager.preloadSummary(this, '${news.url}')">
-                                                Read More
-                                            </a>
+                                            <a href="${news.url}" target="_blank" class="source-link">Read More</a>
                                         </div>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
                     ` : ''}
-                    <div class="trending-card-footer">
-                        <a href="${trend.url}" target="_blank" class="source-link" 
-                           onmouseover="window.trendingManager.preloadSummary(this, '${trend.url}')">
-                            ${trend.url.replace(/^https?:\/\//, '').split('/')[0]}
-                        </a>
-                    </div>
                 </div>
             </div>
         `).join('');

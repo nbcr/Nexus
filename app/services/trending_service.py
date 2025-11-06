@@ -21,34 +21,42 @@ class TrendingService:
             
             trends = []
             for entry in feed.entries[:15]:
+                print(f"Processing entry: {entry}")  # Debug log
+                
                 # Extract data from the Google Trends specific fields
-                title = entry.get('title', '')
-                description = entry.get('summary', entry.get('description', ''))
-                url = entry.get('link', '')
+                title = entry.get('title', '').strip()
+                description = entry.get('ht_news_item_snippet', '') or entry.get('summary', '') or entry.get('description', '')
+                url = entry.get('ht_news_item_url', '') or entry.get('link', '')
                 
                 # Extract news items
                 news_items = []
                 if hasattr(entry, 'ht_news_item'):
-                    # Handle multiple news items if they exist
-                    if isinstance(entry.ht_news_item, list):
-                        items = entry.ht_news_item
-                    else:
-                        items = [entry.ht_news_item]
-                        
+                    # Parse news items whether they're in a list or single item
+                    items = entry.ht_news_item if isinstance(entry.ht_news_item, list) else [entry.ht_news_item]
+                    
                     for item in items:
                         news_item = {
-                            'title': getattr(item, 'ht_news_item_title', ''),
-                            'snippet': getattr(item, 'ht_news_item_snippet', ''),
-                            'url': getattr(item, 'ht_news_item_url', ''),
-                            'picture': getattr(item, 'ht_news_item_picture', None),
-                            'source': getattr(item, 'ht_news_item_source', 'News')
+                            'title': item.get('ht_news_item_title', '').strip(),
+                            'snippet': item.get('ht_news_item_snippet', '').strip(),
+                            'url': item.get('ht_news_item_url', ''),
+                            'picture': item.get('ht_news_item_picture', ''),
+                            'source': item.get('ht_news_item_source', 'News').strip()
                         }
-                        news_items.append(news_item)
+                        if news_item['title'] and news_item['url']:  # Only add if we have at least a title and URL
+                            news_items.append(news_item)
                 
-                # Get the first news item for main trend display
-                main_news_item = news_items[0] if news_items else self._extract_news_item(entry)
-                source = main_news_item.get('source', 'News')
-                image_url = main_news_item.get('picture')
+                # Set the main image and source from the first news item if available
+                image_url = None
+                source = 'News'
+                
+                if news_items:
+                    first_news = news_items[0]
+                    image_url = first_news['picture']
+                    source = first_news['source']
+                else:
+                    # Fallback to entry-level ht: attributes if no news items
+                    image_url = getattr(entry, 'ht_picture', None)
+                    source = getattr(entry, 'ht_picture_source', 'News')
                 
                 trend_data = {
                     'title': title,
@@ -113,16 +121,9 @@ class TrendingService:
     
     async def generate_ai_summary(self, trend_title: str, trend_description: str = "") -> str:
         """Generate AI summary for trending topics"""
-        base_summary = f"**{trend_title}** is currently trending across Canada according to Google Trends. "
-        
         if trend_description:
-            base_summary += f"Key context: {trend_description} "
-        else:
-            base_summary += "This topic is gaining significant attention and engagement online. "
-        
-        base_summary += "Stay informed about what's popular in Canada right now."
-        
-        return base_summary
+            return trend_description
+        return f"Trending topic in Canada: {trend_title}"
     
     async def save_trends_to_database(self, db: AsyncSession) -> List[Topic]:
         """Fetch trends and save them to database"""
