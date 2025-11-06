@@ -7,7 +7,7 @@
     color: #2c3e50;
     border-bottom: 3px solid #3498db;
     padding-bottom: 10px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     font-size: 1.8em;
 }
 
@@ -15,7 +15,7 @@
 #trending-topics {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
     max-width: 100%;
 }
 
@@ -43,28 +43,35 @@
 .trending-card-header {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 20px;
     padding: 20px;
-    padding-bottom: 32px; /* Added extra padding at bottom for the flair */
+    padding-bottom: 30px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     position: relative;
+    min-height: 120px;
 }
 
 .trending-image {
     flex-shrink: 0;
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
+    width: 120px;
+    height: 120px;
+    border-radius: 10px;
     overflow: hidden;
     background: rgba(255,255,255,0.1);
     border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .trending-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.trending-image img:hover {
+    transform: scale(1.05);
 }
 
 .image-placeholder {
@@ -79,10 +86,13 @@
 .trending-title {
     flex: 1;
     margin: 0;
+    margin-right: 100px; /* Space for flair */
     font-size: 1.3em;
     font-weight: 600;
     line-height: 1.3;
     text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1; /* Above flair */
 }
 
 .source-flair {
@@ -95,7 +105,7 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: absolute;
-    bottom: -12px;
+    bottom: -10px;
     right: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     white-space: nowrap;
