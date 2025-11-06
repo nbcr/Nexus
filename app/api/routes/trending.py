@@ -17,6 +17,17 @@ async def get_db():
         finally:
             await session.close()
 
+@router.get("/enhanced-trends")
+async def get_enhanced_trends():
+    """Get live trending topics with enhanced data directly from Google Trends"""
+    try:
+        trends = await trending_service.fetch_canada_trends()
+        if not trends:
+            raise HTTPException(status_code=404, detail="No trends found")
+        return {"trends": trends}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch trends: {str(e)}")
+
 @router.post("/refresh-trends", response_model=List[TopicSchema])
 async def refresh_trending_topics(
     db: AsyncSession = Depends(get_db)
