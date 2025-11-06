@@ -1,22 +1,80 @@
 class TrendingManager {
     constructor() {
         this.enhancedTrends = [];
+        this.currentPage = 1;
+        this.pageSize = 10;
+        this.hasMore = true;
+        this.isLoading = false;
+        this.includeHistorical = true;
+        this.setupInfiniteScroll();
     }
 
-    async loadEnhancedTrends() {
+    async loadEnhancedTrends(append = false) {
+        if (this.isLoading || (!append && !this.hasMore)) return;
+        
         try {
+            this.isLoading = true;
             Utils.hideError();
-            const response = await Utils.apiCall('/api/v1/trending/enhanced-trends');
-            this.enhancedTrends = response.trends || [];
+            
+            // Show loading indicator
+            if (!append) {
+                Utils.setHTML('trending-topics', '<div class="loading">Loading trending topics...</div>');
+            } else {
+                document.querySelector('#trending-topics .loading')?.remove();
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'loading';
+                loadingDiv.textContent = 'Loading more...';
+                document.getElementById('trending-topics').appendChild(loadingDiv);
+            }
+            
+            const response = await Utils.apiCall(
+                `/api/v1/trending/enhanced-trends?page=${this.currentPage}&page_size=${this.pageSize}&include_historical=${this.includeHistorical}`
+            );
+            
+            const newTrends = response.trends || [];
+            this.hasMore = response.has_more;
+            
+            if (append) {
+                this.enhancedTrends = [...this.enhancedTrends, ...newTrends];
+            } else {
+                this.enhancedTrends = newTrends;
+            }
+            
             console.log('Received trends data:', this.enhancedTrends);
-            this.renderEnhancedTrends();
+            this.renderEnhancedTrends(append);
+            
+            if (this.hasMore) {
+                this.currentPage++;
+            }
         } catch (error) {
             console.error('Error loading enhanced trends:', error);
-            Utils.setHTML('trending-topics', '<p class="error">Failed to load trending topics</p>');
+            if (!append) {
+                Utils.setHTML('trending-topics', '<p class="error">Failed to load trending topics</p>');
+            }
+        } finally {
+            this.isLoading = false;
+            document.querySelector('#trending-topics .loading')?.remove();
         }
     }
 
-    renderEnhancedTrends() {
+    setupInfiniteScroll() {
+        // Throttle scroll handler
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const scrollPosition = window.innerHeight + window.scrollY;
+                const totalHeight = document.documentElement.scrollHeight;
+                const buffer = 200; // Load more content when within 200px of bottom
+                
+                if (totalHeight - scrollPosition < buffer && this.hasMore && !this.isLoading) {
+                    this.loadEnhancedTrends(true);
+                }
+            }, 100);
+        });
+    }
+
+    renderEnhancedTrends(append = false) {
         const container = document.getElementById('trending-topics');
         if (!container) return;
 
@@ -24,6 +82,10 @@ class TrendingManager {
             container.innerHTML = '<p>No trending topics available. <button onclick="window.trendingManager.loadEnhancedTrends()">Refresh</button></p>';
             return;
         }
+        
+        const trendsHtml = this.enhancedTrends.map(trend => {
+            // Existing trend rendering code...
+        }).join('');
 
         console.log('Rendering trends:', this.enhancedTrends);
         

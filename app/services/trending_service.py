@@ -20,7 +20,8 @@ class TrendingService:
             feed = feedparser.parse(self.feed_url)
             
             trends = []
-            for entry in feed.entries[:15]:
+            # Process all available entries
+            for entry in feed.entries:
                 print(f"Processing entry: {entry}")  # Debug log
                 
                 # Extract data from the Google Trends specific fields
