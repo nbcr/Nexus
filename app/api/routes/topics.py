@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from fastapi import APIRouter, HTTPException, Depends # type: ignore
+from sqlalchemy.ext.asyncio import AsyncSession # pyright: ignore[reportMissingImports]
+from sqlalchemy import select # pyright: ignore[reportMissingImports]
 from typing import List
 
 from app.database import AsyncSessionLocal

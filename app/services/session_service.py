@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession # pyright: ignore[reportMissingImports]
+from sqlalchemy import select # pyright: ignore[reportMissingImports]
 from app.models import UserSession, UserInteraction, ContentItem
 from app.core.config import settings
 

@@ -1,9 +1,9 @@
-import feedparser
+import feedparser # type: ignore
 import asyncio
 from datetime import datetime
 from typing import List, Dict, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
+from sqlalchemy import select # type: ignore
 
 from app.models import Topic, ContentItem
 from app.core.config import settings
@@ -89,8 +89,12 @@ class TrendingService:
                     image_url = getattr(entry, 'ht_picture', None)
                     source = getattr(entry, 'ht_picture_source', 'News')
                 
+                # Generate a summary title based on news items
+                summary_title = self._generate_summary_title(title, news_items)
+
                 trend_data = {
-                    'title': title,
+                    'title': summary_title,  # Use the generated summary title
+                    'original_query': title,  # Keep the original search term
                     'description': description,
                     'url': url,
                     'source': source,
@@ -149,6 +153,41 @@ class TrendingService:
                 if hasattr(tag, 'term'):
                     tags.append(tag.term.lower())
         return list(set(tags))
+
+    def _generate_summary_title(self, original_title: str, news_items: List[Dict]) -> str:
+        """Generate a summary title based on news items and original trend title"""
+        try:
+            if not news_items:
+                return original_title.title()  # Just capitalize the original title if no news items
+
+            # Get the most recent news item (assuming it's most relevant)
+            main_news = news_items[0]
+            
+            # Extract key information
+            title = main_news.get('title', '').strip()
+            snippet = main_news.get('snippet', '').strip()
+            source = main_news.get('source', '').strip()
+
+            # If we have a good news title, use it as base
+            if title:
+                # Clean up the title
+                # Remove source names from title if they appear at the start or end
+                for s in [source, 'Report:', 'BREAKING:', 'UPDATE:', '- CNN', '- BBC', '| CBC News']:
+                    title = title.replace(s, '').strip()
+                
+                # If the original trend query appears in the title, ensure it's properly highlighted
+                if original_title.lower() in title.lower():
+                    return title.strip()
+                
+                # Otherwise, create a context-aware title
+                return f"{original_title.title()}: {title}"
+            
+            # Fallback to original title if we couldn't generate a better one
+            return original_title.title()
+
+        except Exception as e:
+            print(f"Error generating summary title: {e}")
+            return original_title.title()
     
     async def generate_ai_summary(self, trend_title: str, trend_description: str = "") -> str:
         """Generate AI summary for trending topics"""
