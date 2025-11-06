@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks # type: ignore
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession # pyright: ignore[reportMissingImports]
+from sqlalchemy import select, desc, func # type: ignore
 from typing import List
 
 from app.database import AsyncSessionLocal
@@ -84,15 +85,97 @@ async def get_trending_content(
         raise HTTPException(status_code=500, detail=f"Failed to fetch trending content: {str(e)}")
 
 @router.get("/enhanced-trends")
-async def get_enhanced_trends():
-    """Get trending topics with enhanced data (images, sources, etc.)"""
+async def get_enhanced_trends(
+    page: int = 1,
+    page_size: int = 10,
+    include_historical: bool = False,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get trending topics with enhanced data (images, sources, etc.)
+    
+    Args:
+        page: Page number (1-based)
+        page_size: Number of items per page
+        include_historical: Whether to include historical trends
+    """
     try:
-        trends = await trending_service.fetch_canada_trends()
-        return {
-            "status": "success",
-            "trends_count": len(trends),
-            "trends": trends
-        }
+        # Fetch current trends
+        current_trends = await trending_service.fetch_canada_trends()
+        
+        if include_historical:
+            # Get historical trends from database
+            from sqlalchemy import select, desc
+            from app.models import Topic
+            
+            # Calculate offset
+            offset = (page - 1) * page_size
+            
+            # Query historical topics
+            result = await db.execute(
+                select(Topic)
+                .where(Topic.trend_score > 0)  # Only get trending topics
+                .order_by(desc(Topic.created_at))
+                .offset(offset)
+                .limit(page_size)
+            )
+            
+            historical_topics = result.scalars().all()
+            
+            # Count total historical topics for pagination
+            total_count_result = await db.execute(
+                select(func.count()).select_from(Topic).where(Topic.trend_score > 0)
+            )
+            total_count = total_count_result.scalar()
+            
+            # Combine current and historical trends
+            all_trends = current_trends.copy()
+            
+            # Add historical trends that aren't in current trends
+            current_titles = {trend['title'].lower() for trend in current_trends}
+            for topic in historical_topics:
+                if topic.title.lower() not in current_titles:
+                    all_trends.append({
+                        'title': topic.title,
+                        'description': topic.description,
+                        'category': topic.category,
+                        'trend_score': topic.trend_score,
+                        'tags': topic.tags,
+                        'source': 'Historical',
+                        'created_at': topic.created_at.isoformat(),
+                        'news_items': []  # Historical items might not have news items
+                    })
+            
+            # Apply pagination to combined results
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            paginated_trends = all_trends[start_idx:end_idx]
+            
+            return {
+                "status": "success",
+                "page": page,
+                "page_size": page_size,
+                "total_count": total_count + len(current_trends),
+                "trends_count": len(paginated_trends),
+                "has_more": end_idx < len(all_trends),
+                "trends": paginated_trends
+            }
+        
+        else:
+            # Just return current trends with pagination
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            paginated_trends = current_trends[start_idx:end_idx]
+            
+            return {
+                "status": "success",
+                "page": page,
+                "page_size": page_size,
+                "total_count": len(current_trends),
+                "trends_count": len(paginated_trends),
+                "has_more": end_idx < len(current_trends),
+                "trends": paginated_trends
+            }
+            
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch enhanced trends: {str(e)}")
 
