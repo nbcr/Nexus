@@ -26,7 +26,13 @@ class TrendingManager {
             return;
         }
 
-        container.innerHTML = this.enhancedTrends.map(trend => `
+        // Debug log to check the data we're working with
+        console.log('Rendering trends:', this.enhancedTrends);
+        
+        container.innerHTML = this.enhancedTrends.map(trend => {
+            console.log('Processing trend:', trend); // Debug log for each trend
+            
+            return `
             <div class="trending-card" onclick="this.classList.toggle('expanded')">
                 <div class="trending-card-header">
                     <div class="trending-image">
@@ -39,30 +45,36 @@ class TrendingManager {
                     ${trend.source !== 'News' ? `<span class="source-flair">${trend.source}</span>` : ''}
                 </div>
                 <div class="trending-card-content">
-                    ${trend.description ? `<p class="trending-description">${trend.description}</p>` : ''}
-                    ${trend.news_items && trend.news_items.length > 0 ? `
-                        <div class="news-items">
-                            ${trend.news_items.map(news => `
-                                <div class="news-item">
-                                    ${news.picture ? `
-                                        <div class="news-item-image">
-                                            <img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none'; this.parentElement.style.display='none';">
-                                        </div>
-                                    ` : ''}
-                                    <div class="news-item-content">
-                                        <h4>${news.title || 'News Update'}</h4>
-                                        ${news.snippet ? `<p>${news.snippet}</p>` : ''}
-                                        <div class="news-source">
-                                            <span class="source-name">${news.source}</span>
-                                            <a href="${news.url}" target="_blank" class="source-link">Read More</a>
+                    <div class="content-inner">
+                        ${trend.description ? `<p class="trending-description">${trend.description}</p>` : ''}
+                        ${Array.isArray(trend.news_items) && trend.news_items.length > 0 ? `
+                            <div class="news-items">
+                                ${trend.news_items.map(news => {
+                                    console.log('Processing news item:', news); // Debug log for each news item
+                                    return `
+                                    <div class="news-item">
+                                        ${news.picture ? `
+                                            <div class="news-item-image">
+                                                <img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                                            </div>
+                                        ` : ''}
+                                        <div class="news-item-content">
+                                            <h4>${news.title || 'News Update'}</h4>
+                                            ${news.snippet ? `<p>${news.snippet}</p>` : ''}
+                                            <div class="news-source">
+                                                <span class="source-name">${news.source}</span>
+                                                <a href="${news.url}" target="_blank" class="source-link" 
+                                                   onclick="event.stopPropagation()">Read More</a>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
+                                `}).join('')}
+                            </div>
+                        ` : '<p>No additional details available</p>'}
+                    </div>
                 </div>
             </div>
+        `}).join('');
         `).join('');
     }
 

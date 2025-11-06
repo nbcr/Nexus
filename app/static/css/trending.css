@@ -107,9 +107,26 @@
     transition: all 0.3s ease;
 }
 
+.trending-card-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+    max-height: 0;
+}
+
 .trending-card.expanded .trending-card-content {
     padding: 20px;
-    max-height: 1000px;
+    max-height: 2000px; /* Increased to accommodate more content */
+}
+
+.content-inner {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease-in-out;
+}
+
+.trending-card.expanded .content-inner {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .trending-description {
