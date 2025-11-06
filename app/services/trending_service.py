@@ -57,10 +57,32 @@ class TrendingService:
                 # Use the first news item for the main trend display if available
                 if news_items:
                     first_news = news_items[0]
-                    description = first_news['snippet']
+                    description = first_news['snippet'] or getattr(entry, 'description', '') or getattr(entry, 'summary', '')
                     image_url = first_news['picture']
                     source = first_news['source']
                     url = first_news['url']
+                    
+                    print(f"Processed trend: {title}")
+                    print(f"Description: {description}")
+                    print(f"News items: {len(news_items)}")
+                    print(f"First news item: {first_news}")
+                
+                # Ensure we have content for the trend
+                trend_data = {
+                    'title': title,
+                    'description': description,
+                    'url': url,
+                    'source': source,
+                    'image_url': image_url,
+                    'published': getattr(entry, 'published', ''),
+                    'trend_score': self._calculate_trend_score(entry),
+                    'category': self._extract_category(entry),
+                    'tags': self._extract_tags(entry),
+                    'news_items': news_items
+                }
+                
+                print(f"Final trend data: {trend_data}")
+                trends.append(trend_data)
                 
                 trend_data = {
                     'title': title,
