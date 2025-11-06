@@ -8,8 +8,20 @@ class TrendingManager {
         try {
             Utils.hideError();
             const response = await Utils.apiCall('/api/v1/trending/enhanced-trends');
-            this.enhancedTrends = response.trends || [];
+            
+            if (!response || !response.trends) {
+                throw new Error('Invalid response format');
+            }
+            
+            this.enhancedTrends = response.trends;
             console.log('Received trends data:', this.enhancedTrends);  // Debug log
+            
+            // Filter out trends without necessary data
+            this.enhancedTrends = this.enhancedTrends.filter(trend => 
+                trend.title && 
+                (trend.news_items?.length > 0 || trend.description)
+            );
+            
             this.renderEnhancedTrends();
         } catch (error) {
             console.error('Error loading enhanced trends:', error);
