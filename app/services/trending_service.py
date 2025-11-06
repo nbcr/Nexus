@@ -26,10 +26,29 @@ class TrendingService:
                 description = entry.get('summary', entry.get('description', ''))
                 url = entry.get('link', '')
                 
-                # Extract Google Trends specific fields
-                news_item = self._extract_news_item(entry)
-                source = news_item.get('source', 'News')
-                image_url = news_item.get('picture')
+                # Extract news items
+                news_items = []
+                if hasattr(entry, 'ht_news_item'):
+                    # Handle multiple news items if they exist
+                    if isinstance(entry.ht_news_item, list):
+                        items = entry.ht_news_item
+                    else:
+                        items = [entry.ht_news_item]
+                        
+                    for item in items:
+                        news_item = {
+                            'title': getattr(item, 'ht_news_item_title', ''),
+                            'snippet': getattr(item, 'ht_news_item_snippet', ''),
+                            'url': getattr(item, 'ht_news_item_url', ''),
+                            'picture': getattr(item, 'ht_news_item_picture', None),
+                            'source': getattr(item, 'ht_news_item_source', 'News')
+                        }
+                        news_items.append(news_item)
+                
+                # Get the first news item for main trend display
+                main_news_item = news_items[0] if news_items else self._extract_news_item(entry)
+                source = main_news_item.get('source', 'News')
+                image_url = main_news_item.get('picture')
                 
                 trend_data = {
                     'title': title,
@@ -40,7 +59,8 @@ class TrendingService:
                     'published': entry.get('published', ''),
                     'trend_score': self._calculate_trend_score(entry),
                     'category': self._extract_category(entry),
-                    'tags': self._extract_tags(entry)
+                    'tags': self._extract_tags(entry),
+                    'news_items': news_items
                 }
                 trends.append(trend_data)
             
