@@ -193,7 +193,17 @@
 .news-item-content h4 {
     margin: 0 0 8px 0;
     font-size: 1.1em;
+}
+
+.news-item-content h4 a {
     color: #2c3e50;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.news-item-content h4 a:hover {
+    color: #3498db;
+    text-decoration: underline;
 }
 
 .news-item-content p {

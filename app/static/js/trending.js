@@ -60,7 +60,7 @@ class TrendingManager {
                 return `<div class="news-item">
                     ${newsImageHtml}
                     <div class="news-item-content">
-                        <h4>${news.title || 'News Update'}</h4>
+                        <h4><a href="${news.url}" target="_blank" onclick="event.stopPropagation()">${news.title || 'News Update'}</a></h4>
                         ${news.snippet ? `<p>${news.snippet}</p>` : ''}
                         <div class="news-source">
                             ${news.source ? `<span class="source-name">${news.source}</span>` : ''}
