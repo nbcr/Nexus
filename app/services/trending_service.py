@@ -32,20 +32,49 @@ class TrendingService:
                 
                 # Extract news items
                 news_items = []
-                if hasattr(entry, 'ht_news_item'):
-                    # Parse news items whether they're in a list or single item
-                    items = entry.ht_news_item if isinstance(entry.ht_news_item, list) else [entry.ht_news_item]
+                try:
+                    # Debug print the entry structure
+                    print(f"Entry has ht_news_item? {hasattr(entry, 'ht_news_item')}")
+                    if hasattr(entry, 'ht_news_item'):
+                        print(f"News item type: {type(entry.ht_news_item)}")
+                        print(f"News item content: {entry.ht_news_item}")
                     
-                    for item in items:
-                        news_item = {
-                            'title': getattr(item, 'ht_news_item_title', '').strip(),
-                            'snippet': getattr(item, 'ht_news_item_snippet', '').strip(),
-                            'url': getattr(item, 'ht_news_item_url', ''),
-                            'picture': getattr(item, 'ht_news_item_picture', ''),
-                            'source': getattr(item, 'ht_news_item_source', 'News').strip()
-                        }
-                        if news_item['title'] and news_item['url']:  # Only add if we have at least a title and URL
-                            news_items.append(news_item)
+                    # Look for individual news item fields
+                    news_item = {
+                        'title': getattr(entry, 'ht_news_item_title', '').strip(),
+                        'snippet': getattr(entry, 'ht_news_item_snippet', '').strip(),
+                        'url': getattr(entry, 'ht_news_item_url', ''),
+                        'picture': getattr(entry, 'ht_news_item_picture', ''),
+                        'source': getattr(entry, 'ht_news_item_source', 'News').strip()
+                    }
+                    
+                    # If we have a direct news item with title and URL, add it
+                    if news_item['title'] and news_item['url']:
+                        news_items.append(news_item)
+                    
+                    # Check for nested news items structure
+                    if hasattr(entry, 'ht_news_item'):
+                        items = []
+                        if isinstance(entry.ht_news_item, list):
+                            items = entry.ht_news_item
+                        elif isinstance(entry.ht_news_item, dict):
+                            items = [entry.ht_news_item]
+                        elif hasattr(entry.ht_news_item, 'ht_news_item_title'):
+                            # Single news item object
+                            items = [entry.ht_news_item]
+                            
+                        for item in items:
+                            news_item = {
+                                'title': getattr(item, 'ht_news_item_title', '').strip(),
+                                'snippet': getattr(item, 'ht_news_item_snippet', '').strip(),
+                                'url': getattr(item, 'ht_news_item_url', ''),
+                                'picture': getattr(item, 'ht_news_item_picture', ''),
+                                'source': getattr(item, 'ht_news_item_source', 'News').strip()
+                            }
+                            if news_item['title'] and news_item['url']:
+                                news_items.append(news_item)
+                except Exception as e:
+                    print(f"Error processing news items for entry {entry.get('title', 'Unknown')}: {str(e)}")
                 
                 # Set the main image and source from the first news item if available
                 image_url = None
