@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - AI Content Platform</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/trending.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Nexus AI Platform</h1>
+            <p>AI-Powered Content Personalization</p>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="error-message" class="error-message hidden">
+            <strong>⚠️ Connection Error</strong>
+            <p id="error-text">Unable to connect to the server.</p>
+        </div>
+        
+        <!-- Session Warning for Anonymous Users -->
+        <div id="session-warning" class="session-warning hidden">
+            <strong>⚠️ Anonymous Session</strong>
+            <p>Your reading history is being saved with a session cookie. If you clear your cookies, you'll lose this data. <a href="#" id="register-link">Register</a> to save your history permanently.</p>
+        </div>
+        
+        <!-- Authentication Section -->
+        <div id="auth-section">
+            <!-- Dynamically loaded -->
+        </div>
+        
+        <!-- User Info Section -->
+        <div id="user-section" class="hidden">
+            <div class="user-info">
+                <h3 id="user-info">Welcome!</h3>
+                <button id="logout-btn">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div id="app">
+            <!-- Trending Topics Section -->
+            <div class="trending-section">
+                <h2>🔥 Trending in Canada</h2>
+                <div id="trending-topics">
+                    <p>Loading trending topics...</p>
+                </div>
+            </div>
+            
+            <!-- Reading History -->
+            <div>
+                <h2>Your Reading History</h2>
+                <div id="history">
+                    <p>Your viewed content will appear here...</p>
+                </div>
+            </div>
+            
+            <!-- Regular Content -->
+            <div>
+                <h2>All Topics</h2>
+                <div id="topics" class="topics">
+                    <p>Loading topics...</p>
+                </div>
+            </div>
+            
+            <div>
+                <h2>All Content</h2>
+                <div id="content">
+                    <p>Loading content...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/session.js"></script>
+    <script src="/static/js/content.js"></script>
+    <script src="/static/js/trending.js"></script>
+    <script src="/static/js/ui.js"></script>
+    
+    <!-- Main Application -->
+    <script>
+        // Global instances
+        window.auth = null;
+        window.sessionManager = null;
+        window.contentManager = null;
+        window.trendingManager = null;
+        window.uiManager = null;
+
+        // Initialize application
+        async function initializeApp() {
+            try {
+                // Initialize managers
+                window.auth = new AuthManager();
+                window.sessionManager = new SessionManager();
+                window.contentManager = new ContentManager();
+                window.trendingManager = new TrendingManager();
+                window.uiManager = new UIManager();
+
+                // Initialize UI
+                window.uiManager.initializeUI();
+
+                // Load initial data
+                await Promise.all([
+                    window.trendingManager.refreshAll(),
+                    window.contentManager.refresh(),
+                    window.sessionManager.loadHistory()
+                ]);
+
+                console.log('Nexus app initialized successfully');
+
+            } catch (error) {
+                console.error('Failed to initialize app:', error);
+                Utils.showError('Failed to initialize application: ' + error.message);
+            }
+        }
+
+        // Start the application when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Global event handlers
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'register-link') {
+                event.preventDefault();
+                window.uiManager.showRegister();
+            }
+        });
+    </script>
+</body>
+</html>
