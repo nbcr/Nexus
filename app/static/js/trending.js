@@ -38,7 +38,10 @@ class TrendingManager {
             return;
         }
 
-        container.innerHTML = this.enhancedTrends.map(trend => `
+        container.innerHTML = this.enhancedTrends.map(trend => {
+            console.log('Rendering trend:', trend);  // Debug log
+            
+            return `
             <div class="trending-card" onclick="this.classList.toggle('expanded')">
                 <div class="trending-card-header">
                     <div class="trending-image">
@@ -51,10 +54,15 @@ class TrendingManager {
                     ${trend.source !== 'News' ? `<span class="source-flair">${trend.source}</span>` : ''}
                 </div>
                 <div class="trending-card-content">
-                    ${trend.description ? `<p class="trending-description">${trend.description}</p>` : ''}
+                    ${trend.description ? 
+                        `<p class="trending-description">${trend.description}</p>` : 
+                        `<p class="trending-description">Trending topic in Canada</p>`
+                    }
                     ${trend.news_items && trend.news_items.length > 0 ? `
                         <div class="news-items">
-                            ${trend.news_items.map(news => `
+                            ${trend.news_items.map(news => {
+                                console.log('Rendering news item:', news);  // Debug log
+                                return `
                                 <div class="news-item">
                                     ${news.picture ? `
                                         <div class="news-item-image">
@@ -63,18 +71,19 @@ class TrendingManager {
                                     ` : ''}
                                     <div class="news-item-content">
                                         <h4>${news.title || 'News Update'}</h4>
-                                        ${news.snippet ? `<p>${news.snippet}</p>` : ''}
+                                        ${news.snippet ? `<p class="news-snippet">${news.snippet}</p>` : ''}
                                         <div class="news-source">
                                             <span class="source-name">${news.source}</span>
                                             <a href="${news.url}" target="_blank" class="source-link">Read More</a>
                                         </div>
                                     </div>
                                 </div>
-                            `).join('')}
+                            `}).join('')}
                         </div>
                     ` : ''}
                 </div>
-            </div>
+            </div>`;
+        }).join('');
         `).join('');
     }
 
