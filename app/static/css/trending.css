@@ -117,16 +117,6 @@
     line-height: 1.6;
     margin: 0 0 15px 0;
     font-size: 1em;
-    padding: 15px;
-    background: rgba(255,255,255,0.8);
-    border-radius: 8px;
-}
-
-.news-snippet {
-    color: #666;
-    line-height: 1.5;
-    margin: 8px 0;
-    font-size: 0.95em;
 }
 
 /* News Items Styles */
