@@ -26,12 +26,14 @@ async def refresh_trending_topics(
     try:
         saved_topics = await trending_service.save_trends_to_database(db)
         
+        # Always return the saved/updated topics even if empty
         if not saved_topics:
-            return {"message": "No new trends found or all trends already exist"}
+            print("Warning: No topics were saved or updated")
             
         return saved_topics
         
     except Exception as e:
+        print(f"Error in refresh_trending_topics: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to refresh trends: {str(e)}")
 
 @router.get("/current-trends", response_model=List[TopicSchema])
