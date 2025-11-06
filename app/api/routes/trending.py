@@ -104,7 +104,7 @@ async def get_enhanced_trends(
         
         if include_historical:
             # Get historical trends from database
-            from sqlalchemy import select, desc
+            from sqlalchemy import select, desc # pyright: ignore[reportMissingImports]
             from app.models import Topic
             
             # Calculate offset

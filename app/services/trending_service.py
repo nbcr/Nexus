@@ -196,6 +196,30 @@ class TrendingService:
             return trend_description
         return f"Trending topic in Canada: {trend_title}"
     
+    async def update_topic_news_items(self, db: AsyncSession, topic_id: int, news_items: List[Dict]) -> None:
+        """Update a topic's news items in the database"""
+        try:
+            # Create new content items for news updates
+            for news_item in news_items:
+                content_item = ContentItem(
+                    topic_id=topic_id,
+                    content_type="news_update",
+                    content_text=news_item.get('snippet', ''),
+                    ai_model_used="google_trends_news_v1",
+                    source_urls=[news_item.get('url', '')],
+                    is_published=True,
+                    source_metadata={
+                        'source': news_item.get('source', 'News'),
+                        'picture_url': news_item.get('picture', None),
+                        'title': news_item.get('title', '')
+                    }
+                )
+                db.add(content_item)
+            
+            await db.flush()
+        except Exception as e:
+            print(f"❌ Error updating news items for topic {topic_id}: {str(e)}")
+            
     async def save_trends_to_database(self, db: AsyncSession) -> List[Topic]:
         """Fetch trends and save them to database"""
         trends = await self.fetch_canada_trends()
@@ -211,7 +235,38 @@ class TrendingService:
                 )
                 existing_topic = result.scalar_one_or_none()
                 
-                if not existing_topic:
+                if existing_topic:
+                    # Update existing topic with new information
+                    existing_topic.title = trend_data['title']
+                    existing_topic.description = trend_data.get('description', '')
+                    existing_topic.category = trend_data.get('category', 'Trending')
+                    existing_topic.trend_score = trend_data.get('trend_score', 0.7)
+                    existing_topic.tags = trend_data.get('tags', ['trending', 'canada', 'google trends'])
+                    
+                    # Create new content item for updated news
+                    ai_summary = await self.generate_ai_summary(
+                        trend_data['title'], 
+                        trend_data.get('description', '')
+                    )
+                    
+                    content_item = ContentItem(
+                        topic_id=existing_topic.id,
+                        content_type="trending_analysis",
+                        content_text=ai_summary,
+                        ai_model_used="google_trends_analyzer_v1",
+                        source_urls=[trend_data.get('url', '')],
+                        is_published=True
+                    )
+                    db.add(content_item)
+                    
+                    # Update news items
+                    if trend_data.get('news_items'):
+                        await self.update_topic_news_items(db, existing_topic.id, trend_data['news_items'])
+                    
+                    saved_topics.append(existing_topic)
+                    print(f"🔄 Updated trend: {trend_data['title']} (Source: {trend_data['source']}")
+                else:
+                    # Create new topic
                     topic = Topic(
                         title=trend_data['title'],
                         normalized_title=normalized_title,
@@ -238,8 +293,12 @@ class TrendingService:
                     )
                     db.add(content_item)
                     
+                    # Add news items for new topic
+                    if trend_data.get('news_items'):
+                        await self.update_topic_news_items(db, topic.id, trend_data['news_items'])
+                    
                     saved_topics.append(topic)
-                    print(f"✅ Saved trend: {trend_data['title']} (Source: {trend_data['source']})")
+                    print(f"✅ Saved new trend: {trend_data['title']} (Source: {trend_data['source']}")
                     
             except Exception as e:
                 print(f"❌ Error saving trend '{trend_data['title']}': {e}")
