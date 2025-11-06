@@ -45,6 +45,7 @@
     align-items: flex-start;
     gap: 16px;
     padding: 20px;
+    padding-bottom: 32px; /* Added extra padding at bottom for the flair */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     position: relative;
@@ -94,10 +95,11 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: absolute;
-    top: 15px;
+    bottom: -12px;
     right: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     white-space: nowrap;
+    z-index: 1;
 }
 
 .trending-card-content {
