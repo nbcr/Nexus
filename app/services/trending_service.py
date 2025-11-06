@@ -199,6 +199,9 @@ class TrendingService:
     async def update_topic_news_items(self, db: AsyncSession, topic_id: int, news_items: List[Dict]) -> None:
         """Update a topic's news items in the database"""
         try:
+            print(f"Updating news items for topic {topic_id}")
+            print(f"Number of news items to add: {len(news_items)}")
+            
             # Create new content items for news updates
             for news_item in news_items:
                 content_item = ContentItem(
@@ -217,17 +220,32 @@ class TrendingService:
                 db.add(content_item)
             
             await db.flush()
+            print(f"✅ Successfully added news items for topic {topic_id}")
         except Exception as e:
             print(f"❌ Error updating news items for topic {topic_id}: {str(e)}")
+            print("Detailed error:", e.__class__.__name__, str(e))
+            raise
             
     async def save_trends_to_database(self, db: AsyncSession) -> List[Topic]:
         """Fetch trends and save them to database"""
+        print("Starting save_trends_to_database...")
         trends = await self.fetch_canada_trends()
+        print(f"Fetched {len(trends)} trends from Google Trends")
         saved_topics = []
         
+        if not trends:
+            print("Warning: No trends fetched from feed")
+            return []
+        
+        if not trends:
+            print("Warning: No trends fetched from Google Trends")
+            return []
+            
+        print(f"Processing {len(trends)} trends for database storage")
         for trend_data in trends:
             try:
                 normalized_title = trend_data['title'].lower().replace(' ', '_')[:190]
+                print(f"Processing trend: {trend_data['title']}")
                 
                 # Check if topic already exists
                 result = await db.execute(
@@ -236,12 +254,14 @@ class TrendingService:
                 existing_topic = result.scalar_one_or_none()
                 
                 if existing_topic:
+                    print(f"Updating existing topic: {existing_topic.title}")
                     # Update existing topic with new information
                     existing_topic.title = trend_data['title']
                     existing_topic.description = trend_data.get('description', '')
                     existing_topic.category = trend_data.get('category', 'Trending')
                     existing_topic.trend_score = trend_data.get('trend_score', 0.7)
                     existing_topic.tags = trend_data.get('tags', ['trending', 'canada', 'google trends'])
+                    await db.flush()  # Ensure updates are saved
                     
                     # Create new content item for updated news
                     ai_summary = await self.generate_ai_summary(
@@ -304,13 +324,23 @@ class TrendingService:
                 print(f"❌ Error saving trend '{trend_data['title']}': {e}")
                 continue
         
-        await db.commit()
-        
-        for topic in saved_topics:
-            await db.refresh(topic)
-        
-        print(f"🎯 Total trends saved to database: {len(saved_topics)}")
-        return saved_topics
+        try:
+            # Commit all changes
+            await db.commit()
+            print("✅ Successfully committed all changes to database")
+            
+            # Refresh all topics to ensure we have the latest data
+            for topic in saved_topics:
+                await db.refresh(topic)
+                print(f"✅ Refreshed topic: {topic.title}")
+            
+            print(f"🎯 Total trends saved/updated in database: {len(saved_topics)}")
+            return saved_topics
+            
+        except Exception as e:
+            print(f"❌ Error finalizing database transaction: {e}")
+            await db.rollback()
+            raise
 
 
 # Global instance
