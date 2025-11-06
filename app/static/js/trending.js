@@ -34,26 +34,41 @@ class TrendingManager {
                 `<img src="${trend.image_url}" alt="${trend.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'image-placeholder\\'></div>'">`
                 : '<div class="image-placeholder"></div>';
                 
-            const newsItemsHtml = Array.isArray(trend.news_items) && trend.news_items.length > 0 ? 
-                trend.news_items.map(news => {
-                    console.log('Processing news item:', news);
-                    const newsImageHtml = news.picture ? 
-                        `<div class="news-item-image">
-                            <img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none'; this.parentElement.style.display='none';">
-                        </div>` : '';
-                        
-                    return `<div class="news-item">
-                        ${newsImageHtml}
-                        <div class="news-item-content">
-                            <h4>${news.title || 'News Update'}</h4>
-                            ${news.snippet ? `<p>${news.snippet}</p>` : ''}
-                            <div class="news-source">
-                                <span class="source-name">${news.source}</span>
-                                <a href="${news.url}" target="_blank" class="source-link" onclick="event.stopPropagation()">Read More</a>
-                            </div>
+            // Create a default news item from the trend itself if no news items exist
+            const defaultNewsItem = {
+                title: trend.title,
+                snippet: trend.description || '',
+                url: trend.url,
+                picture: trend.image_url,
+                source: trend.source
+            };
+
+            // Use trend's own data if no news items are available
+            const newsItems = (Array.isArray(trend.news_items) && trend.news_items.length > 0) 
+                ? trend.news_items 
+                : [defaultNewsItem];
+
+            console.log('News items for rendering:', newsItems);
+
+            const newsItemsHtml = newsItems.map(news => {
+                console.log('Processing news item:', news);
+                const newsImageHtml = news.picture ? 
+                    `<div class="news-item-image">
+                        <img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                    </div>` : '';
+                    
+                return `<div class="news-item">
+                    ${newsImageHtml}
+                    <div class="news-item-content">
+                        <h4>${news.title || 'News Update'}</h4>
+                        ${news.snippet ? `<p>${news.snippet}</p>` : ''}
+                        <div class="news-source">
+                            ${news.source ? `<span class="source-name">${news.source}</span>` : ''}
+                            <a href="${news.url}" target="_blank" class="source-link" onclick="event.stopPropagation()">Read More</a>
                         </div>
-                    </div>`;
-                }).join('') : '<p>No additional details available</p>';
+                    </div>
+                </div>`;
+            }).join('');
 
             return `<div class="trending-card" onclick="this.classList.toggle('expanded')">
                 <div class="trending-card-header">
