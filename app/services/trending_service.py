@@ -23,66 +23,42 @@ class TrendingService:
             for entry in feed.entries[:15]:
                 print(f"Processing entry: {entry}")  # Debug log
                 
-                # Extract basic trend data
+                # Extract data from the Google Trends specific fields
                 title = getattr(entry, 'title', '').strip()
-                if not title:  # Skip entries without a title
-                    continue
-
-                # Extract news items first
-                news_items = []
+                description = (getattr(entry, 'ht_news_item_snippet', '') or 
+                             getattr(entry, 'summary', '') or 
+                             getattr(entry, 'description', ''))
+                url = getattr(entry, 'ht_news_item_url', '') or getattr(entry, 'link', '')
                 
-                # Look for news items in the feed entry
+                # Extract news items
+                news_items = []
                 if hasattr(entry, 'ht_news_item'):
-                    # Handle both single items and lists
-                    items = [entry.ht_news_item] if not isinstance(entry.ht_news_item, list) else entry.ht_news_item
+                    # Parse news items whether they're in a list or single item
+                    items = entry.ht_news_item if isinstance(entry.ht_news_item, list) else [entry.ht_news_item]
                     
                     for item in items:
-                        if hasattr(item, 'ht_news_item_title'):  # Only process valid news items
-                            news_item = {
-                                'title': getattr(item, 'ht_news_item_title', ''),
-                                'snippet': getattr(item, 'ht_news_item_snippet', ''),
-                                'url': getattr(item, 'ht_news_item_url', ''),
-                                'picture': getattr(item, 'ht_news_item_picture', ''),
-                                'source': getattr(item, 'ht_news_item_source', '')
-                            }
-                            if news_item['title'] and news_item['url']:
-                                news_items.append(news_item)
+                        news_item = {
+                            'title': getattr(item, 'ht_news_item_title', '').strip(),
+                            'snippet': getattr(item, 'ht_news_item_snippet', '').strip(),
+                            'url': getattr(item, 'ht_news_item_url', ''),
+                            'picture': getattr(item, 'ht_news_item_picture', ''),
+                            'source': getattr(item, 'ht_news_item_source', 'News').strip()
+                        }
+                        if news_item['title'] and news_item['url']:  # Only add if we have at least a title and URL
+                            news_items.append(news_item)
                 
-                # Set main trend properties
-                description = ''
+                # Set the main image and source from the first news item if available
                 image_url = None
                 source = 'News'
-                url = getattr(entry, 'link', '')
                 
-                # Use the first news item for the main trend display if available
                 if news_items:
                     first_news = news_items[0]
-                    description = first_news['snippet'] or getattr(entry, 'description', '') or getattr(entry, 'summary', '')
                     image_url = first_news['picture']
                     source = first_news['source']
-                    url = first_news['url']
-                    
-                    print(f"Processed trend: {title}")
-                    print(f"Description: {description}")
-                    print(f"News items: {len(news_items)}")
-                    print(f"First news item: {first_news}")
-                
-                # Ensure we have content for the trend
-                trend_data = {
-                    'title': title,
-                    'description': description,
-                    'url': url,
-                    'source': source,
-                    'image_url': image_url,
-                    'published': getattr(entry, 'published', ''),
-                    'trend_score': self._calculate_trend_score(entry),
-                    'category': self._extract_category(entry),
-                    'tags': self._extract_tags(entry),
-                    'news_items': news_items
-                }
-                
-                print(f"Final trend data: {trend_data}")
-                trends.append(trend_data)
+                else:
+                    # Fallback to entry-level ht: attributes if no news items
+                    image_url = getattr(entry, 'ht_picture', None)
+                    source = getattr(entry, 'ht_picture_source', 'News')
                 
                 trend_data = {
                     'title': title,
