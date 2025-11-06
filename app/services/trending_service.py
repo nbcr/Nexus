@@ -27,10 +27,9 @@ class TrendingService:
                 url = entry.get('link', '')
                 
                 # Extract Google Trends specific fields
-                news_items = self._extract_news_items(entry)
-                primary_news = news_items[0] if news_items else {}
-                source = primary_news.get('source', 'News')
-                image_url = primary_news.get('picture')
+                news_item = self._extract_news_item(entry)
+                source = news_item.get('source', 'News')
+                image_url = news_item.get('picture')
                 
                 trend_data = {
                     'title': title,
@@ -41,14 +40,7 @@ class TrendingService:
                     'published': entry.get('published', ''),
                     'trend_score': self._calculate_trend_score(entry),
                     'category': self._extract_category(entry),
-                    'tags': self._extract_tags(entry),
-                    'news_items': [{
-                        'title': item.get('title', ''),
-                        'source': item.get('source', 'News'),
-                        'url': item.get('url', ''),
-                        'picture': item.get('picture'),
-                        'snippet': item.get('snippet', '')
-                    } for item in news_items]
+                    'tags': self._extract_tags(entry)
                 }
                 trends.append(trend_data)
             
@@ -59,45 +51,25 @@ class TrendingService:
             print(f"❌ Error fetching Google Trends: {e}")
             return []
     
-    def _extract_news_items(self, entry) -> List[Dict]:
-        """Extract all news items from Google Trends entry"""
-        news_items = []
+    def _extract_news_item(self, entry) -> Dict:
+        """Extract news item data from Google Trends entry"""
+        news_item = {
+            'source': 'News',
+            'picture': None
+        }
         
-        # Handle ht_news_item as list
-        if hasattr(entry, 'ht_news_item'):
-            if isinstance(entry.ht_news_item, list):
-                for item in entry.ht_news_item:
-                    news_item = {
-                        'title': getattr(item, 'ht_news_item_title', ''),
-                        'source': getattr(item, 'ht_news_item_source', 'News'),
-                        'url': getattr(item, 'ht_news_item_url', ''),
-                        'picture': getattr(item, 'ht_news_item_picture', None),
-                        'snippet': getattr(item, 'ht_news_item_snippet', '')
-                    }
-                    news_items.append(news_item)
-            else:
-                # Handle single news item
-                item = entry.ht_news_item
-                news_item = {
-                    'title': getattr(item, 'ht_news_item_title', ''),
-                    'source': getattr(item, 'ht_news_item_source', 'News'),
-                    'url': getattr(item, 'ht_news_item_url', ''),
-                    'picture': getattr(item, 'ht_news_item_picture', None),
-                    'snippet': getattr(item, 'ht_news_item_snippet', '')
-                }
-                news_items.append(news_item)
+        # Look for ht:news_item fields in the entry
+        if hasattr(entry, 'ht_news_item_source'):
+            news_item['source'] = entry.ht_news_item_source
+        elif hasattr(entry, 'news_item_source'):
+            news_item['source'] = entry.news_item_source
         
-        # If no news items found, create a default one from the entry itself
-        if not news_items:
-            news_items.append({
-                'title': entry.get('title', ''),
-                'source': 'News',
-                'url': entry.get('link', ''),
-                'picture': None,
-                'snippet': entry.get('summary', '')
-            })
+        if hasattr(entry, 'ht_news_item_picture'):
+            news_item['picture'] = entry.ht_news_item_picture
+        elif hasattr(entry, 'news_item_picture'):
+            news_item['picture'] = entry.news_item_picture
             
-        return news_items
+        return news_item
     
     def _calculate_trend_score(self, entry) -> float:
         """Calculate trend score based on position in feed"""
