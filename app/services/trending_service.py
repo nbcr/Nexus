@@ -24,9 +24,11 @@ class TrendingService:
                 print(f"Processing entry: {entry}")  # Debug log
                 
                 # Extract data from the Google Trends specific fields
-                title = entry.get('title', '').strip()
-                description = entry.get('ht_news_item_snippet', '') or entry.get('summary', '') or entry.get('description', '')
-                url = entry.get('ht_news_item_url', '') or entry.get('link', '')
+                title = getattr(entry, 'title', '').strip()
+                description = (getattr(entry, 'ht_news_item_snippet', '') or 
+                             getattr(entry, 'summary', '') or 
+                             getattr(entry, 'description', ''))
+                url = getattr(entry, 'ht_news_item_url', '') or getattr(entry, 'link', '')
                 
                 # Extract news items
                 news_items = []
@@ -36,11 +38,11 @@ class TrendingService:
                     
                     for item in items:
                         news_item = {
-                            'title': item.get('ht_news_item_title', '').strip(),
-                            'snippet': item.get('ht_news_item_snippet', '').strip(),
-                            'url': item.get('ht_news_item_url', ''),
-                            'picture': item.get('ht_news_item_picture', ''),
-                            'source': item.get('ht_news_item_source', 'News').strip()
+                            'title': getattr(item, 'ht_news_item_title', '').strip(),
+                            'snippet': getattr(item, 'ht_news_item_snippet', '').strip(),
+                            'url': getattr(item, 'ht_news_item_url', ''),
+                            'picture': getattr(item, 'ht_news_item_picture', ''),
+                            'source': getattr(item, 'ht_news_item_source', 'News').strip()
                         }
                         if news_item['title'] and news_item['url']:  # Only add if we have at least a title and URL
                             news_items.append(news_item)
