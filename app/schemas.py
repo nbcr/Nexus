@@ -100,6 +100,32 @@ class TopicWithContent(Topic):
 class ContentWithTopic(ContentItem):
     topic: Topic
 
+# User Profile Schemas
+class UserProfile(BaseModel):
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    social_links: Dict[str, str] = {}
+    expertise: List[str] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserPreferences(BaseModel):
+    interests: List[str] = []
+    preferred_categories: List[str] = []
+    reading_preferences: Dict[str, Any] = {}
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserStats(BaseModel):
+    total_interactions: int
+    content_views: int
+    topic_follows: int
+    average_engagement: float
+    favorite_categories: Dict[str, int]
+    activity_by_day: Dict[str, int]
+
+    model_config = ConfigDict(from_attributes=True)
+
 # User Interaction Schemas
 class UserInteractionResponse(BaseModel):
     id: int
