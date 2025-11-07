@@ -112,18 +112,17 @@ async def track_content_view(
 
 @router.get(
     "/history",
-    response_model=HistoryResponse,
+    response_model=List[HistoryResponse],
     responses={
         200: {"description": "Session history retrieved"},
         500: {"description": "Failed to load history"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def get_user_history(
     request: Request,
-    db: AsyncSession,
-    current_user: Optional[CurrentUser] = None
-) -> Dict[str, Any]:
+    current_user: Optional[CurrentUser] = None,
+    db: AsyncSession = Depends(get_db)
+) -> List[HistoryResponse]:
     """
     Get viewing history for current session.
     
@@ -144,10 +143,7 @@ async def get_user_history(
     
     try:
         history = await get_session_history(db, session_token)
-        
-        response = {
-            "history": history,
-            "session_token": session_token,
+        return history, {
             "is_anonymous": current_user is None
         }
         
@@ -172,13 +168,12 @@ async def get_user_history(
         200: {"description": "Session successfully migrated"},
         404: {"description": "User not found"},
         500: {"description": "Migration failed"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def migrate_session_to_user_account(
     request: Request,
-    db: AsyncSession,
-    user_id: int = Path(..., ge=1)
+    user_id: int = Path(..., ge=1),
+    db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Migrate anonymous session history to a registered user.
