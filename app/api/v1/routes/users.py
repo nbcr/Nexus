@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from app.api.v1.deps import get_db, CurrentUser, ActiveUser
+from app.api.v1.deps import get_db, get_current_user, get_current_active_user
 from app.models import User, UserInteraction, UserInterestProfile
 from app.schemas import (
     UserResponse,
@@ -41,8 +41,8 @@ router = APIRouter()
     }
 )
 async def get_current_user_profile(
-    current_user: CurrentUser
-) -> User:
+    current_user: User = Depends(get_current_user)
+) -> UserResponse:
     """
     Get the current user's profile.
     
@@ -61,14 +61,13 @@ async def get_current_user_profile(
         200: {"description": "Profile updated successfully"},
         401: {"description": "Not authenticated"},
         400: {"description": "Invalid update data"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def update_current_user(
     update_data: UserUpdate,
-    current_user: ActiveUser,
-    db: AsyncSession
-) -> User:
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> UserResponse:
     """
     Update the current user's profile.
     
@@ -121,16 +120,15 @@ async def update_current_user(
     responses={
         200: {"description": "User's content interactions"},
         401: {"description": "Not authenticated"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def get_user_interactions(
-    current_user: ActiveUser,
-    db: AsyncSession,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    interaction_type: Optional[str] = Query(None)
-) -> List[UserInteraction]:
+    interaction_type: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> List[UserInteractionResponse]:
     """
     Get the current user's content interactions.
     
@@ -160,13 +158,12 @@ async def get_user_interactions(
     responses={
         200: {"description": "User's preferences"},
         401: {"description": "Not authenticated"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def get_user_preferences_endpoint(
-    current_user: ActiveUser,
-    db: AsyncSession
-) -> Dict[str, Any]:
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> UserPreferences:
     """
     Get the current user's preferences.
     
@@ -186,14 +183,13 @@ async def get_user_preferences_endpoint(
         200: {"description": "Preferences updated successfully"},
         401: {"description": "Not authenticated"},
         400: {"description": "Invalid preferences data"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def update_user_preferences(
     preferences: UserPreferences,
-    current_user: ActiveUser,
-    db: AsyncSession
-) -> Dict[str, Any]:
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> UserPreferences:
     """
     Update the current user's preferences.
     
@@ -235,14 +231,13 @@ async def update_user_preferences(
     responses={
         200: {"description": "User's activity statistics"},
         401: {"description": "Not authenticated"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def get_user_statistics(
-    current_user: ActiveUser,
-    db: AsyncSession,
-    timeframe: str = Query("30d", pattern="^(24h|7d|30d|all)$")
-) -> Dict[str, Any]:
+    timeframe: str = Query("30d", pattern="^(24h|7d|30d|all)$"),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> UserStats:
     """
     Get the current user's activity statistics.
     
@@ -262,12 +257,11 @@ async def get_user_statistics(
     responses={
         204: {"description": "Account deleted successfully"},
         401: {"description": "Not authenticated"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def delete_account(
-    current_user: ActiveUser,
-    db: AsyncSession
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Delete the current user's account.
