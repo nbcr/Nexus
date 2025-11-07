@@ -74,6 +74,17 @@ class TopicWithContent(Topic):
 class ContentWithTopic(ContentItem):
     topic: Topic
 
+# User Interaction Schemas
+class UserInteractionResponse(BaseModel):
+    id: int
+    user_id: int
+    content_id: int
+    interaction_type: str
+    created_at: datetime
+    content: Optional[ContentWithTopic] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 # Authentication Schemas
 class Token(BaseModel):
     access_token: str
@@ -126,15 +137,5 @@ class EnhancedTrendResponse(TrendingResponse):
     engagement_score: float
     top_content: Optional[List[ContentWithTopic]] = []
     related_topics: Optional[List[Topic]] = []
-
-    model_config = ConfigDict(from_attributes=True)
-    expires_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-class HistoryResponse(BaseModel):
-    interaction_type: str
-    content: ContentWithTopic
-    timestamp: datetime
 
     model_config = ConfigDict(from_attributes=True)
