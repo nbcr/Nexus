@@ -58,14 +58,13 @@ def get_session_token(
         200: {"description": "View tracked successfully"},
         404: {"description": "Content not found"},
         500: {"description": "Tracking failed"}
-    },
-    dependencies=[Depends(get_db)]
+    }
 )
 async def track_content_view(
     request: Request,
     response: Response,
-    db: AsyncSession,
-    content_id: int = Path(..., ge=1, description="ID of the content being viewed")
+    content_id: int = Path(..., ge=1, description="ID of the content being viewed"),
+    db: AsyncSession = Depends(get_db)
 ) -> Dict[str, str]:
     """
     Track when a user views content.
