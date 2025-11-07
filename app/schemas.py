@@ -47,6 +47,32 @@ class ContentItem(ContentItemBase):
     created_at: datetime
     updated_at: datetime
 
+# User Preference Schemas
+class UserPreferences(BaseModel):
+    interests: List[str] = []
+    preferred_categories: List[str] = []
+    reading_preferences: Dict[str, Any] = {}
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserProfile(BaseModel):
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    social_links: Dict[str, str] = {}
+    expertise: List[str] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserStats(BaseModel):
+    total_interactions: int = 0
+    content_views: int = 0
+    topic_follows: int = 0
+    average_engagement: float = 0.0
+    favorite_categories: List[str] = []
+    activity_by_day: Dict[str, int] = {}
+
+    model_config = ConfigDict(from_attributes=True)
+
 # User Schemas
 class UserBase(BaseModel):
     username: str
