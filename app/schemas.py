@@ -108,3 +108,33 @@ class HistoryResponse(BaseModel):
     timestamp: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+# Trending Schemas
+class TrendingResponse(BaseModel):
+    topic: Topic
+    score: float
+    rank: int
+    content_count: int
+    recent_views: int
+    trend_direction: str  # "up", "down", or "stable"
+
+    model_config = ConfigDict(from_attributes=True)
+
+class EnhancedTrendResponse(TrendingResponse):
+    interaction_rate: float
+    velocity: float  # rate of score change
+    engagement_score: float
+    top_content: Optional[List[ContentWithTopic]] = []
+    related_topics: Optional[List[Topic]] = []
+
+    model_config = ConfigDict(from_attributes=True)
+    expires_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class HistoryResponse(BaseModel):
+    interaction_type: str
+    content: ContentWithTopic
+    timestamp: datetime
+
+    model_config = ConfigDict(from_attributes=True)
