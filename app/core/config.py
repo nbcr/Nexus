@@ -5,6 +5,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 DOTENV_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
 
 class Settings(BaseSettings):
+    # Project Info
+    PROJECT_NAME: str = "Nexus"
+    VERSION: str = "0.1.0"
+    API_V1_STR: str = "/api/v1"
+    
     # Environment
     environment: str = "development"
     debug: bool = True
@@ -17,10 +22,19 @@ class Settings(BaseSettings):
     database_url: str
     database_url_sync: str
     
+    # Redis (for Celery if needed)
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
     # Security
     secret_key: str = "your-secret-key-change-this-in-production"
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost:3000", 
+        "http://localhost:8000",
+        "https://nexus.comdat.ca",
+        "https://api.test.comdat.ca"
+    ]
 
-    # Use the new configuration style for Pydantic V2 [citation:6]
+    # Use the new configuration style for Pydantic V2
     model_config = SettingsConfigDict(
         env_file=DOTENV_PATH,
         case_sensitive=False  # If you want environment variables to be case-insensitive
