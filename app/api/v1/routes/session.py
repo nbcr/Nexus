@@ -12,7 +12,8 @@ from typing import Optional, Dict, List, Any
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.deps import get_db, CurrentUser
+from app.api.v1.deps import get_db, get_current_user
+from app.models import User
 from app.services.session_service import (
     create_anonymous_session,
     track_content_interaction,
@@ -112,7 +113,7 @@ async def track_content_view(
 
 @router.get(
     "/history",
-    response_model=List[HistoryResponse],
+    response_model=Dict[str, Any],
     responses={
         200: {"description": "Session history retrieved"},
         500: {"description": "Failed to load history"}
@@ -120,9 +121,9 @@ async def track_content_view(
 )
 async def get_user_history(
     request: Request,
-    current_user: Optional[CurrentUser] = None,
-    db: AsyncSession = Depends(get_db)
-) -> List[HistoryResponse]:
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user)
+) -> Dict[str, Any]:
     """
     Get viewing history for current session.
     
