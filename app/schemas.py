@@ -91,3 +91,20 @@ class UserResponse(UserBase):
     is_active: bool
     
     model_config = ConfigDict(from_attributes=True)
+
+# Session Schemas
+class SessionResponse(BaseModel):
+    session_token: str
+    user_id: Optional[int] = None
+    created_at: datetime
+    last_activity: datetime
+    expires_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class HistoryResponse(BaseModel):
+    interaction_type: str
+    content: ContentWithTopic
+    timestamp: datetime
+
+    model_config = ConfigDict(from_attributes=True)
