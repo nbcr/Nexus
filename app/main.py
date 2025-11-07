@@ -8,22 +8,18 @@ from app.core.config import settings
 
 # Create FastAPI application
 app = FastAPI(
-    title="Nexus API",
+    title=settings.PROJECT_NAME,
     description="AI-Powered Content Personalization Engine",
-    version="1.0.0",
+    version=settings.VERSION,
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://127.0.0.1:8000",
-        "http://localhost:8000", 
-        "https://api.test.comdat.ca",
-        "https://test.comdat.ca"
-    ],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,12 +29,12 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Include routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
-app.include_router(session.router, prefix="/api/v1/session", tags=["session"])
-app.include_router(trending.router, prefix="/api/v1/trending", tags=["trending"])
-app.include_router(topics.router, prefix="/api/v1/topics", tags=["topics"])
-app.include_router(content.router, prefix="/api/v1/content", tags=["content"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"])
+app.include_router(session.router, prefix=f"{settings.API_V1_STR}/session", tags=["session"])
+app.include_router(trending.router, prefix=f"{settings.API_V1_STR}/trending", tags=["trending"])
+app.include_router(topics.router, prefix=f"{settings.API_V1_STR}/topics", tags=["topics"])
+app.include_router(content.router, prefix=f"{settings.API_V1_STR}/content", tags=["content"])
+app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
 
 @app.get("/")
 async def root():
