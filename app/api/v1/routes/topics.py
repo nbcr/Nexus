@@ -7,11 +7,12 @@ This module handles topic management endpoints:
 - Create new topics
 - Get content associated with topics
 """
-from fastapi import APIRouter, HTTPException, Path, Query, status
+from fastapi import APIRouter, HTTPException, Path, Query, status, Depends
 from sqlalchemy import select
 from typing import List, Optional, Dict, Any
 
-from app.api.v1.deps import DbSession
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.api.v1.deps import get_db
 from app.models import Topic, ContentItem
 from app.schemas import (
     Topic as TopicSchema,
@@ -46,8 +47,8 @@ async def get_topics(
     limit: int = Query(20, ge=1, le=100, description="Maximum number of topics to return"),
     category: Optional[str] = Query(None, description="Filter topics by category"),
     min_trend_score: Optional[float] = Query(None, ge=0, le=1, description="Minimum trend score"),
-    db: DbSession = None
-) -> List[Topic]:
+    db: AsyncSession = Depends(get_db)
+) -> List[TopicSchema]:
     """
     Get all topics with optional filtering and pagination.
     
@@ -84,8 +85,8 @@ async def get_topics(
 async def get_topic(
     topic_id: int = Path(..., ge=1),
     include_unpublished: bool = Query(False, description="Include unpublished content items"),
-    db: DbSession = None
-) -> Topic:
+    db: AsyncSession = Depends(get_db)
+) -> TopicWithContent:
     """
     Get a specific topic with its associated content.
     
@@ -131,8 +132,8 @@ async def get_topic(
 )
 async def create_topic(
     topic_data: TopicCreate,
-    db: DbSession
-) -> Topic:
+    db: AsyncSession = Depends(get_db)
+) -> TopicSchema:
     """
     Create a new topic.
     
@@ -184,8 +185,8 @@ async def get_topic_content(
     include_unpublished: bool = Query(False, description="Include unpublished content items"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    db: DbSession = None
-) -> List[ContentItem]:
+    db: AsyncSession = Depends(get_db)
+) -> List[ContentItemSchema]:
     """
     Get content items for a specific topic.
     

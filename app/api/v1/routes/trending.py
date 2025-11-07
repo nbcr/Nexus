@@ -12,7 +12,7 @@ from sqlalchemy import select, desc, func
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 
-from app.api.v1.deps import DbSession, CurrentUser
+from app.api.v1.deps import get_db, get_current_user
 from app.services.trending_service import trending_service
 from app.schemas import (
     Topic as TopicSchema,
@@ -37,8 +37,8 @@ router = APIRouter()
 async def refresh_trending_topics(
     background_tasks: BackgroundTasks,
     force: bool = Body(False, description="Force immediate refresh"),
-    db: DbSession = None
-) -> List[Topic]:
+    db: AsyncSession = Depends(get_db)
+) -> List[TopicSchema]:
     """
     Fetch and save the latest trending topics.
     
@@ -88,8 +88,8 @@ async def get_current_trends(
     limit: int = Query(20, ge=1, le=100),
     min_score: float = Query(0.5, ge=0.0, le=1.0),
     category: Optional[str] = Query(None),
-    db: DbSession = None
-) -> List[Topic]:
+    db: AsyncSession = Depends(get_db)
+) -> List[TopicSchema]:
     """
     Get currently trending topics from database.
     
@@ -140,8 +140,8 @@ async def get_trending_content(
     limit: int = Query(10, ge=1, le=50),
     min_score: float = Query(0.5, ge=0.0, le=1.0),
     content_type: Optional[str] = Query(None),
-    db: DbSession = None
-) -> List[dict]:
+    db: AsyncSession = Depends(get_db)
+) -> List[ContentWithTopic]:
     """
     Get content items for trending topics.
     
@@ -202,9 +202,9 @@ async def get_enhanced_trends(
     page_size: int = Query(10, ge=1, le=50, description="Items per page"),
     include_historical: bool = Query(False, description="Include historical trend data"),
     timeframe: str = Query("24h", regex="^(24h|7d|30d)$", description="Timeframe for analytics"),
-    db: DbSession = None,
-    current_user: Optional[CurrentUser] = None
-) -> List[Dict[str, Any]]:
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user)
+) -> List[EnhancedTrendResponse]:
     """
     Get trending topics with enhanced data (images, sources, analytics).
     
