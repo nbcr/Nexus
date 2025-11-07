@@ -7,8 +7,9 @@ This module handles trending topics and content:
 - Getting trending content
 - Enhanced trend data with analytics
 """
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, status, Body
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query, status, Body, Depends
 from sqlalchemy import select, desc, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 
