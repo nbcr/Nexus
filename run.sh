@@ -7,7 +7,7 @@ cd /home/admin/nexus
 source venv/bin/activate
 
 # Create logs directory if it doesn't exist
-mkdir -p logs
+/bin/mkdir -p logs
 
 # Start Gunicorn with configuration
 exec gunicorn -c gunicorn_conf.py app.main:app
