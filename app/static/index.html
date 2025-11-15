@@ -3,51 +3,362 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus - AI Content Platform</title>
+    <title>Nexus - Your Personalized News Feed</title>
     <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/trending.css">
+    <link rel="stylesheet" href="/static/css/feed.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .main-header {
+            background: #007bff;
+            color: #fff;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .main-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .main-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .main-header nav {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .main-header nav a,
+        .main-header nav button {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .main-header nav a:hover,
+        .main-header nav a.active,
+        .main-header nav button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feed-controls {
+            max-width: 800px;
+            margin: 24px auto 24px;
+            padding: 0 20px;
+        }
+        
+        .feed-controls h2 {
+            margin: 0 0 16px 0;
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .category-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .category-btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .category-btn.active {
+            background: #007bff;
+            color: #fff;
+            border-color: #007bff;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            background: #f8f9fa;
+            margin-top: 60px;
+        }
+        
+        /* Modal Styles */
+        .content-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .modal-content {
+            position: relative;
+            background: #fff;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+        
+        .modal-close {
+            position: sticky;
+            top: 10px;
+            right: 10px;
+            float: right;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1002;
+        }
+        
+        .modal-close:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .modal-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-content h1 {
+            padding: 20px 20px 10px;
+            margin: 0;
+        }
+        
+        .modal-meta {
+            padding: 0 20px 10px;
+            display: flex;
+            gap: 12px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .main-header .container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .main-header nav {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Nexus AI Platform</h1>
-            <p>AI-Powered Content Personalization</p>
+    <header class="main-header">
+        <div class="container">
+            <h1>🚀 Nexus</h1>
+            <nav>
+                <span id="user-welcome" style="display: none;"></span>
+                <a href="/" class="active">Feed</a>
+                <button id="auth-btn" onclick="handleAuth()">Login</button>
+            </nav>
         </div>
-        
-        <!-- Error Message -->
-        <div id="error-message" class="error-message hidden">
-            <strong>⚠️ Connection Error</strong>
-            <p id="error-text">Unable to connect to the server.</p>
-        </div>
-        
-        <!-- Session Warning for Anonymous Users -->
-        <div id="session-warning" class="session-warning hidden">
-            <strong>⚠️ Anonymous Session</strong>
-            <p>Your reading history is being saved with a session cookie. If you clear your cookies, you'll lose this data. <a href="#" id="register-link">Register</a> to save your history permanently.</p>
-        </div>
-        
-        <!-- Authentication Section -->
-        <div id="auth-section">
-            <!-- Dynamically loaded -->
-        </div>
-        
-        <!-- User Info Section -->
-        <div id="user-section" class="hidden">
-            <div class="user-info">
-                <h3 id="user-info">Welcome!</h3>
-                <button id="logout-btn">Logout</button>
+    </header>
+
+    <main>
+        <!-- Category Filter -->
+        <div class="feed-controls">
+            <h2>Your Personalized Feed</h2>
+            <div class="category-filter" id="category-filter">
+                <button class="category-btn active" data-category="">All</button>
+                <button class="category-btn" data-category="Technology">Technology</button>
+                <button class="category-btn" data-category="Business">Business</button>
+                <button class="category-btn" data-category="Entertainment">Entertainment</button>
+                <button class="category-btn" data-category="Sports">Sports</button>
+                <button class="category-btn" data-category="Health">Health</button>
+                <button class="category-btn" data-category="Politics">Politics</button>
             </div>
         </div>
+
+        <!-- Feed Container -->
+        <div id="feed-container"></div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Nexus. Powered by Google Trends.</p>
+    </footer>
+
+    <script src="/static/js/feed.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        let feed;
+        let currentUser = null;
         
-        <!-- Main Content -->
-        <div id="app">
-            <!-- Trending Topics Section -->
-            <div class="trending-section">
-                <h2>🔥 Trending in Canada</h2>
-                <div id="trending-topics">
-                    <p>Loading trending topics...</p>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create the infinite feed
+            feed = new InfiniteFeed('feed-container', {
+                pageSize: 20,
+                isPersonalized: true,
+                onContentClick: function(item) {
+                    showContentModal(item);
+                }
+            });
+            
+            // Setup category filter
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.dataset.category;
+                    feed.setCategory(category || null);
+                });
+            });
+            
+            // Check authentication status
+            checkAuthStatus();
+        });
+        
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/v1/auth/me', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    document.getElementById('user-welcome').textContent = `Welcome, ${currentUser.username}!`;
+                    document.getElementById('user-welcome').style.display = 'inline';
+                    document.getElementById('auth-btn').textContent = 'Logout';
+                    document.getElementById('auth-btn').onclick = handleLogout;
+                }
+            } catch (error) {
+                // User not authenticated
+            }
+        }
+        
+        function handleAuth() {
+            if (currentUser) {
+                handleLogout();
+            } else {
+                window.location.href = '/static/login.html';
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                // Clear cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                currentUser = null;
+                document.getElementById('user-welcome').style.display = 'none';
+                document.getElementById('auth-btn').textContent = 'Login';
+                document.getElementById('auth-btn').onclick = handleAuth;
+                
+                // Reload feed
+                feed.reset();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+        
+        function showContentModal(item) {
+            const modal = document.createElement('div');
+            modal.className = 'content-modal';
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="closeModal(this.parentElement)"></div>
+                <div class="modal-content">
+                    <button class="modal-close" onclick="closeModal(this.closest('.content-modal'))">
+                        &times;
+                    </button>
+                    ${item.source_metadata?.picture_url ? `
+                        <img src="${item.source_metadata.picture_url}" alt="${item.title}" 
+                             class="modal-image">
+                    ` : ''}
+                    <h1>${item.title}</h1>
+                    <div class="modal-meta">
+                        <span>${item.category || 'Trending'}</span>
+                        <span>${item.source_metadata?.source || 'News'}</span>
+                    </div>
+                    <div class="modal-body">
+                        ${item.description ? `<p><strong>${item.description}</strong></p>` : ''}
+                        <p>${item.content_text}</p>
+                        ${item.source_urls && item.source_urls.length > 0 ? `
+                            <p>
+                                <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
+                                   class="btn-source">
+                                    Read Full Article &rarr;
+                                </a>
+                            </p>
+                        ` : ''}
+                    </div>
                 </div>
-            </div>
+            `;
+            
+            document.body.appendChild(modal);
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal(modal) {
+            modal.remove();
+            document.body.style.overflow = '';
+        }
+    </script>
+</body>
+</html>
             
         </div>
     </div>
