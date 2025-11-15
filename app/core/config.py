@@ -19,8 +19,8 @@ class Settings(BaseSettings):
     api_port: int = 8000
     
     # Database
-    database_url: str
-    database_url_sync: str
+    database_url: str = "postgresql+asyncpg://localhost:5432/nexus"
+    database_url_sync: str = "postgresql://localhost:5432/nexus"
     
     # Redis (for Celery if needed)
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -37,7 +37,8 @@ class Settings(BaseSettings):
     # Use the new configuration style for Pydantic V2
     model_config = SettingsConfigDict(
         env_file=DOTENV_PATH,
-        case_sensitive=False  # If you want environment variables to be case-insensitive
+        case_sensitive=False,  # If you want environment variables to be case-insensitive
+        extra='ignore'  # Ignore extra fields from .env file
     )
 
 settings = Settings()
