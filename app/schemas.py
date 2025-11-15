@@ -26,16 +26,22 @@ class Topic(TopicBase):
 
 # Content Item Schemas
 class ContentItemBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[List[str]] = []
     content_type: str
     content_text: str
     ai_model_used: str
     source_urls: Optional[List[str]] = []
+    source_metadata: Optional[Dict[str, Any]] = {}
     is_published: bool = False
 
 class ContentItemCreate(ContentItemBase):
     topic_id: int
 
 class ContentItemUpdate(ContentItemBase):
+    title: Optional[str] = None
     content_type: Optional[str] = None
     content_text: Optional[str] = None
 

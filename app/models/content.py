@@ -10,6 +10,10 @@ class ContentItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     topic_id = Column(Integer, ForeignKey("topics.id"))
+    title = Column(String(500))
+    description = Column(Text, nullable=True)
+    category = Column(String(100), nullable=True)
+    tags = Column(JSON, default=list)
     content_type = Column(String(50))
     content_text = Column(Text)
     ai_model_used = Column(String(100))
