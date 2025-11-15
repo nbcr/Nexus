@@ -12,8 +12,8 @@ fi
 cp .env .env.backup
 echo "✅ Backed up .env to .env.backup"
 
-# Replace postgresql:// with postgresql+asyncpg://
-sed -i 's|DATABASE_URL=postgresql://|DATABASE_URL=postgresql+asyncpg://|g' .env
+# Replace postgresql:// with postgresql+asyncpg:// (handles spaces and comments)
+sed -i 's|postgresql://|postgresql+asyncpg://|g' .env
 
 echo "✅ Fixed DATABASE_URL"
 echo ""
