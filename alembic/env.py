@@ -31,7 +31,18 @@ config = context.config
 # Override sqlalchemy.url from environment variable if set
 database_url = os.getenv('DATABASE_URL')
 if database_url:
+    # Convert async URL to sync URL for Alembic
+    if 'postgresql+asyncpg://' in database_url:
+        database_url = database_url.replace('postgresql+asyncpg://', 'postgresql://')
     config.set_main_option('sqlalchemy.url', database_url)
+else:
+    # Try to get from app config
+    try:
+        from app.core.config import settings
+        sync_url = settings.database_url_sync
+        config.set_main_option('sqlalchemy.url', sync_url)
+    except:
+        pass
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
