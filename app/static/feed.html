@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Your Personalized News Feed</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/feed.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <h1>Nexus</h1>
+            <nav>
+                <a href="/" class="active">Feed</a>
+                <a href="/trending">Trending</a>
+                <a href="/login" id="auth-link">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Category Filter -->
+        <div class="feed-controls">
+            <h2>Your Personalized Feed</h2>
+            <div class="category-filter" id="category-filter">
+                <button class="category-btn active" data-category="">All</button>
+                <button class="category-btn" data-category="Technology">Technology</button>
+                <button class="category-btn" data-category="Business">Business</button>
+                <button class="category-btn" data-category="Entertainment">Entertainment</button>
+                <button class="category-btn" data-category="Sports">Sports</button>
+                <button class="category-btn" data-category="Health">Health</button>
+                <button class="category-btn" data-category="Politics">Politics</button>
+            </div>
+        </div>
+
+        <!-- Feed Container -->
+        <div id="feed-container"></div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Nexus. Powered by Google Trends.</p>
+    </footer>
+
+    <script src="/static/js/feed.js"></script>
+    <script>
+        // Initialize the feed
+        let feed;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create the infinite feed
+            feed = new InfiniteFeed('feed-container', {
+                pageSize: 20,
+                isPersonalized: true,
+                onContentClick: function(item) {
+                    // Custom handler - you can open a modal, navigate to a page, etc.
+                    showContentModal(item);
+                }
+            });
+            
+            // Setup category filter
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update feed category
+                    const category = this.dataset.category;
+                    feed.setCategory(category || null);
+                });
+            });
+            
+            // Check authentication status
+            checkAuthStatus();
+        });
+        
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/v1/auth/me', {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('auth-link').textContent = user.username;
+                    document.getElementById('auth-link').href = '/profile';
+                }
+            } catch (error) {
+                // User not authenticated, keep default
+            }
+        }
+        
+        function showContentModal(item) {
+            // Create a modal to display full content
+            const modal = document.createElement('div');
+            modal.className = 'content-modal';
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+                <div class="modal-content">
+                    <button class="modal-close" onclick="this.closest('.content-modal').remove()">
+                        &times;
+                    </button>
+                    ${item.source_metadata?.picture_url ? `
+                        <img src="${item.source_metadata.picture_url}" alt="${item.title}" 
+                             class="modal-image">
+                    ` : ''}
+                    <h1>${item.title}</h1>
+                    <div class="modal-meta">
+                        <span>${item.category || 'Trending'}</span>
+                        <span>${item.source_metadata?.source || 'News'}</span>
+                    </div>
+                    <div class="modal-body">
+                        ${item.description ? `<p><strong>${item.description}</strong></p>` : ''}
+                        <p>${item.content_text}</p>
+                        ${item.source_urls && item.source_urls.length > 0 ? `
+                            <p>
+                                <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
+                                   class="btn-source">
+                                    Read Full Article &rarr;
+                                </a>
+                            </p>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            document.body.style.overflow = 'hidden';
+        }
+    </script>
+    
+    <style>
+        /* Modal Styles */
+        .content-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .modal-content {
+            position: relative;
+            background: #fff;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+        
+        .modal-close {
+            position: sticky;
+            top: 10px;
+            right: 10px;
+            float: right;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1002;
+        }
+        
+        .modal-close:hover {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        
+        .modal-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-content h1 {
+            padding: 20px 20px 10px;
+            margin: 0;
+        }
+        
+        .modal-meta {
+            padding: 0 20px 10px;
+            display: flex;
+            gap: 12px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .main-header {
+            background: #007bff;
+            color: #fff;
+            padding: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .main-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .main-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .main-header nav {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .main-header nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        
+        .main-header nav a:hover,
+        .main-header nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feed-controls h2 {
+            margin: 20px 0 16px;
+            font-size: 24px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            background: #f8f9fa;
+            margin-top: 60px;
+        }
+    </style>
+</body>
+</html>

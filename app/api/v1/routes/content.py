@@ -2,30 +2,155 @@
 Content Router
 
 This module handles content-related endpoints including:
+- Personalized infinite scroll feed
 - List all content items (with pagination)
 - Get specific content item details
 - List content items by topic
 """
-from fastapi import APIRouter, HTTPException, Depends, Query, Path
+from fastapi import APIRouter, HTTPException, Depends, Query, Path, Request, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import List, Annotated
+from typing import List, Annotated, Optional
 
 from app.database import AsyncSessionLocal
-from app.models import ContentItem, Topic
+from app.models import ContentItem, Topic, User
 from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic
+from app.services.content_recommendation import recommendation_service
+from app.api.v1.deps import get_db, get_current_user
 
 # Router Configuration
 router = APIRouter()
 
-# Dependencies
-async def get_db() -> AsyncSession:
-    """Dependency for database session management."""
-    async with AsyncSessionLocal() as session:
+@router.get(
+    "/feed",
+    responses={
+        200: {"description": "Personalized content feed"},
+        400: {"description": "Invalid pagination parameters"}
+    }
+)
+async def get_personalized_feed(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+    category: Optional[str] = Query(None, description="Filter by category"),
+    exclude_ids: Optional[str] = Query(None, description="Comma-separated list of content IDs to exclude"),
+    current_user: Optional[User] = Depends(get_current_user),
+    nexus_session: Optional[str] = Cookie(default=None)
+):
+    """
+    Get personalized content feed with infinite scroll support.
+    
+    This endpoint provides:
+    - Personalized recommendations based on user history
+    - Trending content from Google Trends
+    - Category filtering
+    - Infinite scroll pagination
+    - Exclusion of already-viewed content
+    
+    Args:
+        page: Page number (1-indexed)
+        page_size: Number of items per page (max 50)
+        category: Optional category filter
+        exclude_ids: Comma-separated list of content IDs already displayed
+        current_user: Authenticated user (optional)
+        nexus_session: Anonymous session cookie (optional)
+        db: Database session
+        
+    Returns:
+        List of content items with relevance scores
+    """
+    # Parse exclude_ids
+    excluded_ids = []
+    if exclude_ids:
         try:
-            yield session
-        finally:
-            await session.close()
+            excluded_ids = [int(id.strip()) for id in exclude_ids.split(',') if id.strip()]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
+    
+    # Get session token for anonymous users
+    session_token = nexus_session or request.cookies.get("nexus_session")
+    user_id = current_user.id if current_user else None
+    
+    # Get personalized feed
+    if category:
+        # If filtering by category, use trending feed
+        feed_items = await recommendation_service.get_trending_feed(
+            db=db,
+            page=page,
+            page_size=page_size,
+            category=category,
+            exclude_ids=excluded_ids
+        )
+    else:
+        # Use personalized feed
+        feed_items = await recommendation_service.get_personalized_feed(
+            db=db,
+            user_id=user_id,
+            session_token=session_token,
+            page=page,
+            page_size=page_size,
+            exclude_ids=excluded_ids
+        )
+    
+    return {
+        "page": page,
+        "page_size": page_size,
+        "items": feed_items,
+        "has_more": len(feed_items) == page_size,
+        "is_personalized": user_id is not None or session_token is not None
+    }
+
+@router.get(
+    "/trending-feed",
+    responses={
+        200: {"description": "Trending content feed"},
+        400: {"description": "Invalid pagination parameters"}
+    }
+)
+async def get_trending_feed_endpoint(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+    category: Optional[str] = Query(None, description="Filter by category"),
+    exclude_ids: Optional[str] = Query(None, description="Comma-separated list of content IDs to exclude")
+):
+    """
+    Get trending content feed (non-personalized).
+    
+    Args:
+        page: Page number (1-indexed)
+        page_size: Number of items per page (max 50)
+        category: Optional category filter
+        exclude_ids: Comma-separated list of content IDs already displayed
+        db: Database session
+        
+    Returns:
+        List of trending content items
+    """
+    # Parse exclude_ids
+    excluded_ids = []
+    if exclude_ids:
+        try:
+            excluded_ids = [int(id.strip()) for id in exclude_ids.split(',') if id.strip()]
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
+    
+    feed_items = await recommendation_service.get_trending_feed(
+        db=db,
+        page=page,
+        page_size=page_size,
+        category=category,
+        exclude_ids=excluded_ids
+    )
+    
+    return {
+        "page": page,
+        "page_size": page_size,
+        "items": feed_items,
+        "has_more": len(feed_items) == page_size
+    }
+
 
 @router.get(
     "/",

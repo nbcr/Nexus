@@ -1,0 +1,345 @@
+/* Infinite Scroll Feed Styles */
+
+#feed-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Feed Item */
+.feed-item {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feed-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.feed-item-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Feed Item Image */
+.feed-item-image {
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    background: #f5f5f5;
+}
+
+.feed-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Feed Item Body */
+.feed-item-body {
+    padding: 20px;
+}
+
+.feed-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.feed-item-category {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #007bff;
+    color: #fff;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.feed-item-relevance {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #28a745;
+    color: #fff;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.feed-item-source {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+}
+
+.feed-item-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: #1a1a1a;
+    line-height: 1.3;
+}
+
+.feed-item-description {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+    margin: 0 0 12px 0;
+}
+
+.feed-item-summary {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+
+/* Feed Item Actions */
+.feed-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-read-more,
+.btn-source {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.btn-read-more {
+    background: #007bff;
+    color: #fff;
+}
+
+.btn-read-more:hover {
+    background: #0056b3;
+}
+
+.btn-source {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-source:hover {
+    background: #e9ecef;
+}
+
+.feed-item-time {
+    font-size: 13px;
+    color: #999;
+    margin-left: auto;
+}
+
+/* Feed Item Tags */
+.feed-item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #f8f9fa;
+    color: #495057;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+/* Loading Indicator */
+.feed-loading {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 16px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.feed-loading p {
+    color: #666;
+    font-size: 16px;
+}
+
+/* End Message */
+.feed-end {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 16px;
+}
+
+/* Error Message */
+.feed-error {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.feed-error p {
+    color: #856404;
+    margin-bottom: 16px;
+}
+
+.feed-error button {
+    padding: 10px 24px;
+    background: #ffc107;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.feed-error button:hover {
+    background: #e0a800;
+}
+
+/* Feed Controls */
+.feed-controls {
+    max-width: 800px;
+    margin: 0 auto 24px;
+    padding: 0 20px;
+}
+
+.category-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.category-btn:hover {
+    background: #f8f9fa;
+}
+
+.category-btn.active {
+    background: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #feed-container {
+        padding: 12px;
+    }
+    
+    .feed-item {
+        margin-bottom: 16px;
+        border-radius: 8px;
+    }
+    
+    .feed-item-image {
+        height: 240px;
+    }
+    
+    .feed-item-body {
+        padding: 16px;
+    }
+    
+    .feed-item-title {
+        font-size: 20px;
+    }
+    
+    .feed-item-description,
+    .feed-item-summary {
+        font-size: 14px;
+    }
+    
+    .feed-item-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-read-more,
+    .btn-source {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .feed-item-time {
+        margin-left: 0;
+        text-align: center;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+    
+    .feed-item {
+        background: #2d2d2d;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .feed-item-title {
+        color: #ffffff;
+    }
+    
+    .feed-item-description,
+    .feed-item-summary {
+        color: #b0b0b0;
+    }
+    
+    .tag {
+        background: #3a3a3a;
+        color: #e0e0e0;
+    }
+    
+    .btn-source {
+        background: #3a3a3a;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+}
