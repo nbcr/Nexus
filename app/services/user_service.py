@@ -72,6 +72,8 @@ async def get_user_preferences(db: AsyncSession, user_id: int) -> UserPreference
 
 async def get_user_stats(db: AsyncSession, user_id: int, timeframe: str) -> UserStats:
     """Get user activity statistics for the given timeframe."""
+    from app.models import Topic, ContentItem
+    
     # Calculate time range
     now = datetime.utcnow()
     if timeframe == "24h":
@@ -98,17 +100,21 @@ async def get_user_stats(db: AsyncSession, user_id: int, timeframe: str) -> User
     result = await db.execute(interactions_query)
     counts = result.first()
     
-    # Get category breakdown
+    # Get category breakdown through content items and topics
     categories_query = (
         select(
-            UserInteraction.category,
+            Topic.category,
             func.count().label("count")
         )
+        .select_from(UserInteraction)
+        .join(ContentItem, UserInteraction.content_item_id == ContentItem.id)
+        .join(Topic, ContentItem.topic_id == Topic.id)
         .where(
             UserInteraction.user_id == user_id,
-            UserInteraction.created_at >= start_time
+            UserInteraction.created_at >= start_time,
+            Topic.category.isnot(None)
         )
-        .group_by(UserInteraction.category)
+        .group_by(Topic.category)
         .order_by(func.count().desc())
         .limit(5)
     )

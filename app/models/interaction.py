@@ -26,9 +26,13 @@ class UserInterestProfile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
-    interests = Column(JSON)
-    preferred_categories = Column(JSON)
-    reading_preferences = Column(JSON)
+    interests = Column(JSON, default=list)
+    preferred_categories = Column(JSON, default=list)
+    reading_preferences = Column(JSON, default=dict)
+    bio = Column(String(500), nullable=True)
+    avatar_url = Column(String(255), nullable=True)
+    social_links = Column(JSON, default=dict)
+    expertise = Column(JSON, default=list)
     last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="interest_profile")
