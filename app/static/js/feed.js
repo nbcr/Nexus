@@ -65,13 +65,16 @@ class InfiniteFeed {
         
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
+                console.log('Intersection:', entry.isIntersecting, 'Loading:', this.isLoading, 'HasMore:', this.hasMore);
                 if (entry.isIntersecting && !this.isLoading && this.hasMore) {
+                    console.log('Loading more content...');
                     this.loadMore();
                 }
             });
         }, options);
         
         observer.observe(this.loadingIndicator);
+        console.log('Intersection Observer setup complete');
     }
     
     async loadMore() {
