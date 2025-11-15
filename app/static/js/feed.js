@@ -32,6 +32,7 @@ class InfiniteFeed {
     }
     
     init() {
+        console.log('Initializing feed...');
         // Create loading indicator
         this.loadingIndicator = document.createElement('div');
         this.loadingIndicator.className = 'feed-loading';
@@ -41,6 +42,7 @@ class InfiniteFeed {
         `;
         this.loadingIndicator.style.display = 'none';
         this.container.after(this.loadingIndicator);
+        console.log('Loading indicator created:', this.loadingIndicator);
         
         // Create end message
         this.endMessage = document.createElement('div');
@@ -78,8 +80,12 @@ class InfiniteFeed {
     }
     
     async loadMore() {
-        if (this.isLoading || !this.hasMore) return;
+        if (this.isLoading || !this.hasMore) {
+            console.log('Skipping loadMore - isLoading:', this.isLoading, 'hasMore:', this.hasMore);
+            return;
+        }
         
+        console.log('Starting loadMore for page:', this.currentPage);
         this.isLoading = true;
         this.showLoading();
         
@@ -95,6 +101,7 @@ class InfiniteFeed {
             if (excludeIds) params.append('exclude_ids', excludeIds);
             if (this.category) params.append('category', this.category);
             
+            console.log('Fetching:', `${endpoint}?${params}`);
             const response = await fetch(`${endpoint}?${params}`);
             
             if (!response.ok) {
@@ -102,6 +109,7 @@ class InfiniteFeed {
             }
             
             const data = await response.json();
+            console.log('Received data:', data);
             
             // Add new content items
             if (data.items && data.items.length > 0) {
@@ -112,8 +120,10 @@ class InfiniteFeed {
                 
                 this.currentPage++;
                 this.hasMore = data.has_more;
+                console.log('Updated - currentPage:', this.currentPage, 'hasMore:', this.hasMore);
             } else {
                 this.hasMore = false;
+                console.log('No items returned, hasMore set to false');
             }
             
             // Update UI
