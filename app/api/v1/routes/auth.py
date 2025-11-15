@@ -8,8 +8,8 @@ This module handles user authentication and authorization endpoints including:
 
 Authentication is handled via OAuth2 with Bearer tokens.
 """
-from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from typing import Annotated, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, Cookie
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
@@ -22,6 +22,7 @@ from app.services.user_service import (
     get_user_by_username,
     get_user_by_email
 )
+from app.services.session_service import migrate_session_to_user
 from app.core.auth import create_access_token, verify_token
 from app.models import User
 
@@ -70,14 +71,18 @@ async def get_current_user(
 )
 async def register(
     user_data: UserCreate,
-    db: Annotated[AsyncSession, Depends(get_db)]
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    nexus_session: Optional[str] = Cookie(default=None)
 ) -> User:
     """
-    Register a new user.
+    Register a new user and migrate any anonymous session data.
     
     Args:
         user_data: User registration data including username, email, and password
+        request: FastAPI request object for session management
         db: Database session dependency
+        nexus_session: Optional session cookie for migration
         
     Returns:
         The created user object
@@ -100,6 +105,18 @@ async def register(
         )
     
     user = await create_user(db, user_data)
+    
+    # Migrate anonymous session data if session token exists
+    session_token = nexus_session or request.cookies.get("nexus_session")
+    if session_token:
+        try:
+            migrated_count = await migrate_session_to_user(db, session_token, user.id)
+            if migrated_count > 0:
+                print(f"Migrated {migrated_count} interactions from anonymous session to user {user.id}")
+        except Exception as e:
+            # Log the error but don't fail registration
+            print(f"Failed to migrate session data: {str(e)}")
+    
     return user
 
 @router.post(
@@ -112,16 +129,20 @@ async def register(
 )
 async def login(
     response: Response,
+    request: Request,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Annotated[AsyncSession, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)],
+    nexus_session: Optional[str] = Cookie(default=None)
 ) -> Token:
     """
-    Authenticate a user and return an access token.
+    Authenticate a user, return an access token, and migrate any anonymous session data.
     
     Args:
         response: FastAPI response object for setting cookies
+        request: FastAPI request object for session management
         form_data: OAuth2 form containing username and password
         db: Database session dependency
+        nexus_session: Optional session cookie for migration
         
     Returns:
         Token object containing the access token
@@ -136,6 +157,17 @@ async def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Migrate anonymous session data if session token exists
+    session_token = nexus_session or request.cookies.get("nexus_session")
+    if session_token:
+        try:
+            migrated_count = await migrate_session_to_user(db, session_token, user.id)
+            if migrated_count > 0:
+                print(f"Migrated {migrated_count} interactions from anonymous session to user {user.id}")
+        except Exception as e:
+            # Log the error but don't fail login
+            print(f"Failed to migrate session data during login: {str(e)}")
     
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
