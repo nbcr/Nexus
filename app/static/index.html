@@ -38,6 +38,35 @@
 
         <!-- Feed Container -->
         <div id="feed-container"></div>
+        
+        <!-- Article Modal -->
+        <div id="article-modal" class="article-modal">
+            <div class="article-modal-content">
+                <button class="article-modal-close">&times;</button>
+                <div class="article-modal-header">
+                    <h1 id="article-title"></h1>
+                    <div class="article-meta">
+                        <span id="article-author"></span>
+                        <span id="article-date"></span>
+                        <span id="article-domain"></span>
+                    </div>
+                </div>
+                <img id="article-image" class="article-image" style="display: none;">
+                <div id="article-body" class="article-body"></div>
+                <div id="article-related" class="article-related" style="display: none;">
+                    <h3>Related Content</h3>
+                    <div id="article-related-items" class="related-items-list"></div>
+                </div>
+                <div class="article-loading">
+                    <div class="spinner"></div>
+                    <p>Loading article...</p>
+                </div>
+                <div class="article-error" style="display: none;">
+                    <p>Unable to load article content</p>
+                    <a id="article-source-link" target="_blank" class="btn-source">Read on Source Site</a>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
@@ -54,10 +83,8 @@
             // Create the infinite feed
             feed = new InfiniteFeed('feed-container', {
                 pageSize: 20,
-                isPersonalized: true,
-                onContentClick: function(item) {
-                    showContentModal(item);
-                }
+                isPersonalized: true
+                // onContentClick is handled internally by InfiniteFeed
             });
             
             // Setup category filter
@@ -119,48 +146,6 @@
             } catch (error) {
                 console.error('Logout error:', error);
             }
-        }
-        
-        function showContentModal(item) {
-            const modal = document.createElement('div');
-            modal.className = 'content-modal';
-            modal.innerHTML = `
-                <div class="modal-overlay" onclick="closeModal(this.parentElement)"></div>
-                <div class="modal-content">
-                    <button class="modal-close" onclick="closeModal(this.closest('.content-modal'))">
-                        &times;
-                    </button>
-                    ${item.source_metadata?.picture_url ? `
-                        <img src="${item.source_metadata.picture_url}" alt="${item.title}" 
-                             class="modal-image">
-                    ` : ''}
-                    <h1>${item.title}</h1>
-                    <div class="modal-meta">
-                        <span>${item.category || 'Trending'}</span>
-                        <span>${item.source_metadata?.source || 'News'}</span>
-                    </div>
-                    <div class="modal-body">
-                        ${item.description ? `<p><strong>${item.description}</strong></p>` : ''}
-                        <p>${item.content_text}</p>
-                        ${item.source_urls && item.source_urls.length > 0 ? `
-                            <p>
-                                <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
-                                   class="btn-source">
-                                    Read Full Article &rarr;
-                                </a>
-                            </p>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function closeModal(modal) {
-            modal.remove();
-            document.body.style.overflow = '';
         }
         
         // Dark mode - respects system preference on mobile, manual toggle on desktop
