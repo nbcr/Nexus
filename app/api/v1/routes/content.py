@@ -366,21 +366,37 @@ async def find_related_content(db: AsyncSession, content: ContentItem, limit: in
     title_lower = content.title.lower()
     
     # Extract key terms from title (simple approach - split by spaces and filter common words)
-    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'just', 'don', 'now'}
+    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'just', 'don', 'now', 'their', 'called', 'begging'}
     
     title_words = [w.strip('.,!?:;"\'-()[]{}') for w in title_lower.split()]
-    keywords = [w for w in title_words if len(w) > 3 and w not in stop_words][:5]  # Top 5 keywords
+    keywords = [w for w in title_words if len(w) > 2 and w not in stop_words]  # Lowered from 3 to 2 chars, get all keywords
     
-    if not keywords:
+    # Prioritize proper nouns and important terms (capitalized in original title)
+    original_words = content.title.split()
+    proper_nouns = []
+    for word in original_words:
+        clean = word.strip('.,!?:;"\'-()[]{}')
+        if clean and clean[0].isupper() and clean.lower() not in stop_words:
+            proper_nouns.append(clean.lower())
+    
+    # Use proper nouns first, then other keywords
+    priority_keywords = list(set(proper_nouns))[:8]  # Get up to 8 proper nouns
+    if len(priority_keywords) < 3:
+        # Add more keywords if we don't have enough proper nouns
+        priority_keywords.extend([k for k in keywords if k not in priority_keywords][:8 - len(priority_keywords)])
+    
+    if not priority_keywords:
         return []
     
+    print(f"🔍 Finding related content for '{content.title}' using keywords: {priority_keywords}")
+    
     # Build query to find related content
-    # Look for items that share keywords in title or tags
+    # Look for items that share keywords in title
     conditions = []
-    for keyword in keywords:
+    for keyword in priority_keywords:
         conditions.append(sql_func.lower(ContentItem.title).contains(keyword))
     
-    # Find related items (exclude self, and prefer different types)
+    # Find related items (exclude self)
     result = await db.execute(
         select(ContentItem)
         .where(
@@ -390,10 +406,41 @@ async def find_related_content(db: AsyncSession, content: ContentItem, limit: in
                 or_(*conditions)
             )
         )
-        .limit(limit)
+        .limit(limit * 2)  # Get more results to filter
     )
     
-    related = result.scalars().all()
+    all_matches = result.scalars().all()
+    
+    # Score and sort by relevance
+    scored_matches = []
+    for item in all_matches:
+        score = 0
+        item_title_lower = item.title.lower()
+        
+        # Count keyword matches
+        for keyword in priority_keywords:
+            if keyword in item_title_lower:
+                score += 2 if keyword in proper_nouns else 1
+        
+        # Prefer different sources (news vs search queries)
+        source = item.source_metadata.get('source', '') if item.source_metadata else ''
+        content_source = content.source_metadata.get('source', '') if content.source_metadata else ''
+        if source != content_source:
+            score += 3
+        
+        # Prefer items with pytrends tag if current item is news, and vice versa
+        has_pytrends = 'pytrends' in (item.tags or [])
+        content_has_pytrends = 'pytrends' in (content.tags or [])
+        if has_pytrends != content_has_pytrends:
+            score += 5
+        
+        scored_matches.append((score, item))
+    
+    # Sort by score descending and take top results
+    scored_matches.sort(key=lambda x: x[0], reverse=True)
+    related = [item for score, item in scored_matches[:limit] if score > 0]
+    
+    print(f"✅ Found {len(related)} related items")
     
     return related
 
