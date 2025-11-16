@@ -32,6 +32,7 @@ body {
 .main-header h1 {
     margin: 0;
     font-size: 32px;
+    color: #fff;
 }
 
 .main-header nav {
@@ -85,9 +86,9 @@ body {
 
 .category-btn {
     padding: 10px 16px;
-    background: #fff;
-    color: #333;
-    border: 1px solid #dee2e6;
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
     border-radius: 20px;
     font-size: 16px;
     font-weight: 500;
@@ -96,7 +97,7 @@ body {
 }
 
 .category-btn:hover {
-    background: #f8f9fa;
+    background: #bbdefb;
 }
 
 .category-btn.active {
