@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from app.database import AsyncSessionLocal
 from app.models import ContentItem, Topic
-from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic
+from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
 from app.services.content_recommendation import recommendation_service
 
 router = APIRouter()
@@ -122,9 +122,9 @@ async def get_content_items(skip: int = 0, limit: int = 100, db: AsyncSession = 
     )
     
     content_items = []
-    for content_item, topic in result:
+    for content_item, topic in result.all():
         content_dict = ContentItemSchema.model_validate(content_item).model_dump()
-        content_dict["topic"] = topic
+        content_dict["topic"] = TopicSchema.model_validate(topic).model_dump()
         content_items.append(content_dict)
     
     return content_items
@@ -144,7 +144,7 @@ async def get_content_item(content_id: int, db: AsyncSession = Depends(get_db)):
     
     content_item, topic = row
     content_dict = ContentItemSchema.model_validate(content_item).model_dump()
-    content_dict["topic"] = topic
+    content_dict["topic"] = TopicSchema.model_validate(topic).model_dump()
     
     return content_dict
 
