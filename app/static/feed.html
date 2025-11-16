@@ -36,6 +36,31 @@
 
         <!-- Feed Container -->
         <div id="feed-container"></div>
+        
+        <!-- Article Modal -->
+        <div id="article-modal" class="article-modal">
+            <div class="article-modal-content">
+                <button class="article-modal-close">&times;</button>
+                <div class="article-modal-header">
+                    <h1 id="article-title"></h1>
+                    <div class="article-meta">
+                        <span id="article-author"></span>
+                        <span id="article-date"></span>
+                        <span id="article-domain"></span>
+                    </div>
+                </div>
+                <img id="article-image" class="article-image" style="display: none;">
+                <div id="article-body" class="article-body"></div>
+                <div class="article-loading">
+                    <div class="spinner"></div>
+                    <p>Loading article...</p>
+                </div>
+                <div class="article-error" style="display: none;">
+                    <p>Unable to load article content</p>
+                    <a id="article-source-link" target="_blank" class="btn-source">Read on Source Site</a>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>

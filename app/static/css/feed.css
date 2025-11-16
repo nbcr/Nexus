@@ -386,3 +386,152 @@
         border-color: #555;
     }
 }
+
+/* Article Modal */
+.article-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.article-modal.active {
+    display: block;
+}
+
+.article-modal-content {
+    max-width: 800px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    padding: 40px;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.article-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 36px;
+    color: #666;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.article-modal-close:hover {
+    background: #f0f0f0;
+    color: #000;
+}
+
+.article-modal-header h1 {
+    font-size: 32px;
+    line-height: 1.3;
+    margin: 0 0 16px 0;
+    color: #1a1a1a;
+}
+
+.article-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    color: #666;
+}
+
+.article-meta span:not(:empty)::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    background: #666;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.article-meta span:first-child::before {
+    display: none;
+}
+
+.article-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.article-body {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.article-body p {
+    margin-bottom: 20px;
+    white-space: pre-line;
+}
+
+.article-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.article-loading .spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.article-error {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.article-error p {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .article-modal {
+        padding: 0;
+    }
+    
+    .article-modal-content {
+        margin: 0;
+        border-radius: 0;
+        padding: 60px 20px 20px;
+        min-height: 100vh;
+    }
+    
+    .article-modal-header h1 {
+        font-size: 24px;
+    }
+    
+    .article-body {
+        font-size: 16px;
+    }
+}

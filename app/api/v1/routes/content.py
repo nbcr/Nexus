@@ -16,6 +16,7 @@ from app.database import AsyncSessionLocal
 from app.models import ContentItem, Topic, User
 from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic
 from app.services.content_recommendation import recommendation_service
+from app.services.article_scraper import article_scraper
 from app.api.v1.deps import get_db, get_current_user
 
 # Router Configuration
@@ -278,4 +279,54 @@ async def get_content_by_topic(
         .offset(skip)
         .limit(limit)
     )
-    return result.scalars().all()
+    return result.scalars().all()@router.get(
+    "/article/{content_id}",
+    responses={
+        200: {"description": "Article content retrieved"},
+        404: {"description": "Content not found or article unavailable"}
+    }
+)
+async def get_article_content(
+    content_id: int = Path(..., ge=1, description="Content ID"),
+    db: AsyncSession = Depends(get_db)
+):
+    '''
+    Fetch and return the full article content for a content item.
+    
+    Scrapes the article from the source URL and returns readable content.
+    
+    Args:
+        content_id: ID of the content item
+        db: Database session
+        
+    Returns:
+        Dict with article title, content, author, date, and image
+        
+    Raises:
+        HTTPException: If content not found or scraping fails
+    '''
+    # Get content item from database
+    result = await db.execute(
+        select(ContentItem).where(ContentItem.id == content_id)
+    )
+    content = result.scalar_one_or_none()
+    
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+    
+    # Get the source URL
+    if not content.source_urls or len(content.source_urls) == 0:
+        raise HTTPException(status_code=404, detail="No source URL available")
+    
+    source_url = content.source_urls[0]
+    
+    # Scrape the article
+    article_data = await article_scraper.fetch_article(source_url)
+    
+    if not article_data:
+        raise HTTPException(
+            status_code=404, 
+            detail="Unable to fetch article content from source"
+        )
+    
+    return article_data
