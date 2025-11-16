@@ -41,7 +41,6 @@ class InfiniteFeed {
             <p>Loading more content...</p>
         `;
         this.loadingIndicator.style.display = 'block';
-        this.loadingIndicator.style.visibility = 'hidden';
         this.loadingIndicator.style.minHeight = '100px';
         this.container.after(this.loadingIndicator);
         console.log('Loading indicator created:', this.loadingIndicator);
@@ -246,11 +245,17 @@ class InfiniteFeed {
     }
     
     showLoading() {
-        this.loadingIndicator.style.visibility = 'visible';
+        const spinner = this.loadingIndicator.querySelector('.spinner');
+        const text = this.loadingIndicator.querySelector('p');
+        if (spinner) spinner.style.display = 'block';
+        if (text) text.style.display = 'block';
     }
     
     hideLoading() {
-        this.loadingIndicator.style.visibility = 'hidden';
+        const spinner = this.loadingIndicator.querySelector('.spinner');
+        const text = this.loadingIndicator.querySelector('p');
+        if (spinner) spinner.style.display = 'none';
+        if (text) text.style.display = 'none';
     }
     
     showEndMessage() {
