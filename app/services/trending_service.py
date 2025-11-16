@@ -1,5 +1,6 @@
 import feedparser # type: ignore
 import asyncio
+import requests
 from datetime import datetime
 from typing import List, Dict, Optional
 from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
@@ -8,29 +9,12 @@ from sqlalchemy import select # type: ignore
 from app.models import Topic, ContentItem
 from app.core.config import settings
 
-try:
-    import praw
-    PRAW_AVAILABLE = True
-except ImportError:
-    PRAW_AVAILABLE = False
-    print("⚠️ praw not available, install with: pip install praw")
-
 
 class TrendingService:
     def __init__(self):
         self.feed_url = "https://trends.google.com/trending/rss?geo=CA"
-        self.reddit = None
-        if PRAW_AVAILABLE:
-            try:
-                # Reddit API doesn't require authentication for read-only access
-                self.reddit = praw.Reddit(
-                    client_id="anonymous",
-                    client_secret="anonymous", 
-                    user_agent="Nexus/1.0"
-                )
-                print("✅ Reddit API initialized successfully")
-            except Exception as e:
-                print(f"⚠️ Could not initialize Reddit API: {e}")
+        self.reddit_enabled = True
+        print("✅ Reddit JSON API enabled (no auth required)")
     
     async def fetch_canada_trends(self) -> List[Dict]:
         """Fetch trending topics from Google Trends Canada RSS feed and Reddit"""
@@ -41,7 +25,7 @@ class TrendingService:
         trends.extend(rss_trends)
         
         # Then, get Reddit trending posts (many more items)
-        if self.reddit:
+        if self.reddit_enabled:
             reddit_trends = await self._fetch_reddit_trends()
             trends.extend(reddit_trends)
         
@@ -151,7 +135,7 @@ class TrendingService:
             return []
     
     async def _fetch_reddit_trends(self) -> List[Dict]:
-        """Fetch trending posts from popular subreddits"""
+        """Fetch trending posts from popular subreddits using Reddit JSON API"""
         trends = []
         
         try:
@@ -172,46 +156,63 @@ class TrendingService:
             for subreddit_name, category in subreddits:
                 try:
                     print(f"Fetching hot posts from r/{subreddit_name}")
-                    subreddit = self.reddit.subreddit(subreddit_name)
                     
-                    # Get top 10 hot posts from each subreddit
+                    # Use Reddit's public JSON API (no auth required)
+                    url = f"https://www.reddit.com/r/{subreddit_name}/hot.json?limit=10"
+                    headers = {'User-Agent': 'Nexus/1.0'}
+                    response = requests.get(url, headers=headers, timeout=10)
+                    
+                    if response.status_code != 200:
+                        print(f"⚠️ Got status {response.status_code} for r/{subreddit_name}")
+                        continue
+                    
+                    data = response.json()
+                    posts = data.get('data', {}).get('children', [])
+                    
                     post_count = 0
-                    for post in subreddit.hot(limit=10):
+                    for post_data in posts:
+                        post = post_data.get('data', {})
+                        
                         # Skip stickied posts
-                        if post.stickied:
+                        if post.get('stickied', False):
                             continue
                         
                         # Calculate trend score based on upvotes and comments
-                        trend_score = min(0.95, 0.5 + (post.score / 10000) + (post.num_comments / 1000))
+                        score = post.get('score', 0)
+                        num_comments = post.get('num_comments', 0)
+                        trend_score = min(0.95, 0.5 + (score / 10000) + (num_comments / 1000))
                         
                         # Get post thumbnail or preview image
                         image_url = None
-                        if hasattr(post, 'preview') and 'images' in post.preview:
+                        thumbnail = post.get('thumbnail', '')
+                        if thumbnail and thumbnail.startswith('http'):
+                            image_url = thumbnail
+                        
+                        # Try to get better quality image from preview
+                        if 'preview' in post and 'images' in post['preview']:
                             try:
-                                image_url = post.preview['images'][0]['source']['url']
+                                image_url = post['preview']['images'][0]['source']['url'].replace('&amp;', '&')
                             except:
                                 pass
-                        if not image_url and hasattr(post, 'thumbnail') and post.thumbnail.startswith('http'):
-                            image_url = post.thumbnail
                         
                         # Extract description from selftext or use title
-                        description = post.selftext[:500] if post.selftext else f"Posted in r/{subreddit_name}"
+                        description = post.get('selftext', '')[:500] if post.get('selftext') else f"Posted in r/{subreddit_name}"
                         
                         trend_data = {
-                            'title': post.title,
-                            'original_query': post.title,
+                            'title': post.get('title', 'Untitled'),
+                            'original_query': post.get('title', 'Untitled'),
                             'description': description,
-                            'url': f"https://reddit.com{post.permalink}",
+                            'url': f"https://reddit.com{post.get('permalink', '')}",
                             'source': f'r/{subreddit_name}',
                             'image_url': image_url,
-                            'published': datetime.fromtimestamp(post.created_utc).isoformat(),
+                            'published': datetime.fromtimestamp(post.get('created_utc', 0)).isoformat(),
                             'trend_score': trend_score,
                             'category': category,
                             'tags': ['reddit', subreddit_name, category.lower()],
                             'news_items': [{
-                                'title': post.title,
+                                'title': post.get('title', 'Untitled'),
                                 'snippet': description,
-                                'url': f"https://reddit.com{post.permalink}",
+                                'url': f"https://reddit.com{post.get('permalink', '')}",
                                 'picture': image_url,
                                 'source': f'r/{subreddit_name}'
                             }]
@@ -222,7 +223,7 @@ class TrendingService:
                     print(f"✅ Added {post_count} posts from r/{subreddit_name}")
                     
                     # Small delay to be respectful to Reddit API
-                    await asyncio.sleep(0.3)
+                    await asyncio.sleep(0.5)
                     
                 except Exception as e:
                     print(f"⚠️ Error fetching r/{subreddit_name}: {e}")
