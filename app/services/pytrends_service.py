@@ -14,7 +14,6 @@ import asyncio
 from functools import wraps
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 
 
 def async_wrap(func):
@@ -167,27 +166,27 @@ class PyTrendsService:
                         query = row.get('query', 'Unknown')
                         value = row.get('value', 0)
                         
-                        # Fetch Google search context for the query
-                        context = await self._fetch_search_context(query)
+                        # Fetch context from DuckDuckGo
+                        context = await self._fetch_duckduckgo_context(query)
                         
                         query_data = {
                             'title': query,
                             'original_query': query,
-                            'description': context.get('description', f"Trending search: {query}"),
-                            'url': context.get('url', f"https://www.google.com/search?q={query}"),
-                            'source': context.get('source', 'Google Search'),
+                            'description': context.get('description', self._create_query_description(query, keyword)),
+                            'url': context.get('url', f"https://www.google.com/search?q={query.replace(' ', '+')}"),
+                            'source': context.get('source', 'Search'),
                             'image_url': context.get('image_url'),
                             'published': datetime.now().isoformat(),
                             'trend_score': min(0.95, 0.5 + (value / 200)),
-                            'category': context.get('category', 'Trending'),
+                            'category': context.get('category', self._infer_category_from_query(query)),
                             'tags': ['pytrends', 'query', keyword.lower()],
-                            'news_items': context.get('news_items', []),
+                            'news_items': [],
                             'parent_keyword': keyword
                         }
                         queries.append(query_data)
                         
-                        # Small delay to avoid rate limiting
-                        await asyncio.sleep(0.5)
+                        # Small delay to be respectful
+                        await asyncio.sleep(0.3)
             
             print(f"✅ Found {len(queries)} related queries with context for '{keyword}'")
             return queries
@@ -245,164 +244,134 @@ class PyTrendsService:
             print(f"❌ Error fetching interest over time: {e}")
             return {'keywords': keywords, 'data': [], 'peak_dates': {}}
     
-    async def _fetch_search_context(self, query: str) -> Dict:
+    def _create_query_description(self, query: str, parent_keyword: str) -> str:
+        """Create a meaningful description for a trending query without web scraping"""
+        query_lower = query.lower()
+        
+        # Identify query types and create contextual descriptions
+        if any(word in query_lower for word in ['vs', 'versus']):
+            return f"People are comparing: {query}"
+        elif query_lower.endswith(' meaning'):
+            word = query_lower.replace(' meaning', '')
+            return f"Many people are looking up the meaning of '{word}'"
+        elif any(word in query_lower for word in ['who is', 'what is', 'where is', 'when is', 'why is', 'how']):
+            return f"Trending question: {query}"
+        elif any(word in query_lower for word in ['record', 'stats', 'statistics']):
+            return f"People are checking stats for: {query}"
+        elif any(word in query_lower for word in ['next', 'upcoming', 'schedule']):
+            return f"Trending search for upcoming events: {query}"
+        elif any(word in query_lower for word in ['fight', 'match', 'game', 'race']):
+            return f"Sports/competition trending: {query}"
+        elif any(word in query_lower for word in ['logo', 'symbol', 'image']):
+            return f"Visual search trending: {query}"
+        elif any(word in query_lower for word in ['age', 'height', 'weight', 'birthday', 'born']):
+            return f"People want to know more about: {query}"
+        elif any(word in query_lower for word in ['cast', 'trailer', 'release date', 'movie', 'show']):
+            return f"Entertainment search: {query}"
+        elif len(query.split()) == 1:
+            return f"Rising interest in: {query}"
+        else:
+            return f"Trending search related to {parent_keyword}: {query}"
+    
+    def _infer_category_from_query(self, query: str) -> str:
+        """Infer category from the query itself"""
+        query_lower = query.lower()
+        
+        if any(word in query_lower for word in ['ufc', 'fight', 'fighter', 'boxing', 'mma', 'wrestling']):
+            return 'Combat Sports'
+        elif any(word in query_lower for word in ['nfl', 'nhl', 'nba', 'mlb', 'soccer', 'football', 'hockey', 'basketball']):
+            return 'Sports'
+        elif any(word in query_lower for word in ['meaning', 'definition', 'translate']):
+            return 'Reference'
+        elif any(word in query_lower for word in ['movie', 'show', 'actor', 'netflix', 'series', 'trailer']):
+            return 'Entertainment'
+        elif any(word in query_lower for word in ['tech', 'app', 'software', 'iphone', 'android', 'computer']):
+            return 'Technology'
+        elif any(word in query_lower for word in ['ceo', 'company', 'stock', 'business', 'market']):
+            return 'Business'
+        elif any(word in query_lower for word in ['news', 'breaking', 'update', 'latest']):
+            return 'News'
+        else:
+            return 'Trending'
+    
+    async def _fetch_duckduckgo_context(self, query: str) -> Dict:
         """
-        Fetch contextual information from Google search results.
-        
-        Args:
-            query: The search term to look up
-        
-        Returns:
-            Dictionary with description, url, source, image_url, category, news_items
+        Fetch contextual information from DuckDuckGo Instant Answer API.
+        DuckDuckGo is more scraping-friendly than Google.
         """
         try:
-            print(f"🔍 Fetching Google search context for '{query}'...")
+            print(f"🦆 Fetching DuckDuckGo context for '{query}'...")
             
-            # Search Google with proper headers
-            search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}&gl=ca&hl=en"
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Accept-Encoding': 'gzip, deflate',
-                'DNT': '1',
-                'Connection': 'keep-alive',
-                'Upgrade-Insecure-Requests': '1'
+            # Try DuckDuckGo Instant Answer API first (free, no auth needed)
+            api_url = f"https://api.duckduckgo.com/?q={query.replace(' ', '+')}&format=json&no_html=1&skip_disambig=1"
+            
+            response = requests.get(api_url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Extract the best available description
+                description = None
+                source_url = None
+                
+                # Try Abstract (usually from Wikipedia)
+                if data.get('Abstract'):
+                    description = data['Abstract'][:300]
+                    source_url = data.get('AbstractURL')
+                    print(f"✅ Found Abstract: {description[:50]}...")
+                
+                # Try Definition
+                elif data.get('Definition'):
+                    description = data['Definition'][:300]
+                    source_url = data.get('DefinitionURL')
+                    print(f"✅ Found Definition: {description[:50]}...")
+                
+                # Try Answer (direct answer)
+                elif data.get('Answer'):
+                    description = data['Answer'][:300]
+                    print(f"✅ Found Answer: {description[:50]}...")
+                
+                # Try Related Topics
+                elif data.get('RelatedTopics') and len(data['RelatedTopics']) > 0:
+                    first_topic = data['RelatedTopics'][0]
+                    if isinstance(first_topic, dict) and first_topic.get('Text'):
+                        description = first_topic['Text'][:300]
+                        source_url = first_topic.get('FirstURL')
+                        print(f"✅ Found Related Topic: {description[:50]}...")
+                
+                # Extract image if available
+                image_url = data.get('Image') if data.get('Image') else None
+                
+                if description:
+                    return {
+                        'description': description,
+                        'url': source_url or f"https://duckduckgo.com/?q={query.replace(' ', '+')}",
+                        'source': data.get('AbstractSource', 'DuckDuckGo'),
+                        'image_url': image_url,
+                        'category': self._infer_category_from_query(query)
+                    }
+                else:
+                    print(f"⚠️ DuckDuckGo returned no content for '{query}'")
+            else:
+                print(f"⚠️ DuckDuckGo API returned {response.status_code}")
+            
+            # Fallback to local description generation
+            return {
+                'description': self._create_query_description(query, ''),
+                'url': f"https://duckduckgo.com/?q={query.replace(' ', '+')}",
+                'source': 'Search',
+                'image_url': None,
+                'category': self._infer_category_from_query(query)
             }
-            
-            response = requests.get(search_url, headers=headers, timeout=15, allow_redirects=True)
-            print(f"📡 Google response: {response.status_code}, Content length: {len(response.text)} chars")
-            
-            if response.status_code != 200:
-                print(f"⚠️ Google search returned {response.status_code} for '{query}'")
-                return self._default_context(query)
-            
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Try to extract featured snippet or knowledge panel description
-            description = None
-            
-            # Knowledge panel description
-            knowledge_panel = soup.find('div', class_=['kno-rdesc', 'knowledge-panel'])
-            if knowledge_panel:
-                desc_span = knowledge_panel.find('span')
-                if desc_span:
-                    description = desc_span.get_text(strip=True)[:300]
-                    print(f"✅ Found knowledge panel: {description[:50]}...")
-            
-            # Featured snippet
-            if not description:
-                featured = soup.find('div', {'data-attrid': 'FeaturedSnippet'})
-                if not featured:
-                    featured = soup.find('div', class_='IZ6rdc')
-                if featured:
-                    description = featured.get_text(strip=True)[:300]
-                    print(f"✅ Found featured snippet: {description[:50]}...")
-            
-            # First search result snippet
-            if not description:
-                snippet = soup.find('div', class_=['VwiC3b', 'yXK7lf', 'lVm3ye'])
-                if snippet:
-                    description = snippet.get_text(strip=True)[:300]
-                    print(f"✅ Found search snippet: {description[:50]}...")
-            
-            # Try any div with class containing 'snippet' or 'description'
-            if not description:
-                for div in soup.find_all('div', limit=50):
-                    class_str = ' '.join(div.get('class', []))
-                    if any(word in class_str.lower() for word in ['snippet', 'description', 'abstract']):
-                        text = div.get_text(strip=True)
-                        if len(text) > 50:
-                            description = text[:300]
-                            print(f"✅ Found description in {class_str[:30]}: {description[:50]}...")
-                            break
-            
-            if not description:
-                print(f"⚠️ No description found for '{query}', saving first 500 chars of page")
-                # Debug: save page content to see structure
-                all_text = soup.get_text()[:500]
-                print(f"Page preview: {all_text[:200]}")
-            
-            # Extract image if available
-            image_url = None
-            img = soup.find('img', class_=['wSTKke', 'ivg-i'])
-            if img and img.get('src'):
-                image_url = img['src']
-            
-            # Extract news items
-            news_items = []
-            news_section = soup.find('div', {'data-hveid': lambda x: x and 'CAU' in str(x)})
-            if news_section:
-                news_links = news_section.find_all('a', href=True, limit=3)
-                for link in news_links:
-                    title_elem = link.find(['h3', 'div'])
-                    if title_elem:
-                        news_items.append({
-                            'title': title_elem.get_text(strip=True),
-                            'url': link['href'] if link['href'].startswith('http') else None,
-                            'source': 'News'
-                        })
-            
-            # Determine category from content
-            category = self._infer_category(description or query, soup)
-            
-            # Find best source URL (first real result)
-            source_url = search_url
-            first_result = soup.find('a', href=True, jsname=True)
-            if first_result and first_result['href'].startswith('http'):
-                source_url = first_result['href']
-            
-            context = {
-                'description': description or f"Trending topic: {query}",
-                'url': source_url,
-                'source': 'Google Search',
-                'image_url': image_url,
-                'category': category,
-                'news_items': news_items
-            }
-            
-            print(f"✅ Fetched context for '{query}': {len(description or '')} chars, {len(news_items)} news items")
-            return context
             
         except Exception as e:
-            print(f"⚠️ Error fetching search context for '{query}': {e}")
-            return self._default_context(query)
-    
-    def _default_context(self, query: str) -> Dict:
-        """Return default context when search fails"""
-        return {
-            'description': f"Trending topic: {query}",
-            'url': f"https://www.google.com/search?q={query}",
-            'source': 'Google Search',
-            'image_url': None,
-            'category': 'Trending',
-            'news_items': []
-        }
-    
-    def _infer_category(self, text: str, soup) -> str:
-        """Infer category from search result content"""
-        text_lower = text.lower()
-        
-        # Check for category indicators in text
-        if any(word in text_lower for word in ['sport', 'game', 'player', 'team', 'match']):
-            return 'Sports'
-        elif any(word in text_lower for word in ['movie', 'film', 'actor', 'music', 'album', 'song']):
-            return 'Entertainment'
-        elif any(word in text_lower for word in ['tech', 'software', 'app', 'device', 'digital']):
-            return 'Technology'
-        elif any(word in text_lower for word in ['politic', 'government', 'election', 'minister']):
-            return 'Politics'
-        elif any(word in text_lower for word in ['scien', 'research', 'study', 'discover']):
-            return 'Science'
-        elif any(word in text_lower for word in ['business', 'company', 'stock', 'market', 'economy']):
-            return 'Business'
-        
-        # Check for news indicators
-        news_indicators = soup.find_all(text=lambda t: t and any(word in t.lower() for word in ['breaking', 'news', 'reported', 'announced']))
-        if news_indicators:
-            return 'News'
-        
-        return 'Trending'
+            print(f"⚠️ Error fetching DuckDuckGo context for '{query}': {e}")
+            return {
+                'description': self._create_query_description(query, ''),
+                'url': f"https://duckduckgo.com/?q={query.replace(' ', '+')}",
+                'source': 'Search',
+                'image_url': None,
+                'category': self._infer_category_from_query(query)
+            }
     
     async def enrich_trends_with_pytrends(self, base_trends: List[Dict], max_topics: int = 5) -> List[Dict]:
         """
