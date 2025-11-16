@@ -15,6 +15,7 @@
                 <a href="/" class="active">Feed</a>
                 <a href="/trending">Trending</a>
                 <a href="/login" id="auth-link">Login</a>
+                <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode" style="background: none; border: none; font-size: 24px; cursor: pointer; padding: 8px; margin-left: 10px;">🌙</button>
             </nav>
         </div>
     </header>
@@ -69,10 +70,50 @@
 
     <script src="/static/js/feed.js"></script>
     <script>
+        // Dark Mode Functionality
+        function initDarkMode() {
+            const toggleBtn = document.getElementById('dark-mode-toggle');
+            
+            // Check system preference
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Check saved preference
+            const savedMode = localStorage.getItem('darkMode');
+            if (savedMode !== null) {
+                if (savedMode === 'true') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } else if (prefersDark) {
+                document.body.classList.add('dark-mode');
+            }
+            
+            // Update button emoji
+            updateToggleButton();
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            updateToggleButton();
+        }
+        
+        function updateToggleButton() {
+            const toggleBtn = document.getElementById('dark-mode-toggle');
+            const isDark = document.body.classList.contains('dark-mode');
+            toggleBtn.textContent = isDark ? '☀️' : '🌙';
+        }
+        
         // Initialize the feed
         let feed;
         
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize dark mode
+            initDarkMode();
+            
             // Create the infinite feed
             feed = new InfiniteFeed('feed-container', {
                 pageSize: 20,
