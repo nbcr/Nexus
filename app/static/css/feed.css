@@ -425,6 +425,36 @@ body.dark-mode .article-error p {
     color: #b0b0b0;
 }
 
+body.dark-mode .article-related {
+    border-top-color: #3a3a3a;
+}
+
+body.dark-mode .article-related h3 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .related-item {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+}
+
+body.dark-mode .related-item:hover {
+    border-color: #64b5f6;
+    box-shadow: 0 2px 8px rgba(100,181,246,0.15);
+}
+
+body.dark-mode .related-item-source {
+    color: #999;
+}
+
+body.dark-mode .related-item-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .related-item-description {
+    color: #b0b0b0;
+}
+
 body.dark-mode .modal-content {
     background: #2d2d2d;
 }
@@ -555,6 +585,95 @@ body.dark-mode footer {
 .article-body p {
     margin-bottom: 20px;
     white-space: pre-line;
+}
+
+.article-related {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.article-related h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+}
+
+.related-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.related-item {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.related-item:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+}
+
+.related-item-meta {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.related-item-category {
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.related-item-source {
+    color: #666;
+    padding: 4px 0;
+}
+
+.related-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1a1a1a;
+    line-height: 1.4;
+}
+
+.related-item-description {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.related-item-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-related-source {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white !important;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-related-source:hover {
+    background: #0056b3;
 }
 
 .article-loading {

@@ -337,6 +337,8 @@ class InfiniteFeed {
         const image = document.getElementById('article-image');
         const body = document.getElementById('article-body');
         const sourceLink = document.getElementById('article-source-link');
+        const relatedSection = document.getElementById('article-related');
+        const relatedItems = document.getElementById('article-related-items');
         
         // Show modal and loading state
         modal.classList.add('active');
@@ -344,6 +346,8 @@ class InfiniteFeed {
         error.style.display = 'none';
         body.innerHTML = '';
         image.style.display = 'none';
+        relatedSection.style.display = 'none';
+        relatedItems.innerHTML = '';
         
         // Set source link for error fallback
         if (item.source_urls && item.source_urls.length > 0) {
@@ -378,11 +382,61 @@ class InfiniteFeed {
             const paragraphs = article.content.split('\n\n');
             body.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
             
+            // Display related items if available
+            if (article.related_items && article.related_items.length > 0) {
+                this.renderRelatedItems(article.related_items, relatedItems);
+                relatedSection.style.display = 'block';
+            }
+            
         } catch (err) {
             console.error('Error fetching article:', err);
             loading.style.display = 'none';
             error.style.display = 'block';
         }
+    }
+    
+    renderRelatedItems(items, container) {
+        container.innerHTML = items.map(item => `
+            <div class="related-item" data-content-id="${item.content_id}">
+                <div class="related-item-content">
+                    <div class="related-item-meta">
+                        <span class="related-item-category">${item.category || 'Trending'}</span>
+                        <span class="related-item-source">${item.source}</span>
+                    </div>
+                    <h4 class="related-item-title">${item.title}</h4>
+                    ${item.description ? `<p class="related-item-description">${item.description}</p>` : ''}
+                    <div class="related-item-actions">
+                        ${item.source_urls && item.source_urls.length > 0 ? `
+                            <a href="${item.source_urls[0]}" target="_blank" rel="noopener" class="btn-related-source">
+                                ${this.getSourceButtonTextForUrl(item.source_urls[0], item.tags || [])}
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    getSourceButtonTextForUrl(url, tags) {
+        const urlLower = url.toLowerCase();
+        
+        // Check if it's a search-related item
+        if (tags.includes('pytrends') || tags.includes('query') || tags.includes('search')) {
+            if (urlLower.includes('google.com/search') || urlLower.includes('duckduckgo.com')) {
+                return 'Search';
+            }
+        }
+        
+        // Check URL patterns
+        if (urlLower.includes('google.com/search') || urlLower.includes('duckduckgo.com') || urlLower.includes('/search?q=')) {
+            return 'Search';
+        }
+        
+        if (urlLower.includes('trends.google.com')) {
+            return 'View Trends';
+        }
+        
+        return 'View Source';
     }
     
     async trackView(contentId) {
