@@ -354,75 +354,75 @@
     }
 }
 
-/* Dark Mode Support */
+/* Dark Mode Support - System Preference (only if not explicitly toggled) */
 @media (prefers-color-scheme: dark) {
-    body:not(.dark-mode) {
+    body:not([data-theme="light"]) {
         background: #1a1a1a;
         color: #e0e0e0;
     }
     
-    body:not(.dark-mode) .feed-item {
+    body:not([data-theme="light"]) .feed-item {
         background: #2d2d2d;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     
-    body:not(.dark-mode) .feed-item-title {
+    body:not([data-theme="light"]) .feed-item-title {
         color: #ffffff;
     }
     
-    body:not(.dark-mode) .feed-item-description,
-    body:not(.dark-mode) .feed-item-summary {
+    body:not([data-theme="light"]) .feed-item-description,
+    body:not([data-theme="light"]) .feed-item-summary {
         color: #b0b0b0;
     }
     
-    body:not(.dark-mode) .tag {
+    body:not([data-theme="light"]) .tag {
         background: #3a3a3a;
         color: #e0e0e0;
     }
     
-    body:not(.dark-mode) .btn-source {
+    body:not([data-theme="light"]) .btn-source {
         background: #3a3a3a;
         color: #e0e0e0;
         border-color: #555;
     }
 
-    body:not(.dark-mode) .article-modal-content {
+    body:not([data-theme="light"]) .article-modal-content {
         background: #2d2d2d;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
     }
 
-    body:not(.dark-mode) .article-modal-close {
+    body:not([data-theme="light"]) .article-modal-close {
         color: #b0b0b0;
     }
 
-    body:not(.dark-mode) .article-modal-close:hover {
+    body:not([data-theme="light"]) .article-modal-close:hover {
         background: #3a3a3a;
         color: #ffffff;
     }
 
-    body:not(.dark-mode) .article-modal-header h1 {
+    body:not([data-theme="light"]) .article-modal-header h1 {
         color: #ffffff;
     }
 
-    body:not(.dark-mode) .article-meta {
+    body:not([data-theme="light"]) .article-meta {
         border-bottom-color: #3a3a3a;
         color: #999;
     }
 
-    body:not(.dark-mode) .article-meta span:not(:empty)::before {
+    body:not([data-theme="light"]) .article-meta span:not(:empty)::before {
         background: #999;
     }
 
-    body:not(.dark-mode) .article-body {
+    body:not([data-theme="light"]) .article-body {
         color: #e0e0e0;
     }
 
-    body:not(.dark-mode) .article-loading .spinner {
+    body:not([data-theme="light"]) .article-loading .spinner {
         border-color: #3a3a3a;
         border-top-color: #64b5f6;
     }
 
-    body:not(.dark-mode) .article-error p {
+    body:not([data-theme="light"]) .article-error p {
         color: #b0b0b0;
     }
 }
@@ -761,31 +761,31 @@ footer {
 
 /* Dark mode for legacy modal and header */
 @media (prefers-color-scheme: dark) {
-    body:not(.dark-mode) .modal-content {
+    body:not([data-theme="light"]) .modal-content {
         background: #2d2d2d;
     }
 
-    body:not(.dark-mode) .modal-content h1 {
+    body:not([data-theme="light"]) .modal-content h1 {
         color: #ffffff;
     }
 
-    body:not(.dark-mode) .modal-meta {
+    body:not([data-theme="light"]) .modal-meta {
         color: #999;
     }
 
-    body:not(.dark-mode) .modal-body {
+    body:not([data-theme="light"]) .modal-body {
         color: #e0e0e0;
     }
 
-    body:not(.dark-mode) .main-header {
+    body:not([data-theme="light"]) .main-header {
         background: #1e3a5f;
     }
 
-    body:not(.dark-mode) .feed-controls h2 {
+    body:not([data-theme="light"]) .feed-controls h2 {
         color: #e0e0e0;
     }
 
-    body:not(.dark-mode) footer {
+    body:not([data-theme="light"]) footer {
         background: #2d2d2d;
         color: #999;
     }
