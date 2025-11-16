@@ -14,7 +14,7 @@ from typing import List, Annotated, Optional
 
 from app.database import AsyncSessionLocal
 from app.models import ContentItem, Topic, User
-from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic
+from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
 from app.services.content_recommendation import recommendation_service
 from app.services.article_scraper import article_scraper
 from app.api.v1.deps import get_db, get_current_user
@@ -187,7 +187,7 @@ async def get_content_items(
     content_items = []
     for content_item, topic in result.all():
         content_dict = ContentItemSchema.model_validate(content_item).model_dump()
-        content_dict["topic"] = topic
+        content_dict["topic"] = TopicSchema.model_validate(topic).model_dump()
         content_items.append(content_dict)
     
     return content_items
@@ -232,7 +232,7 @@ async def get_content_item(
     
     content_item, topic = row
     content_dict = ContentItemSchema.model_validate(content_item).model_dump()
-    content_dict["topic"] = topic
+    content_dict["topic"] = TopicSchema.model_validate(topic).model_dump()
     
     return content_dict
 
