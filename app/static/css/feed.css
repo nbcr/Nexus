@@ -173,6 +173,7 @@
 .feed-loading {
     text-align: center;
     padding: 40px 20px;
+    min-height: 100px; /* Ensure it has height even when hidden */
 }
 
 .spinner {
