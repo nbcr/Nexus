@@ -35,6 +35,9 @@ class PyTrendsService:
         """
         Fetch today's trending searches from Google Trends.
         Returns a list of trending topics with metadata.
+        
+        Note: Google Trends API can be unreliable and may return 404 errors.
+        This is expected behavior when Google limits access.
         """
         try:
             print("Fetching trending searches from Google Trends...")
@@ -45,6 +48,10 @@ class PyTrendsService:
                 return self.pytrends.trending_searches(pn=self.geo.lower())
             
             df = await get_trending()
+            
+            if df is None or df.empty:
+                print("⚠️ No trending searches returned from Google Trends")
+                return []
             
             trends = []
             for idx, search_term in df[0].items():
@@ -67,7 +74,9 @@ class PyTrendsService:
             return trends
             
         except Exception as e:
-            print(f"❌ Error fetching trending searches: {e}")
+            print(f"⚠️ Google Trends API unavailable: {e}")
+            print("   This is normal - Google often limits API access.")
+            print("   Feed will use RSS and Reddit sources instead.")
             return []
     
     async def fetch_related_topics(self, keyword: str, timeframe: str = 'now 7-d') -> List[Dict]:
@@ -91,8 +100,12 @@ class PyTrendsService:
             
             related = await get_related()
             
+            if not related or keyword not in related:
+                print(f"⚠️ No related topics data for '{keyword}'")
+                return []
+            
             topics = []
-            if keyword in related and 'rising' in related[keyword]:
+            if 'rising' in related[keyword]:
                 rising_df = related[keyword]['rising']
                 if rising_df is not None and not rising_df.empty:
                     for idx, row in rising_df.iterrows():
@@ -120,7 +133,7 @@ class PyTrendsService:
             return topics
             
         except Exception as e:
-            print(f"❌ Error fetching related topics for '{keyword}': {e}")
+            print(f"⚠️ Could not fetch related topics for '{keyword}': {e}")
             return []
     
     async def fetch_related_queries(self, keyword: str, timeframe: str = 'now 7-d') -> List[Dict]:
