@@ -74,11 +74,16 @@
         function initDarkMode() {
             // Check saved preference (could be string 'true'/'false' or boolean)
             const savedMode = localStorage.getItem('darkMode');
+            console.log('Initializing dark mode. savedMode:', savedMode, 'type:', typeof savedMode);
+            
             if (savedMode === 'true' || savedMode === true) {
                 document.body.classList.add('dark-mode');
             } else {
                 document.body.classList.remove('dark-mode');
             }
+            
+            console.log('Body classes:', document.body.className);
+            console.log('Has dark-mode class:', document.body.classList.contains('dark-mode'));
             
             // Update button emoji
             updateToggleButton();
@@ -87,6 +92,7 @@
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
+            console.log('Toggled dark mode. isDark:', isDark);
             localStorage.setItem('darkMode', isDark ? 'true' : 'false');
             updateToggleButton();
         }
@@ -94,6 +100,7 @@
         function updateToggleButton() {
             const toggleBtn = document.getElementById('dark-mode-toggle');
             const isDark = document.body.classList.contains('dark-mode');
+            console.log('Updating button. isDark:', isDark, 'will show:', isDark ? '🌙' : '☀️');
             toggleBtn.textContent = isDark ? '🌙' : '☀️';
         }
         
