@@ -322,8 +322,8 @@ class ContentRecommendationService:
         query = (
             select(Topic)
             .where(Topic.category == 'Search Query')
-            .order_by(desc(Topic.trend_score))
-            .limit(100)  # Get recent queries
+            .order_by(desc(Topic.created_at), desc(Topic.trend_score))
+            .limit(200)  # Get recent queries
         )
         
         result = await db.execute(query)
@@ -333,15 +333,24 @@ class ContentRecommendationService:
         related = []
         parent_normalized = parent_keyword.lower().strip()
         
+        # Extract key terms from the parent title for better matching
+        # Remove common words and special characters
+        key_terms = [term for term in parent_normalized.split() if len(term) > 3]
+        
         for topic in all_queries:
-            # Check if any tag matches the parent keyword
+            # Check if any tag matches key terms from the parent keyword
             # PyTrends stores the parent keyword in tags
-            if topic.tags and any(parent_normalized in str(tag).lower() for tag in topic.tags):
-                related.append({
-                    'title': topic.title,
-                    'url': topic.source_urls[0] if topic.source_urls else f"https://trends.google.com/trends/explore?q={topic.title}",
-                    'trend_score': topic.trend_score
-                })
+            if topic.tags:
+                for tag in topic.tags:
+                    tag_lower = str(tag).lower()
+                    # Match if any key term is in the tag
+                    if any(term in tag_lower for term in key_terms) or parent_normalized in tag_lower:
+                        related.append({
+                            'title': topic.title,
+                            'url': topic.source_urls[0] if topic.source_urls else f"https://trends.google.com/trends/explore?q={topic.title}",
+                            'trend_score': topic.trend_score
+                        })
+                        break  # Don't add the same topic multiple times
                 
                 # Limit to top 5 related queries
                 if len(related) >= 5:
