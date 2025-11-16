@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus - The AI News Test</title>
-    <link rel="stylesheet" href="/static/css/main.css?v=202511160430">
-    <link rel="stylesheet" href="/static/css/feed.css?v=202511160430">
-    <link rel="stylesheet" href="/static/css/index.css?v=202511160430">
+    <link rel="stylesheet" href="/static/css/main.css?v=202511160435">
+    <link rel="stylesheet" href="/static/css/feed.css?v=202511160435">
+    <link rel="stylesheet" href="/static/css/index.css?v=202511160435">
 </head>
 <body>
     <header class="main-header">
@@ -14,6 +14,7 @@
             <h1>🚀 Nexus Motherfucker!</h1>
             <nav>
                 <span id="user-welcome" class="user-welcome"></span>
+                <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌙</button>
                 <a href="/" class="active">Feed</a>
                 <button id="auth-btn" onclick="handleAuth()">Login</button>
             </nav>
@@ -160,6 +161,23 @@
         function closeModal(modal) {
             modal.remove();
             document.body.style.overflow = '';
+        }
+        
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            
+            // Update toggle button icon
+            const toggleBtn = document.getElementById('dark-mode-toggle');
+            toggleBtn.textContent = isDark ? '☀️' : '🌙';
+        }
+        
+        // Load dark mode preference on page load
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dark-mode-toggle').textContent = '☀️';
         }
     </script>
 </body>
