@@ -318,23 +318,14 @@ class ContentRecommendationService:
         Returns:
             List of related query dictionaries with title and url
         """
-        # Query for topics with 'pytrends' and 'query' tags that match this keyword
-        # The parent_keyword is stored in the tags array
+        # Fetch all Search Query category topics (these are PyTrends queries)
         query = (
             select(Topic)
-            .where(
-                and_(
-                    Topic.tags.contains(['pytrends']),
-                    Topic.tags.contains(['query']),
-                    Topic.category == 'Search Query'
-                )
-            )
+            .where(Topic.category == 'Search Query')
             .order_by(desc(Topic.trend_score))
-            .limit(5)  # Limit to top 5 related queries
+            .limit(100)  # Get recent queries
         )
         
-        # Filter by checking if the parent_keyword is in tags
-        # Since tags is a JSON array, we need to check if parent_keyword.lower() is in it
         result = await db.execute(query)
         all_queries = result.scalars().all()
         
@@ -344,12 +335,17 @@ class ContentRecommendationService:
         
         for topic in all_queries:
             # Check if any tag matches the parent keyword
-            if any(parent_normalized in tag.lower() for tag in (topic.tags or [])):
+            # PyTrends stores the parent keyword in tags
+            if topic.tags and any(parent_normalized in str(tag).lower() for tag in topic.tags):
                 related.append({
                     'title': topic.title,
                     'url': topic.source_urls[0] if topic.source_urls else f"https://trends.google.com/trends/explore?q={topic.title}",
                     'trend_score': topic.trend_score
                 })
+                
+                # Limit to top 5 related queries
+                if len(related) >= 5:
+                    break
         
         return related
     
