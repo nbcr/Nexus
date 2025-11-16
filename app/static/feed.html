@@ -72,12 +72,13 @@
     <script>
         // Dark Mode Functionality
         function initDarkMode() {
-            // Check saved preference
+            // Check saved preference (could be string 'true'/'false' or boolean)
             const savedMode = localStorage.getItem('darkMode');
-            if (savedMode === 'true') {
+            if (savedMode === 'true' || savedMode === true) {
                 document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
             }
-            // If savedMode is null or 'false', stay in light mode
             
             // Update button emoji
             updateToggleButton();
@@ -86,7 +87,7 @@
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDark);
+            localStorage.setItem('darkMode', isDark ? 'true' : 'false');
             updateToggleButton();
         }
         
