@@ -117,6 +117,7 @@ async def get_content_items(skip: int = 0, limit: int = 100, db: AsyncSession = 
     result = await db.execute(
         select(ContentItem, Topic)
         .join(Topic, ContentItem.topic_id == Topic.id)
+        .where(ContentItem.title.isnot(None))  # Skip records with NULL titles
         .offset(skip)
         .limit(limit)
     )
