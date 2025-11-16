@@ -21,9 +21,11 @@ class TrendingService:
         """Fetch trending topics from Google Trends Canada RSS feed, Reddit, and PyTrends"""
         trends = []
         
-        # First, get PyTrends trending searches (20-30 items)
+        # First, get PyTrends trending searches (optional - may not work due to Google limits)
         pytrends_data = await self._fetch_pytrends_searches()
-        trends.extend(pytrends_data)
+        if pytrends_data:
+            trends.extend(pytrends_data)
+            print(f"✅ PyTrends contributed {len(pytrends_data)} trends")
         
         # Second, get RSS feed trends (10-20 items)
         rss_trends = await self._fetch_rss_trends()
@@ -34,10 +36,15 @@ class TrendingService:
             reddit_trends = await self._fetch_reddit_trends()
             trends.extend(reddit_trends)
         
-        # Finally, enrich top trends with related topics and queries
-        if pytrends_data:
-            print("Enriching trends with PyTrends related content...")
-            trends = await pytrends_service.enrich_trends_with_pytrends(trends, max_topics=3)
+        # Finally, try to enrich top RSS/Reddit trends with related topics if PyTrends is working
+        # Only enrich if we have base trends and pytrends is available
+        if len(trends) > 0 and len(pytrends_data) == 0:
+            # PyTrends direct search didn't work, but we can still try related topics
+            print("Attempting to enrich RSS/Reddit trends with PyTrends related content...")
+            try:
+                trends = await pytrends_service.enrich_trends_with_pytrends(trends, max_topics=2)
+            except Exception as e:
+                print(f"⚠️ Could not enrich trends with PyTrends: {e}")
         
         print(f"✅ Total trends fetched: {len(trends)} (PyTrends: {len(pytrends_data)}, RSS: {len(rss_trends)}, Reddit: {len(trends) - len(pytrends_data) - len(rss_trends)})")
         return trends
