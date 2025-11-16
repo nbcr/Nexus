@@ -8,15 +8,45 @@ from sqlalchemy import select # type: ignore
 from app.models import Topic, ContentItem
 from app.core.config import settings
 
+try:
+    from pytrends.request import TrendReq
+    PYTRENDS_AVAILABLE = True
+except ImportError:
+    PYTRENDS_AVAILABLE = False
+    print("⚠️ pytrends not available, install with: pip install pytrends")
+
 
 class TrendingService:
     def __init__(self):
         self.feed_url = "https://trends.google.com/trending/rss?geo=CA"
+        self.pytrends = None
+        if PYTRENDS_AVAILABLE:
+            try:
+                self.pytrends = TrendReq(hl='en-CA', tz=360)
+                print("✅ pytrends initialized successfully")
+            except Exception as e:
+                print(f"⚠️ Could not initialize pytrends: {e}")
     
     async def fetch_canada_trends(self) -> List[Dict]:
         """Fetch trending topics from Google Trends Canada RSS feed"""
+        trends = []
+        
+        # First, get RSS feed trends (10-20 items)
+        rss_trends = await self._fetch_rss_trends()
+        trends.extend(rss_trends)
+        
+        # Then, get pytrends data (many more items)
+        if self.pytrends:
+            pytrends_data = await self._fetch_pytrends_data()
+            trends.extend(pytrends_data)
+        
+        print(f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)}, pytrends: {len(trends) - len(rss_trends)})")
+        return trends
+    
+    async def _fetch_rss_trends(self) -> List[Dict]:
+        """Fetch trends from RSS feed"""
         try:
-            print(f"Fetching from Google Trends: {self.feed_url}")
+            print(f"Fetching from Google Trends RSS: {self.feed_url}")
             feed = feedparser.parse(self.feed_url)
             
             trends = []
@@ -108,11 +138,68 @@ class TrendingService:
                 }
                 trends.append(trend_data)
             
-            print(f"✅ Successfully fetched {len(trends)} trends from Google Trends")
+            print(f"✅ Successfully fetched {len(trends)} trends from RSS feed")
             return trends
             
         except Exception as e:
-            print(f"❌ Error fetching Google Trends: {e}")
+            print(f"❌ Error fetching RSS trends: {e}")
+            return []
+    
+    async def _fetch_pytrends_data(self) -> List[Dict]:
+        """Fetch additional trends using pytrends library"""
+        trends = []
+        
+        try:
+            # Categories to fetch trends from
+            categories = {
+                'all': 'All Categories',
+                'b': 'Business',
+                't': 'Science/Tech',
+                'e': 'Entertainment',
+                's': 'Sports',
+                'h': 'Health',
+                'm': 'Top Stories'
+            }
+            
+            for cat_key, cat_name in categories.items():
+                try:
+                    print(f"Fetching trending searches for category: {cat_name}")
+                    
+                    # Get trending searches for this category
+                    trending_searches = self.pytrends.trending_searches(pn='canada')
+                    
+                    if trending_searches is not None and not trending_searches.empty:
+                        # Get top 10 from this category
+                        for idx, search_term in enumerate(trending_searches[0].head(10)):
+                            trend_data = {
+                                'title': search_term.title(),
+                                'original_query': search_term,
+                                'description': f"Trending search in Canada: {search_term}",
+                                'url': f"https://trends.google.com/trends/explore?geo=CA&q={search_term}",
+                                'source': 'Google Trends API',
+                                'image_url': None,
+                                'published': datetime.now().isoformat(),
+                                'trend_score': max(0.5, 0.9 - (idx * 0.05)),  # Decreasing score by position
+                                'category': cat_name,
+                                'tags': ['trending', 'canada', 'google trends', cat_name.lower()],
+                                'news_items': []
+                            }
+                            trends.append(trend_data)
+                        
+                        print(f"✅ Added {len(trending_searches[0].head(10))} trends from {cat_name}")
+                    
+                    # Small delay to avoid rate limiting
+                    await asyncio.sleep(0.5)
+                    
+                except Exception as e:
+                    print(f"⚠️ Error fetching category {cat_name}: {e}")
+                    continue
+            
+            print(f"✅ Successfully fetched {len(trends)} trends from pytrends")
+            return trends
+            
+        except Exception as e:
+            print(f"❌ Error in _fetch_pytrends_data: {e}")
             return []
     
     def _extract_news_item(self, entry) -> Dict:
