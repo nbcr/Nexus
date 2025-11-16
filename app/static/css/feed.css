@@ -354,77 +354,104 @@
     }
 }
 
-/* Dark Mode Support - System Preference (only if not explicitly toggled) */
-@media (prefers-color-scheme: dark) {
-    body:not([data-theme="light"]) {
-        background: #1a1a1a;
-        color: #e0e0e0;
-    }
-    
-    body:not([data-theme="light"]) .feed-item {
-        background: #2d2d2d;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    
-    body:not([data-theme="light"]) .feed-item-title {
-        color: #ffffff;
-    }
-    
-    body:not([data-theme="light"]) .feed-item-description,
-    body:not([data-theme="light"]) .feed-item-summary {
-        color: #b0b0b0;
-    }
-    
-    body:not([data-theme="light"]) .tag {
-        background: #3a3a3a;
-        color: #e0e0e0;
-    }
-    
-    body:not([data-theme="light"]) .btn-source {
-        background: #3a3a3a;
-        color: #e0e0e0;
-        border-color: #555;
-    }
+/* Explicit Dark Mode via body.dark-mode class (overrides everything) */
+body.dark-mode {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
 
-    body:not([data-theme="light"]) .article-modal-content {
-        background: #2d2d2d;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    }
+body.dark-mode .feed-item {
+    background: #2d2d2d;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
 
-    body:not([data-theme="light"]) .article-modal-close {
-        color: #b0b0b0;
-    }
+body.dark-mode .feed-item-title {
+    color: #ffffff;
+}
 
-    body:not([data-theme="light"]) .article-modal-close:hover {
-        background: #3a3a3a;
-        color: #ffffff;
-    }
+body.dark-mode .feed-item-description,
+body.dark-mode .feed-item-summary {
+    color: #b0b0b0;
+}
 
-    body:not([data-theme="light"]) .article-modal-header h1 {
-        color: #ffffff;
-    }
+body.dark-mode .tag {
+    background: #3a3a3a;
+    color: #e0e0e0;
+}
 
-    body:not([data-theme="light"]) .article-meta {
-        border-bottom-color: #3a3a3a;
-        color: #999;
-    }
+body.dark-mode .btn-source {
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+}
 
-    body:not([data-theme="light"]) .article-meta span:not(:empty)::before {
-        background: #999;
-    }
+body.dark-mode .article-modal-content {
+    background: #2d2d2d;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
 
-    body:not([data-theme="light"]) .article-body {
-        color: #e0e0e0;
-    }
+body.dark-mode .article-modal-close {
+    color: #b0b0b0;
+}
 
-    body:not([data-theme="light"]) .article-loading .spinner {
-        border-color: #3a3a3a;
-        border-top-color: #64b5f6;
-    }
+body.dark-mode .article-modal-close:hover {
+    background: #3a3a3a;
+    color: #ffffff;
+}
 
-    body:not([data-theme="light"]) .article-error p {
-        color: #b0b0b0;
-    }
+body.dark-mode .article-modal-header h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .article-meta {
+    border-bottom-color: #3a3a3a;
+    color: #999;
+}
+
+body.dark-mode .article-meta span:not(:empty)::before {
+    background: #999;
+}
+
+body.dark-mode .article-body {
+    color: #e0e0e0;
+}
+
+body.dark-mode .article-loading .spinner {
+    border-color: #3a3a3a;
+    border-top-color: #64b5f6;
+}
+
+body.dark-mode .article-error p {
+    color: #b0b0b0;
+}
+
+body.dark-mode .modal-content {
+    background: #2d2d2d;
+}
+
+body.dark-mode .modal-content h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .modal-meta {
+    color: #999;
+}
+
+body.dark-mode .modal-body {
+    color: #e0e0e0;
+}
+
+body.dark-mode .main-header {
+    background: #1e3a5f;
+}
+
+body.dark-mode .feed-controls h2 {
+    color: #e0e0e0;
+}
+
+body.dark-mode footer {
+    background: #2d2d2d;
+    color: #999;
 }
 
 /* Article Modal */
@@ -554,47 +581,6 @@
     font-size: 18px;
     color: #555;
     margin-bottom: 20px;
-}
-
-/* Dark mode for body.dark-mode class */
-body.dark-mode .article-modal-content {
-    background: #2d2d2d;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-}
-
-body.dark-mode .article-modal-close {
-    color: #b0b0b0;
-}
-
-body.dark-mode .article-modal-close:hover {
-    background: #3a3a3a;
-    color: #ffffff;
-}
-
-body.dark-mode .article-modal-header h1 {
-    color: #ffffff;
-}
-
-body.dark-mode .article-meta {
-    border-bottom-color: #3a3a3a;
-    color: #999;
-}
-
-body.dark-mode .article-meta span:not(:empty)::before {
-    background: #999;
-}
-
-body.dark-mode .article-body {
-    color: #e0e0e0;
-}
-
-body.dark-mode .article-loading .spinner {
-    border-color: #3a3a3a;
-    border-top-color: #64b5f6;
-}
-
-body.dark-mode .article-error p {
-    color: #b0b0b0;
 }
 
 @media (max-width: 768px) {
@@ -757,65 +743,4 @@ footer {
     color: #666;
     background: #f8f9fa;
     margin-top: 60px;
-}
-
-/* Dark mode for legacy modal and header */
-@media (prefers-color-scheme: dark) {
-    body:not([data-theme="light"]) .modal-content {
-        background: #2d2d2d;
-    }
-
-    body:not([data-theme="light"]) .modal-content h1 {
-        color: #ffffff;
-    }
-
-    body:not([data-theme="light"]) .modal-meta {
-        color: #999;
-    }
-
-    body:not([data-theme="light"]) .modal-body {
-        color: #e0e0e0;
-    }
-
-    body:not([data-theme="light"]) .main-header {
-        background: #1e3a5f;
-    }
-
-    body:not([data-theme="light"]) .feed-controls h2 {
-        color: #e0e0e0;
-    }
-
-    body:not([data-theme="light"]) footer {
-        background: #2d2d2d;
-        color: #999;
-    }
-}
-
-body.dark-mode .modal-content {
-    background: #2d2d2d;
-}
-
-body.dark-mode .modal-content h1 {
-    color: #ffffff;
-}
-
-body.dark-mode .modal-meta {
-    color: #999;
-}
-
-body.dark-mode .modal-body {
-    color: #e0e0e0;
-}
-
-body.dark-mode .main-header {
-    background: #1e3a5f;
-}
-
-body.dark-mode .feed-controls h2 {
-    color: #e0e0e0;
-}
-
-body.dark-mode footer {
-    background: #2d2d2d;
-    color: #999;
 }

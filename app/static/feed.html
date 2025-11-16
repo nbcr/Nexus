@@ -72,50 +72,27 @@
     <script>
         // Dark Mode Functionality
         function initDarkMode() {
-            const toggleBtn = document.getElementById('dark-mode-toggle');
-            
             // Check saved preference
             const savedMode = localStorage.getItem('darkMode');
-            if (savedMode === 'false') {
-                // User explicitly wants light mode
-                document.body.setAttribute('data-theme', 'light');
-                document.body.classList.remove('dark-mode');
-            } else if (savedMode === 'true') {
-                // User explicitly wants dark mode
-                document.body.setAttribute('data-theme', 'dark');
+            if (savedMode === 'true') {
                 document.body.classList.add('dark-mode');
             }
-            // If savedMode is null, respect system preference (no attribute set)
+            // If savedMode is null or 'false', stay in light mode
             
             // Update button emoji
             updateToggleButton();
         }
         
         function toggleDarkMode() {
-            const currentTheme = document.body.getAttribute('data-theme');
-            
-            if (currentTheme === 'light') {
-                // Switch to dark mode
-                document.body.setAttribute('data-theme', 'dark');
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('darkMode', 'true');
-            } else {
-                // Switch to light mode
-                document.body.setAttribute('data-theme', 'light');
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('darkMode', 'false');
-            }
-            
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
             updateToggleButton();
         }
         
         function updateToggleButton() {
             const toggleBtn = document.getElementById('dark-mode-toggle');
-            const theme = document.body.getAttribute('data-theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            // Determine if we're in dark mode (explicit or system)
-            const isDark = theme === 'dark' || (theme !== 'light' && prefersDark);
+            const isDark = document.body.classList.contains('dark-mode');
             toggleBtn.textContent = isDark ? '🌙' : '☀️';
         }
         
