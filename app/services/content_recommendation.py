@@ -51,7 +51,7 @@ class ContentRecommendationService:
         exclude_ids = exclude_ids or []
         offset = (page - 1) * page_size
         
-        # Get user preferences and interaction history
+        # Get user preferences and interaction history (for future use)
         user_categories = await self._get_user_categories(db, user_id, session_token)
         user_interests = await self._get_user_interests(db, user_id)
         viewed_content_ids = await self._get_viewed_content(db, user_id, session_token)
@@ -59,7 +59,7 @@ class ContentRecommendationService:
         # Combine with exclude_ids
         all_excluded = set(exclude_ids + viewed_content_ids)
         
-        # Build query with scoring
+        # Build query - for now, show all content without filtering
         query = (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
@@ -69,13 +69,8 @@ class ContentRecommendationService:
             )
         )
         
-        # Apply category filtering with some randomness for diversity
-        if user_categories:
-            # 70% from preferred categories, 30% from all categories
-            if page % 3 == 0:  # Every 3rd page shows diverse content
-                pass  # No category filter
-            else:
-                query = query.where(Topic.category.in_(user_categories))
+        # TODO: Future filtering by user_categories can be added here
+        # For now, show everything so we can learn user preferences
         
         # Order by trend score and recency
         query = query.order_by(
