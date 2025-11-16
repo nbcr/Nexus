@@ -13,6 +13,8 @@ from typing import List, Dict, Optional
 import asyncio
 from functools import wraps
 import pandas as pd
+import requests
+from bs4 import BeautifulSoup
 
 
 def async_wrap(func):
@@ -242,6 +244,138 @@ class PyTrendsService:
         except Exception as e:
             print(f"❌ Error fetching interest over time: {e}")
             return {'keywords': keywords, 'data': [], 'peak_dates': {}}
+    
+    async def _fetch_search_context(self, query: str) -> Dict:
+        """
+        Fetch contextual information from Google search results.
+        
+        Args:
+            query: The search term to look up
+        
+        Returns:
+            Dictionary with description, url, source, image_url, category, news_items
+        """
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            
+            # Search Google with proper headers
+            search_url = f"https://www.google.com/search?q={query}&gl=ca&hl=en"
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            
+            response = requests.get(search_url, headers=headers, timeout=10)
+            if response.status_code != 200:
+                print(f"⚠️ Google search returned {response.status_code} for '{query}'")
+                return self._default_context(query)
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Try to extract featured snippet or knowledge panel description
+            description = None
+            
+            # Knowledge panel description
+            knowledge_panel = soup.find('div', class_=['kno-rdesc', 'knowledge-panel'])
+            if knowledge_panel:
+                desc_span = knowledge_panel.find('span')
+                if desc_span:
+                    description = desc_span.get_text(strip=True)[:300]
+            
+            # Featured snippet
+            if not description:
+                featured = soup.find('div', {'data-attrid': 'FeaturedSnippet'})
+                if not featured:
+                    featured = soup.find('div', class_='IZ6rdc')
+                if featured:
+                    description = featured.get_text(strip=True)[:300]
+            
+            # First search result snippet
+            if not description:
+                snippet = soup.find('div', class_=['VwiC3b', 'yXK7lf', 'lVm3ye'])
+                if snippet:
+                    description = snippet.get_text(strip=True)[:300]
+            
+            # Extract image if available
+            image_url = None
+            img = soup.find('img', class_=['wSTKke', 'ivg-i'])
+            if img and img.get('src'):
+                image_url = img['src']
+            
+            # Extract news items
+            news_items = []
+            news_section = soup.find('div', {'data-hveid': lambda x: x and 'CAU' in str(x)})
+            if news_section:
+                news_links = news_section.find_all('a', href=True, limit=3)
+                for link in news_links:
+                    title_elem = link.find(['h3', 'div'])
+                    if title_elem:
+                        news_items.append({
+                            'title': title_elem.get_text(strip=True),
+                            'url': link['href'] if link['href'].startswith('http') else None,
+                            'source': 'News'
+                        })
+            
+            # Determine category from content
+            category = self._infer_category(description or query, soup)
+            
+            # Find best source URL (first real result)
+            source_url = search_url
+            first_result = soup.find('a', href=True, jsname=True)
+            if first_result and first_result['href'].startswith('http'):
+                source_url = first_result['href']
+            
+            context = {
+                'description': description or f"Trending topic: {query}",
+                'url': source_url,
+                'source': 'Google Search',
+                'image_url': image_url,
+                'category': category,
+                'news_items': news_items
+            }
+            
+            print(f"✅ Fetched context for '{query}': {len(description or '')} chars, {len(news_items)} news items")
+            return context
+            
+        except Exception as e:
+            print(f"⚠️ Error fetching search context for '{query}': {e}")
+            return self._default_context(query)
+    
+    def _default_context(self, query: str) -> Dict:
+        """Return default context when search fails"""
+        return {
+            'description': f"Trending topic: {query}",
+            'url': f"https://www.google.com/search?q={query}",
+            'source': 'Google Search',
+            'image_url': None,
+            'category': 'Trending',
+            'news_items': []
+        }
+    
+    def _infer_category(self, text: str, soup) -> str:
+        """Infer category from search result content"""
+        text_lower = text.lower()
+        
+        # Check for category indicators in text
+        if any(word in text_lower for word in ['sport', 'game', 'player', 'team', 'match']):
+            return 'Sports'
+        elif any(word in text_lower for word in ['movie', 'film', 'actor', 'music', 'album', 'song']):
+            return 'Entertainment'
+        elif any(word in text_lower for word in ['tech', 'software', 'app', 'device', 'digital']):
+            return 'Technology'
+        elif any(word in text_lower for word in ['politic', 'government', 'election', 'minister']):
+            return 'Politics'
+        elif any(word in text_lower for word in ['scien', 'research', 'study', 'discover']):
+            return 'Science'
+        elif any(word in text_lower for word in ['business', 'company', 'stock', 'market', 'economy']):
+            return 'Business'
+        
+        # Check for news indicators
+        news_indicators = soup.find_all(text=lambda t: t and any(word in t.lower() for word in ['breaking', 'news', 'reported', 'announced']))
+        if news_indicators:
+            return 'News'
+        
+        return 'Trending'
     
     async def enrich_trends_with_pytrends(self, base_trends: List[Dict], max_topics: int = 5) -> List[Dict]:
         """
