@@ -79,12 +79,12 @@ body {
 
 .category-filter {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
 }
 
 .category-btn {
-    padding: 10px 20px;
+    padding: 10px 16px;
     background: #fff;
     color: #333;
     border: 1px solid #dee2e6;
