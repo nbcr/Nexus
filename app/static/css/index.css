@@ -86,9 +86,9 @@ body {
 
 .category-btn {
     padding: 10px 16px;
-    background: #e3f2fd;
+    background: #64b5f6;
     color: #fff;
-    border: 1px solid #90caf9;
+    border: 1px solid #42a5f5;
     border-radius: 20px;
     font-size: 16px;
     font-weight: 600;
@@ -100,7 +100,7 @@ body {
 }
 
 .category-btn:hover {
-    background: #bbdefb;
+    background: #42a5f5;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
