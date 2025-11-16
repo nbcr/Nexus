@@ -138,14 +138,14 @@ class PyTrendsService:
     
     async def fetch_related_queries(self, keyword: str, timeframe: str = 'now 7-d') -> List[Dict]:
         """
-        Fetch related search queries for a given keyword.
+        Fetch related search queries for a given keyword and enrich with Google search context.
         
         Args:
             keyword: The search term to find related queries for
             timeframe: Time range (e.g., 'now 7-d', 'today 1-m', 'today 3-m')
         
         Returns:
-            List of related queries with relevance scores
+            List of related queries with relevance scores and contextual descriptions
         """
         try:
             print(f"Fetching related queries for '{keyword}'...")
@@ -165,23 +165,29 @@ class PyTrendsService:
                         query = row.get('query', 'Unknown')
                         value = row.get('value', 0)
                         
+                        # Fetch Google search context for the query
+                        context = await self._fetch_search_context(query)
+                        
                         query_data = {
                             'title': query,
                             'original_query': query,
-                            'description': f"Rising search query related to {keyword}",
-                            'url': f"https://trends.google.com/trends/explore?geo={self.geo}&q={query}",
-                            'source': 'Google Trends - Query',
-                            'image_url': None,
+                            'description': context.get('description', f"Trending search: {query}"),
+                            'url': context.get('url', f"https://www.google.com/search?q={query}"),
+                            'source': context.get('source', 'Google Search'),
+                            'image_url': context.get('image_url'),
                             'published': datetime.now().isoformat(),
                             'trend_score': min(0.95, 0.5 + (value / 200)),
-                            'category': 'Search Query',
+                            'category': context.get('category', 'Trending'),
                             'tags': ['pytrends', 'query', keyword.lower()],
-                            'news_items': [],
+                            'news_items': context.get('news_items', []),
                             'parent_keyword': keyword
                         }
                         queries.append(query_data)
+                        
+                        # Small delay to avoid rate limiting
+                        await asyncio.sleep(0.5)
             
-            print(f"✅ Found {len(queries)} related queries for '{keyword}'")
+            print(f"✅ Found {len(queries)} related queries with context for '{keyword}'")
             return queries
             
         except Exception as e:
