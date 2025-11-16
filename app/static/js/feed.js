@@ -277,7 +277,7 @@ class InfiniteFeed {
                         ${item.source_urls && item.source_urls.length > 0 ? `
                             <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
                                class="btn-source">
-                                View Source
+                                ${this.getSourceButtonText(item)}
                             </a>
                         ` : ''}
                         <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
@@ -399,6 +399,35 @@ class InfiniteFeed {
     truncateText(text, maxLength) {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
+    }
+    
+    getSourceButtonText(item) {
+        // Determine button text based on the source URL and tags
+        if (!item.source_urls || item.source_urls.length === 0) {
+            return 'View Source';
+        }
+        
+        const url = item.source_urls[0].toLowerCase();
+        const tags = item.tags || [];
+        
+        // Check if it's a search-related item
+        if (tags.includes('pytrends') || tags.includes('query') || tags.includes('search')) {
+            if (url.includes('google.com/search') || url.includes('duckduckgo.com')) {
+                return 'Search';
+            }
+        }
+        
+        // Check URL patterns
+        if (url.includes('google.com/search') || url.includes('duckduckgo.com') || url.includes('/search?q=')) {
+            return 'Search';
+        }
+        
+        if (url.includes('trends.google.com')) {
+            return 'View Trends';
+        }
+        
+        // Default to View Source for news articles and other content
+        return 'View Source';
     }
     
     formatTime(isoString) {
