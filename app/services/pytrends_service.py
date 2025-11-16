@@ -249,32 +249,44 @@ class PyTrendsService:
             Combined list of original trends plus related content
         """
         all_trends = list(base_trends)  # Start with base trends
+        related_count = 0
         
         try:
             # Take top trends and find related content
             top_trends = base_trends[:max_topics]
             
-            for trend in top_trends:
+            for idx, trend in enumerate(top_trends, 1):
                 keyword = trend.get('original_query', trend.get('title', ''))
                 if not keyword:
                     continue
+                
+                print(f"🔍 [{idx}/{len(top_trends)}] Enriching '{keyword}' with PyTrends...")
                 
                 # Fetch related topics and queries
                 related_topics = await self.fetch_related_topics(keyword, timeframe='now 1-d')
                 related_queries = await self.fetch_related_queries(keyword, timeframe='now 1-d')
                 
-                # Add to overall trends
-                all_trends.extend(related_topics[:3])  # Top 3 related topics
-                all_trends.extend(related_queries[:3])  # Top 3 related queries
+                # Add top items to overall trends
+                added_topics = related_topics[:2]  # Top 2 related topics
+                added_queries = related_queries[:2]  # Top 2 related queries
                 
-                # Small delay to avoid rate limiting
-                await asyncio.sleep(1)
+                all_trends.extend(added_topics)
+                all_trends.extend(added_queries)
+                
+                related_count += len(added_topics) + len(added_queries)
+                
+                if added_topics or added_queries:
+                    print(f"   ✅ Added {len(added_topics)} topics + {len(added_queries)} queries for '{keyword}'")
+                
+                # Delay between keywords to avoid rate limiting
+                if idx < len(top_trends):
+                    await asyncio.sleep(2)
             
-            print(f"✅ Enriched trends: {len(base_trends)} base + {len(all_trends) - len(base_trends)} related = {len(all_trends)} total")
+            print(f"🎨 Enrichment complete: {len(base_trends)} base + {related_count} related = {len(all_trends)} total")
             return all_trends
             
         except Exception as e:
-            print(f"❌ Error enriching trends: {e}")
+            print(f"⚠️ Error enriching trends: {e}")
             return base_trends  # Return original trends if enrichment fails
 
 
