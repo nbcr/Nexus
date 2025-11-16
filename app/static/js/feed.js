@@ -40,7 +40,9 @@ class InfiniteFeed {
             <div class="spinner"></div>
             <p>Loading more content...</p>
         `;
-        this.loadingIndicator.style.display = 'none';
+        this.loadingIndicator.style.visibility = 'hidden';
+        this.loadingIndicator.style.opacity = '0';
+        this.loadingIndicator.style.transition = 'opacity 0.3s';
         this.container.after(this.loadingIndicator);
         console.log('Loading indicator created:', this.loadingIndicator);
         
@@ -48,7 +50,8 @@ class InfiniteFeed {
         this.endMessage = document.createElement('div');
         this.endMessage.className = 'feed-end';
         this.endMessage.innerHTML = '<p>You\'ve reached the end of the feed!</p>';
-        this.endMessage.style.display = 'none';
+        this.endMessage.style.visibility = 'hidden';
+        this.endMessage.style.opacity = '0';
         this.loadingIndicator.after(this.endMessage);
         
         // Setup intersection observer for infinite scroll
@@ -244,15 +247,18 @@ class InfiniteFeed {
     }
     
     showLoading() {
-        this.loadingIndicator.style.display = 'block';
+        this.loadingIndicator.style.visibility = 'visible';
+        this.loadingIndicator.style.opacity = '1';
     }
     
     hideLoading() {
-        this.loadingIndicator.style.display = 'none';
+        this.loadingIndicator.style.visibility = 'hidden';
+        this.loadingIndicator.style.opacity = '0';
     }
     
     showEndMessage() {
-        this.endMessage.style.display = 'block';
+        this.endMessage.style.visibility = 'visible';
+        this.endMessage.style.opacity = '1';
         this.hideLoading();
     }
     
@@ -272,7 +278,8 @@ class InfiniteFeed {
         this.viewedContentIds.clear();
         this.hasMore = true;
         this.container.innerHTML = '';
-        this.endMessage.style.display = 'none';
+        this.endMessage.style.visibility = 'hidden';
+        this.endMessage.style.opacity = '0';
         this.loadMore();
     }
     
