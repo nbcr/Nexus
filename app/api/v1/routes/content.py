@@ -279,7 +279,9 @@ async def get_content_by_topic(
         .offset(skip)
         .limit(limit)
     )
-    return result.scalars().all()@router.get(
+    return result.scalars().all()
+
+@router.get(
     "/article/{content_id}",
     responses={
         200: {"description": "Article content retrieved"},
