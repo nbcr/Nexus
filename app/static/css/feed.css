@@ -385,6 +385,46 @@
         color: #e0e0e0;
         border-color: #555;
     }
+
+    .article-modal-content {
+        background: #2d2d2d;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .article-modal-close {
+        color: #b0b0b0;
+    }
+
+    .article-modal-close:hover {
+        background: #3a3a3a;
+        color: #ffffff;
+    }
+
+    .article-modal-header h1 {
+        color: #ffffff;
+    }
+
+    .article-meta {
+        border-bottom-color: #3a3a3a;
+        color: #999;
+    }
+
+    .article-meta span:not(:empty)::before {
+        background: #999;
+    }
+
+    .article-body {
+        color: #e0e0e0;
+    }
+
+    .article-loading .spinner {
+        border-color: #3a3a3a;
+        border-top-color: #64b5f6;
+    }
+
+    .article-error p {
+        color: #b0b0b0;
+    }
 }
 
 /* Article Modal */
@@ -513,6 +553,47 @@
     font-size: 18px;
     color: #666;
     margin-bottom: 20px;
+}
+
+/* Dark mode for body.dark-mode class */
+body.dark-mode .article-modal-content {
+    background: #2d2d2d;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode .article-modal-close {
+    color: #b0b0b0;
+}
+
+body.dark-mode .article-modal-close:hover {
+    background: #3a3a3a;
+    color: #ffffff;
+}
+
+body.dark-mode .article-modal-header h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .article-meta {
+    border-bottom-color: #3a3a3a;
+    color: #999;
+}
+
+body.dark-mode .article-meta span:not(:empty)::before {
+    background: #999;
+}
+
+body.dark-mode .article-body {
+    color: #e0e0e0;
+}
+
+body.dark-mode .article-loading .spinner {
+    border-color: #3a3a3a;
+    border-top-color: #64b5f6;
+}
+
+body.dark-mode .article-error p {
+    color: #b0b0b0;
 }
 
 @media (max-width: 768px) {
