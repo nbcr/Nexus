@@ -32,7 +32,7 @@ class InfiniteFeed {
     }
     
     init() {
-        console.log('Initializing feed...');
+        console.log('Initializing feed..');
         // Create loading indicator
         this.loadingIndicator = document.createElement('div');
         this.loadingIndicator.className = 'feed-loading';
