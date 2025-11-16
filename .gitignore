@@ -68,3 +68,8 @@ htmlcov/
 
 # VS Code
 .vscode/
+.env
+server.log
+*.pyc
+__pycache__/
+venv/
