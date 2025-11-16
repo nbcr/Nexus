@@ -322,7 +322,21 @@ class InfiniteFeed {
     }
     
     async defaultContentClick(item) {
-        // Open modal and fetch article content
+        // Check if this is a search query (pytrends) item
+        const isPytrends = item.tags && item.tags.includes('pytrends');
+        const isSearchQuery = item.category === 'Search Query' || (item.source_urls && item.source_urls[0] && 
+                              (item.source_urls[0].includes('google.com/search') || 
+                               item.source_urls[0].includes('duckduckgo.com')));
+        
+        // For search queries, just open the search in a new tab
+        if (isPytrends || isSearchQuery) {
+            if (item.source_urls && item.source_urls.length > 0) {
+                window.open(item.source_urls[0], '_blank');
+            }
+            return;
+        }
+        
+        // For news articles, open modal and fetch article content
         this.openArticleModal(item);
     }
     
