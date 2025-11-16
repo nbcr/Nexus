@@ -95,10 +95,12 @@ body {
     font-family: 'Quicksand', 'Nunito', 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
     cursor: pointer;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .category-btn:hover {
     background: #bbdefb;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .category-btn.active {
