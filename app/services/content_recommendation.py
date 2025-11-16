@@ -107,6 +107,9 @@ class ContentRecommendationService:
                 user_interests
             )
             
+            # Fetch related PyTrends queries for this topic
+            related_queries = await self._get_related_queries(db, topic.title)
+            
             feed_items.append({
                 "content_id": content.id,
                 "topic_id": topic.id,
@@ -120,7 +123,8 @@ class ContentRecommendationService:
                 "trend_score": topic.trend_score,
                 "relevance_score": relevance_score,
                 "created_at": content.created_at.isoformat(),
-                "tags": topic.tags
+                "tags": topic.tags,
+                "related_queries": related_queries
             })
         
         # Determine next cursor (timestamp of last item)
@@ -194,6 +198,9 @@ class ContentRecommendationService:
         
         feed_items = []
         for content, topic in items:
+            # Fetch related PyTrends queries for this topic
+            related_queries = await self._get_related_queries(db, topic.title)
+            
             feed_items.append({
                 "content_id": content.id,
                 "topic_id": topic.id,
@@ -206,7 +213,8 @@ class ContentRecommendationService:
                 "source_metadata": getattr(content, 'source_metadata', {}),
                 "trend_score": topic.trend_score,
                 "created_at": content.created_at.isoformat(),
-                "tags": topic.tags
+                "tags": topic.tags,
+                "related_queries": related_queries
             })
         
         # Determine next cursor
@@ -294,6 +302,56 @@ class ContentRecommendationService:
         result = await db.execute(query)
         
         return [row[0] for row in result.all()]
+    
+    async def _get_related_queries(
+        self,
+        db: AsyncSession,
+        parent_keyword: str
+    ) -> List[Dict]:
+        """
+        Get related PyTrends queries for a given keyword.
+        
+        Args:
+            db: Database session
+            parent_keyword: The base trend title to find related queries for
+            
+        Returns:
+            List of related query dictionaries with title and url
+        """
+        # Query for topics with 'pytrends' and 'query' tags that match this keyword
+        # The parent_keyword is stored in the tags array
+        query = (
+            select(Topic)
+            .where(
+                and_(
+                    Topic.tags.contains(['pytrends']),
+                    Topic.tags.contains(['query']),
+                    Topic.category == 'Search Query'
+                )
+            )
+            .order_by(desc(Topic.trend_score))
+            .limit(5)  # Limit to top 5 related queries
+        )
+        
+        # Filter by checking if the parent_keyword is in tags
+        # Since tags is a JSON array, we need to check if parent_keyword.lower() is in it
+        result = await db.execute(query)
+        all_queries = result.scalars().all()
+        
+        # Filter for queries related to this specific keyword
+        related = []
+        parent_normalized = parent_keyword.lower().strip()
+        
+        for topic in all_queries:
+            # Check if any tag matches the parent keyword
+            if any(parent_normalized in tag.lower() for tag in (topic.tags or [])):
+                related.append({
+                    'title': topic.title,
+                    'url': topic.source_urls[0] if topic.source_urls else f"https://trends.google.com/trends/explore?q={topic.title}",
+                    'trend_score': topic.trend_score
+                })
+        
+        return related
     
     def _calculate_relevance(
         self,

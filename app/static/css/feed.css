@@ -169,6 +169,48 @@
     font-size: 12px;
 }
 
+/* Related Queries Section */
+.feed-item-related {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.related-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.related-queries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.related-query {
+    display: inline-block;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.related-query:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
 /* Loading Indicator */
 .feed-loading {
     text-align: center;

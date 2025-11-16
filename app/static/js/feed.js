@@ -201,6 +201,18 @@ class InfiniteFeed {
                             ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
                     ` : ''}
+                    ${item.related_queries && item.related_queries.length > 0 ? `
+                        <div class="feed-item-related">
+                            <h4 class="related-title">🔍 Related Searches:</h4>
+                            <div class="related-queries">
+                                ${item.related_queries.map(query => `
+                                    <a href="${query.url}" target="_blank" rel="noopener" class="related-query">
+                                        ${query.title}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
