@@ -41,9 +41,8 @@ class InfiniteFeed {
             <p>Loading more content...</p>
         `;
         this.loadingIndicator.style.display = 'block';
-        this.loadingIndicator.style.opacity = '0.01';
-        this.loadingIndicator.style.pointerEvents = 'none';
-        this.loadingIndicator.style.transition = 'opacity 0.3s';
+        this.loadingIndicator.style.visibility = 'hidden';
+        this.loadingIndicator.style.minHeight = '100px';
         this.container.after(this.loadingIndicator);
         console.log('Loading indicator created:', this.loadingIndicator);
         
@@ -51,8 +50,7 @@ class InfiniteFeed {
         this.endMessage = document.createElement('div');
         this.endMessage.className = 'feed-end';
         this.endMessage.innerHTML = '<p>You\'ve reached the end of the feed!</p>';
-        this.endMessage.style.display = 'block';
-        this.endMessage.style.opacity = '0';
+        this.endMessage.style.display = 'none';
         this.loadingIndicator.after(this.endMessage);
         
         // Setup intersection observer for infinite scroll
@@ -248,17 +246,15 @@ class InfiniteFeed {
     }
     
     showLoading() {
-        this.loadingIndicator.style.opacity = '1';
-        this.loadingIndicator.style.pointerEvents = 'auto';
+        this.loadingIndicator.style.visibility = 'visible';
     }
     
     hideLoading() {
-        this.loadingIndicator.style.opacity = '0.01';
-        this.loadingIndicator.style.pointerEvents = 'none';
+        this.loadingIndicator.style.visibility = 'hidden';
     }
     
     showEndMessage() {
-        this.endMessage.style.opacity = '1';
+        this.endMessage.style.display = 'block';
         this.hideLoading();
     }
     
