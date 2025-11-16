@@ -9,38 +9,43 @@ from app.models import Topic, ContentItem
 from app.core.config import settings
 
 try:
-    from pytrends.request import TrendReq
-    PYTRENDS_AVAILABLE = True
+    import praw
+    PRAW_AVAILABLE = True
 except ImportError:
-    PYTRENDS_AVAILABLE = False
-    print("⚠️ pytrends not available, install with: pip install pytrends")
+    PRAW_AVAILABLE = False
+    print("⚠️ praw not available, install with: pip install praw")
 
 
 class TrendingService:
     def __init__(self):
         self.feed_url = "https://trends.google.com/trending/rss?geo=CA"
-        self.pytrends = None
-        if PYTRENDS_AVAILABLE:
+        self.reddit = None
+        if PRAW_AVAILABLE:
             try:
-                self.pytrends = TrendReq(hl='en-CA', tz=360)
-                print("✅ pytrends initialized successfully")
+                # Reddit API doesn't require authentication for read-only access
+                self.reddit = praw.Reddit(
+                    client_id="anonymous",
+                    client_secret="anonymous", 
+                    user_agent="Nexus/1.0"
+                )
+                print("✅ Reddit API initialized successfully")
             except Exception as e:
-                print(f"⚠️ Could not initialize pytrends: {e}")
+                print(f"⚠️ Could not initialize Reddit API: {e}")
     
     async def fetch_canada_trends(self) -> List[Dict]:
-        """Fetch trending topics from Google Trends Canada RSS feed"""
+        """Fetch trending topics from Google Trends Canada RSS feed and Reddit"""
         trends = []
         
         # First, get RSS feed trends (10-20 items)
         rss_trends = await self._fetch_rss_trends()
         trends.extend(rss_trends)
         
-        # Then, get pytrends data (many more items)
-        if self.pytrends:
-            pytrends_data = await self._fetch_pytrends_data()
-            trends.extend(pytrends_data)
+        # Then, get Reddit trending posts (many more items)
+        if self.reddit:
+            reddit_trends = await self._fetch_reddit_trends()
+            trends.extend(reddit_trends)
         
-        print(f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)}, pytrends: {len(trends) - len(rss_trends)})")
+        print(f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)}, Reddit: {len(trends) - len(rss_trends)})")
         return trends
     
     async def _fetch_rss_trends(self) -> List[Dict]:
@@ -145,61 +150,89 @@ class TrendingService:
             print(f"❌ Error fetching RSS trends: {e}")
             return []
     
-    async def _fetch_pytrends_data(self) -> List[Dict]:
-        """Fetch additional trends using pytrends library"""
+    async def _fetch_reddit_trends(self) -> List[Dict]:
+        """Fetch trending posts from popular subreddits"""
         trends = []
         
         try:
-            # Categories to fetch trends from
-            categories = {
-                'all': 'All Categories',
-                'b': 'Business',
-                't': 'Science/Tech',
-                'e': 'Entertainment',
-                's': 'Sports',
-                'h': 'Health',
-                'm': 'Top Stories'
-            }
+            # Popular subreddits with broad appeal
+            subreddits = [
+                ('all', 'Popular'),
+                ('worldnews', 'World News'),
+                ('news', 'News'),
+                ('technology', 'Technology'),
+                ('science', 'Science'),
+                ('sports', 'Sports'),
+                ('entertainment', 'Entertainment'),
+                ('todayilearned', 'TIL'),
+                ('explainlikeimfive', 'ELI5'),
+                ('askreddit', 'AskReddit')
+            ]
             
-            for cat_key, cat_name in categories.items():
+            for subreddit_name, category in subreddits:
                 try:
-                    print(f"Fetching trending searches for category: {cat_name}")
+                    print(f"Fetching hot posts from r/{subreddit_name}")
+                    subreddit = self.reddit.subreddit(subreddit_name)
                     
-                    # Get trending searches for this category
-                    trending_searches = self.pytrends.trending_searches(pn='canada')
-                    
-                    if trending_searches is not None and not trending_searches.empty:
-                        # Get top 10 from this category
-                        for idx, search_term in enumerate(trending_searches[0].head(10)):
-                            trend_data = {
-                                'title': search_term.title(),
-                                'original_query': search_term,
-                                'description': f"Trending search in Canada: {search_term}",
-                                'url': f"https://trends.google.com/trends/explore?geo=CA&q={search_term}",
-                                'source': 'Google Trends API',
-                                'image_url': None,
-                                'published': datetime.now().isoformat(),
-                                'trend_score': max(0.5, 0.9 - (idx * 0.05)),  # Decreasing score by position
-                                'category': cat_name,
-                                'tags': ['trending', 'canada', 'google trends', cat_name.lower()],
-                                'news_items': []
-                            }
-                            trends.append(trend_data)
+                    # Get top 10 hot posts from each subreddit
+                    post_count = 0
+                    for post in subreddit.hot(limit=10):
+                        # Skip stickied posts
+                        if post.stickied:
+                            continue
                         
-                        print(f"✅ Added {len(trending_searches[0].head(10))} trends from {cat_name}")
+                        # Calculate trend score based on upvotes and comments
+                        trend_score = min(0.95, 0.5 + (post.score / 10000) + (post.num_comments / 1000))
+                        
+                        # Get post thumbnail or preview image
+                        image_url = None
+                        if hasattr(post, 'preview') and 'images' in post.preview:
+                            try:
+                                image_url = post.preview['images'][0]['source']['url']
+                            except:
+                                pass
+                        if not image_url and hasattr(post, 'thumbnail') and post.thumbnail.startswith('http'):
+                            image_url = post.thumbnail
+                        
+                        # Extract description from selftext or use title
+                        description = post.selftext[:500] if post.selftext else f"Posted in r/{subreddit_name}"
+                        
+                        trend_data = {
+                            'title': post.title,
+                            'original_query': post.title,
+                            'description': description,
+                            'url': f"https://reddit.com{post.permalink}",
+                            'source': f'r/{subreddit_name}',
+                            'image_url': image_url,
+                            'published': datetime.fromtimestamp(post.created_utc).isoformat(),
+                            'trend_score': trend_score,
+                            'category': category,
+                            'tags': ['reddit', subreddit_name, category.lower()],
+                            'news_items': [{
+                                'title': post.title,
+                                'snippet': description,
+                                'url': f"https://reddit.com{post.permalink}",
+                                'picture': image_url,
+                                'source': f'r/{subreddit_name}'
+                            }]
+                        }
+                        trends.append(trend_data)
+                        post_count += 1
                     
-                    # Small delay to avoid rate limiting
-                    await asyncio.sleep(0.5)
+                    print(f"✅ Added {post_count} posts from r/{subreddit_name}")
+                    
+                    # Small delay to be respectful to Reddit API
+                    await asyncio.sleep(0.3)
                     
                 except Exception as e:
-                    print(f"⚠️ Error fetching category {cat_name}: {e}")
+                    print(f"⚠️ Error fetching r/{subreddit_name}: {e}")
                     continue
             
-            print(f"✅ Successfully fetched {len(trends)} trends from pytrends")
+            print(f"✅ Successfully fetched {len(trends)} trends from Reddit")
             return trends
             
         except Exception as e:
-            print(f"❌ Error in _fetch_pytrends_data: {e}")
+            print(f"❌ Error in _fetch_reddit_trends: {e}")
             return []
     
     def _extract_news_item(self, entry) -> Dict:
