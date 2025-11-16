@@ -92,7 +92,7 @@ body {
     border-radius: 20px;
     font-size: 16px;
     font-weight: 600;
-    font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive, sans-serif;
+    font-family: 'Quicksand', 'Nunito', 'Poppins', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
     cursor: pointer;
     transition: all 0.2s;
 }
