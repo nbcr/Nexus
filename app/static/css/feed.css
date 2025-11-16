@@ -81,7 +81,7 @@
 }
 
 .feed-item-title {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     margin: 0 0 12px 0;
     color: #1a1a1a;
@@ -89,16 +89,16 @@
 }
 
 .feed-item-description {
-    font-size: 16px;
+    font-size: 18px;
     color: #555;
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0 0 12px 0;
 }
 
 .feed-item-summary {
-    font-size: 15px;
+    font-size: 17px;
     color: #666;
-    line-height: 1.6;
+    line-height: 1.7;
     margin: 0 0 16px 0;
 }
 
@@ -113,10 +113,10 @@
 
 .btn-read-more,
 .btn-source {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
