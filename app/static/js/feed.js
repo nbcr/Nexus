@@ -40,6 +40,7 @@ class InfiniteFeed {
             <div class="spinner"></div>
             <p>Loading more content...</p>
         `;
+        this.loadingIndicator.style.display = 'block';
         this.loadingIndicator.style.opacity = '0.01';
         this.loadingIndicator.style.pointerEvents = 'none';
         this.loadingIndicator.style.transition = 'opacity 0.3s';
@@ -50,6 +51,7 @@ class InfiniteFeed {
         this.endMessage = document.createElement('div');
         this.endMessage.className = 'feed-end';
         this.endMessage.innerHTML = '<p>You\'ve reached the end of the feed!</p>';
+        this.endMessage.style.display = 'block';
         this.endMessage.style.opacity = '0';
         this.loadingIndicator.after(this.endMessage);
         
