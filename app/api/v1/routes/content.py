@@ -284,7 +284,7 @@ async def get_content_by_topic(
 @router.get(
     "/article/{content_id}",
     responses={
-        200: {"description": "Article content retrieved"},
+        200: {"description": "Article content retrieved with related items"},
         404: {"description": "Content not found or article unavailable"}
     }
 )
@@ -295,14 +295,15 @@ async def get_article_content(
     '''
     Fetch and return the full article content for a content item.
     
-    Scrapes the article from the source URL and returns readable content.
+    Scrapes the article from the source URL and returns readable content,
+    along with related content items (e.g., trending searches related to news stories).
     
     Args:
         content_id: ID of the content item
         db: Database session
         
     Returns:
-        Dict with article title, content, author, date, and image
+        Dict with article data and related_items list
         
     Raises:
         HTTPException: If content not found or scraping fails
@@ -315,6 +316,9 @@ async def get_article_content(
     
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
+    
+    # Find related content items
+    related_items = await find_related_content(db, content)
     
     # Get the source URL
     if not content.source_urls or len(content.source_urls) == 0:
@@ -331,4 +335,65 @@ async def get_article_content(
             detail="Unable to fetch article content from source"
         )
     
+    # Add related items to response
+    article_data['related_items'] = [
+        {
+            'content_id': item.id,
+            'title': item.title,
+            'description': item.description,
+            'category': item.category,
+            'tags': item.tags,
+            'source_urls': item.source_urls,
+            'source': item.source_metadata.get('source', 'Unknown') if item.source_metadata else 'Unknown',
+            'created_at': item.created_at.isoformat() if item.created_at else None
+        }
+        for item in related_items
+    ]
+    
     return article_data
+
+
+async def find_related_content(db: AsyncSession, content: ContentItem, limit: int = 5) -> List[ContentItem]:
+    """
+    Find related content items based on title similarity, tags, and keywords.
+    
+    For news articles: find related trending searches
+    For trending searches: find related news articles
+    """
+    from sqlalchemy import or_, and_, func as sql_func
+    
+    related = []
+    title_lower = content.title.lower()
+    
+    # Extract key terms from title (simple approach - split by spaces and filter common words)
+    stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'up', 'down', 'out', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'just', 'don', 'now'}
+    
+    title_words = [w.strip('.,!?:;"\'-()[]{}') for w in title_lower.split()]
+    keywords = [w for w in title_words if len(w) > 3 and w not in stop_words][:5]  # Top 5 keywords
+    
+    if not keywords:
+        return []
+    
+    # Build query to find related content
+    # Look for items that share keywords in title or tags
+    conditions = []
+    for keyword in keywords:
+        conditions.append(sql_func.lower(ContentItem.title).contains(keyword))
+    
+    # Find related items (exclude self, and prefer different types)
+    result = await db.execute(
+        select(ContentItem)
+        .where(
+            and_(
+                ContentItem.id != content.id,
+                ContentItem.is_published == True,
+                or_(*conditions)
+            )
+        )
+        .limit(limit)
+    )
+    
+    related = result.scalars().all()
+    
+    return related
+
