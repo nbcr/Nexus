@@ -328,14 +328,26 @@ class InfiniteFeed {
                               (item.source_urls[0].includes('google.com/search') || 
                                item.source_urls[0].includes('duckduckgo.com')));
         
+        console.log('🔍 Content click:', {
+            content_id: item.content_id,
+            title: item.title,
+            category: item.category,
+            tags: item.tags,
+            source_url: item.source_urls?.[0],
+            isPytrends,
+            isSearchQuery
+        });
+        
         // For search queries, just open the search in a new tab
         if (isPytrends || isSearchQuery) {
+            console.log('✅ Opening search in new tab');
             if (item.source_urls && item.source_urls.length > 0) {
                 window.open(item.source_urls[0], '_blank');
             }
             return;
         }
         
+        console.log('📰 Opening article modal');
         // For news articles, open modal and fetch article content
         this.openArticleModal(item);
     }
