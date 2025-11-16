@@ -322,8 +322,67 @@ class InfiniteFeed {
     }
     
     async defaultContentClick(item) {
-        // Expand the content in place or navigate to detail page
-        alert(`View full content for: ${item.title}\nContent ID: ${item.content_id}`);
+        // Open modal and fetch article content
+        this.openArticleModal(item);
+    }
+    
+    async openArticleModal(item) {
+        const modal = document.getElementById('article-modal');
+        const loading = modal.querySelector('.article-loading');
+        const error = modal.querySelector('.article-error');
+        const title = document.getElementById('article-title');
+        const author = document.getElementById('article-author');
+        const date = document.getElementById('article-date');
+        const domain = document.getElementById('article-domain');
+        const image = document.getElementById('article-image');
+        const body = document.getElementById('article-body');
+        const sourceLink = document.getElementById('article-source-link');
+        
+        // Show modal and loading state
+        modal.classList.add('active');
+        loading.style.display = 'block';
+        error.style.display = 'none';
+        body.innerHTML = '';
+        image.style.display = 'none';
+        
+        // Set source link for error fallback
+        if (item.source_urls && item.source_urls.length > 0) {
+            sourceLink.href = item.source_urls[0];
+        }
+        
+        try {
+            // Fetch article content
+            const response = await fetch(`/api/v1/content/article/${item.content_id}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch article');
+            }
+            
+            const article = await response.json();
+            
+            // Hide loading
+            loading.style.display = 'none';
+            
+            // Populate modal
+            title.textContent = article.title || item.title;
+            author.textContent = article.author || '';
+            date.textContent = article.published_date || '';
+            domain.textContent = article.domain || '';
+            
+            if (article.image_url) {
+                image.src = article.image_url;
+                image.style.display = 'block';
+            }
+            
+            // Split content into paragraphs
+            const paragraphs = article.content.split('\n\n');
+            body.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+            
+        } catch (err) {
+            console.error('Error fetching article:', err);
+            loading.style.display = 'none';
+            error.style.display = 'block';
+        }
     }
     
     async trackView(contentId) {
@@ -404,3 +463,30 @@ class InfiniteFeed {
 
 // Export for use in other scripts
 window.InfiniteFeed = InfiniteFeed;
+
+// Modal controls
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('article-modal');
+    const closeBtn = document.querySelector('.article-modal-close');
+    
+    // Close modal on close button click
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+    }
+    
+    // Close modal on background click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+        }
+    });
+});
