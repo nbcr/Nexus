@@ -185,7 +185,7 @@ async def get_content_items(
     )
     
     content_items = []
-    for content_item, topic in result:
+    for content_item, topic in result.all():
         content_dict = ContentItemSchema.model_validate(content_item).model_dump()
         content_dict["topic"] = topic
         content_items.append(content_dict)
