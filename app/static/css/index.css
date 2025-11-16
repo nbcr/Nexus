@@ -27,6 +27,9 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
 }
 
 .main-header h1 {
