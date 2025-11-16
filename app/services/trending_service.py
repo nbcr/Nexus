@@ -20,15 +20,18 @@ class TrendingService:
     async def fetch_canada_trends(self) -> List[Dict]:
         """Fetch trending topics from Google Trends Canada RSS feed, Reddit, and PyTrends"""
         trends = []
+        pytrends_count = 0
         
         # First, get PyTrends trending searches (optional - may not work due to Google limits)
         pytrends_data = await self._fetch_pytrends_searches()
         if pytrends_data:
             trends.extend(pytrends_data)
-            print(f"✅ PyTrends contributed {len(pytrends_data)} trends")
+            pytrends_count = len(pytrends_data)
+            print(f"✅ PyTrends direct search contributed {pytrends_count} trends")
         
         # Second, get RSS feed trends (10-20 items)
         rss_trends = await self._fetch_rss_trends()
+        base_trends_count = len(trends)
         trends.extend(rss_trends)
         
         # Third, get Reddit trending posts (many more items)
@@ -36,17 +39,21 @@ class TrendingService:
             reddit_trends = await self._fetch_reddit_trends()
             trends.extend(reddit_trends)
         
-        # Finally, try to enrich top RSS/Reddit trends with related topics if PyTrends is working
-        # Only enrich if we have base trends and pytrends is available
-        if len(trends) > 0 and len(pytrends_data) == 0:
-            # PyTrends direct search didn't work, but we can still try related topics
-            print("Attempting to enrich RSS/Reddit trends with PyTrends related content...")
+        # Finally, enrich top RSS/Reddit trends with PyTrends related topics and queries
+        # This is more reliable than trending_searches() and works even when that's blocked
+        if len(rss_trends) > 0:
+            print(f"🎨 Enriching top {min(3, len(rss_trends))} RSS trends with PyTrends related content...")
             try:
-                trends = await pytrends_service.enrich_trends_with_pytrends(trends, max_topics=2)
+                enriched = await pytrends_service.enrich_trends_with_pytrends(rss_trends[:3], max_topics=3)
+                # Add only the new related items (skip the original trends we already have)
+                new_related = enriched[len(rss_trends[:3]):]
+                trends.extend(new_related)
+                pytrends_count += len(new_related)
+                print(f"✅ PyTrends enrichment added {len(new_related)} related topics/queries")
             except Exception as e:
                 print(f"⚠️ Could not enrich trends with PyTrends: {e}")
         
-        print(f"✅ Total trends fetched: {len(trends)} (PyTrends: {len(pytrends_data)}, RSS: {len(rss_trends)}, Reddit: {len(trends) - len(pytrends_data) - len(rss_trends)})")
+        print(f"✅ Total trends fetched: {len(trends)} (PyTrends: {pytrends_count}, RSS: {len(rss_trends)}, Reddit: {len(trends) - pytrends_count - len(rss_trends)})")
         return trends
     
     async def _fetch_pytrends_searches(self) -> List[Dict]:
