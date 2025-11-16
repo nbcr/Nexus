@@ -85,9 +85,11 @@ body {
 .category-btn {
     padding: 8px 16px;
     background: #fff;
+    color: #333;
     border: 1px solid #dee2e6;
     border-radius: 20px;
     font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
 }
