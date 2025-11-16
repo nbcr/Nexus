@@ -23,6 +23,7 @@ class InfiniteFeed {
         this.hasMore = true;
         this.viewedContentIds = new Set();
         this.isPersonalized = options.isPersonalized !== false;
+        this.cursor = null; // Timestamp cursor for pagination
         
         // Callbacks
         this.onContentClick = options.onContentClick || this.defaultContentClick.bind(this);
@@ -93,7 +94,7 @@ class InfiniteFeed {
             return;
         }
         
-        console.log('Starting loadMore for page:', this.currentPage);
+        console.log('Starting loadMore with cursor:', this.cursor);
         this.isLoading = true;
         this.showLoading();
         
@@ -108,6 +109,7 @@ class InfiniteFeed {
             
             if (excludeIds) params.append('exclude_ids', excludeIds);
             if (this.category) params.append('category', this.category);
+            if (this.cursor) params.append('cursor', this.cursor);
             
             console.log('Fetching:', `${endpoint}?${params}`);
             const response = await fetch(`${endpoint}?${params}`);
@@ -117,7 +119,7 @@ class InfiniteFeed {
             }
             
             const data = await response.json();
-            console.log('Received data:', data);
+            console.log('Received data:', { itemCount: data.items?.length, cursor: data.next_cursor, hasMore: data.has_more });
             
             // Add new content items
             if (data.items && data.items.length > 0) {
@@ -127,8 +129,9 @@ class InfiniteFeed {
                 });
                 
                 this.currentPage++;
+                this.cursor = data.next_cursor; // Update cursor for next fetch
                 this.hasMore = data.has_more;
-                console.log('Updated - currentPage:', this.currentPage, 'hasMore:', this.hasMore);
+                console.log('Updated - currentPage:', this.currentPage, 'cursor:', this.cursor, 'hasMore:', this.hasMore);
             } else {
                 this.hasMore = false;
                 console.log('No items returned, hasMore set to false');
