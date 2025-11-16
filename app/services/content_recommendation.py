@@ -32,24 +32,26 @@ class ContentRecommendationService:
         session_token: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
-        exclude_ids: List[int] = None
-    ) -> List[Dict]:
+        exclude_ids: List[int] = None,
+        cursor: Optional[str] = None
+    ) -> Dict:
         """
-        Get personalized content feed with infinite scroll support.
+        Get personalized content feed with cursor-based pagination.
+        Shows newest content first and prevents duplicates.
         
         Args:
             db: Database session
             user_id: Optional user ID for personalized recommendations
             session_token: Optional session token for anonymous users
-            page: Page number (1-indexed)
+            page: Page number (1-indexed, used as fallback)
             page_size: Number of items per page
             exclude_ids: List of content IDs to exclude (already seen)
+            cursor: ISO timestamp cursor for pagination
             
         Returns:
-            List of content items with topics and relevance scores
+            Dict with items, next_cursor, and has_more flag
         """
         exclude_ids = exclude_ids or []
-        offset = (page - 1) * page_size
         
         # Get user preferences and interaction history (for future use)
         user_categories = await self._get_user_categories(db, user_id, session_token)
@@ -72,14 +74,28 @@ class ContentRecommendationService:
         # TODO: Future filtering by user_categories can be added here
         # For now, show everything so we can learn user preferences
         
-        # Order by trend score and recency
+        # Apply cursor-based filtering (show items older than cursor)
+        if cursor:
+            try:
+                cursor_time = datetime.fromisoformat(cursor)
+                query = query.where(ContentItem.created_at < cursor_time)
+            except (ValueError, TypeError):
+                # Invalid cursor, ignore it
+                pass
+        
+        # Order by newest first (created_at DESC), then by trend score
         query = query.order_by(
-            desc(Topic.trend_score),
-            desc(ContentItem.created_at)
-        ).offset(offset).limit(page_size)
+            desc(ContentItem.created_at),
+            desc(Topic.trend_score)
+        ).limit(page_size + 1)  # Fetch one extra to check if there's more
         
         result = await db.execute(query)
         items = result.all()
+        
+        # Check if there are more items
+        has_more = len(items) > page_size
+        if has_more:
+            items = items[:page_size]  # Remove the extra item
         
         # Calculate relevance scores
         feed_items = []
@@ -107,13 +123,16 @@ class ContentRecommendationService:
                 "tags": topic.tags
             })
         
-        # Sort by combined score (trend + relevance)
-        feed_items.sort(
-            key=lambda x: (x["relevance_score"] * 0.4 + x["trend_score"] * 0.6),
-            reverse=True
-        )
+        # Determine next cursor (timestamp of last item)
+        next_cursor = None
+        if feed_items and has_more:
+            next_cursor = feed_items[-1]["created_at"]
         
-        return feed_items
+        return {
+            "items": feed_items,
+            "next_cursor": next_cursor,
+            "has_more": has_more
+        }
     
     async def get_trending_feed(
         self,
@@ -121,23 +140,24 @@ class ContentRecommendationService:
         page: int = 1,
         page_size: int = 20,
         category: Optional[str] = None,
-        exclude_ids: List[int] = None
-    ) -> List[Dict]:
+        exclude_ids: List[int] = None,
+        cursor: Optional[str] = None
+    ) -> Dict:
         """
-        Get trending content feed (non-personalized).
+        Get trending content feed with cursor-based pagination.
         
         Args:
             db: Database session
-            page: Page number (1-indexed)
+            page: Page number (1-indexed, used as fallback)
             page_size: Number of items per page
             category: Optional category filter
             exclude_ids: List of content IDs to exclude
+            cursor: ISO timestamp cursor for pagination
             
         Returns:
-            List of trending content items
+            Dict with items, next_cursor, and has_more flag
         """
         exclude_ids = exclude_ids or []
-        offset = (page - 1) * page_size
         
         query = (
             select(ContentItem, Topic)
@@ -151,13 +171,26 @@ class ContentRecommendationService:
         if category:
             query = query.where(Topic.category == category)
         
+        # Apply cursor-based filtering
+        if cursor:
+            try:
+                cursor_time = datetime.fromisoformat(cursor)
+                query = query.where(ContentItem.created_at < cursor_time)
+            except (ValueError, TypeError):
+                pass
+        
         query = query.order_by(
-            desc(Topic.trend_score),
-            desc(ContentItem.created_at)
-        ).offset(offset).limit(page_size)
+            desc(ContentItem.created_at),
+            desc(Topic.trend_score)
+        ).limit(page_size + 1)
         
         result = await db.execute(query)
         items = result.all()
+        
+        # Check if there are more items
+        has_more = len(items) > page_size
+        if has_more:
+            items = items[:page_size]
         
         feed_items = []
         for content, topic in items:
@@ -176,7 +209,16 @@ class ContentRecommendationService:
                 "tags": topic.tags
             })
         
-        return feed_items
+        # Determine next cursor
+        next_cursor = None
+        if feed_items and has_more:
+            next_cursor = feed_items[-1]["created_at"]
+        
+        return {
+            "items": feed_items,
+            "next_cursor": next_cursor,
+            "has_more": has_more
+        }
     
     async def _get_user_categories(
         self,

@@ -25,10 +25,12 @@ async def get_personalized_feed(
     page_size: int = Query(20, ge=1, le=50),
     category: Optional[str] = Query(None),
     exclude_ids: Optional[str] = Query(None),
+    cursor: Optional[str] = Query(None),
     nexus_session: Optional[str] = Cookie(default=None)
 ):
     """
-    Get personalized content feed with infinite scroll support.
+    Get personalized content feed with cursor-based pagination.
+    Shows newest content first and prevents duplicates.
     """
     # Parse exclude_ids
     excluded_ids = []
@@ -47,28 +49,31 @@ async def get_personalized_feed(
     
     # Get personalized feed
     if category:
-        feed_items = await recommendation_service.get_trending_feed(
+        result = await recommendation_service.get_trending_feed(
             db=db,
             page=page,
             page_size=page_size,
             category=category,
-            exclude_ids=excluded_ids
+            exclude_ids=excluded_ids,
+            cursor=cursor
         )
     else:
-        feed_items = await recommendation_service.get_personalized_feed(
+        result = await recommendation_service.get_personalized_feed(
             db=db,
             user_id=user_id,
             session_token=session_token,
             page=page,
             page_size=page_size,
-            exclude_ids=excluded_ids
+            exclude_ids=excluded_ids,
+            cursor=cursor
         )
     
     return {
         "page": page,
         "page_size": page_size,
-        "items": feed_items,
-        "has_more": len(feed_items) == page_size,
+        "items": result["items"],
+        "next_cursor": result["next_cursor"],
+        "has_more": result["has_more"],
         "is_personalized": session_token is not None
     }
 
