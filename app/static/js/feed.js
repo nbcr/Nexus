@@ -25,6 +25,11 @@ class InfiniteFeed {
         this.isPersonalized = options.isPersonalized !== false;
         this.cursor = null; // Timestamp cursor for pagination
         
+        // View duration tracking
+        this.viewStartTimes = new Map(); // content_id -> timestamp
+        this.viewDurations = new Map(); // content_id -> total seconds
+        this.cardObserver = null;
+        
         // Callbacks
         this.onContentClick = options.onContentClick || this.defaultContentClick.bind(this);
         this.renderContentItem = options.renderContentItem || this.defaultRenderContent.bind(this);
@@ -56,6 +61,12 @@ class InfiniteFeed {
         // Setup intersection observer for infinite scroll
         this.setupIntersectionObserver();
         
+        // Setup card visibility observer for duration tracking
+        this.setupCardObserver();
+        
+        // Track duration before page unload
+        window.addEventListener('beforeunload', () => this.sendAllDurations());
+        
         // Load initial content
         this.loadMore();
     }
@@ -86,6 +97,81 @@ class InfiniteFeed {
         
         observer.observe(this.loadingIndicator);
         console.log('Intersection Observer setup complete');
+    }
+    
+    setupCardObserver() {
+        // Observer to track when cards are visible
+        const options = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.5 // Card is considered visible when 50% is in viewport
+        };
+        
+        this.cardObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const contentId = parseInt(entry.target.dataset.contentId);
+                
+                if (entry.isIntersecting) {
+                    // Card became visible
+                    this.startViewTimer(contentId);
+                } else {
+                    // Card left viewport
+                    this.stopViewTimer(contentId);
+                }
+            });
+        }, options);
+    }
+    
+    startViewTimer(contentId) {
+        if (!this.viewStartTimes.has(contentId)) {
+            this.viewStartTimes.set(contentId, Date.now());
+            console.log(`⏱️ Started timer for content ${contentId}`);
+        }
+    }
+    
+    stopViewTimer(contentId) {
+        if (this.viewStartTimes.has(contentId)) {
+            const startTime = this.viewStartTimes.get(contentId);
+            const duration = Math.floor((Date.now() - startTime) / 1000); // Convert to seconds
+            
+            // Add to accumulated duration
+            const currentDuration = this.viewDurations.get(contentId) || 0;
+            this.viewDurations.set(contentId, currentDuration + duration);
+            
+            this.viewStartTimes.delete(contentId);
+            
+            console.log(`⏹️ Stopped timer for content ${contentId}. Duration: ${duration}s, Total: ${currentDuration + duration}s`);
+            
+            // Send duration to server if it's significant (more than 2 seconds)
+            if (currentDuration + duration >= 2) {
+                this.sendDuration(contentId, currentDuration + duration);
+            }
+        }
+    }
+    
+    async sendDuration(contentId, durationSeconds) {
+        try {
+            await fetch(`/api/v1/session/update-duration/${contentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    duration_seconds: durationSeconds
+                })
+            });
+            console.log(`✅ Sent duration for content ${contentId}: ${durationSeconds}s`);
+        } catch (error) {
+            console.error(`❌ Failed to send duration for content ${contentId}:`, error);
+        }
+    }
+    
+    sendAllDurations() {
+        // Stop all active timers and send durations
+        this.viewStartTimes.forEach((startTime, contentId) => {
+            this.stopViewTimer(contentId);
+        });
     }
     
     async loadMore() {
@@ -228,6 +314,11 @@ class InfiniteFeed {
         }
         
         this.container.appendChild(article);
+        
+        // Observe this card for visibility tracking
+        if (this.cardObserver) {
+            this.cardObserver.observe(article);
+        }
     }
     
     async defaultContentClick(item) {
