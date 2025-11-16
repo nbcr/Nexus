@@ -99,3 +99,38 @@ async def migrate_session_to_user(db: AsyncSession, session_token: str, user_id:
     await db.commit()
     
     return len(interactions)
+
+async def update_interaction_duration(
+    db: AsyncSession,
+    session_token: str,
+    content_item_id: int,
+    duration_seconds: int
+):
+    """Update the duration of the most recent interaction for this content"""
+    # Get the session
+    session_result = await db.execute(
+        select(UserSession).where(UserSession.session_token == session_token)
+    )
+    session = session_result.scalar_one_or_none()
+    
+    if not session:
+        return None
+    
+    # Find the most recent interaction for this content in this session
+    interaction_result = await db.execute(
+        select(UserInteraction)
+        .where(UserInteraction.session_id == session.id)
+        .where(UserInteraction.content_item_id == content_item_id)
+        .order_by(UserInteraction.created_at.desc())
+        .limit(1)
+    )
+    
+    interaction = interaction_result.scalar_one_or_none()
+    
+    if interaction:
+        interaction.duration_seconds = duration_seconds
+        await db.commit()
+        await db.refresh(interaction)
+        return interaction
+    
+    return None

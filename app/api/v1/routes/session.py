@@ -7,10 +7,11 @@ This module handles user session management and content interaction tracking:
 - Session history retrieval
 - Session migration to registered users
 """
-from fastapi import APIRouter, HTTPException, Request, Response, Path, Cookie, Depends
+from fastapi import APIRouter, HTTPException, Request, Response, Path, Cookie, Depends, Body
 from typing import Optional, Dict, List, Any
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel
 
 from app.api.v1.deps import get_db, get_current_user
 from app.models import User
@@ -18,9 +19,13 @@ from app.services.session_service import (
     create_anonymous_session,
     track_content_interaction,
     get_session_history,
-    migrate_session_to_user
+    migrate_session_to_user,
+    update_interaction_duration
 )
 from app.schemas import ContentWithTopic, SessionResponse, HistoryResponse
+
+class ViewDurationUpdate(BaseModel):
+    duration_seconds: int
 
 # Router Configuration
 router = APIRouter()
@@ -65,6 +70,7 @@ async def track_content_view(
     request: Request,
     response: Response,
     content_id: int = Path(..., ge=1, description="ID of the content being viewed"),
+    duration_seconds: Optional[int] = Body(default=0, embed=True),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, str]:
     """
@@ -74,6 +80,7 @@ async def track_content_view(
     
     Args:
         content_id: ID of the content being viewed
+        duration_seconds: Optional duration the user spent viewing the content
         request: FastAPI request object
         response: FastAPI response object
         db: Database session
@@ -91,7 +98,8 @@ async def track_content_view(
             db,
             session_token,
             content_id,
-            interaction_type="view"
+            interaction_type="view",
+            duration_seconds=duration_seconds or 0
         )
         
         # Set session cookie
@@ -109,6 +117,55 @@ async def track_content_view(
         raise HTTPException(
             status_code=500,
             detail=f"Tracking failed: {str(e)}"
+        )
+
+@router.put(
+    "/update-duration/{content_id}",
+    response_model=Dict[str, str],
+    responses={
+        200: {"description": "Duration updated successfully"},
+        404: {"description": "Interaction not found"},
+        500: {"description": "Update failed"}
+    }
+)
+async def update_view_duration(
+    request: Request,
+    content_id: int = Path(..., ge=1, description="ID of the content"),
+    duration_data: ViewDurationUpdate = Body(...),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, str]:
+    """
+    Update the duration spent viewing content.
+    
+    This is called when the user scrolls away from a card or closes the page.
+    
+    Args:
+        content_id: ID of the content
+        duration_data: Duration in seconds
+        request: FastAPI request object
+        db: Database session
+        
+    Returns:
+        dict: Status message
+        
+    Raises:
+        HTTPException: If update fails
+    """
+    session_token = get_session_token(request)
+    
+    try:
+        await update_interaction_duration(
+            db,
+            session_token,
+            content_id,
+            duration_data.duration_seconds
+        )
+        
+        return {"status": "updated", "duration_seconds": str(duration_data.duration_seconds)}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Duration update failed: {str(e)}"
         )
 
 @router.get(
