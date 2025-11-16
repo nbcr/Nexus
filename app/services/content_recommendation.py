@@ -347,7 +347,7 @@ class ContentRecommendationService:
                     if any(term in tag_lower for term in key_terms) or parent_normalized in tag_lower:
                         related.append({
                             'title': topic.title,
-                            'url': topic.source_urls[0] if topic.source_urls else f"https://trends.google.com/trends/explore?q={topic.title}",
+                            'url': f"https://trends.google.com/trends/explore?geo=CA&q={topic.title}",
                             'trend_score': topic.trend_score
                         })
                         break  # Don't add the same topic multiple times
