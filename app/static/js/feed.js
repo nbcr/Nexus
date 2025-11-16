@@ -151,14 +151,14 @@ class InfiniteFeed {
     
     async sendDuration(contentId, durationSeconds) {
         try {
-            await fetch(`/api/v1/session/update-duration/${contentId}`, {
-                method: 'PUT',
+            await fetch(`/api/v1/session/track-view/${contentId}`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({
-                    duration_seconds: durationSeconds
+                    duration_seconds: Math.round(durationSeconds)
                 })
             });
             console.log(`✅ Sent duration for content ${contentId}: ${durationSeconds}s`);
