@@ -7,6 +7,7 @@ from app.database import AsyncSessionLocal
 from app.models import ContentItem, Topic
 from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
 from app.services.content_recommendation import recommendation_service
+from app.services.article_scraper import article_scraper
 
 router = APIRouter()
 
@@ -148,6 +149,155 @@ async def get_content_item(content_id: int, db: AsyncSession = Depends(get_db)):
     content_dict["topic"] = TopicSchema.model_validate(topic).model_dump()
     
     return content_dict
+
+@router.get("/article/{content_id}")
+async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Fetch and return the full article content for a content item.
+    Scrapes the article from the source URL and returns readable content,
+    along with related content items.
+    """
+    # Get content item from database
+    result = await db.execute(
+        select(ContentItem).where(ContentItem.id == content_id)
+    )
+    content = result.scalar_one_or_none()
+    
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+    
+    # Get the source URL
+    if not content.source_urls or len(content.source_urls) == 0:
+        raise HTTPException(status_code=404, detail="No source URL available")
+    
+    source_url = content.source_urls[0]
+    
+    # Scrape the article
+    article_data = await article_scraper.fetch_article(source_url)
+    
+    if not article_data:
+        raise HTTPException(
+            status_code=404, 
+            detail="Unable to fetch article content from source"
+        )
+    
+    # Find related content items (after scraping succeeds)
+    try:
+        from sqlalchemy import or_, and_, func
+        related_items = await find_related_content(db, content)
+    except Exception as e:
+        print(f"❌ Error finding related content: {e}")
+        related_items = []
+    
+    # Add related items to response
+    article_data['related_items'] = [
+        {
+            'content_id': item.id,
+            'title': item.title,
+            'description': item.description,
+            'category': item.category,
+            'tags': item.tags,
+            'source_urls': item.source_urls,
+            'source': item.source_metadata.get('source', 'Unknown') if item.source_metadata else 'Unknown',
+            'created_at': item.created_at.isoformat() if item.created_at else None
+        }
+        for item in related_items
+    ]
+    
+    return article_data
+
+
+async def find_related_content(db: AsyncSession, content: ContentItem, limit: int = 5) -> List[ContentItem]:
+    """
+    Find related content items based on title similarity, tags, and keywords.
+    For news articles: find related trending searches
+    For trending searches: find related news articles
+    """
+    from sqlalchemy import or_, and_, func
+    
+    # Extract keywords from title (proper nouns - capitalized words)
+    original_words = content.title.split()
+    proper_nouns = [word.strip('.,!?:;"\'-()[]{}').lower() 
+                    for word in original_words 
+                    if word and word[0].isupper()]
+    
+    # Also extract other significant words (length > 2)
+    other_keywords = [word.strip('.,!?:;"\'-()[]{}').lower() 
+                      for word in original_words 
+                      if len(word) > 2 and not word[0].isupper()]
+    
+    # Combine and filter stop words
+    stop_words = {'the', 'and', 'for', 'with', 'this', 'that', 'from', 'are', 'was', 'were', 'been', 'have', 'has', 'had', 'their', 'called', 'begging'}
+    all_keywords = [w for w in (proper_nouns + other_keywords) if w not in stop_words]
+    
+    # Prioritize proper nouns
+    priority_keywords = proper_nouns[:8] if proper_nouns else all_keywords[:8]
+    
+    if not priority_keywords:
+        return []
+    
+    print(f"🔍 Finding related content for '{content.title}' using keywords: {priority_keywords}")
+    
+    # Build query with OR conditions for each keyword
+    conditions = []
+    for keyword in priority_keywords:
+        conditions.append(func.lower(ContentItem.title).contains(keyword))
+        if content.description:
+            conditions.append(func.lower(ContentItem.description).contains(keyword))
+    
+    # Execute query
+    result = await db.execute(
+        select(ContentItem).where(
+            and_(
+                ContentItem.id != content.id,
+                ContentItem.is_published == True,
+                or_(*conditions)
+            )
+        ).limit(limit * 2)  # Get more than needed for scoring
+    )
+    
+    candidates = result.scalars().all()
+    
+    # Score each match
+    scored_matches = []
+    for item in candidates:
+        score = 0
+        item_title_lower = item.title.lower() if item.title else ''
+        item_desc_lower = item.description.lower() if item.description else ''
+        
+        # Score based on keyword matches
+        for keyword in proper_nouns:
+            if keyword in item_title_lower:
+                score += 2  # Proper noun match in title
+            if keyword in item_desc_lower:
+                score += 1  # Proper noun match in description
+        
+        for keyword in other_keywords:
+            if keyword in item_title_lower or keyword in item_desc_lower:
+                score += 1
+        
+        # Bonus for different source (news + search query pairing)
+        if content.source_metadata and item.source_metadata:
+            content_source = content.source_metadata.get('source', '')
+            item_source = item.source_metadata.get('source', '')
+            if content_source != item_source:
+                score += 3
+        
+        # Bonus for different types (news article + pytrends query)
+        has_pytrends = 'pytrends' in (item.tags or [])
+        content_has_pytrends = 'pytrends' in (content.tags or [])
+        if has_pytrends != content_has_pytrends:
+            score += 5
+        
+        if score > 0:
+            scored_matches.append((score, item))
+    
+    # Sort by score and return top matches
+    scored_matches.sort(key=lambda x: x[0], reverse=True)
+    related = [item for score, item in scored_matches[:limit]]
+    
+    print(f"✅ Found {len(related)} related items")
+    return related
 
 @router.get("/topic/{topic_id}")
 async def get_content_by_topic(topic_id: int, db: AsyncSession = Depends(get_db)):
