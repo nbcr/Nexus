@@ -40,7 +40,7 @@ class InfiniteFeed {
             <div class="spinner"></div>
             <p>Loading more content...</p>
         `;
-        this.loadingIndicator.style.opacity = '0';
+        this.loadingIndicator.style.opacity = '0.01';
         this.loadingIndicator.style.pointerEvents = 'none';
         this.loadingIndicator.style.transition = 'opacity 0.3s';
         this.container.after(this.loadingIndicator);
@@ -251,7 +251,7 @@ class InfiniteFeed {
     }
     
     hideLoading() {
-        this.loadingIndicator.style.opacity = '0';
+        this.loadingIndicator.style.opacity = '0.01';
         this.loadingIndicator.style.pointerEvents = 'none';
     }
     
