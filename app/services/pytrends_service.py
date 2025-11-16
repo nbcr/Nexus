@@ -256,16 +256,23 @@ class PyTrendsService:
             Dictionary with description, url, source, image_url, category, news_items
         """
         try:
-            import requests
-            from bs4 import BeautifulSoup
+            print(f"🔍 Fetching Google search context for '{query}'...")
             
             # Search Google with proper headers
-            search_url = f"https://www.google.com/search?q={query}&gl=ca&hl=en"
+            search_url = f"https://www.google.com/search?q={query.replace(' ', '+')}&gl=ca&hl=en"
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1'
             }
             
-            response = requests.get(search_url, headers=headers, timeout=10)
+            response = requests.get(search_url, headers=headers, timeout=15, allow_redirects=True)
+            print(f"📡 Google response: {response.status_code}, Content length: {len(response.text)} chars")
+            
             if response.status_code != 200:
                 print(f"⚠️ Google search returned {response.status_code} for '{query}'")
                 return self._default_context(query)
@@ -281,6 +288,7 @@ class PyTrendsService:
                 desc_span = knowledge_panel.find('span')
                 if desc_span:
                     description = desc_span.get_text(strip=True)[:300]
+                    print(f"✅ Found knowledge panel: {description[:50]}...")
             
             # Featured snippet
             if not description:
@@ -289,12 +297,31 @@ class PyTrendsService:
                     featured = soup.find('div', class_='IZ6rdc')
                 if featured:
                     description = featured.get_text(strip=True)[:300]
+                    print(f"✅ Found featured snippet: {description[:50]}...")
             
             # First search result snippet
             if not description:
                 snippet = soup.find('div', class_=['VwiC3b', 'yXK7lf', 'lVm3ye'])
                 if snippet:
                     description = snippet.get_text(strip=True)[:300]
+                    print(f"✅ Found search snippet: {description[:50]}...")
+            
+            # Try any div with class containing 'snippet' or 'description'
+            if not description:
+                for div in soup.find_all('div', limit=50):
+                    class_str = ' '.join(div.get('class', []))
+                    if any(word in class_str.lower() for word in ['snippet', 'description', 'abstract']):
+                        text = div.get_text(strip=True)
+                        if len(text) > 50:
+                            description = text[:300]
+                            print(f"✅ Found description in {class_str[:30]}: {description[:50]}...")
+                            break
+            
+            if not description:
+                print(f"⚠️ No description found for '{query}', saving first 500 chars of page")
+                # Debug: save page content to see structure
+                all_text = soup.get_text()[:500]
+                print(f"Page preview: {all_text[:200]}")
             
             # Extract image if available
             image_url = None
