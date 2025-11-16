@@ -616,3 +616,205 @@ body.dark-mode .article-error p {
         font-size: 16px;
     }
 }
+
+/* Legacy Modal Styles (from feed.html) */
+.content-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+}
+
+.modal-close {
+    position: sticky;
+    top: 10px;
+    right: 10px;
+    float: right;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1002;
+}
+
+.modal-close:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.modal-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-content h1 {
+    padding: 20px 20px 10px;
+    margin: 0;
+}
+
+.modal-meta {
+    padding: 0 20px 10px;
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+.modal-body {
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.main-header {
+    background: #007bff;
+    color: #fff;
+    padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.main-header nav {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.main-header nav a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.main-header nav a:hover,
+.main-header nav a.active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#dark-mode-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: 10px;
+}
+
+.feed-controls h2 {
+    margin: 20px 0 16px;
+    font-size: 24px;
+}
+
+footer {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    background: #f8f9fa;
+    margin-top: 60px;
+}
+
+/* Dark mode for legacy modal and header */
+@media (prefers-color-scheme: dark) {
+    .modal-content {
+        background: #2d2d2d;
+    }
+
+    .modal-content h1 {
+        color: #ffffff;
+    }
+
+    .modal-meta {
+        color: #999;
+    }
+
+    .modal-body {
+        color: #e0e0e0;
+    }
+
+    .main-header {
+        background: #1e3a5f;
+    }
+
+    .feed-controls h2 {
+        color: #e0e0e0;
+    }
+
+    footer {
+        background: #2d2d2d;
+        color: #999;
+    }
+}
+
+body.dark-mode .modal-content {
+    background: #2d2d2d;
+}
+
+body.dark-mode .modal-content h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .modal-meta {
+    color: #999;
+}
+
+body.dark-mode .modal-body {
+    color: #e0e0e0;
+}
+
+body.dark-mode .main-header {
+    background: #1e3a5f;
+}
+
+body.dark-mode .feed-controls h2 {
+    color: #e0e0e0;
+}
+
+body.dark-mode footer {
+    background: #2d2d2d;
+    color: #999;
+}
