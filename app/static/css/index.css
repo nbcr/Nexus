@@ -72,7 +72,8 @@ body {
 .feed-controls h2 {
     margin: 0 0 16px 0;
     font-size: 24px;
-    color: #333;
+    color: #1a1a1a;
+    font-weight: 600;
 }
 
 .category-filter {
