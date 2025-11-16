@@ -8,6 +8,7 @@ from sqlalchemy import select # type: ignore
 
 from app.models import Topic, ContentItem
 from app.core.config import settings
+from app.services.pytrends_service import pytrends_service
 
 
 class TrendingService:
@@ -17,20 +18,37 @@ class TrendingService:
         print("✅ Reddit JSON API enabled (no auth required)")
     
     async def fetch_canada_trends(self) -> List[Dict]:
-        """Fetch trending topics from Google Trends Canada RSS feed and Reddit"""
+        """Fetch trending topics from Google Trends Canada RSS feed, Reddit, and PyTrends"""
         trends = []
         
-        # First, get RSS feed trends (10-20 items)
+        # First, get PyTrends trending searches (20-30 items)
+        pytrends_data = await self._fetch_pytrends_searches()
+        trends.extend(pytrends_data)
+        
+        # Second, get RSS feed trends (10-20 items)
         rss_trends = await self._fetch_rss_trends()
         trends.extend(rss_trends)
         
-        # Then, get Reddit trending posts (many more items)
+        # Third, get Reddit trending posts (many more items)
         if self.reddit_enabled:
             reddit_trends = await self._fetch_reddit_trends()
             trends.extend(reddit_trends)
         
-        print(f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)}, Reddit: {len(trends) - len(rss_trends)})")
+        # Finally, enrich top trends with related topics and queries
+        if pytrends_data:
+            print("Enriching trends with PyTrends related content...")
+            trends = await pytrends_service.enrich_trends_with_pytrends(trends, max_topics=3)
+        
+        print(f"✅ Total trends fetched: {len(trends)} (PyTrends: {len(pytrends_data)}, RSS: {len(rss_trends)}, Reddit: {len(trends) - len(pytrends_data) - len(rss_trends)})")
         return trends
+    
+    async def _fetch_pytrends_searches(self) -> List[Dict]:
+        """Fetch trending searches using PyTrends"""
+        try:
+            return await pytrends_service.fetch_trending_searches()
+        except Exception as e:
+            print(f"❌ Error fetching PyTrends searches: {e}")
+            return []
     
     async def _fetch_rss_trends(self) -> List[Dict]:
         """Fetch trends from RSS feed"""
