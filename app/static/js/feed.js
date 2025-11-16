@@ -68,9 +68,16 @@ class InfiniteFeed {
         
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                console.log('Intersection:', entry.isIntersecting, 'Loading:', this.isLoading, 'HasMore:', this.hasMore);
+                const rect = entry.boundingClientRect;
+                console.log('Intersection Event:', {
+                    isIntersecting: entry.isIntersecting,
+                    intersectionRatio: entry.intersectionRatio,
+                    isLoading: this.isLoading,
+                    hasMore: this.hasMore,
+                    boundingRect: { top: rect.top, bottom: rect.bottom, height: rect.height }
+                });
                 if (entry.isIntersecting && !this.isLoading && this.hasMore) {
-                    console.log('Loading more content...');
+                    console.log('🔄 Triggering loadMore for page:', this.currentPage);
                     this.loadMore();
                 }
             });
