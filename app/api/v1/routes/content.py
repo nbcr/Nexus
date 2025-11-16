@@ -317,9 +317,6 @@ async def get_article_content(
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
     
-    # Find related content items
-    related_items = await find_related_content(db, content)
-    
     # Get the source URL
     if not content.source_urls or len(content.source_urls) == 0:
         raise HTTPException(status_code=404, detail="No source URL available")
@@ -334,6 +331,13 @@ async def get_article_content(
             status_code=404, 
             detail="Unable to fetch article content from source"
         )
+    
+    # Find related content items (after scraping succeeds)
+    try:
+        related_items = await find_related_content(db, content)
+    except Exception as e:
+        print(f"❌ Error finding related content: {e}")
+        related_items = []
     
     # Add related items to response
     article_data['related_items'] = [
