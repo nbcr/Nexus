@@ -469,6 +469,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById('article-modal');
     const closeBtn = document.querySelector('.article-modal-close');
     
+    if (!modal) {
+        console.warn('Article modal not found');
+        return;
+    }
+    
     // Close modal on close button click
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
