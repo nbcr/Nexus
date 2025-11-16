@@ -103,25 +103,36 @@ class ArticleScraperService:
         ]
         
         article_element = None
+        container_used = None
         for tag, attrs in content_selectors:
             article_element = soup.find(tag, attrs)
             if article_element:
+                container_used = f"{tag} with attrs {attrs}"
                 break
         
         if not article_element:
             # Fallback: use body
             article_element = soup.find('body')
+            container_used = 'body (fallback)'
         
         if not article_element:
+            print("❌ No content container found")
             return ""
+        
+        print(f"📦 Using container: {container_used}")
         
         # Extract paragraphs
         paragraphs = []
-        for p in article_element.find_all('p'):
+        all_paragraphs = article_element.find_all('p')
+        print(f"📝 Found {len(all_paragraphs)} total paragraphs")
+        
+        for p in all_paragraphs:
             text = p.get_text().strip()
             # Filter out very short paragraphs (likely navigation/footer text)
             if len(text) > 50:
                 paragraphs.append(text)
+        
+        print(f"✅ Kept {len(paragraphs)} paragraphs (>50 chars each)")
         
         content = '\n\n'.join(paragraphs)
         
