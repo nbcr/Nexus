@@ -327,10 +327,36 @@ class InfiniteFeed {
         // Add click handler for card header to expand/collapse
         const header = article.querySelector('.feed-item-header');
         if (header) {
-            header.addEventListener('click', (e) => {
+            header.addEventListener('click', async (e) => {
                 // Don't toggle if clicking on image or buttons
                 if (!e.target.closest('.feed-item-image')) {
+                    const wasExpanded = article.classList.contains('expanded');
                     article.classList.toggle('expanded');
+                    
+                    // If expanding for the first time and no snippet, fetch it
+                    if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
+                        const summaryEl = article.querySelector('.feed-item-summary');
+                        if (summaryEl && summaryEl.textContent.includes('No snippet available')) {
+                            summaryEl.innerHTML = '<em>Loading snippet...</em>';
+                            try {
+                                const response = await fetch(`/api/v1/content/snippet/${item.content_id}`);
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.snippet) {
+                                        summaryEl.textContent = this.truncateText(data.snippet, 400);
+                                        article.dataset.snippetLoaded = 'true';
+                                    } else {
+                                        summaryEl.innerHTML = '<em style="color: #999;">No preview available</em>';
+                                    }
+                                } else {
+                                    summaryEl.innerHTML = '<em style="color: #999;">No preview available</em>';
+                                }
+                            } catch (error) {
+                                console.error('Error loading snippet:', error);
+                                summaryEl.innerHTML = '<em style="color: #999;">No preview available</em>';
+                            }
+                        }
+                    }
                 }
             });
         }

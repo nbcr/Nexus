@@ -150,6 +150,46 @@ async def get_content_item(content_id: int, db: AsyncSession = Depends(get_db)):
     
     return content_dict
 
+@router.get("/snippet/{content_id}")
+async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Fetch just a snippet/preview of the article content.
+    Faster than full article scraping, returns first few paragraphs.
+    """
+    # Get content item from database
+    result = await db.execute(
+        select(ContentItem).where(ContentItem.id == content_id)
+    )
+    content = result.scalar_one_or_none()
+    
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+    
+    # Check if we already have a snippet in content_text or description
+    if content.content_text and len(content.content_text) > 50:
+        return {"snippet": content.content_text}
+    
+    if content.description and len(content.description) > 50:
+        return {"snippet": content.description}
+    
+    # Get the source URL
+    if not content.source_urls or len(content.source_urls) == 0:
+        return {"snippet": None}
+    
+    source_url = content.source_urls[0]
+    
+    # Scrape the article for snippet
+    try:
+        article_data = await article_scraper.fetch_article(source_url)
+        if article_data and article_data.get('content'):
+            # Return first 500 characters as snippet
+            snippet = article_data['content'][:500] + '...' if len(article_data['content']) > 500 else article_data['content']
+            return {"snippet": snippet}
+    except Exception as e:
+        print(f"Error fetching snippet: {e}")
+    
+    return {"snippet": None}
+
 @router.get("/article/{content_id}")
 async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
     """
