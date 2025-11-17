@@ -61,20 +61,25 @@ class ContentRecommendationService:
         # Combine with exclude_ids
         all_excluded = set(exclude_ids + viewed_content_ids)
         
-        # Build query - filter out PyTrends queries without scraped content
+        # Build query - filter out content without pictures and without meaningful text
         query = (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
                 ContentItem.is_published == True,
                 ContentItem.id.notin_(all_excluded) if all_excluded else True,
-                # Hide trending_analysis items that don't have scraped content
+                # Only show items that have EITHER a picture OR meaningful content
                 or_(
-                    ContentItem.content_type != 'trending_analysis',
+                    # Has picture in source_metadata
                     and_(
-                        ContentItem.content_type == 'trending_analysis',
+                        ContentItem.source_metadata.isnot(None),
+                        ContentItem.source_metadata['picture_url'].astext.isnot(None)
+                    ),
+                    # OR has meaningful scraped content (not default placeholder text)
+                    and_(
                         ContentItem.content_text.isnot(None),
-                        ~ContentItem.content_text.startswith('Trending topic')
+                        ~ContentItem.content_text.startswith('Trending topic'),
+                        func.length(ContentItem.content_text) > 100
                     )
                 )
             )
@@ -178,13 +183,18 @@ class ContentRecommendationService:
             .where(
                 ContentItem.is_published == True,
                 ContentItem.id.notin_(exclude_ids) if exclude_ids else True,
-                # Hide trending_analysis items that don't have scraped content
+                # Only show items that have EITHER a picture OR meaningful content
                 or_(
-                    ContentItem.content_type != 'trending_analysis',
+                    # Has picture in source_metadata
                     and_(
-                        ContentItem.content_type == 'trending_analysis',
+                        ContentItem.source_metadata.isnot(None),
+                        ContentItem.source_metadata['picture_url'].astext.isnot(None)
+                    ),
+                    # OR has meaningful scraped content (not default placeholder text)
+                    and_(
                         ContentItem.content_text.isnot(None),
-                        ~ContentItem.content_text.startswith('Trending topic')
+                        ~ContentItem.content_text.startswith('Trending topic'),
+                        func.length(ContentItem.content_text) > 100
                     )
                 )
             )
