@@ -75,6 +75,7 @@ class ArticleScraperService:
         """
         Fetch and parse search results from DuckDuckGo to provide context.
         Extracts instant answer boxes and top search results.
+        Uses DuckDuckGo's Instant Answer API for rich content.
         
         Args:
             url: The DuckDuckGo search URL
@@ -86,60 +87,82 @@ class ArticleScraperService:
         try:
             print(f"🔍 Fetching search context from: {url}")
             
-            # Fetch the page
-            response = requests.get(url, headers=self.headers, timeout=self.timeout)
-            response.raise_for_status()
+            # Extract search query from URL
+            from urllib.parse import urlparse, parse_qs
+            parsed = urlparse(url)
+            params = parse_qs(parsed.query)
+            query = params.get('q', ['unknown'])[0]
             
-            # Parse HTML
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Use DuckDuckGo's Instant Answer API
+            # This is a free, public API that doesn't require authentication
+            api_url = f"https://api.duckduckgo.com/?q={query}&format=json&no_html=1"
             
-            # Extract search query from URL or page
-            query = self._extract_search_query(soup, url)
+            print(f"📡 Querying DuckDuckGo API: {api_url}")
+            api_response = requests.get(api_url, headers=self.headers, timeout=self.timeout)
+            api_response.raise_for_status()
+            api_data = api_response.json()
             
-            # Extract instant answer/infobox (the highlighted content)
-            instant_answer = self._extract_instant_answer(soup)
+            # Extract instant answer content
+            instant_answer = None
+            image_url = None
             
-            # Extract search results
-            results = self._extract_search_results(soup)
+            # Abstract is the main description (like Wikipedia excerpt)
+            abstract = api_data.get('Abstract', '').strip()
+            if abstract:
+                instant_answer = abstract
+                image_url = api_data.get('Image', '')
             
-            # Build context from instant answer and results
+            # If no abstract, try Definition
+            if not instant_answer:
+                definition = api_data.get('Definition', '').strip()
+                if definition:
+                    instant_answer = definition
+            
+            # Build context
             context_parts = []
             
-            # Add instant answer first if available
             if instant_answer:
                 context_parts.append(f"**{query}**\n")
                 context_parts.append(instant_answer)
-                context_parts.append("\n" + "="*50 + "\n")
+                
+                # Add source if available
+                source = api_data.get('AbstractSource', '')
+                if source:
+                    context_parts.append(f"\n\n*Source: {source}*")
+                
+                context_parts.append("\n" + "="*50)
             
-            # Add search results
-            if results:
-                context_parts.append(f"\n**Top search results:**\n")
-                for i, result in enumerate(results[:5], 1):
-                    title = result.get('title', '')
-                    snippet = result.get('snippet', '')
-                    context_parts.append(f"\n{i}. **{title}**")
-                    if snippet:
-                        context_parts.append(f"   {snippet}")
+            # Add related topics if available
+            related_topics = api_data.get('RelatedTopics', [])
+            if related_topics:
+                context_parts.append(f"\n\n**Related Information:**\n")
+                for i, topic in enumerate(related_topics[:5], 1):
+                    if isinstance(topic, dict):
+                        text = topic.get('Text', '')
+                        if text:
+                            context_parts.append(f"{i}. {text}")
             
-            content = '\n'.join(context_parts) if context_parts else "No search results found."
+            content = '\n'.join(context_parts) if context_parts else "No information found."
             
             search_data = {
                 'url': url,
                 'title': query,
                 'content': content,
-                'author': 'DuckDuckGo Search',
+                'author': 'DuckDuckGo',
                 'published_date': '',
-                'image_url': None,
+                'image_url': image_url if image_url and len(image_url) > 10 else None,
                 'domain': 'duckduckgo.com',
-                'search_results': results,
+                'search_results': [],
                 'instant_answer': instant_answer
             }
             
-            print(f"✅ Extracted instant answer: {bool(instant_answer)}, {len(results)} search results")
+            print(f"✅ Extracted instant answer: {bool(instant_answer)}, Image: {bool(image_url)}")
             return search_data
                 
         except Exception as e:
             print(f"❌ Error scraping search results: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def _extract_search_query(self, soup: BeautifulSoup, url: str) -> str:
