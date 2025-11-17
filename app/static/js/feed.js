@@ -275,14 +275,16 @@ class InfiniteFeed {
                             <span class="feed-item-source">${source}</span>
                         </div>
                         <h2 class="feed-item-title">${item.title}</h2>
-                        <p class="feed-item-description">${item.description || ''}</p>
+                        ${item.description ? `<p class="feed-item-description">${item.description}</p>` : ''}
                         <span class="expand-indicator">▼</span>
                     </div>
                 </div>
                 <div class="feed-item-expanded-content">
                     <div class="content-inner">
-                        ${item.content_text ? `
-                            <p class="feed-item-summary">${this.truncateText(item.content_text, 200)}</p>
+                        ${item.content_text && item.content_text !== item.description ? `
+                            <p class="feed-item-summary">${this.truncateText(item.content_text, 300)}</p>
+                        ` : item.description ? `
+                            <p class="feed-item-summary">${this.truncateText(item.description, 300)}</p>
                         ` : ''}
                         <div class="feed-item-actions">
                             ${isNewsArticle ? `
