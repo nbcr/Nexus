@@ -336,24 +336,29 @@ class InfiniteFeed {
                     // If expanding for the first time and no snippet, fetch it
                     if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
                         const summaryEl = article.querySelector('.feed-item-summary');
-                        if (summaryEl && summaryEl.textContent.includes('No snippet available')) {
-                            summaryEl.innerHTML = '<em>Loading snippet...</em>';
+                        if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
+                            summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
                             try {
                                 const response = await fetch(`/api/v1/content/snippet/${item.content_id}`);
                                 if (response.ok) {
                                     const data = await response.json();
-                                    if (data.snippet) {
-                                        summaryEl.textContent = this.truncateText(data.snippet, 400);
+                                    if (data.rate_limited) {
+                                        summaryEl.innerHTML = `<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 10px 0;">
+                                            <p style="margin: 0; color: #856404; font-size: 16px;">😅 ${data.message}</p>
+                                        </div>`;
+                                        article.dataset.snippetLoaded = 'rate-limited';
+                                    } else if (data.snippet) {
+                                        summaryEl.innerHTML = `<p style="line-height: 1.8; color: #333;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Full article content available</p>' : ''}`;
                                         article.dataset.snippetLoaded = 'true';
                                     } else {
-                                        summaryEl.innerHTML = '<em style="color: #999;">No preview available</em>';
+                                        summaryEl.innerHTML = '<em style="color: #999;">No preview available from this source</em>';
                                     }
                                 } else {
-                                    summaryEl.innerHTML = '<em style="color: #999;">No preview available</em>';
+                                    summaryEl.innerHTML = '<em style="color: #999;">Unable to load preview</em>';
                                 }
                             } catch (error) {
                                 console.error('Error loading snippet:', error);
-                                summaryEl.innerHTML = '<em style="color: #999;">No preview available</em>';
+                                summaryEl.innerHTML = '<em style="color: #999;">Error loading preview</em>';
                             }
                         }
                     }

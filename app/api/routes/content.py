@@ -153,8 +153,9 @@ async def get_content_item(content_id: int, db: AsyncSession = Depends(get_db)):
 @router.get("/snippet/{content_id}")
 async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db)):
     """
-    Fetch just a snippet/preview of the article content.
-    Faster than full article scraping, returns first few paragraphs.
+    Fetch and store article snippet/content on demand.
+    Scrapes full article content and stores it in database.
+    Returns snippet with rate limit handling.
     """
     # Get content item from database
     result = await db.execute(
@@ -165,30 +166,61 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
     
-    # Check if we already have a snippet in content_text or description
-    if content.content_text and len(content.content_text) > 50:
-        return {"snippet": content.content_text}
-    
-    if content.description and len(content.description) > 50:
-        return {"snippet": content.description}
+    # Check if we already have scraped content stored
+    if content.content_text and len(content.content_text) > 100 and not content.content_text.startswith('Trending topic'):
+        # Already scraped, return it
+        snippet = content.content_text[:800] if len(content.content_text) > 800 else content.content_text
+        return {"snippet": snippet, "full_content_available": True}
     
     # Get the source URL
     if not content.source_urls or len(content.source_urls) == 0:
-        return {"snippet": None}
+        return {"snippet": content.description or None, "rate_limited": False}
     
     source_url = content.source_urls[0]
     
-    # Scrape the article for snippet
+    # Scrape the article and store full content
     try:
         article_data = await article_scraper.fetch_article(source_url)
         if article_data and article_data.get('content'):
-            # Return first 500 characters as snippet
-            snippet = article_data['content'][:500] + '...' if len(article_data['content']) > 500 else article_data['content']
-            return {"snippet": snippet}
+            # Store the full scraped content in database
+            content.content_text = article_data['content']
+            if article_data.get('title'):
+                content.title = article_data['title']
+            if article_data.get('author'):
+                if not content.source_metadata:
+                    content.source_metadata = {}
+                content.source_metadata['author'] = article_data['author']
+            if article_data.get('published_date'):
+                if not content.source_metadata:
+                    content.source_metadata = {}
+                content.source_metadata['published_date'] = article_data['published_date']
+            
+            await db.commit()
+            
+            # Return snippet (first 800 chars)
+            snippet = article_data['content'][:800] if len(article_data['content']) > 800 else article_data['content']
+            return {"snippet": snippet, "full_content_available": True, "rate_limited": False}
     except Exception as e:
+        error_msg = str(e).lower()
+        # Check for rate limiting errors
+        if 'rate' in error_msg or 'limit' in error_msg or '429' in error_msg or 'too many' in error_msg:
+            dad_jokes = [
+                "Whoa there, speed racer! Even my dad jokes need a breather. Try again in a moment!",
+                "Easy there, tiger! You're clicking faster than my dad can tell a punchline. Slow down!",
+                "Hold your horses! You're moving faster than a dad running to turn off the thermostat!",
+                "Pump the brakes! Even the internet needs a coffee break. Try again soon!",
+                "Woah! You're scrolling faster than dad jokes spread at a BBQ. Give it a sec!",
+                "Cool your jets! You're browsing faster than dad running when mom says 'dinner's ready'!"
+            ]
+            import random
+            return {
+                "snippet": None, 
+                "rate_limited": True, 
+                "message": random.choice(dad_jokes)
+            }
         print(f"Error fetching snippet: {e}")
     
-    return {"snippet": None}
+    return {"snippet": content.description or None, "rate_limited": False}
 
 @router.get("/article/{content_id}")
 async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
