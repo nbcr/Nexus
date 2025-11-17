@@ -11,29 +11,36 @@ from app.models import ContentItem
 async def hide_empty_pytrends():
     """Mark empty PyTrends items as unpublished"""
     async with AsyncSessionLocal() as db:
-        # Find PyTrends items that should be hidden (no picture AND no substantial content)
+        # Find all PyTrends items and check them individually
         result = await db.execute(
             select(ContentItem).where(
                 and_(
                     ContentItem.content_type == 'trending_analysis',
-                    ContentItem.is_published == True,
-                    # No picture OR picture_url is empty/null
-                    or_(
-                        ContentItem.source_metadata.is_(None),
-                        ContentItem.source_metadata['picture_url'].astext.is_(None),
-                        func.length(ContentItem.source_metadata['picture_url'].astext) <= 10
-                    ),
-                    # AND no meaningful content
-                    or_(
-                        ContentItem.content_text.is_(None),
-                        ContentItem.content_text.startswith('Trending topic'),
-                        func.length(ContentItem.content_text) <= 200
-                    )
+                    ContentItem.is_published == True
                 )
             )
         )
         
-        items_to_hide = result.scalars().all()
+        items_to_hide = []
+        all_items = result.scalars().all()
+        
+        for item in all_items:
+            # Check if item lacks both picture and meaningful content
+            has_picture = (
+                item.source_metadata and 
+                item.source_metadata.get('picture_url') and 
+                len(str(item.source_metadata.get('picture_url', ''))) > 10
+            )
+            
+            has_content = (
+                item.content_text and 
+                not item.content_text.startswith('Trending topic') and
+                len(item.content_text) > 200
+            )
+            
+            # Hide if it has neither picture nor content
+            if not has_picture and not has_content:
+                items_to_hide.append(item)
         
         if not items_to_hide:
             print("✅ No empty PyTrends items found - all clean!")
@@ -44,24 +51,8 @@ async def hide_empty_pytrends():
             print(f"  - {item.id}: {item.title}")
         
         # Update them to unpublished
-        await db.execute(
-            update(ContentItem).where(
-                and_(
-                    ContentItem.content_type == 'trending_analysis',
-                    ContentItem.is_published == True,
-                    or_(
-                        ContentItem.source_metadata.is_(None),
-                        ContentItem.source_metadata['picture_url'].astext.is_(None),
-                        func.length(ContentItem.source_metadata['picture_url'].astext) <= 10
-                    ),
-                    or_(
-                        ContentItem.content_text.is_(None),
-                        ContentItem.content_text.startswith('Trending topic'),
-                        func.length(ContentItem.content_text) <= 200
-                    )
-                )
-            ).values(is_published=False)
-        )
+        for item in items_to_hide:
+            item.is_published = False
         
         await db.commit()
         print(f"✅ Successfully hid {len(items_to_hide)} empty PyTrends items!")
