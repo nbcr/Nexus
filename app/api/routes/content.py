@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie # 
 from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
 from sqlalchemy import select # pyright: ignore[reportMissingImports]
 from typing import List, Optional
+from datetime import datetime
 
 from app.database import AsyncSessionLocal
 from app.models import ContentItem, Topic
@@ -287,6 +288,27 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
             status_code=404, 
             detail="Unable to fetch content from source"
         )
+    
+    # Save scraped content back to database for future use
+    try:
+        content.content_text = article_data.get('content', '')[:10000]  # Limit to 10k chars
+        
+        # Update title if better one was scraped
+        if article_data.get('title') and len(article_data['title']) > len(content.title or ''):
+            content.title = article_data['title'][:500]
+        
+        # Save image URL if found
+        if article_data.get('image_url'):
+            if not content.source_metadata:
+                content.source_metadata = {}
+            content.source_metadata['picture_url'] = article_data['image_url']
+            content.source_metadata['scraped_at'] = datetime.utcnow().isoformat()
+        
+        await db.commit()
+        print(f"✅ Saved scraped content for item {content_id}")
+    except Exception as e:
+        print(f"⚠️ Error saving scraped content: {e}")
+        await db.rollback()
     
     # Find related content items (after scraping succeeds)
     try:
