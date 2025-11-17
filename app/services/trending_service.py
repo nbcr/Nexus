@@ -359,6 +359,9 @@ class TrendingService:
             for news_item in news_items:
                 content_item = ContentItem(
                     topic_id=topic_id,
+                    title=news_item.get('title', ''),  # Add the news article title
+                    description=news_item.get('snippet', ''),  # Add the snippet as description
+                    category='News',  # Set category to News for news articles
                     content_type="news_update",
                     content_text=news_item.get('snippet', ''),
                     ai_model_used="google_trends_news_v1",

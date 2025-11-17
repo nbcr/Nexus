@@ -113,9 +113,9 @@ class ContentRecommendationService:
             feed_items.append({
                 "content_id": content.id,
                 "topic_id": topic.id,
-                "title": topic.title,
-                "description": topic.description,
-                "category": topic.category,
+                "title": content.title if content.title else topic.title,  # Use content title if available
+                "description": content.description if content.description else topic.description,  # Use content description if available
+                "category": content.category if content.category else topic.category,  # Use content category if available
                 "content_type": content.content_type,
                 "content_text": content.content_text,
                 "source_urls": content.source_urls,
@@ -204,9 +204,9 @@ class ContentRecommendationService:
             feed_items.append({
                 "content_id": content.id,
                 "topic_id": topic.id,
-                "title": topic.title,
-                "description": topic.description,
-                "category": topic.category,
+                "title": content.title if content.title else topic.title,  # Use content title if available
+                "description": content.description if content.description else topic.description,  # Use content description if available
+                "category": content.category if content.category else topic.category,  # Use content category if available
                 "content_type": content.content_type,
                 "content_text": content.content_text,
                 "source_urls": content.source_urls,
