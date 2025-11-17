@@ -264,7 +264,7 @@ class InfiniteFeed {
                                  onerror="this.parentElement.style.display='none'">
                         </div>
                     ` : ''}
-                    <div class="feed-item-header-content">ader-content">
+                    <div class="feed-item-header-content">
                         <div class="feed-item-meta">
                             <span class="feed-item-category">${item.category || 'Trending'}</span>
                             ${item.relevance_score ? `
