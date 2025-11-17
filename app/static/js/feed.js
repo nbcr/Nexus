@@ -253,7 +253,7 @@ class InfiniteFeed {
                               (item.source_urls && item.source_urls[0] && 
                               (item.source_urls[0].includes('google.com/search') || 
                                item.source_urls[0].includes('duckduckgo.com')));
-        const isNewsArticle = !isPytrends && !isSearchQuery && item.content_type === 'news';
+        const isNewsArticle = !isPytrends && !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update');
         
         article.innerHTML = `
             <div class="feed-item-content">
