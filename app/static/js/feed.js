@@ -247,6 +247,14 @@ class InfiniteFeed {
         const imageUrl = item.source_metadata?.picture_url || null;
         const source = item.source_metadata?.source || 'News';
         
+        // Check if this is a search query (pytrends) or news article
+        const isPytrends = item.tags && item.tags.includes('pytrends');
+        const isSearchQuery = item.category === 'Search Query' || item.content_type === 'trending_analysis' ||
+                              (item.source_urls && item.source_urls[0] && 
+                              (item.source_urls[0].includes('google.com/search') || 
+                               item.source_urls[0].includes('duckduckgo.com')));
+        const isNewsArticle = !isPytrends && !isSearchQuery && item.content_type === 'news';
+        
         article.innerHTML = `
             <div class="feed-item-content">
                 <div class="feed-item-header">
@@ -277,9 +285,11 @@ class InfiniteFeed {
                             <p class="feed-item-summary">${this.truncateText(item.content_text, 200)}</p>
                         ` : ''}
                         <div class="feed-item-actions">
-                            <button class="btn-read-more" data-content-id="${item.content_id}">
-                                Read Full Article
-                            </button>
+                            ${isNewsArticle ? `
+                                <button class="btn-read-more" data-content-id="${item.content_id}">
+                                    Read Full Article
+                                </button>
+                            ` : ''}
                             ${item.source_urls && item.source_urls.length > 0 ? `
                                 <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
                                    class="btn-source">
