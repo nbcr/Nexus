@@ -282,10 +282,10 @@ class InfiniteFeed {
                 <div class="feed-item-expanded-content">
                     <div class="content-inner">
                         ${item.content_text && item.content_text !== item.description ? `
-                            <p class="feed-item-summary">${this.truncateText(item.content_text, 300)}</p>
+                            <p class="feed-item-summary"><strong>Snippet:</strong> ${this.truncateText(item.content_text, 300)}</p>
                         ` : item.description ? `
-                            <p class="feed-item-summary">${this.truncateText(item.description, 300)}</p>
-                        ` : ''}
+                            <p class="feed-item-summary"><strong>Summary:</strong> ${this.truncateText(item.description, 300)}</p>
+                        ` : '<p class="feed-item-summary" style="color: #999;">No snippet available for this article.</p>'}
                         <div class="feed-item-actions">
                             ${isNewsArticle ? `
                                 <button class="btn-read-more" data-content-id="${item.content_id}">
