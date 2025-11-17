@@ -271,16 +271,16 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
     
     source_url = content.source_urls[0]
     
-    # Check if this is a search query or news article
-    is_search_query = (content.content_type == 'trending_analysis' or 
-                      (content.tags and 'pytrends' in content.tags) or
-                      'duckduckgo.com' in source_url or 
-                      'google.com/search' in source_url)
+    # Check if URL is actually a search query (not just trending_analysis type)
+    is_search_url = ('duckduckgo.com' in source_url or 
+                     'google.com/search' in source_url or
+                     'bing.com/search' in source_url)
     
-    # Scrape appropriate content
-    if is_search_query:
+    # Scrape appropriate content based on actual URL type
+    if is_search_url:
         article_data = await article_scraper.fetch_search_context(source_url)
     else:
+        # For trending_analysis with news URLs, scrape as regular article
         article_data = await article_scraper.fetch_article(source_url)
     
     if not article_data:
