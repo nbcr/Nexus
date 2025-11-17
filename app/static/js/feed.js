@@ -484,7 +484,6 @@ class InfiniteFeed {
         // Set source link for error fallback
         if (item.source_urls && item.source_urls.length > 0) {
             sourceLink.href = item.source_urls[0];
-            sourceLink.textContent = isSearchQuery ? 'Search on DuckDuckGo' : 'Read on Source Site';
         }
         
         try {
@@ -500,24 +499,11 @@ class InfiniteFeed {
             // Check if this is a fallback response (content extraction failed)
             const isFallback = article.content && article.content.includes('Unable to extract full article content');
             
-            // Check if this is a search query with no instant answer
-            const isSearchNoAnswer = article.content && article.content.includes("doesn't have a direct answer in our knowledge base");
-            
-            if (isFallback || isSearchNoAnswer) {
+            if (isFallback) {
                 // Show error view with source link
                 loading.style.display = 'none';
                 error.style.display = 'block';
                 title.textContent = article.title || item.title;
-                
-                // Customize message for search queries
-                if (isSearchNoAnswer) {
-                    const errorEl = modal.querySelector('.article-error');
-                    errorEl.innerHTML = `
-                        <p>${article.title || item.title}</p>
-                        <p style="margin-top: 10px; font-size: 14px; color: #666;">This search query doesn't have a direct answer available. Click below to see full search results.</p>
-                        <a id="article-source-link" href="${item.source_urls[0]}" target="_blank" class="btn-source">Search on DuckDuckGo</a>
-                    `;
-                }
                 return;
             }
             
