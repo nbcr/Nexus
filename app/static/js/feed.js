@@ -417,6 +417,17 @@ class InfiniteFeed {
             
             const article = await response.json();
             
+            // Check if this is a fallback response (content extraction failed)
+            const isFallback = article.content && article.content.includes('Unable to extract full article content');
+            
+            if (isFallback) {
+                // Show error view with source link
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                title.textContent = article.title || item.title;
+                return;
+            }
+            
             // Hide loading
             loading.style.display = 'none';
             
