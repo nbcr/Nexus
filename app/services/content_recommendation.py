@@ -61,13 +61,22 @@ class ContentRecommendationService:
         # Combine with exclude_ids
         all_excluded = set(exclude_ids + viewed_content_ids)
         
-        # Build query - for now, show all content without filtering
+        # Build query - filter out PyTrends queries without scraped content
         query = (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
                 ContentItem.is_published == True,
-                ContentItem.id.notin_(all_excluded) if all_excluded else True
+                ContentItem.id.notin_(all_excluded) if all_excluded else True,
+                # Hide trending_analysis items that don't have scraped content
+                or_(
+                    ContentItem.content_type != 'trending_analysis',
+                    and_(
+                        ContentItem.content_type == 'trending_analysis',
+                        ContentItem.content_text.isnot(None),
+                        ~ContentItem.content_text.startswith('Trending topic')
+                    )
+                )
             )
         )
         
@@ -168,7 +177,16 @@ class ContentRecommendationService:
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
                 ContentItem.is_published == True,
-                ContentItem.id.notin_(exclude_ids) if exclude_ids else True
+                ContentItem.id.notin_(exclude_ids) if exclude_ids else True,
+                # Hide trending_analysis items that don't have scraped content
+                or_(
+                    ContentItem.content_type != 'trending_analysis',
+                    and_(
+                        ContentItem.content_type == 'trending_analysis',
+                        ContentItem.content_text.isnot(None),
+                        ~ContentItem.content_text.startswith('Trending topic')
+                    )
+                )
             )
         )
         
