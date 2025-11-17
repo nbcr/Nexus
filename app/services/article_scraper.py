@@ -131,6 +131,11 @@ class ArticleScraperService:
                     context_parts.append(f"\n\n*Source: {source}*")
                 
                 context_parts.append("\n" + "="*50)
+            else:
+                # No instant answer - provide a helpful message
+                context_parts.append(f"**{query}**\n")
+                context_parts.append("This search query doesn't have a direct answer in our knowledge base.")
+                context_parts.append("\n\nClick the **Search** button below to see full search results on DuckDuckGo.")
             
             # Add related topics if available
             related_topics = api_data.get('RelatedTopics', [])
