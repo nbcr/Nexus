@@ -10,7 +10,7 @@ Provides personalized content recommendations based on:
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Set
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_, desc
+from sqlalchemy import select, func, and_, or_, desc, cast, String
 from collections import defaultdict
 
 from app.models import (
@@ -77,8 +77,8 @@ class ContentRecommendationService:
                             # Has picture in source_metadata
                             and_(
                                 ContentItem.source_metadata.isnot(None),
-                                ContentItem.source_metadata['picture_url'].astext.isnot(None),
-                                func.length(ContentItem.source_metadata['picture_url'].astext) > 10
+                                cast(ContentItem.source_metadata['picture_url'], String).isnot(None),
+                                func.length(cast(ContentItem.source_metadata['picture_url'], String)) > 10
                             ),
                             # OR has meaningful scraped content
                             and_(
@@ -91,8 +91,8 @@ class ContentRecommendationService:
                     and_(
                         ContentItem.content_type == 'trending_analysis',
                         ContentItem.source_metadata.isnot(None),
-                        ContentItem.source_metadata['picture_url'].astext.isnot(None),
-                        func.length(ContentItem.source_metadata['picture_url'].astext) > 10,
+                        cast(ContentItem.source_metadata['picture_url'], String).isnot(None),
+                        func.length(cast(ContentItem.source_metadata['picture_url'], String)) > 10,
                         ContentItem.content_text.isnot(None),
                         ~ContentItem.content_text.startswith('Trending topic'),
                         func.length(ContentItem.content_text) > 200
@@ -208,8 +208,8 @@ class ContentRecommendationService:
                             # Has picture in source_metadata
                             and_(
                                 ContentItem.source_metadata.isnot(None),
-                                ContentItem.source_metadata['picture_url'].astext.isnot(None),
-                                func.length(ContentItem.source_metadata['picture_url'].astext) > 10
+                                cast(ContentItem.source_metadata['picture_url'], String).isnot(None),
+                                func.length(cast(ContentItem.source_metadata['picture_url'], String)) > 10
                             ),
                             # OR has meaningful scraped content
                             and_(
@@ -222,8 +222,8 @@ class ContentRecommendationService:
                     and_(
                         ContentItem.content_type == 'trending_analysis',
                         ContentItem.source_metadata.isnot(None),
-                        ContentItem.source_metadata['picture_url'].astext.isnot(None),
-                        func.length(ContentItem.source_metadata['picture_url'].astext) > 10,
+                        cast(ContentItem.source_metadata['picture_url'], String).isnot(None),
+                        func.length(cast(ContentItem.source_metadata['picture_url'], String)) > 10,
                         ContentItem.content_text.isnot(None),
                         ~ContentItem.content_text.startswith('Trending topic'),
                         func.length(ContentItem.content_text) > 200
