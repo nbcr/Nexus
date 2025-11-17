@@ -132,10 +132,16 @@ class ArticleScraperService:
                 
                 context_parts.append("\n" + "="*50)
             else:
-                # No instant answer - provide a helpful message
+                # No instant answer from API - scrape HTML page
+                print(f"⚠️ No instant answer from API, scraping HTML for '{query}'")
+                html_data = self._scrape_search_html(url, query)
+                if html_data:
+                    return html_data
+                
+                # If HTML scraping also failed, provide fallback
                 context_parts.append(f"**{query}**\n")
-                context_parts.append("This search query doesn't have a direct answer in our knowledge base.")
-                context_parts.append("\n\nClick the **Search** button below to see full search results on DuckDuckGo.")
+                context_parts.append("No detailed information available.")
+                context_parts.append("\n\nThis query may require direct searching on DuckDuckGo.")
             
             # Add related topics if available
             related_topics = api_data.get('RelatedTopics', [])
@@ -166,6 +172,96 @@ class ArticleScraperService:
                 
         except Exception as e:
             print(f"❌ Error scraping search results: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def _scrape_search_html(self, url: str, query: str) -> Optional[Dict]:
+        """
+        Scrape DuckDuckGo HTML page when API returns no instant answer.
+        Extracts search results and snippets from the HTML.
+        """
+        try:
+            print(f"🌐 Scraping HTML from: {url}")
+            response = requests.get(url, headers=self.headers, timeout=self.timeout)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            context_parts = [f"**{query}**\n"]
+            
+            # Try to find featured snippet / answer box
+            answer_selectors = [
+                ('div', {'class': re.compile('module__text|zci')}),
+                ('div', {'id': 'zero_click_abstract'}),
+                ('div', {'class': 'result__snippet--d'}),
+            ]
+            
+            for tag, attrs in answer_selectors:
+                answer_box = soup.find(tag, attrs)
+                if answer_box:
+                    snippet_text = answer_box.get_text(strip=True, separator=' ')
+                    if snippet_text and len(snippet_text) > 30:
+                        context_parts.append(f"{snippet_text}\n")
+                        context_parts.append("="*50)
+                        break
+            
+            # Extract top search results
+            results_found = False
+            
+            # Try modern DuckDuckGo result selectors
+            results = soup.find_all('article', limit=5)
+            if not results:
+                results = soup.find_all('div', class_=re.compile('result__'), limit=5)
+            if not results:
+                results = soup.find_all('li', class_=re.compile('result'), limit=5)
+            
+            if results:
+                context_parts.append("\n**Search Results:**\n")
+                for i, result in enumerate(results, 1):
+                    # Extract title
+                    title_elem = (result.find('h2') or 
+                                 result.find('a', class_=re.compile('result__a|result__title')) or
+                                 result.find('a'))
+                    
+                    if title_elem:
+                        title = title_elem.get_text(strip=True)
+                        
+                        # Extract snippet/description
+                        snippet_elem = (result.find('span', class_=re.compile('result__snippet')) or
+                                       result.find('div', class_=re.compile('result__snippet|snippet')) or
+                                       result.find('p'))
+                        snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+                        
+                        if title:
+                            context_parts.append(f"\n{i}. **{title}**")
+                            if snippet and len(snippet) > 20:
+                                context_parts.append(f"   {snippet[:200]}")
+                            results_found = True
+            
+            # If we got no useful content, return None
+            if not results_found and len(context_parts) <= 1:
+                print(f"⚠️ No content extracted from HTML for '{query}'")
+                return None
+            
+            content = '\n'.join(context_parts)
+            
+            search_data = {
+                'url': url,
+                'title': query,
+                'content': content,
+                'author': 'DuckDuckGo',
+                'published_date': '',
+                'image_url': None,
+                'domain': 'duckduckgo.com',
+                'search_results': [],
+                'instant_answer': None
+            }
+            
+            print(f"✅ Extracted {len(results)} search results from HTML")
+            return search_data
+            
+        except Exception as e:
+            print(f"❌ Error scraping HTML: {e}")
             import traceback
             traceback.print_exc()
             return None
