@@ -9,6 +9,7 @@ from sqlalchemy import select # type: ignore
 from app.models import Topic, ContentItem
 from app.core.config import settings
 from app.services.pytrends_service import pytrends_service
+from app.services.deduplication import deduplication_service
 
 
 class TrendingService:
@@ -350,33 +351,47 @@ class TrendingService:
         return f"Trending topic in Canada: {trend_title}"
     
     async def update_topic_news_items(self, db: AsyncSession, topic_id: int, news_items: List[Dict]) -> None:
-        """Update a topic's news items in the database"""
+        """Update a topic's news items in the database with deduplication"""
         try:
             print(f"Updating news items for topic {topic_id}")
             print(f"Number of news items to add: {len(news_items)}")
             
             # Create new content items for news updates
             for news_item in news_items:
+                title = news_item.get('title', '')
+                url = news_item.get('url', '')
+                
+                # Check for duplicates
+                existing = await deduplication_service.find_duplicate(db, title, url)
+                
+                if existing:
+                    print(f"  ⚠️ Duplicate found for '{title}' - linking as related")
+                    # Link this to the existing content instead of creating new
+                    await deduplication_service.link_as_related(db, existing.id, topic_id)
+                    continue
+                
+                # No duplicate, create new content item
                 content_item = ContentItem(
                     topic_id=topic_id,
-                    title=news_item.get('title', ''),  # Add the news article title
+                    title=title,
                     description=news_item.get('snippet', ''),  # Add the snippet as description
                     category='News',  # Set category to News for news articles
                     content_type="news_update",
                     content_text=news_item.get('snippet', ''),
                     ai_model_used="google_trends_news_v1",
-                    source_urls=[news_item.get('url', '')],
+                    source_urls=[url],
                     is_published=True,
                     source_metadata={
                         'source': news_item.get('source', 'News'),
                         'picture_url': news_item.get('picture', None),
-                        'title': news_item.get('title', '')
+                        'title': title
                     }
                 )
                 db.add(content_item)
+                print(f"  ✓ Created new content for '{title}'")
             
             await db.flush()
-            print(f"✅ Successfully added news items for topic {topic_id}")
+            print(f"✅ Successfully processed news items for topic {topic_id}")
         except Exception as e:
             print(f"❌ Error updating news items for topic {topic_id}: {str(e)}")
             print("Detailed error:", e.__class__.__name__, str(e))

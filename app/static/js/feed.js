@@ -362,6 +362,46 @@ class InfiniteFeed {
                             }
                         }
                     }
+                    
+                    // Fetch and display related content if expanding for the first time
+                    if (!wasExpanded && !article.dataset.relatedLoaded) {
+                        const contentInner = article.querySelector('.content-inner');
+                        if (contentInner) {
+                            try {
+                                const response = await fetch(`/api/v1/content/related/${item.content_id}`);
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.related_items && data.related_items.length > 0) {
+                                        const relatedSection = document.createElement('div');
+                                        relatedSection.className = 'related-stories-section';
+                                        relatedSection.innerHTML = `
+                                            <h4 class="related-stories-title">📰 Same Story From Other Sources:</h4>
+                                            <div class="related-stories-list">
+                                                ${data.related_items.map(related => `
+                                                    <div class="related-story-card">
+                                                        <div class="related-story-source">${related.source || 'Unknown Source'}</div>
+                                                        <div class="related-story-title">${related.title}</div>
+                                                        ${related.source_urls && related.source_urls.length > 0 ? `
+                                                            <a href="${related.source_urls[0]}" target="_blank" rel="noopener" class="related-story-link">
+                                                                Read from this source →
+                                                            </a>
+                                                        ` : ''}
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        `;
+                                        contentInner.appendChild(relatedSection);
+                                    }
+                                    article.dataset.relatedLoaded = 'true';
+                                } else {
+                                    article.dataset.relatedLoaded = 'error';
+                                }
+                            } catch (error) {
+                                console.error('Error loading related content:', error);
+                                article.dataset.relatedLoaded = 'error';
+                            }
+                        }
+                    }
                 }
             });
         }
