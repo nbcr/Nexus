@@ -446,7 +446,7 @@ class TrendingService:
                         content_text=ai_summary,
                         ai_model_used="google_trends_analyzer_v1",
                         source_urls=[trend_data.get('url', '')],
-                        is_published=True
+                        is_published=False  # Don't show until scraped with real content
                     )
                     db.add(content_item)
                     
@@ -480,7 +480,7 @@ class TrendingService:
                         content_text=ai_summary,
                         ai_model_used="google_trends_analyzer_v1",
                         source_urls=[trend_data.get('url', '')],
-                        is_published=True
+                        is_published=False  # Don't show until scraped with real content
                     )
                     db.add(content_item)
                     

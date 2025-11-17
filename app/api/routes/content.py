@@ -196,6 +196,11 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
                     content.source_metadata = {}
                 content.source_metadata['published_date'] = article_data['published_date']
             
+            # If this was an unpublished PyTrends item, publish it now that we have real content
+            if content.content_type == 'trending_analysis' and not content.is_published:
+                content.is_published = True
+                print(f"📰 Published PyTrends item after scraping: {content.title}")
+            
             await db.commit()
             
             # Return snippet (first 800 chars)
