@@ -68,18 +68,34 @@ class ContentRecommendationService:
             .where(
                 ContentItem.is_published == True,
                 ContentItem.id.notin_(all_excluded) if all_excluded else True,
-                # Only show items that have EITHER a picture OR meaningful content
+                # Exclude PyTrends/trending_analysis items unless they have real content
                 or_(
-                    # Has picture in source_metadata
+                    # Not a PyTrends item - show if it has picture or content
                     and_(
-                        ContentItem.source_metadata.isnot(None),
-                        ContentItem.source_metadata['picture_url'].astext.isnot(None)
+                        ContentItem.content_type != 'trending_analysis',
+                        or_(
+                            # Has picture in source_metadata
+                            and_(
+                                ContentItem.source_metadata.isnot(None),
+                                ContentItem.source_metadata['picture_url'].astext.isnot(None),
+                                func.length(ContentItem.source_metadata['picture_url'].astext) > 10
+                            ),
+                            # OR has meaningful scraped content
+                            and_(
+                                ContentItem.content_text.isnot(None),
+                                func.length(ContentItem.content_text) > 200
+                            )
+                        )
                     ),
-                    # OR has meaningful scraped content (not default placeholder text)
+                    # For PyTrends items - ONLY show if they have BOTH picture AND substantial content
                     and_(
+                        ContentItem.content_type == 'trending_analysis',
+                        ContentItem.source_metadata.isnot(None),
+                        ContentItem.source_metadata['picture_url'].astext.isnot(None),
+                        func.length(ContentItem.source_metadata['picture_url'].astext) > 10,
                         ContentItem.content_text.isnot(None),
                         ~ContentItem.content_text.startswith('Trending topic'),
-                        func.length(ContentItem.content_text) > 100
+                        func.length(ContentItem.content_text) > 200
                     )
                 )
             )
@@ -183,18 +199,34 @@ class ContentRecommendationService:
             .where(
                 ContentItem.is_published == True,
                 ContentItem.id.notin_(exclude_ids) if exclude_ids else True,
-                # Only show items that have EITHER a picture OR meaningful content
+                # Exclude PyTrends/trending_analysis items unless they have real content
                 or_(
-                    # Has picture in source_metadata
+                    # Not a PyTrends item - show if it has picture or content
                     and_(
-                        ContentItem.source_metadata.isnot(None),
-                        ContentItem.source_metadata['picture_url'].astext.isnot(None)
+                        ContentItem.content_type != 'trending_analysis',
+                        or_(
+                            # Has picture in source_metadata
+                            and_(
+                                ContentItem.source_metadata.isnot(None),
+                                ContentItem.source_metadata['picture_url'].astext.isnot(None),
+                                func.length(ContentItem.source_metadata['picture_url'].astext) > 10
+                            ),
+                            # OR has meaningful scraped content
+                            and_(
+                                ContentItem.content_text.isnot(None),
+                                func.length(ContentItem.content_text) > 200
+                            )
+                        )
                     ),
-                    # OR has meaningful scraped content (not default placeholder text)
+                    # For PyTrends items - ONLY show if they have BOTH picture AND substantial content
                     and_(
+                        ContentItem.content_type == 'trending_analysis',
+                        ContentItem.source_metadata.isnot(None),
+                        ContentItem.source_metadata['picture_url'].astext.isnot(None),
+                        func.length(ContentItem.source_metadata['picture_url'].astext) > 10,
                         ContentItem.content_text.isnot(None),
                         ~ContentItem.content_text.startswith('Trending topic'),
-                        func.length(ContentItem.content_text) > 100
+                        func.length(ContentItem.content_text) > 200
                     )
                 )
             )
