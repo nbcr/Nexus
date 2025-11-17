@@ -74,6 +74,7 @@ class ArticleScraperService:
     async def fetch_search_context(self, url: str) -> Optional[Dict]:
         """
         Fetch and parse search results from DuckDuckGo to provide context.
+        Extracts instant answer boxes and top search results.
         
         Args:
             url: The DuckDuckGo search URL
@@ -95,34 +96,46 @@ class ArticleScraperService:
             # Extract search query from URL or page
             query = self._extract_search_query(soup, url)
             
+            # Extract instant answer/infobox (the highlighted content)
+            instant_answer = self._extract_instant_answer(soup)
+            
             # Extract search results
             results = self._extract_search_results(soup)
             
-            # Build context from results
+            # Build context from instant answer and results
             context_parts = []
+            
+            # Add instant answer first if available
+            if instant_answer:
+                context_parts.append(f"**{query}**\n")
+                context_parts.append(instant_answer)
+                context_parts.append("\n" + "="*50 + "\n")
+            
+            # Add search results
             if results:
-                context_parts.append(f"Top search results for '{query}':\n")
+                context_parts.append(f"\n**Top search results:**\n")
                 for i, result in enumerate(results[:5], 1):
                     title = result.get('title', '')
                     snippet = result.get('snippet', '')
-                    context_parts.append(f"{i}. **{title}**")
+                    context_parts.append(f"\n{i}. **{title}**")
                     if snippet:
-                        context_parts.append(f"   {snippet}\n")
+                        context_parts.append(f"   {snippet}")
             
             content = '\n'.join(context_parts) if context_parts else "No search results found."
             
             search_data = {
                 'url': url,
-                'title': f"Search: {query}",
+                'title': query,
                 'content': content,
                 'author': 'DuckDuckGo Search',
                 'published_date': '',
                 'image_url': None,
                 'domain': 'duckduckgo.com',
-                'search_results': results
+                'search_results': results,
+                'instant_answer': instant_answer
             }
             
-            print(f"✅ Extracted {len(results)} search results")
+            print(f"✅ Extracted instant answer: {bool(instant_answer)}, {len(results)} search results")
             return search_data
                 
         except Exception as e:
@@ -144,6 +157,50 @@ class ArticleScraperService:
             return query_input.get('value')
         
         return "unknown query"
+    
+    def _extract_instant_answer(self, soup: BeautifulSoup) -> Optional[str]:
+        """
+        Extract instant answer/infobox from search results.
+        This includes Wikipedia snippets, knowledge panels, etc.
+        """
+        # Try multiple selectors for different instant answer formats
+        
+        # DuckDuckGo instant answer box
+        instant_box = soup.find('div', class_=re.compile('module__text|zci-wrapper|ia-module'))
+        if instant_box:
+            text = instant_box.get_text(separator=' ', strip=True)
+            if text and len(text) > 50:
+                return text
+        
+        # Wikipedia/knowledge panel content
+        kb_panel = soup.find('div', attrs={'data-area': 'infobox'})
+        if not kb_panel:
+            kb_panel = soup.find('div', class_=re.compile('infobox|knowledge-panel'))
+        
+        if kb_panel:
+            # Get the main text description
+            description = kb_panel.find('div', class_=re.compile('description|text|content'))
+            if description:
+                text = description.get_text(separator=' ', strip=True)
+                if text and len(text) > 50:
+                    return text
+        
+        # Try to find any prominent description or snippet at top of results
+        # This often contains the answer
+        top_content = soup.find('div', class_=re.compile('result--zero-click|abstract|answer'))
+        if top_content:
+            text = top_content.get_text(separator=' ', strip=True)
+            if text and len(text) > 50:
+                return text
+        
+        # Look for any highlighted/featured content
+        featured = soup.find(['div', 'section'], class_=re.compile('featured|highlight|instant'))
+        if featured:
+            text = featured.get_text(separator=' ', strip=True)
+            if text and len(text) > 50:
+                return text
+        
+        return None
     
     def _extract_search_results(self, soup: BeautifulSoup) -> list:
         """Extract search results from DuckDuckGo page"""
