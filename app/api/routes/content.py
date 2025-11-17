@@ -154,8 +154,9 @@ async def get_content_item(content_id: int, db: AsyncSession = Depends(get_db)):
 async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
     """
     Fetch and return the full article content for a content item.
-    Scrapes the article from the source URL and returns readable content,
-    along with related content items.
+    For news articles: scrapes the article from the source URL
+    For search queries: scrapes search results to provide context
+    Returns content along with related items.
     """
     # Get content item from database
     result = await db.execute(
@@ -172,13 +173,22 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
     
     source_url = content.source_urls[0]
     
-    # Scrape the article
-    article_data = await article_scraper.fetch_article(source_url)
+    # Check if this is a search query or news article
+    is_search_query = (content.content_type == 'trending_analysis' or 
+                      (content.tags and 'pytrends' in content.tags) or
+                      'duckduckgo.com' in source_url or 
+                      'google.com/search' in source_url)
+    
+    # Scrape appropriate content
+    if is_search_query:
+        article_data = await article_scraper.fetch_search_context(source_url)
+    else:
+        article_data = await article_scraper.fetch_article(source_url)
     
     if not article_data:
         raise HTTPException(
             status_code=404, 
-            detail="Unable to fetch article content from source"
+            detail="Unable to fetch content from source"
         )
     
     # Find related content items (after scraping succeeds)
