@@ -249,67 +249,94 @@ class InfiniteFeed {
         
         article.innerHTML = `
             <div class="feed-item-content">
-                ${imageUrl ? `
-                    <div class="feed-item-image">
-                        <img src="${imageUrl}" alt="${item.title}" loading="lazy" 
-                             onerror="this.parentElement.style.display='none'">
-                    </div>
-                ` : ''}
-                <div class="feed-item-body">
-                    <div class="feed-item-meta">
-                        <span class="feed-item-category">${item.category || 'Trending'}</span>
-                        ${item.relevance_score ? `
-                            <span class="feed-item-relevance" title="Relevance to your interests">
-                                ${Math.round(item.relevance_score * 100)}% match
-                            </span>
-                        ` : ''}
-                        <span class="feed-item-source">${source}</span>
-                    </div>
-                    <h2 class="feed-item-title">${item.title}</h2>
-                    <p class="feed-item-description">${item.description || ''}</p>
-                    ${item.content_text ? `
-                        <p class="feed-item-summary">${this.truncateText(item.content_text, 200)}</p>
-                    ` : ''}
-                    <div class="feed-item-actions">
-                        <button class="btn-read-more" data-content-id="${item.content_id}">
-                            Read More
-                        </button>
-                        ${item.source_urls && item.source_urls.length > 0 ? `
-                            <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
-                               class="btn-source">
-                                ${this.getSourceButtonText(item)}
-                            </a>
-                        ` : ''}
-                        <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
-                    </div>
-                    ${item.tags && item.tags.length > 0 ? `
-                        <div class="feed-item-tags">
-                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                <div class="feed-item-header">
+                    ${imageUrl ? `
+                        <div class="feed-item-image">
+                            <img src="${imageUrl}" alt="${item.title}" loading="lazy" 
+                                 onerror="this.parentElement.style.display='none'">
                         </div>
                     ` : ''}
-                    ${item.related_queries && item.related_queries.length > 0 ? `
-                        <div class="feed-item-related">
-                            <h4 class="related-title">🔍 Related Searches:</h4>
-                            <div class="related-queries">
-                                ${item.related_queries.map(query => `
-                                    <a href="${query.url}" target="_blank" rel="noopener" class="related-query">
-                                        ${query.title}
-                                    </a>
-                                `).join('')}
+                    <div class="feed-item-header-content">ader-content">
+                        <div class="feed-item-meta">
+                            <span class="feed-item-category">${item.category || 'Trending'}</span>
+                            ${item.relevance_score ? `
+                                <span class="feed-item-relevance" title="Relevance to your interests">
+                                    ${Math.round(item.relevance_score * 100)}% match
+                                </span>
+                            ` : ''}
+                            <span class="feed-item-source">${source}</span>
+                        </div>
+                        <h2 class="feed-item-title">${item.title}</h2>
+                        <p class="feed-item-description">${item.description || ''}</p>
+                        <span class="expand-indicator">▼</span>
+                    </div>
+                </div>
+                <div class="feed-item-expanded-content">
+                    <div class="content-inner">
+                        ${item.content_text ? `
+                            <p class="feed-item-summary">${this.truncateText(item.content_text, 200)}</p>
+                        ` : ''}
+                        <div class="feed-item-actions">
+                            <button class="btn-read-more" data-content-id="${item.content_id}">
+                                Read Full Article
+                            </button>
+                            ${item.source_urls && item.source_urls.length > 0 ? `
+                                <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
+                                   class="btn-source">
+                                    ${this.getSourceButtonText(item)}
+                                </a>
+                            ` : ''}
+                            <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
+                        </div>
+                        ${item.tags && item.tags.length > 0 ? `
+                            <div class="feed-item-tags">
+                                ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                             </div>
-                        </div>
-                    ` : ''}
+                        ` : ''}
+                        ${item.related_queries && item.related_queries.length > 0 ? `
+                            <div class="feed-item-related">
+                                <h4 class="related-title">🔍 Related Searches:</h4>
+                                <div class="related-queries">
+                                    ${item.related_queries.map(query => `
+                                        <a href="${query.url}" target="_blank" rel="noopener" class="related-query">
+                                            ${query.title}
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             </div>
         `;
         
-        // Add click handler for read more
+        // Add click handler for card header to expand/collapse
+        const header = article.querySelector('.feed-item-header');
+        if (header) {
+            header.addEventListener('click', (e) => {
+                // Don't toggle if clicking on image or buttons
+                if (!e.target.closest('.feed-item-image')) {
+                    article.classList.toggle('expanded');
+                }
+            });
+        }
+        
+        // Add click handler for read more button
         const readMoreBtn = article.querySelector('.btn-read-more');
         if (readMoreBtn) {
             readMoreBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Prevent card toggle
                 this.onContentClick(item);
                 this.trackView(item.content_id);
+            });
+        }
+        
+        // Prevent source link from toggling card
+        const sourceBtn = article.querySelector('.btn-source');
+        if (sourceBtn) {
+            sourceBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
             });
         }
         
