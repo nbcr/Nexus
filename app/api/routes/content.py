@@ -8,6 +8,7 @@ from app.models import ContentItem, Topic
 from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
 from app.services.content_recommendation import recommendation_service
 from app.services.article_scraper import article_scraper
+from app.services.deduplication import deduplication_service
 
 router = APIRouter()
 
@@ -221,6 +222,30 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
         print(f"Error fetching snippet: {e}")
     
     return {"snippet": content.description or None, "rate_limited": False}
+
+@router.get("/related/{content_id}")
+async def get_related_content(content_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Get related content items for a given content ID.
+    Returns stories from different sources about the same topic.
+    """
+    related_items = await deduplication_service.get_related_content(db, content_id)
+    
+    return {
+        "related_items": [
+            {
+                "content_id": item.id,
+                "title": item.title,
+                "description": item.description,
+                "category": item.category,
+                "source_urls": item.source_urls,
+                "source": item.source_metadata.get('source', 'Unknown') if item.source_metadata else 'Unknown',
+                "picture_url": item.source_metadata.get('picture_url') if item.source_metadata else None,
+                "created_at": item.created_at.isoformat() if item.created_at else None
+            }
+            for item in related_items
+        ]
+    }
 
 @router.get("/article/{content_id}")
 async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
