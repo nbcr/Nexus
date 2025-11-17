@@ -57,7 +57,14 @@ class ArticleScraperService:
                 print(f"✅ Successfully scraped {len(article_data['content'])} characters")
                 return article_data
             else:
-                print("⚠️ Content too short or empty")
+                print(f"⚠️ Content too short or empty. Length: {len(article_data['content']) if article_data['content'] else 0}")
+                print(f"Title: {article_data['title'][:100] if article_data['title'] else 'None'}")
+                # Return article data anyway with what we have
+                if article_data['title']:
+                    print("ℹ️ Returning article with limited content")
+                    # Set a message indicating content couldn't be extracted
+                    article_data['content'] = f"Unable to extract full article content. Please visit the source site to read the full article."
+                    return article_data
                 return None
                 
         except Exception as e:
@@ -103,36 +110,25 @@ class ArticleScraperService:
         ]
         
         article_element = None
-        container_used = None
         for tag, attrs in content_selectors:
             article_element = soup.find(tag, attrs)
             if article_element:
-                container_used = f"{tag} with attrs {attrs}"
                 break
         
         if not article_element:
             # Fallback: use body
             article_element = soup.find('body')
-            container_used = 'body (fallback)'
         
         if not article_element:
-            print("❌ No content container found")
             return ""
-        
-        print(f"📦 Using container: {container_used}")
         
         # Extract paragraphs
         paragraphs = []
-        all_paragraphs = article_element.find_all('p')
-        print(f"📝 Found {len(all_paragraphs)} total paragraphs")
-        
-        for p in all_paragraphs:
+        for p in article_element.find_all('p'):
             text = p.get_text().strip()
             # Filter out very short paragraphs (likely navigation/footer text)
             if len(text) > 50:
                 paragraphs.append(text)
-        
-        print(f"✅ Kept {len(paragraphs)} paragraphs (>50 chars each)")
         
         content = '\n\n'.join(paragraphs)
         
