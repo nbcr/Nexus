@@ -289,6 +289,10 @@ class InfiniteFeed {
                                 <button class="btn-read-more" data-content-id="${item.content_id}">
                                     Read Full Article
                                 </button>
+                            ` : isSearchQuery ? `
+                                <button class="btn-read-more" data-content-id="${item.content_id}">
+                                    Show Search Context
+                                </button>
                             ` : ''}
                             ${item.source_urls && item.source_urls.length > 0 ? `
                                 <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
@@ -361,7 +365,8 @@ class InfiniteFeed {
     async defaultContentClick(item) {
         // Check if this is a search query (pytrends) item
         const isPytrends = item.tags && item.tags.includes('pytrends');
-        const isSearchQuery = item.category === 'Search Query' || (item.source_urls && item.source_urls[0] && 
+        const isSearchQuery = item.category === 'Search Query' || item.content_type === 'trending_analysis' ||
+                              (item.source_urls && item.source_urls[0] && 
                               (item.source_urls[0].includes('google.com/search') || 
                                item.source_urls[0].includes('duckduckgo.com')));
         
@@ -369,27 +374,19 @@ class InfiniteFeed {
             content_id: item.content_id,
             title: item.title,
             category: item.category,
+            content_type: item.content_type,
             tags: item.tags,
             source_url: item.source_urls?.[0],
             isPytrends,
             isSearchQuery
         });
         
-        // For search queries, just open the search in a new tab
-        if (isPytrends || isSearchQuery) {
-            console.log('✅ Opening search in new tab');
-            if (item.source_urls && item.source_urls.length > 0) {
-                window.open(item.source_urls[0], '_blank');
-            }
-            return;
-        }
-        
-        console.log('📰 Opening article modal');
-        // For news articles, open modal and fetch article content
-        this.openArticleModal(item);
+        // For both search queries and news articles, open modal to show content
+        console.log('📰 Opening modal for:', isSearchQuery ? 'search context' : 'article');
+        this.openArticleModal(item, isSearchQuery);
     }
     
-    async openArticleModal(item) {
+    async openArticleModal(item, isSearchQuery = false) {
         const modal = document.getElementById('article-modal');
         const loading = modal.querySelector('.article-loading');
         const error = modal.querySelector('.article-error');
@@ -406,6 +403,7 @@ class InfiniteFeed {
         // Show modal and loading state
         modal.classList.add('active');
         loading.style.display = 'block';
+        loading.querySelector('p').textContent = isSearchQuery ? 'Loading search context...' : 'Loading article...';
         error.style.display = 'none';
         body.innerHTML = '';
         image.style.display = 'none';

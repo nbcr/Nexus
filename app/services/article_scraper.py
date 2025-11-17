@@ -71,6 +71,118 @@ class ArticleScraperService:
             print(f"❌ Error scraping article: {e}")
             return None
     
+    async def fetch_search_context(self, url: str) -> Optional[Dict]:
+        """
+        Fetch and parse search results from DuckDuckGo to provide context.
+        
+        Args:
+            url: The DuckDuckGo search URL
+            
+        Returns:
+            Dict with search results and context if successful
+            None if scraping fails
+        """
+        try:
+            print(f"🔍 Fetching search context from: {url}")
+            
+            # Fetch the page
+            response = requests.get(url, headers=self.headers, timeout=self.timeout)
+            response.raise_for_status()
+            
+            # Parse HTML
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Extract search query from URL or page
+            query = self._extract_search_query(soup, url)
+            
+            # Extract search results
+            results = self._extract_search_results(soup)
+            
+            # Build context from results
+            context_parts = []
+            if results:
+                context_parts.append(f"Top search results for '{query}':\n")
+                for i, result in enumerate(results[:5], 1):
+                    title = result.get('title', '')
+                    snippet = result.get('snippet', '')
+                    context_parts.append(f"{i}. **{title}**")
+                    if snippet:
+                        context_parts.append(f"   {snippet}\n")
+            
+            content = '\n'.join(context_parts) if context_parts else "No search results found."
+            
+            search_data = {
+                'url': url,
+                'title': f"Search: {query}",
+                'content': content,
+                'author': 'DuckDuckGo Search',
+                'published_date': '',
+                'image_url': None,
+                'domain': 'duckduckgo.com',
+                'search_results': results
+            }
+            
+            print(f"✅ Extracted {len(results)} search results")
+            return search_data
+                
+        except Exception as e:
+            print(f"❌ Error scraping search results: {e}")
+            return None
+    
+    def _extract_search_query(self, soup: BeautifulSoup, url: str) -> str:
+        """Extract search query from page or URL"""
+        # Try to get from URL parameter
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(url)
+        params = parse_qs(parsed.query)
+        if 'q' in params:
+            return params['q'][0]
+        
+        # Fallback: try to find on page
+        query_input = soup.find('input', {'name': 'q'})
+        if query_input and query_input.get('value'):
+            return query_input.get('value')
+        
+        return "unknown query"
+    
+    def _extract_search_results(self, soup: BeautifulSoup) -> list:
+        """Extract search results from DuckDuckGo page"""
+        results = []
+        
+        # DuckDuckGo result selectors (may need adjustment)
+        result_divs = soup.find_all('article', {'data-testid': re.compile('result')})
+        if not result_divs:
+            result_divs = soup.find_all('div', class_=re.compile('result'))
+        
+        for result_div in result_divs[:10]:  # Get top 10
+            try:
+                # Extract title
+                title_elem = result_div.find('h2') or result_div.find('a', class_=re.compile('result__a'))
+                title = title_elem.get_text().strip() if title_elem else ''
+                
+                # Extract snippet/description
+                snippet_elem = result_div.find('div', class_=re.compile('snippet|result__snippet'))
+                if not snippet_elem:
+                    # Try finding any div with text
+                    snippet_elem = result_div.find('span', class_=re.compile('result__snippet'))
+                snippet = snippet_elem.get_text().strip() if snippet_elem else ''
+                
+                # Extract URL
+                link_elem = result_div.find('a', href=True)
+                link = link_elem['href'] if link_elem else ''
+                
+                if title:  # Only add if we have at least a title
+                    results.append({
+                        'title': title,
+                        'snippet': snippet,
+                        'url': link
+                    })
+            except Exception as e:
+                print(f"⚠️ Error parsing individual result: {e}")
+                continue
+        
+        return results
+    
     def _extract_title(self, soup: BeautifulSoup) -> str:
         """Extract article title"""
         # Try multiple selectors
