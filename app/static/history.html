@@ -195,10 +195,11 @@
         <div class="container">
             <h1>🚀 Nexus - Content History</h1>
             <nav>
+                <span id="user-welcome" class="user-welcome"></span>
                 <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌙</button>
                 <a href="/">Feed</a>
                 <a href="/history.html" class="active">History</a>
-                <button id="auth-btn" onclick="window.location.href='/'">Back to Feed</button>
+                <button id="auth-btn" onclick="handleAuth()">Login</button>
             </nav>
         </div>
     </header>
@@ -244,23 +245,12 @@
         <p>&copy; 2025 Nexus. Powered by Google Trends.</p>
     </footer>
 
+    <!-- Shared Header Functions -->
+    <script src="/static/js/header.js?v=202511210100"></script>
+
     <script>
         let currentTab = 'seen';
         let currentPage = { seen: 1, clicked: 1, all: 1 };
-
-        // Dark mode toggle
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-            const icon = document.querySelector('#dark-mode-toggle');
-            icon.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
-        }
-
-        // Load dark mode preference
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark-mode');
-            document.querySelector('#dark-mode-toggle').textContent = '☀️';
-        }
 
         // Tab switching
         document.querySelectorAll('.history-tab').forEach(tab => {
