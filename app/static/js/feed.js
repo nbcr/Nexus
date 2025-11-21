@@ -52,6 +52,9 @@ class InfiniteFeed {
             this.globalScrollTracker = new GlobalScrollTracker();
         }
         
+        // Setup TikTok-style scroll-to-top refresh behavior
+        this.setupScrollRefresh();
+        
         // Create loading indicator
         this.loadingIndicator = document.createElement('div');
         this.loadingIndicator.className = 'feed-loading';
@@ -105,6 +108,92 @@ class InfiniteFeed {
             // Silently fail - user not authenticated or settings unavailable
             window.nexusDebugMode = false;
         }
+    }
+    
+    setupScrollRefresh() {
+        let lastScrollY = window.scrollY;
+        let scrollUpDistance = 0;
+        const REFRESH_THRESHOLD = 300; // Pixels to scroll up to trigger refresh
+        const KEEP_CARDS_COUNT = 15; // Number of cards to keep after refresh
+        
+        const scrollHandler = () => {
+            const currentScrollY = window.scrollY;
+            
+            // Only track upward scrolling near the top
+            if (currentScrollY < lastScrollY && currentScrollY < 500) {
+                scrollUpDistance += lastScrollY - currentScrollY;
+                
+                // If scrolled up enough, trigger refresh
+                if (scrollUpDistance > REFRESH_THRESHOLD) {
+                    this.refreshFeed(KEEP_CARDS_COUNT);
+                    scrollUpDistance = 0; // Reset counter
+                }
+            } else if (currentScrollY > lastScrollY) {
+                // Reset counter when scrolling down
+                scrollUpDistance = 0;
+            }
+            
+            lastScrollY = currentScrollY;
+        };
+        
+        // Throttle scroll events
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(scrollHandler, 50);
+        });
+    }
+    
+    refreshFeed(keepCount = 15) {
+        if (this.isLoading) return;
+        
+        console.log(`🔄 Refreshing feed, keeping ${keepCount} cards`);
+        
+        // Get all current cards
+        const cards = Array.from(this.container.querySelectorAll('.feed-item'));
+        
+        // If we don't have enough cards, don't refresh
+        if (cards.length <= keepCount) {
+            console.log('Not enough cards to refresh');
+            return;
+        }
+        
+        // Keep only the first N cards
+        const cardsToRemove = cards.slice(keepCount);
+        
+        // Clean up removed cards
+        cardsToRemove.forEach(card => {
+            const contentId = parseInt(card.dataset.contentId);
+            
+            // Stop view timer
+            this.stopViewTimer(contentId);
+            
+            // Cleanup hover tracker
+            const tracker = this.hoverTrackers.get(contentId);
+            if (tracker) {
+                tracker.destroy();
+                this.hoverTrackers.delete(contentId);
+            }
+            
+            // Remove from viewed IDs so it can appear again in future
+            this.viewedContentIds.delete(contentId);
+            
+            // Unobserve card
+            if (this.cardObserver) {
+                this.cardObserver.unobserve(card);
+            }
+            
+            // Remove from DOM
+            card.remove();
+        });
+        
+        // Reset pagination to allow loading more
+        this.hasMore = true;
+        
+        // Scroll to top smoothly
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        console.log(`✅ Feed refreshed - removed ${cardsToRemove.length} cards, kept ${keepCount}`);
     }
     
     setupIntersectionObserver() {
