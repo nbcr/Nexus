@@ -64,14 +64,16 @@ async def record_view(
     """
     # Check if already recorded (prevent duplicates for 'seen' type)
     if view_request.view_type == 'seen':
-        existing = db.query(ContentViewHistory).filter(
+        from sqlalchemy import select, and_
+        stmt = select(ContentViewHistory).where(
             and_(
                 ContentViewHistory.session_token == session.session_token,
                 ContentViewHistory.content_id == view_request.content_id,
                 ContentViewHistory.view_type == 'seen'
             )
-        ).first()
-        
+        )
+        result = await db.execute(stmt)
+        existing = result.scalar_one_or_none()
         if existing:
             return {"message": "Already recorded", "id": existing.id}
     
@@ -173,14 +175,16 @@ async def get_seen_content_ids(
     Get list of content IDs the user has already seen.
     Used for duplicate prevention in feed.
     """
-    seen_ids = db.query(ContentViewHistory.content_id).filter(
+    from sqlalchemy import select, and_
+    stmt = select(ContentViewHistory.content_id).where(
         and_(
             ContentViewHistory.session_token == session.session_token,
             ContentViewHistory.view_type == 'seen'
         )
-    ).distinct().all()
-    
-    return {"seen_ids": [id_tuple[0] for id_tuple in seen_ids]}
+    ).distinct()
+    result = await db.execute(stmt)
+    seen_ids = result.scalars().all()
+    return {"seen_ids": seen_ids}
 
 
 @router.delete("/clear")
@@ -196,14 +200,13 @@ async def clear_history(
     
     - **view_type**: Optional - clear only specific type, or all if not provided
     """
-    query = db.query(ContentViewHistory).filter(
+    from sqlalchemy import delete
+    stmt = delete(ContentViewHistory).where(
         ContentViewHistory.session_token == session.session_token
     )
-    
     if view_type:
-        query = query.filter(ContentViewHistory.view_type == view_type)
-    
-    deleted = query.delete()
-    db.commit()
-    
+        stmt = stmt.where(ContentViewHistory.view_type == view_type)
+    result = await db.execute(stmt)
+    await db.commit()
+    deleted = result.rowcount
     return {"message": f"Cleared {deleted} history items"}
