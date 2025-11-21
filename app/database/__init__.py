@@ -1,4 +1,3 @@
-from app.database import get_db
 import os
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
