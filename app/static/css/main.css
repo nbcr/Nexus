@@ -91,8 +91,8 @@ button {
 
 /* Content history buttons: always show border */
 .content-btn {
-    border: 1px solid #3498db !important;
-    shadow: 0 2px 8px rgba(0,0,0,0.18);
+    border: 1px solid #3398db !important;
+    drop-shadow: 0 2px 8px #3398db(0,0,0,0.18);
 }
 
 /* Dark mode button border for history page */
