@@ -47,8 +47,6 @@ async def create_admin_user(username: str, email: str, password: str):
             return
         
         # Create new admin user
-        print(f"[DEBUG] Password: {repr(password)}")
-        print(f"[DEBUG] Password byte length: {len(password.encode('utf-8'))}")
         hashed_password = get_password_hash(password)
         
         new_user = User(
