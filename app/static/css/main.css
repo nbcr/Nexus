@@ -92,7 +92,7 @@ button {
 /* Content history buttons: always show border */
 .content-btn {
     border: 1px solid #3498db !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.18);
+    box-shadow: 0 4px 8px #3498db;
 }
 
 /* Dark mode button border for history page */
@@ -100,7 +100,7 @@ button {
 body.dark-mode .history-controls .content-btn,
 body.dark-mode .history-tab .content-btn {
     border: 1px solid #3498db !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.32);
+    box-shadow: 0 4px 12px #3498db;
 }
 
 button:hover { 
