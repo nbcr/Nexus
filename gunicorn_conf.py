@@ -8,8 +8,8 @@ workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # Logging
-accesslog = "/home/admin/nexus/logs/access.log"
-errorlog = "/home/admin/nexus/logs/error.log"
+accesslog = "/home/nexus/nexus/logs/access.log"
+errorlog = "/home/nexus/nexus/logs/error.log"
 loglevel = "info"
 
 # Process naming
