@@ -78,14 +78,17 @@ async function handleLogout() {
 
 /**
  * Initialize dark mode based on device and user preferences
+ * Dark mode is enabled by default
  */
 function initDarkMode() {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const toggleBtn = document.getElementById('dark-mode-toggle');
+    const toggleLabel = document.getElementById('dark-mode-label');
     
     if (isMobile) {
-        // Hide toggle button on mobile
+        // Hide toggle button and label on mobile
         if (toggleBtn) toggleBtn.style.display = 'none';
+        if (toggleLabel) toggleLabel.style.display = 'none';
         
         // Use system preference
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -101,10 +104,22 @@ function initDarkMode() {
             }
         });
     } else {
-        // Desktop: use localStorage preference
-        if (localStorage.getItem('darkMode') === 'true') {
+        // Desktop: use localStorage preference, default to dark mode
+        const savedPreference = localStorage.getItem('darkMode');
+        
+        // If no preference saved, default to dark mode (true)
+        if (savedPreference === null) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'true');
+            if (toggleBtn) toggleBtn.textContent = '☀️';
+            if (toggleLabel) toggleLabel.textContent = 'Dark Mode: On';
+        } else if (savedPreference === 'true') {
             document.body.classList.add('dark-mode');
             if (toggleBtn) toggleBtn.textContent = '☀️';
+            if (toggleLabel) toggleLabel.textContent = 'Dark Mode: On';
+        } else {
+            if (toggleBtn) toggleBtn.textContent = '🌙';
+            if (toggleLabel) toggleLabel.textContent = 'Dark Mode: Off';
         }
     }
 }
@@ -117,10 +132,16 @@ function toggleDarkMode() {
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDark);
     
-    // Update toggle button icon
+    // Update toggle button icon and label
     const toggleBtn = document.getElementById('dark-mode-toggle');
+    const toggleLabel = document.getElementById('dark-mode-label');
+    
     if (toggleBtn) {
         toggleBtn.textContent = isDark ? '☀️' : '🌙';
+    }
+    
+    if (toggleLabel) {
+        toggleLabel.textContent = isDark ? 'Dark Mode: On' : 'Dark Mode: Off';
     }
 }
 

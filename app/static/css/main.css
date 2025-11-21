@@ -172,6 +172,13 @@ input {
     display: none;
 }
 
+.main-header .dark-mode-label {
+    color: #fff;
+    font-size: 14px;
+    margin-right: 8px;
+    white-space: nowrap;
+}
+
 /* Dark mode header */
 body.dark-mode .main-header {
     background: #1a1a1a;
