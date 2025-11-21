@@ -143,6 +143,8 @@ async def get_viewed_history(
 
     items = []
     for history, title in rows:
+        if title is None:
+            print(f"DEBUG: Missing title for history id={history.id}, content_id={history.content_id}, content_slug={history.content_slug}")
         items.append(ViewHistoryItem(
             id=history.id,
             content_id=history.content_id,
