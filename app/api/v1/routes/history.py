@@ -147,7 +147,7 @@ async def get_viewed_history(
             id=history.id,
             content_id=history.content_id,
             content_slug=history.content_slug,
-            title=title,
+            title=title if title is not None else "",
             view_type=history.view_type,
             viewed_at=history.viewed_at,
             time_spent_seconds=history.time_spent_seconds
