@@ -44,6 +44,11 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service": "nexus-api"}
 
+@app.get("/robots.txt")
+async def robots():
+    from fastapi.responses import FileResponse # type: ignore
+    return FileResponse("app/static/robots.txt", media_type="text/plain")
+
 # Serve the frontend
 @app.get("/app")
 async def serve_frontend():

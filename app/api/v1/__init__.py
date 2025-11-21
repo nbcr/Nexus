@@ -5,7 +5,7 @@ This module initializes the v1 API router and includes all route modules.
 Each route module is mounted with its own prefix and tags for OpenAPI documentation.
 """
 from fastapi import APIRouter
-from app.api.v1.routes import auth, content, session, topics, trending, users
+from app.api.v1.routes import auth, content, session, topics, trending, users, admin, settings
 
 # Create the main v1 router
 api_router = APIRouter()
@@ -50,4 +50,18 @@ api_router.include_router(
     prefix="/users",
     tags=["users"],
     responses={401: {"description": "Unauthorized"}, 404: {"description": "User not found"}}
+)
+
+# Admin routes (no OpenAPI documentation for security)
+api_router.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["admin"],
+    include_in_schema=False  # Hide from OpenAPI docs for security
+)
+
+api_router.include_router(
+    settings.router,
+    prefix="/settings",
+    tags=["settings"]
 )
