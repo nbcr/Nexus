@@ -48,20 +48,26 @@
             if (res.ok) {
                 window.location.href = '/';
             } else {
-                const data = await res.json();
                 let errorMsg = 'Login failed.';
-                if (typeof data.detail === 'string') {
-                    errorMsg = data.detail;
-                } else if (Array.isArray(data.detail)) {
-                    errorMsg = data.detail.map(e => e.msg + (e.loc ? ` (${e.loc.join('.')})` : '')).join('<br>');
-                } else if (typeof data.detail === 'object' && data.detail !== null) {
-                    errorMsg = JSON.stringify(data.detail);
+                try {
+                    const data = await res.json();
+                    if (typeof data.detail === 'string') {
+                        errorMsg = data.detail;
+                    } else if (Array.isArray(data.detail)) {
+                        errorMsg = data.detail.map(e => e.msg + (e.loc ? ` (${e.loc.join('.')})` : '')).join('<br>');
+                    } else if (typeof data.detail === 'object' && data.detail !== null) {
+                        errorMsg = JSON.stringify(data.detail);
+                    }
+                } catch (jsonErr) {
+                    // If response is not JSON, show text
+                    const text = await res.text();
+                    errorMsg = text || errorMsg;
                 }
                 errorDiv.innerHTML = errorMsg;
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
-            errorDiv.textContent = 'Network error.';
+            errorDiv.textContent = 'Network or CORS error.';
             errorDiv.style.display = 'block';
         }
     });
