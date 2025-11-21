@@ -4,7 +4,7 @@ body {
     margin: 40px; 
     background: #f8f9fa; 
     line-height: 1.6;
-
+}
 .container { 
     max-width: 1200px; 
     margin: 0 auto; 
@@ -12,6 +12,7 @@ body {
     padding: 30px; 
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
 
 /* Header container should not have white background/shadow */
 .main-header .container {
