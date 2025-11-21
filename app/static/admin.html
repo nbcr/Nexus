@@ -213,6 +213,22 @@
             <h2>User Settings: <span id="modal-username"></span></h2>
             
             <div class="modal-section">
+                <h3>Debug Mode</h3>
+                <label style="display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--bg-secondary); border-radius: 8px; cursor: pointer;">
+                    <input type="checkbox" id="user-debug-mode" style="width: 20px; height: 20px; cursor: pointer;">
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-primary);">Enable Debug Mode</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                            Shows interest scores on cards and enables console logging for this user
+                        </div>
+                    </div>
+                </label>
+                <div id="debug-warning" style="display: none; margin-top: 15px; padding: 12px; background: rgba(255, 170, 0, 0.1); border: 1px solid var(--accent-warning); border-radius: 6px; color: var(--accent-warning); font-size: 13px;">
+                    ⚠️ Debug mode is ENABLED. User will see interest tracking data on their feed.
+                </div>
+            </div>
+
+            <div class="modal-section">
                 <h3>Custom Hover Tracking Settings</h3>
                 <label>
                     <input type="checkbox" id="user-use-custom"> Use custom settings for this user
