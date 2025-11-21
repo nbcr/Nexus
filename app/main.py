@@ -6,6 +6,7 @@ import os
 from app.api.routes import topics, content, users, auth, session, trending
 from app.api.v1.routes import admin, settings as v1_settings, websocket
 from app.core.config import settings
+from app.services.scheduler_service import scheduler_service
 
 # Create FastAPI application
 app = FastAPI(
@@ -16,6 +17,19 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+# Startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
+    """Start background scheduler on app startup"""
+    print("🚀 Starting Nexus API...")
+    scheduler_service.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Stop background scheduler on app shutdown"""
+    print("🛑 Shutting down Nexus API...")
+    scheduler_service.stop()
 
 # Configure CORS
 app.add_middleware(
