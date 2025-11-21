@@ -1,3 +1,23 @@
+from fastapi import FastAPI # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
+from fastapi.staticfiles import StaticFiles # type: ignore
+import os
+
+from app.api.routes import topics, content, users, auth, session, trending
+from app.api.v1.routes import admin, settings as v1_settings, websocket, history
+from app.core.config import settings
+from app.services.scheduler_service import scheduler_service
+
+# Create FastAPI application
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description="AI-Powered Content Personalization Engine",
+    version=settings.VERSION,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+)
+
 # Serve /login and /register as static files
 from fastapi.responses import FileResponse
 
