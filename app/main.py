@@ -22,13 +22,17 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     """Start background scheduler on app startup"""
-    print("🚀 Starting Nexus API...")
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info("🚀 Starting Nexus API...")
     scheduler_service.start()
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Stop background scheduler on app shutdown"""
-    print("🛑 Shutting down Nexus API...")
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info("🛑 Shutting down Nexus API...")
     scheduler_service.stop()
 
 # Configure CORS
