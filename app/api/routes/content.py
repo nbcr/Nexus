@@ -4,7 +4,7 @@ from sqlalchemy import select # pyright: ignore[reportMissingImports]
 from typing import List, Optional
 from datetime import datetime
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.models import ContentItem, Topic
 from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
 from app.services.content_recommendation import recommendation_service

@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.services.session_service import (
     create_anonymous_session, 
     track_content_interaction, 

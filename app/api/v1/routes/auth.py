@@ -14,7 +14,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.schemas import Token, UserCreate, UserResponse, UserLogin
 from app.services.user_service import (
     create_user,

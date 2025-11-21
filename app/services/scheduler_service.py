@@ -12,7 +12,7 @@ import asyncio
 import logging
 
 from app.services.content_refresh import content_refresh
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 
 # Setup logger
 logger = logging.getLogger(__name__)

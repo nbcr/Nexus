@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
 from sqlalchemy import select # pyright: ignore[reportMissingImports]
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.services.trending_service import trending_service
 
 
