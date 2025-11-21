@@ -97,14 +97,15 @@ class ContentRecommendationService:
         if cursor:
             try:
                 cursor_time = datetime.fromisoformat(cursor)
-                query = query.where(ContentItem.created_at < cursor_time)
+                query = query.where(ContentItem.updated_at < cursor_time)
             except (ValueError, TypeError):
                 # Invalid cursor, ignore it
                 pass
         
-        # Order by newest first (created_at DESC), then by trend score
+        # Order by most recently updated first, then by trend score
+        # This ensures new RSS articles and refreshed PyTrends items appear at the top
         query = query.order_by(
-            desc(ContentItem.created_at),
+            desc(ContentItem.updated_at),
             desc(Topic.trend_score)
         ).limit(page_size + 1)  # Fetch one extra to check if there's more
         
@@ -142,14 +143,15 @@ class ContentRecommendationService:
                 "trend_score": topic.trend_score,
                 "relevance_score": relevance_score,
                 "created_at": content.created_at.isoformat(),
+                "updated_at": content.updated_at.isoformat(),
                 "tags": topic.tags,
                 "related_queries": related_queries
             })
         
-        # Determine next cursor (timestamp of last item)
+        # Determine next cursor (timestamp of last item's updated_at)
         next_cursor = None
         if feed_items and has_more:
-            next_cursor = feed_items[-1]["created_at"]
+            next_cursor = feed_items[-1]["updated_at"]
         
         return {
             "items": feed_items,
