@@ -93,7 +93,7 @@ button {
 /* Dark mode border for content history buttons only */
 body.dark-mode .history-controls .content-btn,
 body.dark-mode .history-tab .content-btn {
-    border: 2px solid #00ff88 !important;
+    border: 2px solid rgba(0,0,0,0.5) !important;
 }
 
 button:hover { 
