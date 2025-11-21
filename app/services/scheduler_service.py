@@ -9,9 +9,13 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
 import asyncio
+import logging
 
 from app.services.content_refresh import content_refresh
 from app.database import AsyncSessionLocal
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 
 class SchedulerService:
@@ -22,21 +26,21 @@ class SchedulerService:
     async def refresh_content_job(self):
         """Job to refresh content from RSS feeds and notify clients"""
         try:
-            print(f"⏰ [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Running scheduled content refresh...")
+            logger.info(f"⏰ [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Running scheduled content refresh...")
             count = await content_refresh.refresh_content_if_needed()
             
             if count > 0:
-                print(f"✅ Scheduled refresh completed - {count} new items added")
+                logger.info(f"✅ Scheduled refresh completed - {count} new items added")
             else:
-                print("ℹ️  No new content to add")
+                logger.info("ℹ️  No new content to add")
                 
         except Exception as e:
-            print(f"❌ Error in scheduled content refresh: {e}")
+            logger.error(f"❌ Error in scheduled content refresh: {e}")
     
     def start(self):
         """Start the scheduler"""
         if self.is_running:
-            print("⚠️  Scheduler already running")
+            logger.warning("⚠️  Scheduler already running")
             return
         
         # Schedule content refresh every 15 minutes
@@ -59,7 +63,7 @@ class SchedulerService:
         
         self.scheduler.start()
         self.is_running = True
-        print("✅ Background scheduler started - content will refresh every 15 minutes")
+        logger.info("✅ Background scheduler started - content will refresh every 15 minutes")
     
     def stop(self):
         """Stop the scheduler"""
@@ -68,7 +72,7 @@ class SchedulerService:
         
         self.scheduler.shutdown()
         self.is_running = False
-        print("🛑 Background scheduler stopped")
+        logger.info("🛑 Background scheduler stopped")
 
 
 # Global scheduler instance
