@@ -406,7 +406,7 @@ class InfiniteFeed {
                     <div class="feed-item-header-content">
                         <div class="feed-item-meta">
                             <span class="feed-item-category">${item.category || 'Trending'}</span>
-                            ${item.relevance_score ? `
+                            ${item.relevance_score && window.nexusDebugMode ? `
                                 <span class="feed-item-relevance" title="Relevance to your interests">
                                     ${Math.round(item.relevance_score * 100)}% match
                                 </span>
