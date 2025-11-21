@@ -62,6 +62,22 @@ app.include_router(v1_settings.router, prefix=f"{settings.API_V1_STR}/settings",
 # Include WebSocket routes
 app.include_router(websocket.router, prefix=f"{settings.API_V1_STR}/ws", tags=["websocket"])
 
+
+# Serve /login, /register, and /history as static files
+from fastapi.responses import FileResponse
+
+@app.get("/login", include_in_schema=False)
+async def login_page():
+    return FileResponse("app/static/login.html")
+
+@app.get("/register", include_in_schema=False)
+async def register_page():
+    return FileResponse("app/static/register.html")
+
+@app.get("/history", include_in_schema=False)
+async def history_page():
+    return FileResponse("app/static/history.html")
+
 # Include history routes
 app.include_router(history.router, prefix=f"{settings.API_V1_STR}/history", tags=["history"])
 
