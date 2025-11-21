@@ -34,6 +34,7 @@ class GlobalSettings(BaseModel):
     scrollSlowdownThreshold: float = 2.0
 
 class UserCustomSettings(BaseModel):
+    debug_mode: bool = False
     custom_settings: Optional[Dict[str, Any]] = None
 
 # Admin verification dependency
@@ -173,6 +174,7 @@ async def get_all_users(
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "last_login": user.last_login.isoformat() if user.last_login else None,
             "interaction_count": interaction_count,
+            "debug_mode": getattr(user, 'debug_mode', False),
             "custom_settings": None  # TODO: Load from settings table
         })
     
@@ -224,6 +226,7 @@ async def get_user_details(
         "is_admin": user.is_admin,
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "last_login": user.last_login.isoformat() if user.last_login else None,
+        "debug_mode": getattr(user, 'debug_mode', False),
         "custom_settings": None,  # TODO: Load from settings table
         "stats": {
             "total_interactions": total_interactions,
@@ -250,7 +253,12 @@ async def save_user_settings(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # TODO: Store in user_settings table
+    # Update debug mode
+    user.debug_mode = settings.debug_mode
+    
+    # TODO: Store custom_settings in user_settings table
+    
+    await db.commit()
     
     return {"status": "saved", "message": f"Settings updated for user {user_id}"}
 

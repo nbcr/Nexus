@@ -18,7 +18,13 @@ async def get_hover_tracker_settings(
     """
     Get hover tracker settings for the current user.
     Returns custom settings if available, otherwise returns global defaults.
+    Also returns debug_mode status.
     """
+    
+    # Check if user has debug mode enabled
+    debug_mode = False
+    if current_user:
+        debug_mode = getattr(current_user, 'debug_mode', False)
     
     # TODO: Check if user has custom settings in database
     # For now, return global defaults
@@ -32,7 +38,8 @@ async def get_hover_tracker_settings(
         "velocitySampleRate": 100,
         "interestScoreThreshold": 50,
         "scrollSlowdownThreshold": 2.0,
-        "showVisualFeedback": True
+        "showVisualFeedback": debug_mode,  # Only show visual feedback in debug mode
+        "debugMode": debug_mode
     }
     
     return settings

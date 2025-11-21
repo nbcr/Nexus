@@ -44,6 +44,9 @@ class InfiniteFeed {
     init() {
         console.log('Initializing feed..');
         
+        // Fetch user settings (including debug mode)
+        this.fetchUserSettings();
+        
         // Initialize global scroll tracker if not already created
         if (window.HoverTracker && window.GlobalScrollTracker && !this.globalScrollTracker) {
             this.globalScrollTracker = new GlobalScrollTracker();
@@ -79,6 +82,29 @@ class InfiniteFeed {
         
         // Load initial content
         this.loadMore();
+    }
+    
+    async fetchUserSettings() {
+        try {
+            const response = await fetch('/api/v1/settings/hover-tracker', {
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const settings = await response.json();
+                // Set global debug mode flag
+                window.nexusDebugMode = settings.debugMode || false;
+                
+                // If debug mode is on, add a visual indicator
+                if (window.nexusDebugMode) {
+                    console.log('%c🔍 DEBUG MODE ENABLED', 'background: #00ff88; color: #000; padding: 4px 8px; font-weight: bold;');
+                    console.log('Interest tracking data will be visible and logged.');
+                }
+            }
+        } catch (error) {
+            // Silently fail - user not authenticated or settings unavailable
+            window.nexusDebugMode = false;
+        }
     }
     
     setupIntersectionObserver() {

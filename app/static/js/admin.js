@@ -350,7 +350,15 @@ async function openUserModal(userId) {
         const user = await response.json();
         
         document.getElementById('modal-username').textContent = user.username;
+        document.getElementById('user-debug-mode').checked = user.debug_mode || false;
         document.getElementById('user-use-custom').checked = user.custom_settings !== null;
+        
+        // Show debug warning if enabled
+        if (user.debug_mode) {
+            document.getElementById('debug-warning').style.display = 'block';
+        } else {
+            document.getElementById('debug-warning').style.display = 'none';
+        }
         
         if (user.custom_settings) {
             showCustomSettings();
@@ -405,6 +413,14 @@ document.getElementById('user-use-custom')?.addEventListener('change', function(
     }
 });
 
+document.getElementById('user-debug-mode')?.addEventListener('change', function(e) {
+    if (e.target.checked) {
+        document.getElementById('debug-warning').style.display = 'block';
+    } else {
+        document.getElementById('debug-warning').style.display = 'none';
+    }
+});
+
 function showCustomSettings() {
     document.getElementById('user-custom-settings').style.display = 'grid';
 }
@@ -416,6 +432,7 @@ function hideCustomSettings() {
 async function saveUserSettings() {
     if (!selectedUserId) return;
     
+    const debugMode = document.getElementById('user-debug-mode').checked;
     const useCustom = document.getElementById('user-use-custom').checked;
     const settings = useCustom ? {
         minHoverDuration: parseInt(document.getElementById('user-minHoverDuration').value),
@@ -428,7 +445,10 @@ async function saveUserSettings() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ custom_settings: settings })
+            body: JSON.stringify({ 
+                debug_mode: debugMode,
+                custom_settings: settings 
+            })
         });
         
         if (!response.ok) throw new Error('Failed to save user settings');
