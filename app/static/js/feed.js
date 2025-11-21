@@ -30,6 +30,10 @@ class InfiniteFeed {
         this.viewDurations = new Map(); // content_id -> total seconds
         this.cardObserver = null;
         
+        // Advanced hover interest tracking
+        this.hoverTrackers = new Map(); // content_id -> HoverTracker instance
+        this.globalScrollTracker = null;
+        
         // Callbacks
         this.onContentClick = options.onContentClick || this.defaultContentClick.bind(this);
         this.renderContentItem = options.renderContentItem || this.defaultRenderContent.bind(this);
@@ -39,6 +43,12 @@ class InfiniteFeed {
     
     init() {
         console.log('Initializing feed..');
+        
+        // Initialize global scroll tracker if not already created
+        if (window.HoverTracker && window.GlobalScrollTracker && !this.globalScrollTracker) {
+            this.globalScrollTracker = new GlobalScrollTracker();
+        }
+        
         // Create loading indicator
         this.loadingIndicator = document.createElement('div');
         this.loadingIndicator.className = 'feed-loading';
@@ -117,6 +127,12 @@ class InfiniteFeed {
                 } else {
                     // Card left viewport
                     this.stopViewTimer(contentId);
+                    
+                    // Report interest if hover tracker exists
+                    const tracker = this.hoverTrackers.get(contentId);
+                    if (tracker) {
+                        tracker.forceReport();
+                    }
                 }
             });
         }, options);
@@ -427,6 +443,13 @@ class InfiniteFeed {
         
         this.container.appendChild(article);
         
+        // Create hover tracker for this card
+        if (window.HoverTracker && this.globalScrollTracker) {
+            const tracker = new HoverTracker(article, item.content_id);
+            this.hoverTrackers.set(item.content_id, tracker);
+            this.globalScrollTracker.registerTracker(tracker);
+        }
+        
         // Observe this card for visibility tracking
         if (this.cardObserver) {
             this.cardObserver.observe(article);
@@ -673,6 +696,10 @@ class InfiniteFeed {
     
     // Public methods
     reset() {
+        // Clean up all hover trackers
+        this.hoverTrackers.forEach(tracker => tracker.destroy());
+        this.hoverTrackers.clear();
+        
         this.currentPage = 1;
         this.viewedContentIds.clear();
         this.hasMore = true;
@@ -684,6 +711,21 @@ class InfiniteFeed {
     setCategory(category) {
         this.category = category;
         this.reset();
+    }
+    
+    destroy() {
+        // Clean up all hover trackers
+        this.hoverTrackers.forEach(tracker => tracker.destroy());
+        this.hoverTrackers.clear();
+        
+        // Destroy global scroll tracker
+        if (this.globalScrollTracker) {
+            this.globalScrollTracker.destroy();
+            this.globalScrollTracker = null;
+        }
+        
+        // Send all pending durations
+        this.sendAllDurations();
     }
 }
 

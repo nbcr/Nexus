@@ -35,9 +35,19 @@ async def track_content_interaction(
     session_token: str, 
     content_item_id: int, 
     interaction_type: str = "view",
-    duration_seconds: int = 0
+    duration_seconds: int = 0,
+    metadata: dict = None
 ):
-    """Track user interaction with content (works for both anonymous and registered users)"""
+    """Track user interaction with content (works for both anonymous and registered users)
+    
+    Args:
+        db: Database session
+        session_token: Session identifier
+        content_item_id: ID of the content item
+        interaction_type: Type of interaction (view, click, interest_high, etc.)
+        duration_seconds: Duration of interaction in seconds
+        metadata: Optional metadata dict (currently logged but not stored in DB)
+    """
     # Get or create session
     session = await create_anonymous_session(db, session_token)
     
@@ -53,6 +63,10 @@ async def track_content_interaction(
         duration_seconds=duration_seconds,
         created_at=datetime.utcnow()
     )
+    
+    # Log metadata for future analysis (not stored in DB yet)
+    if metadata:
+        print(f"Interest tracking metadata for content {content_item_id}: {metadata}")
     
     db.add(interaction)
     await db.commit()
