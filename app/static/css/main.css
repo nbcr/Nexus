@@ -89,6 +89,14 @@ button {
     transition: all 0.2s ease;
 }
 
+/* Dark mode button border for history page */
+body.dark-mode .history-controls button,
+body.dark-mode .history-tab button,
+body.dark-mode button {
+     border: 2px solid #00ff88 !important;
+     color: #e0e0e0;
+}
+
 button:hover { 
     background: #2980b9; 
     transform: translateY(-1px);
