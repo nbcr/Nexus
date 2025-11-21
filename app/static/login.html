@@ -49,10 +49,12 @@
                 let errorMsg = 'Login failed.';
                 if (typeof data.detail === 'string') {
                     errorMsg = data.detail;
+                } else if (Array.isArray(data.detail)) {
+                    errorMsg = data.detail.map(e => e.msg + (e.loc ? ` (${e.loc.join('.')})` : '')).join('<br>');
                 } else if (typeof data.detail === 'object' && data.detail !== null) {
                     errorMsg = JSON.stringify(data.detail);
                 }
-                errorDiv.textContent = errorMsg;
+                errorDiv.innerHTML = errorMsg;
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
