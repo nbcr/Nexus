@@ -90,6 +90,19 @@ async def serve_admin():
     from fastapi.responses import FileResponse # type: ignore
     return FileResponse("app/static/admin.html")
 
+# Serve the history page
+@app.get("/history.html")
+async def serve_history():
+    from fastapi.responses import FileResponse # type: ignore
+    return FileResponse("app/static/history.html")
+
+# Direct link to content by slug
+@app.get("/story/{slug}")
+async def view_story(slug: str):
+    from fastapi.responses import RedirectResponse # type: ignore
+    # Redirect to main feed with hash to the content
+    return RedirectResponse(url=f"/?story={slug}")
+
 if __name__ == "__main__":
     import uvicorn # type: ignore
     uvicorn.run(
