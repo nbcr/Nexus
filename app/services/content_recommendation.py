@@ -102,9 +102,13 @@ class ContentRecommendationService:
                 # Invalid cursor, ignore it
                 pass
         
-        # Order by most recently updated first, then by trend score
-        # This ensures new RSS articles and refreshed PyTrends items appear at the top
+        # Order by:
+        # 1. RSS/News content first (content_type = 'news_update')
+        # 2. Most recently updated
+        # 3. Trend score as tiebreaker
+        # This ensures new RSS articles always appear before PyTrends search queries
         query = query.order_by(
+            desc(ContentItem.content_type == 'news_update'),  # RSS news first
             desc(ContentItem.updated_at),
             desc(Topic.trend_score)
         ).limit(page_size + 1)  # Fetch one extra to check if there's more
