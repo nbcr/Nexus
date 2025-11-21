@@ -38,11 +38,21 @@ class ContentRefreshService:
         async with AsyncSessionLocal() as db:
             if await self.should_refresh_content(db):
                 print("🔄 Refreshing trending content from Google Trends...")
-                await trending_service.save_trends_to_database(db)
+                count = await trending_service.save_trends_to_database(db)
                 self.last_refresh = datetime.utcnow()
-                print("✅ Trending content refresh completed!")
+                print(f"✅ Trending content refresh completed! Added {count} new items")
+                
+                # Notify connected clients about new content
+                try:
+                    from app.api.v1.routes.websocket import notify_new_content
+                    await notify_new_content(count=count)
+                except Exception as e:
+                    print(f"⚠️  Failed to notify clients about new content: {e}")
+                
+                return count
             else:
                 print("⏭️  Content is still fresh, skipping refresh")
+                return 0
 
 
 # Global instance

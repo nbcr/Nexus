@@ -152,14 +152,14 @@ class InfiniteFeed {
         // Get all current cards
         const cards = Array.from(this.container.querySelectorAll('.feed-item'));
         
-        // If we don't have enough cards, don't refresh
-        if (cards.length <= keepCount) {
+        // Determine cards to remove
+        const cardsToRemove = keepCount === 0 ? cards : cards.slice(keepCount);
+        
+        // If no cards to remove, exit
+        if (cardsToRemove.length === 0 && keepCount > 0) {
             console.log('Not enough cards to refresh');
             return;
         }
-        
-        // Keep only the first N cards
-        const cardsToRemove = cards.slice(keepCount);
         
         // Clean up removed cards
         cardsToRemove.forEach(card => {
@@ -189,6 +189,14 @@ class InfiniteFeed {
         
         // Reset pagination to allow loading more
         this.hasMore = true;
+        this.currentPage = 1;
+        this.cursor = null;
+        
+        // If full refresh (keepCount = 0), clear viewed IDs and reload
+        if (keepCount === 0) {
+            this.viewedContentIds.clear();
+            this.loadMore();
+        }
         
         // Scroll to top smoothly
         window.scrollTo({ top: 0, behavior: 'smooth' });

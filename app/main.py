@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles # type: ignore
 import os
 
 from app.api.routes import topics, content, users, auth, session, trending
-from app.api.v1.routes import admin, settings as v1_settings
+from app.api.v1.routes import admin, settings as v1_settings, websocket
 from app.core.config import settings
 
 # Create FastAPI application
@@ -40,6 +40,9 @@ app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["u
 # Include admin and settings routes from v1
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"], include_in_schema=False)
 app.include_router(v1_settings.router, prefix=f"{settings.API_V1_STR}/settings", tags=["settings"])
+
+# Include WebSocket routes
+app.include_router(websocket.router, prefix=f"{settings.API_V1_STR}/ws", tags=["websocket"])
 
 @app.get("/")
 async def root():
