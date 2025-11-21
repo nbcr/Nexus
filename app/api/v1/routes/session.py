@@ -27,6 +27,17 @@ from app.schemas import ContentWithTopic, SessionResponse, HistoryResponse
 class ViewDurationUpdate(BaseModel):
     duration_seconds: int
 
+class InterestData(BaseModel):
+    content_id: int
+    interest_score: int
+    hover_duration_ms: int
+    movement_detected: bool
+    slowdowns_detected: int
+    clicks_detected: int
+    was_afk: bool
+    trigger: str
+    timestamp: str
+
 # Router Configuration
 router = APIRouter()
 
@@ -117,6 +128,89 @@ async def track_content_view(
         raise HTTPException(
             status_code=500,
             detail=f"Tracking failed: {str(e)}"
+        )
+
+@router.post(
+    "/track-interest",
+    response_model=Dict[str, str],
+    responses={
+        200: {"description": "Interest tracked successfully"},
+        500: {"description": "Tracking failed"}
+    }
+)
+async def track_content_interest(
+    request: Request,
+    response: Response,
+    interest_data: InterestData = Body(...),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, str]:
+    """
+    Track user interest in content based on hover behavior.
+    
+    This endpoint receives detailed interaction data including:
+    - Interest score calculated from hover patterns
+    - Hover duration and movement detection
+    - Slowdown detection (user reading carefully)
+    - Click detection
+    - AFK detection
+    
+    Args:
+        interest_data: Detailed interest metrics
+        request: FastAPI request object
+        response: FastAPI response object
+        db: Database session
+        
+    Returns:
+        dict: Status message
+        
+    Raises:
+        HTTPException: If tracking fails
+    """
+    session_token = get_session_token(request)
+    
+    try:
+        # Track the interaction with additional metadata
+        metadata = {
+            "interest_score": interest_data.interest_score,
+            "hover_duration_ms": interest_data.hover_duration_ms,
+            "movement_detected": interest_data.movement_detected,
+            "slowdowns_detected": interest_data.slowdowns_detected,
+            "clicks_detected": interest_data.clicks_detected,
+            "was_afk": interest_data.was_afk,
+            "trigger": interest_data.trigger
+        }
+        
+        # Determine interaction type based on interest level
+        interaction_type = "interest_high" if interest_data.interest_score >= 70 else "interest_medium" if interest_data.interest_score >= 50 else "interest_low"
+        
+        await track_content_interaction(
+            db,
+            session_token,
+            interest_data.content_id,
+            interaction_type=interaction_type,
+            duration_seconds=interest_data.hover_duration_ms // 1000,  # Convert to seconds
+            metadata=metadata
+        )
+        
+        # Set session cookie
+        response.set_cookie(
+            key="nexus_session",
+            value=session_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=2592000  # 30 days
+        )
+        
+        return {
+            "status": "tracked",
+            "interest_score": str(interest_data.interest_score),
+            "interaction_type": interaction_type
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Interest tracking failed: {str(e)}"
         )
 
 @router.put(

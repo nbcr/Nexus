@@ -14,6 +14,35 @@
     margin-bottom: 24px;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+/* Interest tracking indicator (optional visual feedback) */
+.feed-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(0, 123, 255, 0.5), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.feed-item.tracking-interest::after {
+    opacity: 1;
+    animation: interest-pulse 2s ease-in-out infinite;
+}
+
+@keyframes interest-pulse {
+    0%, 100% {
+        opacity: 0.3;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .feed-item:hover {
