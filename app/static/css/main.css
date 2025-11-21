@@ -95,8 +95,6 @@ button {
 }
 .content-btn.active {
     box-shadow: 0 6px 0 #3498db;
-
-/* End of body block */
 }
 
 /* Dark mode button border for history page */
