@@ -16,7 +16,7 @@ async def create_admin_user(username: str, email: str, password: str):
     
     # Create async engine
     engine = create_async_engine(
-        settings.DATABASE_URL,
+        settings.database_url,
         echo=False
     )
     
@@ -68,7 +68,7 @@ async def create_admin_user(username: str, email: str, password: str):
         print(f"   ID: {new_user.id}")
         print()
         print(f"🔒 You can now access the admin panel at:")
-        print(f"   http://your-domain.com/static/admin.html")
+        print(f"   https://nexus.comdat.ca/static/admin.html")
         print()
         print(f"⚠️  Keep your admin credentials secure!")
     
@@ -78,7 +78,7 @@ async def list_admins():
     """List all admin users"""
     
     engine = create_async_engine(
-        settings.DATABASE_URL,
+        settings.database_url,
         echo=False
     )
     
