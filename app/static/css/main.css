@@ -112,6 +112,14 @@ input {
     border-radius: 6px;
 }
 
+body.dark-mode .history-item {
+    background: #222;
+    border-left: 4px solid #00ff88;
+    border: 1px solid #444;
+    color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
 .loading {
     text-align: center;
     padding: 30px;
