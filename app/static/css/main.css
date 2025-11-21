@@ -89,6 +89,11 @@ button {
     transition: all 0.2s ease;
 }
 
+/* Content history buttons: always show border */
+.content-btn {
+     border: 2px solid #00ff88 !important;
+}
+
 /* Dark mode button border for history page */
 /* Dark mode border for content history buttons only */
 body.dark-mode .history-controls .content-btn,
