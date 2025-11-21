@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession # pyright: ignore[reportMissingI
 from sqlalchemy import select # pyright: ignore[reportMissingImports]
 import uuid
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.models import User
 from app.models.user import UserSession
 from app.core.auth import verify_token

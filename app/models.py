@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship # type: ignore
 from sqlalchemy.sql import func # type: ignore
 from datetime import datetime
 import uuid
-from app.database import Base
+from app.db import Base
 
 
 class User(Base):

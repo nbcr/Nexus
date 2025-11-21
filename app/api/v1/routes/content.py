@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Annotated, Optional
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.models import ContentItem, Topic, User
 from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
 from app.services.content_recommendation import recommendation_service

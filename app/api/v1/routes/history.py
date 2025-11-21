@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from pydantic import BaseModel
 
-from app.database import get_db
+from app.db import get_db
 from app.models.user import ContentViewHistory, User
 from app.models.content import ContentItem
 from app.api.v1.deps import get_current_session

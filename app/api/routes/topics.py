@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession # pyright: ignore[reportMissingI
 from sqlalchemy import select # pyright: ignore[reportMissingImports]
 from typing import List
 
-from app.database import AsyncSessionLocal
+from app.db import AsyncSessionLocal
 from app.models import Topic, ContentItem
 from app.schemas import Topic as TopicSchema, TopicWithContent
 
