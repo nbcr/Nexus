@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 import os
 
-from app.api.v1 import api_router
 from app.api.routes import topics, content, users, auth, session, trending
+from app.api.v1.routes import admin, settings as v1_settings
 from app.core.config import settings
 
 # Create FastAPI application
@@ -29,16 +29,17 @@ app.add_middleware(
 # Serve static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Include v1 API router
-app.include_router(api_router, prefix=settings.API_V1_STR)
-
-# Include legacy routers (for backwards compatibility)
+# Include routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"])
 app.include_router(session.router, prefix=f"{settings.API_V1_STR}/session", tags=["session"])
 app.include_router(trending.router, prefix=f"{settings.API_V1_STR}/trending", tags=["trending"])
 app.include_router(topics.router, prefix=f"{settings.API_V1_STR}/topics", tags=["topics"])
 app.include_router(content.router, prefix=f"{settings.API_V1_STR}/content", tags=["content"])
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
+
+# Include admin and settings routes from v1
+app.include_router(admin.router, prefix=f"{settings.API_V1_STR}/admin", tags=["admin"], include_in_schema=False)
+app.include_router(v1_settings.router, prefix=f"{settings.API_V1_STR}/settings", tags=["settings"])
 
 @app.get("/")
 async def root():
