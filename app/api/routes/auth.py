@@ -35,10 +35,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         raise credentials_exception
     return user
 
+
+from app.services.email_service import send_registration_email
+
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     from app.services.user_service import get_user_by_username, get_user_by_email
-    
+
     # Check if username exists
     db_user = await get_user_by_username(db, username=user_data.username)
     if db_user:
@@ -46,7 +49,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
             status_code=400,
             detail="Username already registered"
         )
-    
+
     # Check if email exists
     db_user = await get_user_by_email(db, email=user_data.email)
     if db_user:
@@ -54,8 +57,13 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
             status_code=400,
             detail="Email already registered"
         )
-    
+
     user = await create_user(db, user_data)
+    # Send registration email
+    try:
+        send_registration_email(to_email=user_data.email, username=user_data.username)
+    except Exception as e:
+        print(f"Email send failed: {e}")
     return user
 
 @router.post("/login", response_model=Token)
