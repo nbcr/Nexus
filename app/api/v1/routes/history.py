@@ -1,7 +1,7 @@
 """History tracking endpoints."""
 from typing import Optional, List
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from pydantic import BaseModel
@@ -48,7 +48,9 @@ class RecordViewRequest(BaseModel):
 
 @router.post("/record", status_code=201)
 async def record_view(
-    request: RecordViewRequest,
+    view_request: RecordViewRequest,
+    request: Request,
+    response: Response,
     db: Session = Depends(get_db),
     session = Depends(get_current_session)
 ):
@@ -61,11 +63,11 @@ async def record_view(
     - **time_spent_seconds**: Optional engagement time
     """
     # Check if already recorded (prevent duplicates for 'seen' type)
-    if request.view_type == 'seen':
+    if view_request.view_type == 'seen':
         existing = db.query(ContentViewHistory).filter(
             and_(
                 ContentViewHistory.session_token == session.session_token,
-                ContentViewHistory.content_id == request.content_id,
+                ContentViewHistory.content_id == view_request.content_id,
                 ContentViewHistory.view_type == 'seen'
             )
         ).first()
@@ -77,10 +79,10 @@ async def record_view(
     history = ContentViewHistory(
         user_id=session.user_id,
         session_token=session.session_token,
-        content_id=request.content_id,
-        content_slug=request.content_slug,
-        view_type=request.view_type,
-        time_spent_seconds=request.time_spent_seconds
+        content_id=view_request.content_id,
+        content_slug=view_request.content_slug,
+        view_type=view_request.view_type,
+        time_spent_seconds=view_request.time_spent_seconds
     )
     
     db.add(history)
@@ -92,6 +94,8 @@ async def record_view(
 
 @router.get("/viewed", response_model=ViewHistoryResponse)
 async def get_viewed_history(
+    request: Request,
+    response: Response,
     view_type: Optional[str] = Query(None, description="Filter by view type: 'seen', 'clicked', 'read'"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -155,6 +159,8 @@ async def get_viewed_history(
 
 @router.get("/seen-ids")
 async def get_seen_content_ids(
+    request: Request,
+    response: Response,
     db: Session = Depends(get_db),
     session = Depends(get_current_session)
 ):
@@ -174,6 +180,8 @@ async def get_seen_content_ids(
 
 @router.delete("/clear")
 async def clear_history(
+    request: Request,
+    response: Response,
     view_type: Optional[str] = Query(None, description="Clear specific type or all if None"),
     db: Session = Depends(get_db),
     session = Depends(get_current_session)
