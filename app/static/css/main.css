@@ -90,9 +90,14 @@ button {
 }
 
 /* Content history buttons: always show border */
+/* Only show shadow on active history tab button */
 .content-btn {
     border: 1px solid #3498db !important;
+    box-shadow: none;
+}
+.content-btn.active {
     box-shadow: 0 6px 0 #3498db;
+}
 }
 
 /* Dark mode button border for history page */
@@ -100,7 +105,11 @@ button {
 body.dark-mode .history-controls .content-btn,
 body.dark-mode .history-tab .content-btn {
     border: 1px solid #3498db !important;
+    box-shadow: none;
+}
+body.dark-mode .history-tab.content-btn.active {
     box-shadow: 0 6px 0 #3498db;
+}
 }
 
 button:hover { 
@@ -118,6 +127,10 @@ input {
 }
 
 /* History Styles */
+/* Add space below history tab buttons */
+.history-tabs {
+    padding-bottom: 18px;
+}
 .history-item { 
     border-left: 4px solid #3498db; 
     padding-left: 15px; 
