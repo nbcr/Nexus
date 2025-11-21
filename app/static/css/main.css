@@ -106,6 +106,7 @@ body.dark-mode .history-tab .content-btn {
 button:hover { 
     background: #2980b9; 
     transform: translateY(-1px);
+    shadow:
 }
 
 input { 
