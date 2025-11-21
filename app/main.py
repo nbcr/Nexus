@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles # type: ignore
 import os
 
 from app.api.routes import topics, content, users, auth, session, trending
-from app.api.v1.routes import admin, settings as v1_settings, websocket
+from app.api.v1.routes import admin, settings as v1_settings, websocket, history
 from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
 
@@ -61,6 +61,9 @@ app.include_router(v1_settings.router, prefix=f"{settings.API_V1_STR}/settings",
 
 # Include WebSocket routes
 app.include_router(websocket.router, prefix=f"{settings.API_V1_STR}/ws", tags=["websocket"])
+
+# Include history routes
+app.include_router(history.router, prefix=f"{settings.API_V1_STR}/history", tags=["history"])
 
 @app.get("/")
 async def root():

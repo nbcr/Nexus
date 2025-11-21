@@ -136,6 +136,7 @@ class ContentRecommendationService:
             
             feed_items.append({
                 "content_id": content.id,
+                "slug": content.slug,  # Add unique slug for history tracking and direct linking
                 "topic_id": topic.id,
                 "title": content.title if content.title else topic.title,  # Use content title if available
                 "description": content.description if content.description else topic.description,  # Use content description if available
@@ -328,17 +329,19 @@ class ContentRecommendationService:
         user_id: Optional[int],
         session_token: Optional[str]
     ) -> List[int]:
-        """Get list of content IDs the user has already viewed"""
-        from app.models import UserSession
+        """Get list of content IDs the user has already viewed (from view history)"""
+        from app.models.user import ContentViewHistory
         
-        query = select(UserInteraction.content_item_id)
+        query = select(ContentViewHistory.content_id).where(
+            ContentViewHistory.view_type == 'seen'  # Only exclude content marked as 'seen'
+        )
         
-        if user_id:
-            query = query.where(UserInteraction.user_id == user_id)
-        elif session_token:
-            query = query.join(UserSession, UserInteraction.session_id == UserSession.id).where(
-                UserSession.session_token == session_token
-            )
+        if session_token:
+            # Always use session_token for tracking (works for both auth and anon)
+            query = query.where(ContentViewHistory.session_token == session_token)
+        elif user_id:
+            # Fallback to user_id if no session token
+            query = query.where(ContentViewHistory.user_id == user_id)
         else:
             return []
         

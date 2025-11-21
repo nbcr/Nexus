@@ -11,6 +11,7 @@ class ContentItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     topic_id = Column(Integer, ForeignKey("topics.id"))
     title = Column(String(500))
+    slug = Column(String(255), unique=True, index=True, nullable=False)  # Unique identifier for direct linking
     description = Column(Text, nullable=True)
     category = Column(String(100), nullable=True)
     tags = Column(JSON, default=list)
@@ -25,3 +26,4 @@ class ContentItem(Base):
 
     topic = relationship("Topic", back_populates="content_items")
     interactions = relationship("UserInteraction", back_populates="content_item")
+    view_history = relationship("ContentViewHistory", back_populates="content_item")

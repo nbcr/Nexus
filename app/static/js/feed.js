@@ -52,6 +52,11 @@ class InfiniteFeed {
             this.globalScrollTracker = new GlobalScrollTracker();
         }
         
+        // Initialize history tracker if available
+        if (window.historyTracker && typeof window.historyTracker.init === 'function') {
+            window.historyTracker.init();
+        }
+        
         // Setup TikTok-style scroll-to-top refresh behavior
         this.setupScrollRefresh();
         
@@ -380,6 +385,7 @@ class InfiniteFeed {
         const article = document.createElement('article');
         article.className = 'feed-item';
         article.dataset.contentId = item.content_id;
+        article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
         article.dataset.topicId = item.topic_id;
         
         // Get image from source metadata
@@ -551,6 +557,13 @@ class InfiniteFeed {
             readMoreBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation(); // Prevent card toggle
+                
+                // Track click in history
+                if (window.historyTracker) {
+                    const slug = article.dataset.contentSlug;
+                    window.historyTracker.recordClick(item.content_id, slug);
+                }
+                
                 this.onContentClick(item);
                 this.trackView(item.content_id);
             });
@@ -561,6 +574,12 @@ class InfiniteFeed {
         if (sourceBtn) {
             sourceBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                
+                // Track click in history
+                if (window.historyTracker) {
+                    const slug = article.dataset.contentSlug;
+                    window.historyTracker.recordClick(item.content_id, slug);
+                }
             });
         }
         
@@ -573,9 +592,14 @@ class InfiniteFeed {
             this.globalScrollTracker.registerTracker(tracker);
         }
         
-        // Observe this card for visibility tracking
+        // Observe this card for visibility tracking (view duration)
         if (this.cardObserver) {
             this.cardObserver.observe(article);
+        }
+        
+        // Observe this card for history tracking (seen when in viewport)
+        if (window.historyTracker) {
+            window.historyTracker.observeCard(article);
         }
     }
     

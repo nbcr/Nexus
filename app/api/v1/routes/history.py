@@ -1,0 +1,196 @@
+"""History tracking endpoints."""
+from typing import Optional, List
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import desc, and_
+from pydantic import BaseModel
+
+from app.database import get_db
+from app.models.user import ContentViewHistory, User
+from app.models.content import ContentItem
+from app.api.v1.deps import get_current_session
+
+
+router = APIRouter()
+
+
+class ViewHistoryItem(BaseModel):
+    """Schema for view history item."""
+    id: int
+    content_id: int
+    content_slug: str
+    title: str
+    view_type: str
+    viewed_at: datetime
+    time_spent_seconds: Optional[int]
+    
+    class Config:
+        from_attributes = True
+
+
+class ViewHistoryResponse(BaseModel):
+    """Schema for history response with pagination."""
+    items: List[ViewHistoryItem]
+    total: int
+    page: int
+    page_size: int
+    has_more: bool
+
+
+class RecordViewRequest(BaseModel):
+    """Schema for recording a view."""
+    content_id: int
+    content_slug: str
+    view_type: str  # 'seen', 'clicked', 'read'
+    time_spent_seconds: Optional[int] = None
+
+
+@router.post("/record", status_code=201)
+async def record_view(
+    request: RecordViewRequest,
+    db: Session = Depends(get_db),
+    session = Depends(get_current_session)
+):
+    """
+    Record that a user has viewed content.
+    
+    - **content_id**: ID of the content item
+    - **content_slug**: Unique slug of the content
+    - **view_type**: Type of view ('seen', 'clicked', 'read')
+    - **time_spent_seconds**: Optional engagement time
+    """
+    # Check if already recorded (prevent duplicates for 'seen' type)
+    if request.view_type == 'seen':
+        existing = db.query(ContentViewHistory).filter(
+            and_(
+                ContentViewHistory.session_token == session.session_token,
+                ContentViewHistory.content_id == request.content_id,
+                ContentViewHistory.view_type == 'seen'
+            )
+        ).first()
+        
+        if existing:
+            return {"message": "Already recorded", "id": existing.id}
+    
+    # Create history record
+    history = ContentViewHistory(
+        user_id=session.user_id,
+        session_token=session.session_token,
+        content_id=request.content_id,
+        content_slug=request.content_slug,
+        view_type=request.view_type,
+        time_spent_seconds=request.time_spent_seconds
+    )
+    
+    db.add(history)
+    db.commit()
+    db.refresh(history)
+    
+    return {"message": "View recorded", "id": history.id}
+
+
+@router.get("/viewed", response_model=ViewHistoryResponse)
+async def get_viewed_history(
+    view_type: Optional[str] = Query(None, description="Filter by view type: 'seen', 'clicked', 'read'"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    session = Depends(get_current_session)
+):
+    """
+    Get user's view history with optional filtering.
+    
+    - **view_type**: Optional filter ('seen', 'clicked', 'read')
+    - **page**: Page number (starts at 1)
+    - **page_size**: Items per page (max 100)
+    """
+    # Build query
+    query = db.query(
+        ContentViewHistory,
+        ContentItem.title
+    ).join(
+        ContentItem, ContentViewHistory.content_id == ContentItem.id
+    ).filter(
+        ContentViewHistory.session_token == session.session_token
+    )
+    
+    # Apply filter
+    if view_type:
+        query = query.filter(ContentViewHistory.view_type == view_type)
+    
+    # Order by most recent first
+    query = query.order_by(desc(ContentViewHistory.viewed_at))
+    
+    # Get total count
+    total = query.count()
+    
+    # Apply pagination
+    offset = (page - 1) * page_size
+    results = query.offset(offset).limit(page_size).all()
+    
+    # Transform results
+    items = []
+    for history, title in results:
+        items.append(ViewHistoryItem(
+            id=history.id,
+            content_id=history.content_id,
+            content_slug=history.content_slug,
+            title=title,
+            view_type=history.view_type,
+            viewed_at=history.viewed_at,
+            time_spent_seconds=history.time_spent_seconds
+        ))
+    
+    has_more = (offset + page_size) < total
+    
+    return ViewHistoryResponse(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+        has_more=has_more
+    )
+
+
+@router.get("/seen-ids")
+async def get_seen_content_ids(
+    db: Session = Depends(get_db),
+    session = Depends(get_current_session)
+):
+    """
+    Get list of content IDs the user has already seen.
+    Used for duplicate prevention in feed.
+    """
+    seen_ids = db.query(ContentViewHistory.content_id).filter(
+        and_(
+            ContentViewHistory.session_token == session.session_token,
+            ContentViewHistory.view_type == 'seen'
+        )
+    ).distinct().all()
+    
+    return {"seen_ids": [id_tuple[0] for id_tuple in seen_ids]}
+
+
+@router.delete("/clear")
+async def clear_history(
+    view_type: Optional[str] = Query(None, description="Clear specific type or all if None"),
+    db: Session = Depends(get_db),
+    session = Depends(get_current_session)
+):
+    """
+    Clear user's view history.
+    
+    - **view_type**: Optional - clear only specific type, or all if not provided
+    """
+    query = db.query(ContentViewHistory).filter(
+        ContentViewHistory.session_token == session.session_token
+    )
+    
+    if view_type:
+        query = query.filter(ContentViewHistory.view_type == view_type)
+    
+    deleted = query.delete()
+    db.commit()
+    
+    return {"message": f"Cleared {deleted} history items"}
