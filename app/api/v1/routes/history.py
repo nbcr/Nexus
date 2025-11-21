@@ -109,33 +109,38 @@ async def get_viewed_history(
     - **page**: Page number (starts at 1)
     - **page_size**: Items per page (max 100)
     """
-    # Build query
-    query = db.query(
-        ContentViewHistory,
-        ContentItem.title
-    ).join(
+    from sqlalchemy import select, func
+    from sqlalchemy.orm import joinedload
+
+    # Build base select
+    stmt = select(ContentViewHistory, ContentItem.title).join(
         ContentItem, ContentViewHistory.content_id == ContentItem.id
-    ).filter(
+    ).where(
         ContentViewHistory.session_token == session.session_token
     )
-    
-    # Apply filter
+
     if view_type:
-        query = query.filter(ContentViewHistory.view_type == view_type)
-    
-    # Order by most recent first
-    query = query.order_by(desc(ContentViewHistory.viewed_at))
-    
-    # Get total count
-    total = query.count()
-    
-    # Apply pagination
+        stmt = stmt.where(ContentViewHistory.view_type == view_type)
+
+    stmt = stmt.order_by(desc(ContentViewHistory.viewed_at))
+
+    # Get total count (separate query)
+    count_stmt = select(func.count()).select_from(ContentViewHistory).where(
+        ContentViewHistory.session_token == session.session_token
+    )
+    if view_type:
+        count_stmt = count_stmt.where(ContentViewHistory.view_type == view_type)
+    total_result = await db.execute(count_stmt)
+    total = total_result.scalar()
+
+    # Pagination
     offset = (page - 1) * page_size
-    results = query.offset(offset).limit(page_size).all()
-    
-    # Transform results
+    stmt = stmt.offset(offset).limit(page_size)
+    result = await db.execute(stmt)
+    rows = result.all()
+
     items = []
-    for history, title in results:
+    for history, title in rows:
         items.append(ViewHistoryItem(
             id=history.id,
             content_id=history.content_id,
