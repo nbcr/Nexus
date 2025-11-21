@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 import os
 
+from app.api.v1 import api_router
 from app.api.routes import topics, content, users, auth, session, trending
 from app.core.config import settings
 
@@ -28,7 +29,10 @@ app.add_middleware(
 # Serve static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Include routers
+# Include v1 API router
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Include legacy routers (for backwards compatibility)
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"])
 app.include_router(session.router, prefix=f"{settings.API_V1_STR}/session", tags=["session"])
 app.include_router(trending.router, prefix=f"{settings.API_V1_STR}/trending", tags=["trending"])
@@ -54,6 +58,12 @@ async def robots():
 async def serve_frontend():
     from fastapi.responses import FileResponse # type: ignore
     return FileResponse("app/static/index.html")
+
+# Serve the admin panel
+@app.get("/admin.html")
+async def serve_admin():
+    from fastapi.responses import FileResponse # type: ignore
+    return FileResponse("app/static/admin.html")
 
 if __name__ == "__main__":
     import uvicorn # type: ignore
