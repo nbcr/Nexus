@@ -1,10 +1,10 @@
 import requests
-import os
+from app.core.config import settings
 
 def send_registration_email(to_email: str, username: str):
-    api_key = os.getenv("BREVO_API_KEY")  # Store your API key in an environment variable
+    api_key = getattr(settings, "BREVO_API_KEY", None)
     if not api_key:
-        raise ValueError("Brevo API key not set in environment variable BREVO_API_KEY")
+        raise ValueError("Brevo API key not set in .env or config")
 
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
