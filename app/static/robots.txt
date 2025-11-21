@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin.html
+Disallow: /static/admin.html
+Disallow: /api/v1/admin/
+Disallow: /static/js/admin.js
+Disallow: /static/css/admin.css
+Allow: /
