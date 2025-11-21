@@ -129,7 +129,7 @@ input {
 /* History Styles */
 /* Add space below history tab buttons */
 .history-tabs {
-    padding-bottom: 18px;
+    padding-bottom: 9px;
 }
 .history-item { 
     border-left: 4px solid #3498db; 
