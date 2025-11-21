@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Nexus</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg-primary, #181818); }
+        .login-container { background: var(--bg-secondary, #222); padding: 32px 24px; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.2); width: 100%; max-width: 350px; }
+        .login-container h2 { margin-bottom: 18px; color: var(--text-primary, #fff); text-align: center; }
+        .login-container label { display: block; margin-bottom: 8px; color: var(--text-secondary, #bbb); }
+        .login-container input { width: 100%; padding: 10px; margin-bottom: 16px; border-radius: 6px; border: 1px solid var(--border, #444); background: var(--bg-input, #181818); color: var(--text-primary, #fff); }
+        .login-container button { width: 100%; padding: 10px; border-radius: 6px; border: none; background: var(--accent, #0078d7); color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .login-container button:hover { background: var(--accent-hover, #005fa3); }
+        .login-error { color: #ff4d4f; margin-bottom: 12px; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login to Nexus</h2>
+        <div id="login-error" class="login-error"></div>
+        <form id="login-form" autocomplete="off">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autofocus>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+    <script>
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('login-error');
+        errorDiv.style.display = 'none';
+        try {
+            const res = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            if (res.ok) {
+                window.location.href = '/';
+            } else {
+                const data = await res.json();
+                errorDiv.textContent = data.detail || 'Login failed.';
+                errorDiv.style.display = 'block';
+            }
+        } catch (err) {
+            errorDiv.textContent = 'Network error.';
+            errorDiv.style.display = 'block';
+        }
+    });
+    </script>
+</body>
+</html>
