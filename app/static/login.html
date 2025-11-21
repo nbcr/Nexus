@@ -46,7 +46,13 @@
                 window.location.href = '/';
             } else {
                 const data = await res.json();
-                errorDiv.textContent = data.detail || 'Login failed.';
+                let errorMsg = 'Login failed.';
+                if (typeof data.detail === 'string') {
+                    errorMsg = data.detail;
+                } else if (typeof data.detail === 'object' && data.detail !== null) {
+                    errorMsg = JSON.stringify(data.detail);
+                }
+                errorDiv.textContent = errorMsg;
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
