@@ -1,3 +1,13 @@
+# Serve /login and /register as static files
+from fastapi.responses import FileResponse
+
+@app.get("/login", include_in_schema=False)
+async def login_page():
+    return FileResponse("app/static/login.html")
+
+@app.get("/register", include_in_schema=False)
+async def register_page():
+    return FileResponse("app/static/register.html")
 from fastapi import FastAPI # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
