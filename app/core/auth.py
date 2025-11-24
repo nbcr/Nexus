@@ -26,17 +26,21 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     import logging
     logger = logging.getLogger("uvicorn.error")
-    logger.warning(f"get_password_hash: type={type(password)}, value={repr(password)}")
+    logger.error(f"get_password_hash: type={type(password)}, value={repr(password)}")
+    print(f"get_password_hash: type={type(password)}, value={repr(password)}")
     if isinstance(password, str):
         password_bytes = password.encode('utf-8')
     else:
         password_bytes = password
-    logger.warning(f"get_password_hash: length before truncation={len(password_bytes)}")
+    logger.error(f"get_password_hash: length before truncation={len(password_bytes)}")
+    print(f"get_password_hash: length before truncation={len(password_bytes)}")
     if len(password_bytes) > 72:
-        logger.warning(f"get_password_hash: truncating password from {len(password_bytes)} to 72 bytes")
+        logger.error(f"get_password_hash: truncating password from {len(password_bytes)} to 72 bytes")
+        print(f"get_password_hash: truncating password from {len(password_bytes)} to 72 bytes")
         password_bytes = password_bytes[:72]
     password_str = password_bytes.decode('utf-8', errors='ignore')
-    logger.warning(f"get_password_hash: length after truncation={len(password_str.encode('utf-8'))}")
+    logger.error(f"get_password_hash: length after truncation={len(password_str.encode('utf-8'))}")
+    print(f"get_password_hash: length after truncation={len(password_str.encode('utf-8'))}")
     return pwd_context.hash(password_str)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
