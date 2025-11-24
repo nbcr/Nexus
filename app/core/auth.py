@@ -1,11 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from passlib.hash import bcrypt_sha256
 from app.core.config import settings
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings
 SECRET_KEY = settings.secret_key
@@ -13,26 +12,12 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def verify_password(plain_password, hashed_password):
-    # Truncate password to 72 bytes (bcrypt limitation)
-    if isinstance(plain_password, str):
-        password_bytes = plain_password.encode('utf-8')
-    else:
-        password_bytes = plain_password
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-    password_str = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.verify(password_str, hashed_password)
+    # Use bcrypt_sha256 for robust password verification
+    return bcrypt_sha256.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    # Truncate password after encoding to bytes, then decode to string
-    if isinstance(password, str):
-        password_bytes = password.encode('utf-8')
-    else:
-        password_bytes = password
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-    password_str = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.hash(password_str)
+    # Use bcrypt_sha256 for robust password hashing
+    return bcrypt_sha256.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
