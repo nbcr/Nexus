@@ -10,7 +10,6 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
-def upgrade():
-    # op.add_column('users', sa.Column('is_admin', sa.Boolean(), nullable=False, server_default=sa.text('false')))
+
 
 
