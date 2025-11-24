@@ -14,7 +14,6 @@ def upgrade():
     op.add_column('user_interest_profiles', sa.Column('avatar_url', sa.String(length=255), nullable=True))
     op.add_column('user_interest_profiles', sa.Column('social_links', sa.JSON(), nullable=True))
     op.add_column('user_interest_profiles', sa.Column('expertise', sa.JSON(), nullable=True))
-    op.add_column('user_interest_profiles', sa.Column('last_updated', sa.DateTime(), nullable=True))
 
 def downgrade():
     op.drop_column('user_interest_profiles', 'bio')
