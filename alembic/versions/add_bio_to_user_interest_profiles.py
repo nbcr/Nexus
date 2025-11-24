@@ -4,7 +4,7 @@ Add missing columns to user_interest_profiles table
 from alembic import op
 import sqlalchemy as sa
 
-revision = 'add_bio_to_user_interest_profiles'
+revision = 'add_bio_to_uip_short'
 down_revision = '001'
 branch_labels = None
 depends_on = None
