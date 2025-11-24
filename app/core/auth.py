@@ -16,14 +16,14 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    # Raise error if password is over 72 bytes (bcrypt limitation)
+    # Truncate password to 72 bytes (bcrypt limitation)
     if isinstance(password, str):
         password_bytes = password.encode('utf-8')
     else:
         password_bytes = password
     if len(password_bytes) > 72:
-        raise ValueError("Password cannot be longer than 72 bytes (bcrypt limitation). Please use a shorter password.")
-    return pwd_context.hash(password)
+        password_bytes = password_bytes[:72]
+    return pwd_context.hash(password_bytes)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
