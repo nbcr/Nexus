@@ -1,3 +1,5 @@
+def upgrade():
+	pass
 """
 Add is_admin column to users table
 """
