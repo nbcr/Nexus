@@ -16,17 +16,9 @@ async def get_user_by_email(db: AsyncSession, email: str):
 async def create_user(db: AsyncSession, user: UserCreate):
     import logging
     logger = logging.getLogger("uvicorn.error")
-    # Truncate password to 72 bytes and pass bytes directly
-    if isinstance(user.password, str):
-        password_bytes = user.password.encode('utf-8')
-    else:
-        password_bytes = user.password
-    logger.warning(f"Password length before truncation: {len(password_bytes)} bytes")
-    if len(password_bytes) > 72:
-        logger.warning(f"Password too long ({len(password_bytes)} bytes), truncating.")
-        password_bytes = password_bytes[:72]
-    logger.warning(f"Password length after truncation: {len(password_bytes)} bytes")
-    hashed_password = get_password_hash(password_bytes)
+    # Pass password as string directly to bcrypt_sha256
+    logger.warning(f"Password length (characters): {len(user.password)}")
+    hashed_password = get_password_hash(user.password)
     db_user = User(
         username=user.username,
         email=user.email,
