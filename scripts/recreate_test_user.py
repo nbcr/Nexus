@@ -2,6 +2,7 @@ import asyncio
 from app.db import AsyncSessionLocal
 from app.models import User
 from app.core.auth import get_password_hash
+from sqlalchemy import select
 
 USERNAME = "testuser"
 EMAIL = "testuser@example.com"
