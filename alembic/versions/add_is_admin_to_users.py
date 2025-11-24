@@ -14,4 +14,5 @@ def upgrade():
     # op.add_column('users', sa.Column('is_admin', sa.Boolean(), nullable=False, server_default=sa.text('false')))
 
 def downgrade():
+    pass
     op.drop_column('users', 'is_admin')
