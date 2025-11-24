@@ -5,7 +5,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = 'add_bio_to_user_interest_profiles'
-down_revision = None
+down_revision = '001'
 branch_labels = None
 depends_on = None
 
