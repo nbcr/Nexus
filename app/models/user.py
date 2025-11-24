@@ -15,6 +15,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     debug_mode = Column(Boolean, default=False)
+    must_reset_password = Column(Boolean, default=False)
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
