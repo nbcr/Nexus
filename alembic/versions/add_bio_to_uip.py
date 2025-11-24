@@ -10,10 +10,13 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.add_column('user_interest_profiles', sa.Column('bio', sa.String(length=500), nullable=True))
-    op.add_column('user_interest_profiles', sa.Column('avatar_url', sa.String(length=255), nullable=True))
-    op.add_column('user_interest_profiles', sa.Column('social_links', sa.JSON(), nullable=True))
-    op.add_column('user_interest_profiles', sa.Column('expertise', sa.JSON(), nullable=True))
+    # Add columns only if they do not exist
+    op.execute("""
+        ALTER TABLE user_interest_profiles ADD COLUMN IF NOT EXISTS bio VARCHAR(500);
+        ALTER TABLE user_interest_profiles ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(255);
+        ALTER TABLE user_interest_profiles ADD COLUMN IF NOT EXISTS social_links JSON;
+        ALTER TABLE user_interest_profiles ADD COLUMN IF NOT EXISTS expertise JSON;
+    """)
 
 def downgrade():
     op.drop_column('user_interest_profiles', 'bio')
