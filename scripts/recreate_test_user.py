@@ -10,8 +10,8 @@ PASSWORD = "testpass"
 async def recreate_test_user():
     async with AsyncSessionLocal() as db:
         # Delete existing user
-        user = await db.execute(User.__table__.select().where(User.username == USERNAME))
-        user_obj = user.scalar_one_or_none()
+        result = await db.execute(select(User).where(User.username == USERNAME))
+        user_obj = result.scalar_one_or_none()
         if user_obj:
             await db.delete(user_obj)
             await db.commit()
