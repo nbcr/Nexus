@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas import UserCreate
 from app.services.user_service import create_user, get_user_by_email
 from app.services.email_service import send_registration_email
-from app.database import get_db
+from app.db import get_db
 
 router = APIRouter()
 
