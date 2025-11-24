@@ -15,4 +15,3 @@ def upgrade():
 
 def downgrade():
     pass
-    op.drop_column('users', 'is_admin')
