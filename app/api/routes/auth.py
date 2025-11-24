@@ -60,7 +60,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
                 detail="Email already registered"
             )
 
-        # Truncate password to 72 bytes and log
+        # Truncate password to 72 bytes and pass bytes directly
         if isinstance(user_data.password, str):
             password_bytes = user_data.password.encode('utf-8')
         else:
@@ -68,8 +68,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         if len(password_bytes) > 72:
             logger.warning(f"Password too long ({len(password_bytes)} bytes), truncating.")
             password_bytes = password_bytes[:72]
-        password_str = password_bytes.decode('utf-8', errors='ignore')
-        user_data.password = password_str
+        user_data.password = password_bytes
         user = await create_user(db, user_data)
         # Send registration email
         try:

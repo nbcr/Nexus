@@ -24,18 +24,14 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(password_str, hashed_password)
 
 def get_password_hash(password):
-    # Force truncation to 72 bytes regardless of type/encoding
+    # Always pass a byte string truncated to 72 bytes to bcrypt
     if isinstance(password, str):
         password_bytes = password.encode('utf-8')
     else:
         password_bytes = password
     if len(password_bytes) > 72:
         password_bytes = password_bytes[:72]
-    try:
-        password_str = password_bytes.decode('utf-8', errors='ignore')
-    except Exception:
-        password_str = password_bytes.decode('latin1', errors='ignore')
-    return pwd_context.hash(password_str)
+    return pwd_context.hash(password_bytes)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
