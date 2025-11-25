@@ -57,6 +57,7 @@ async function checkAuthStatus() {
             }
         }
     } catch (error) {
+        console.log('[DEBUG] Entered catch block in checkAuthStatus()', error);
         // User not authenticated - show login button and handler
         const authBtn = document.getElementById('auth-btn');
         if (authBtn) {
