@@ -99,15 +99,15 @@ class FeedNotifier {
     }
     
     async fetchFreshAccessToken() {
-        // Try to get a fresh token from backend (assumes /api/v1/auth/refresh or similar endpoint exists)
+        // Fetch a fresh token from backend refresh endpoint
         try {
             const response = await fetch('/api/v1/auth/refresh', {
+                method: 'POST',
                 credentials: 'include'
             });
             if (response.ok) {
                 const data = await response.json();
                 if (data.access_token) {
-                    // Store fresh token in localStorage and cookie
                     localStorage.setItem('access_token', data.access_token);
                     document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax`;
                     return data.access_token;
