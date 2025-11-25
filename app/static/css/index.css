@@ -32,6 +32,10 @@ body.login-page {
 }
 /* Mobile Styles */
 @media (max-width: 768px) {
+        body.dark-mode.login-page .login-container {
+            background: #222 !important;
+            color: #fff;
+        }
     .login-container {
         position: fixed;
         left: 0;
