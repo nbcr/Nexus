@@ -14,6 +14,8 @@ from app.services.deduplication import deduplication_service
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+router = APIRouter()
+
 class CategoriesResponse(BaseModel):
     categories: List[str]
 
