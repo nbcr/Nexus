@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
 import os
 
-from app.api.routes import topics, content, users, session, trending
-from app.api.v1.routes import admin, settings as v1_settings, websocket, history, auth as v1_auth
+from app.api.routes import topics, content, users, trending
+from app.api.v1.routes import admin, settings as v1_settings, websocket, history, auth as v1_auth, session as v1_session
 from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
 
@@ -79,7 +79,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Include routers
 app.include_router(v1_auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"])
-app.include_router(session.router, prefix=f"{settings.API_V1_STR}/session", tags=["session"])
+app.include_router(v1_session.router, prefix=f"{settings.API_V1_STR}/session", tags=["session"])
 app.include_router(trending.router, prefix=f"{settings.API_V1_STR}/trending", tags=["trending"])
 app.include_router(topics.router, prefix=f"{settings.API_V1_STR}/topics", tags=["topics"])
 app.include_router(content.router, prefix=f"{settings.API_V1_STR}/content", tags=["content"])
