@@ -15,23 +15,6 @@
         .dark-mode h1 { color: #e0e6ed; }
         .dark-mode p { color: #b0b8c1; }
     </style>
-    <script>
-        // Apply dark mode if user/system prefers
-        function setDarkMode() {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            setDarkMode();
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkMode);
-        });
-        setTimeout(function() {
-            window.location.href = "/";
-        }, 2500);
-    </script>
 </head>
 <body>
     <div class="container">
@@ -40,5 +23,22 @@
         <p>If you are not redirected automatically, click the button below.</p>
         <button class="btn-hdr" onclick="window.location.href='/'">Go to Homepage</button>
     </div>
+        <script>
+            // Apply dark mode if user/system prefers
+            function setDarkMode() {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+            document.addEventListener('DOMContentLoaded', function() {
+                setDarkMode();
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkMode);
+            });
+            setTimeout(function() {
+                window.location.href = "/";
+            }, 2500);
+        </script>
 </body>
 </html>
