@@ -82,6 +82,7 @@ This file should be updated after every significant change, fix, or troubleshoot
 ---
 
 ## Troubleshooting Steps (Nov 24, 2025)
+13. Anonymous user tracking: All users (including anonymous) are tracked using a persistent session token (`visitor_id` cookie). Interactions and history are stored in the backend linked to this token. When a user registers or logs in, all tracked data from their session is migrated to their new account (`migrate_session_to_user`). If a user never registers, tracking continues anonymously. Frontend always sets a persistent `visitor_id` for every user.
 11. Always force a frontend WebSocket connection after deploying debug code to ensure new log entries are generated for analysis. Never pause to ask for readiness; proceed automatically to the next step.
 12. WebSocket 401/403 errors: Backend debug logging shows all connections rejected due to 'Signature has expired' when decoding JWT. Root cause: Frontend is sending an expired JWT token for WebSocket connections. Solution: Update frontend to always fetch a fresh JWT token before opening a WebSocket connection. After any authentication or token-related backend change, always verify frontend is sending a valid, non-expired token for WebSocket connections.
 10. Added debug logging to backend WebSocket handler to print received token and decoded payload for authentication troubleshooting. Always push context after updating.
