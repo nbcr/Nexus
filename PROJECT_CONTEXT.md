@@ -81,6 +81,7 @@ This file should be updated after every significant change, fix, or troubleshoot
 ---
 
 ## Troubleshooting Steps (Nov 24, 2025)
+11. After deploying debug code, always force a new frontend WebSocket connection (reload feed page or trigger feed update) to generate log output. Never pause for user readiness; proceed automatically to next troubleshooting step.
 10. Added debug logging to backend WebSocket handler to print received token and decoded payload for authentication troubleshooting. Always push context after updating.
 9. Always push PROJECT_CONTEXT.md after updating to ensure context changes are tracked and synced with the remote repository.
 8. If endpoint or handler code is not found in expected folders, always search the entire workspace for relevant keywords (route, handler, token, feed, ws, websocket, etc.) before proceeding. This ensures dynamic or non-standard registrations are not missed.
