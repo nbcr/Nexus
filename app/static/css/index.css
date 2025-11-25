@@ -1,3 +1,9 @@
+body.login-page .login-container {
+    color: #222;
+}
+body.dark-mode.login-page .login-container {
+    color: #fff;
+}
 .dark-mode-toggle {
     position: fixed;
     top: 16px;
