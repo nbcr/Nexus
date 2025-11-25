@@ -178,6 +178,15 @@ function toggleDarkMode() {
     if (toggleBtn) {
         toggleBtn.textContent = isDark ? '☀️' : '🌙';
     }
+
+    // Remove inline color from .feed-item-summary in dark mode
+    if (isDark) {
+        document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+            if (el.style.color) {
+                el.style.removeProperty('color');
+            }
+        });
+    }
     
     if (toggleLabel) {
         toggleLabel.textContent = isDark ? 'Dark Mode: On' : 'Dark Mode: Off';
