@@ -29,13 +29,7 @@
         <div class="feed-controls">
             <h2>Your Personalized Feed</h2>
             <div class="category-filter" id="category-filter">
-                <button class="category-btn active" data-category="">All</button>
-                <button class="category-btn" data-category="Technology">Technology</button>
-                <button class="category-btn" data-category="Business">Business</button>
-                <button class="category-btn" data-category="Entertainment">Entertainment</button>
-                <button class="category-btn" data-category="Sports">Sports</button>
-                <button class="category-btn" data-category="Health">Health</button>
-                <button class="category-btn" data-category="Politics">Politics</button>
+                <!-- Category buttons will be generated dynamically -->
             </div>
         </div>
 
@@ -84,26 +78,52 @@
     <script src="/static/js/header.js?v=202511210100"></script>
     <script>
         let feed;
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Create the infinite feed
-            feed = new InfiniteFeed('feed-container', {
-                pageSize: 20,
-                isPersonalized: true
-                // onContentClick is handled internally by InfiniteFeed
+
+        async function setupCategoryButtons() {
+            const filterDiv = document.getElementById('category-filter');
+            filterDiv.innerHTML = '';
+            // Always add 'All' button
+            const allBtn = document.createElement('button');
+            allBtn.className = 'category-btn active';
+            allBtn.dataset.category = '';
+            allBtn.textContent = 'All';
+            filterDiv.appendChild(allBtn);
+
+            let categories = [];
+            try {
+                const resp = await fetch('/api/v1/content/categories');
+                const data = await resp.json();
+                categories = data.categories || [];
+            } catch (e) {
+                // fallback: use defaults if fetch fails
+                categories = ['Technology','Business','Entertainment','Sports','Health','Politics'];
+            }
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.dataset.category = cat;
+                btn.textContent = cat;
+                filterDiv.appendChild(btn);
             });
-            
-            // Setup category filter
-            const categoryButtons = document.querySelectorAll('.category-btn');
+
+            // Setup click handlers
+            const categoryButtons = filterDiv.querySelectorAll('.category-btn');
             categoryButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
                     categoryButtons.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    
                     const category = this.dataset.category;
                     feed.setCategory(category || null);
                 });
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            feed = new InfiniteFeed('feed-container', {
+                pageSize: 20,
+                isPersonalized: true
+            });
+            setupCategoryButtons();
         });
         
         // Dark mode and auth status are initialized by header.js
