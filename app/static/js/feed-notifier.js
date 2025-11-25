@@ -124,11 +124,32 @@ class FeedNotifier {
         if (!accessToken && window.localStorage) {
             accessToken = localStorage.getItem('access_token');
         }
-        // If no token, prompt for login
+        // If no token, show temporary popup for login
         if (!accessToken) {
-            alert('Please log in to enable real-time feed updates.');
+            this.showTemporaryPopup('Please log in to enable real-time feed updates.');
             return null;
         }
+            // Show a temporary popup message that disappears after 2 seconds
+            showTemporaryPopup(message) {
+                const popup = document.createElement('div');
+                popup.textContent = message;
+                popup.style.position = 'fixed';
+                popup.style.bottom = '30px';
+                popup.style.left = '50%';
+                popup.style.transform = 'translateX(-50%)';
+                popup.style.background = '#333';
+                popup.style.color = '#fff';
+                popup.style.padding = '12px 24px';
+                popup.style.borderRadius = '6px';
+                popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+                popup.style.zIndex = '9999';
+                popup.style.fontSize = '1rem';
+                popup.style.opacity = '0.95';
+                document.body.appendChild(popup);
+                setTimeout(() => {
+                    popup.remove();
+                }, 2000);
+            }
         // Try to refresh token
         try {
             const response = await fetch('/api/v1/auth/refresh', {
