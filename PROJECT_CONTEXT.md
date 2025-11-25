@@ -40,6 +40,13 @@ echo "" | plink -batch admin@ec2-54-167-58-129.compute-1.amazonaws.com "sudo -u 
 **Recent Issues Resolved & New Fixes:**
 ---
 
+**2025-11-24: Header and Logged Out Button Styling**
+- Created a dedicated `.btn-hdr` class for header buttons in `index.css` and applied it to all header buttons in `index.html` for consistent styling.
+- Updated the logged out page button to use `.btn-hdr` for visual consistency with header buttons.
+- Removed previous generic `.btn` and `.logged-out-btn` classes from these buttons to avoid style conflicts.
+- Verified button alignment and appearance across header and logged out page.
+---
+
 **2025-11-24: Logout Flow and Auth Button Fixes**
 - Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
 - Updated frontend logout logic to always redirect to `/logged-out.html` after logout, instead of the login page or reloading.
