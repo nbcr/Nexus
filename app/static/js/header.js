@@ -48,6 +48,7 @@ async function checkAuthStatus() {
             if (authBtn) {
                 authBtn.textContent = 'Logout';
                 authBtn.onclick = handleLogout;
+                console.log('[DEBUG] Attached logout handler to auth button');
             }
             const registerBtn = document.getElementById('register-btn');
             if (registerBtn) {
@@ -60,6 +61,7 @@ async function checkAuthStatus() {
         if (authBtn) {
             authBtn.textContent = 'Login';
             authBtn.onclick = handleAuth;
+            console.log('[DEBUG] Attached login handler to auth button');
         }
         const registerBtn = document.getElementById('register-btn');
         if (registerBtn) {
