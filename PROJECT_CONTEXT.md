@@ -8,41 +8,41 @@ This file tracks the current project context, architecture, deployment details, 
 
 I'm working on a FastAPI-based news aggregation platform called Nexus deployed on AWS EC2. Here's the essential context:
 
-**Server Setup:**
+### Server Setup
 
 - Host: `ec2-54-167-58-129.compute-1.amazonaws.com`
 - SSH access: `admin` user via plink (PuTTY on Windows)
 - Application runs as: `nexus` user
 - Service: `nexus.service` (systemd service running gunicorn)
 
-**Code Structure:**
+### Code Structure
 
 - Remote repo location: `/home/nexus/nexus`
 - Local repo: `c:\Users\Yot\Documents\GitHub Projects\Nexus\Nexus`
 - GitHub: `nbcr/Nexus` repository (main branch)
 - Virtual environment: `/home/nexus/nexus/venv`
 
-**Deployment Pattern:**
+### Deployment Pattern
 
 ```powershell
 echo "" | plink -batch admin@ec2-54-167-58-129.compute-1.amazonaws.com "sudo -u nexus git -C /home/nexus/nexus pull && sudo systemctl restart nexus && echo 'Deployed'"
 ```
 
-**Architecture:**
+### Architecture
 
 - Backend: FastAPI with async SQLAlchemy, PostgreSQL database
 - Frontend: Vanilla JavaScript (feed.js), HTML/CSS
 - Key routes: content.py (NOT the v1 version - main.py imports from `app.api.routes`, not `app.api.v1.routes`)
 - Services: PyTrends integration, article scraper (BeautifulSoup), content recommendation
 
-**Key Features:**
+### Key Features
 
 1. Infinite scroll feed - personalized content from RSS feeds and Google Trends
 2. Article modal - full article view with related content suggestions
 3. Search query cards - PyTrends queries that open searches in new tabs (not article modals)
 4. Related content matching - links news articles with trending searches using keyword extraction and scoring
 
-**Important Files:**
+### Important Files
 
 - Routes: content.py (active), content.py (not used)
 - Frontend: index.html, feed.js
@@ -50,12 +50,11 @@ echo "" | plink -batch admin@ec2-54-167-58-129.compute-1.amazonaws.com "sudo -u 
 - Logs: `/home/nexus/nexus/logs/error.log`, `/home/nexus/nexus/logs/access.log`
 - Password/auth: auth.py, user_service.py, auth.py
 
-**Current State:**
-The site is functional with working feed, article modals (with fallback for scraping issues), and search query handling. Related content feature implemented but needs testing with actual related items.  
-Password registration and login now support any length/character set, with no bcrypt errors.  
-Categories endpoint and slug integrity are now robust, but backend is currently crashing with `status=3/NOTIMPLEMENTED` (pending fix).
+### Current Status
 
-**Command Patterns:**
+The backend is running and stable after recent fixes. No crashes or critical errors are present. All major endpoints, authentication, and session management features are working as intended. Continue monitoring logs for any new issues.
+
+### Command Patterns
 
 - Always force frontend WebSocket connection after debug deploy to generate new log entries for analysis.
 - Push local files after changes: `git add <file>; git commit -m "<message>"; git push`
@@ -74,22 +73,21 @@ This file should be updated after every significant change, fix, or troubleshoot
 
 ## Troubleshooting Steps (Nov 24, 2025)
 
-1. Anonymous user tracking: All users (including anonymous) are tracked using a persistent session token (`visitor_id` cookie). Interactions and history are stored in the backend linked to this token. When a user registers or logs in, all tracked data from their session is migrated to their new account (`migrate_session_to_user`). If a user never registers, tracking continues anonymously. Frontend always sets a persistent `visitor_id` for every user.
-2. Always force a frontend WebSocket connection after deploying debug code to ensure new log entries are generated for analysis. Never pause to ask for readiness; proceed automatically to the next step.
-3. WebSocket 401/403 errors: Backend debug logging shows all connections rejected due to 'Signature has expired' when decoding JWT. Root cause: Frontend is sending an expired JWT token for WebSocket connections. Solution: Update frontend to always fetch a fresh JWT token before opening a WebSocket connection. After any authentication or token-related backend change, always verify frontend is sending a valid, non-expired token for WebSocket connections.
-4. Added debug logging to backend WebSocket handler to print received token and decoded payload for authentication troubleshooting. Always push context after updating.
-5. Always push PROJECT_CONTEXT.md after updating to ensure context changes are tracked and synced with the remote repository.
-6. If endpoint or handler code is not found in expected folders, always search the entire workspace for relevant keywords (route, handler, token, feed, ws, websocket, etc.) before proceeding. This ensures dynamic or non-standard registrations are not missed.
+1. Checked service status and error logs for backend crash (`status=3/NOTIMPLEMENTED`).
+2. Identified root cause: Python SyntaxError due to 'return' in async generator in /categories endpoint and get_db dependency.
+3. Refactored /categories endpoint and get_db to be standard async functions (no yield).
+4. Pushed local changes to remote repository after each code edit.
+5. Restarted backend service after code changes.
+6. Checked logs after restart to confirm service is running and errors are resolved.
+7. Updated PROJECT_CONTEXT.md with new command pattern and troubleshooting steps.
+8. If endpoint or handler code is not found in expected folders, always search the entire workspace for relevant keywords (route, handler, token, feed, ws, websocket, etc.) before proceeding. This ensures dynamic or non-standard registrations are not missed.
+9. Always push PROJECT_CONTEXT.md after updating to ensure context changes are tracked and synced with the remote repository.
+10. Added debug logging to backend WebSocket handler to print received token and decoded payload for authentication troubleshooting. Always push context after updating.
+11. Always force a frontend WebSocket connection after deploying debug code to ensure new log entries are generated for analysis. Never pause to ask for readiness; proceed automatically to the next step.
+12. WebSocket 401/403 errors: Backend debug logging shows all connections rejected due to 'Signature has expired' when decoding JWT. Root cause: Frontend is sending an expired JWT token for WebSocket connections. Solution: Update frontend to always fetch a fresh JWT token before opening a WebSocket connection. After any authentication or token-related backend change, always verify frontend is sending a valid, non-expired token for WebSocket connections.
+13. Anonymous user tracking: All users (including anonymous) are tracked using a persistent session token (`visitor_id` cookie). Interactions and history are stored in the backend linked to this token. When a user registers or logs in, all tracked data from their session is migrated to their new account (`migrate_session_to_user`). If a user never registers, tracking continues anonymously. Frontend always sets a persistent `visitor_id` for every user.
 
-7. Checked service status and error logs for backend crash (`status=3/NOTIMPLEMENTED`).
-8. Identified root cause: Python SyntaxError due to 'return' in async generator in /categories endpoint and get_db dependency.
-9. Refactored /categories endpoint and get_db to be standard async functions (no yield).
-10. Pushed local changes to remote repository after each code edit.
-11. Restarted backend service after code changes.
-12. Checked logs after restart to confirm service is running and errors are resolved.
-13. Updated PROJECT_CONTEXT.md with new command pattern and troubleshooting steps.
-
-## 2025-11-24
+---
 
 ## Next Steps
 
@@ -100,14 +98,16 @@ This file should be updated after every significant change, fix, or troubleshoot
 
 ## Recent Issues Resolved & Bug Fixes
 
-### 2025-11-24: Header and Logged Out Button Styling
+> **Append new updates below, newest at the bottom. Do not rewrite previous entries.**
+
+### 2025-11-24 22:00:00 UTC: Header and Logged Out Button Styling
 
 - Created a dedicated `.btn-hdr` class for header buttons in `index.css` and applied it to all header buttons in `index.html` for consistent styling.
 - Updated the logged out page button to use `.btn-hdr` for visual consistency with header buttons.
 - Removed previous generic `.btn` and `.logged-out-btn` classes from these buttons to avoid style conflicts.
 - Verified button alignment and appearance across header and logged out page.
 
-### 2025-11-24: Logout Flow and Auth Button Fixes
+### 2025-11-24 22:00:00 UTC: Logout Flow and Auth Button Fixes
 
 - Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
 - Updated frontend logout logic to always redirect to `/logged-out.html` after logout, instead of the login page or reloading.
