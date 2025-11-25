@@ -1,28 +1,3 @@
-@router.post("/track-interest/{content_id}")
-async def track_content_interest(
-    content_id: int,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Track when a user shows interest in content (e.g., hover/click)"""
-    session_token = get_session_token(request)
-    try:
-        # Optionally parse metadata from request body (e.g., hover duration, etc.)
-        metadata = None
-        try:
-            metadata = await request.json()
-        except Exception:
-            metadata = None
-        await track_content_interaction(
-            db,
-            session_token,
-            content_id,
-            interaction_type="interest",
-            metadata=metadata
-        )
-        return {"status": "interest_tracked", "session_token": session_token}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Interest tracking failed: {str(e)}")
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,8 +8,37 @@ from app.services.session_service import (
     create_anonymous_session, 
     track_content_interaction, 
     get_session_history,
-    migrate_session_to_user
+    migrate_session_to_user,
+    # Add a stub for interest tracking if not present
 )
+@router.post("/track-interest/{content_id}")
+async def track_content_interest(
+    content_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Track when a user shows interest in content (e.g., hover/click)"""
+    session_token = get_session_token(request)
+    visitor_id = request.cookies.get("visitor_id")
+    # Debug logging for backend troubleshooting
+    import logging
+    logging.debug(f"[track-interest] visitor_id={visitor_id}, session_token={session_token}, content_id={content_id}")
+    try:
+        await track_content_interaction(
+            db,
+            session_token,
+            content_id,
+            interaction_type="interest"
+        )
+        return {
+            "status": "tracked",
+            "session_token": session_token,
+            "visitor_id": visitor_id,
+            "content_id": content_id
+        }
+    except Exception as e:
+        logging.error(f"[track-interest] Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Tracking interest failed: {str(e)}")
 from app.schemas import ContentWithTopic
 
 router = APIRouter()

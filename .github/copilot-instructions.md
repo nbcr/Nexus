@@ -1,8 +1,10 @@
-
 # Copilot Instructions for Nexus
 
+> **Agent Instruction:**
+> Always review and follow the latest instructions, workflow, troubleshooting steps, and update conventions in the `PROJECT_CONTEXT.md` file before making any changes or answering questions. Re-read this file after any edit or when context may have changed.
+
 ## Project Overview & Context
-Nexus is a FastAPI-based AI news aggregation and personalization platform deployed on AWS EC2. It fetches trending Canadian news and provides personalized recommendations using session-based tracking and JWT authentication. The backend is stable and runs as a systemd service (`nexus.service`) under the `nexus` user. Always review and follow the latest instructions, workflow, troubleshooting steps, and update conventions in `PROJECT_CONTEXT.md` before making changes.
+Nexus is a FastAPI-based AI news aggregation and personalization platform deployed on AWS EC2. It fetches trending Canadian news and provides personalized recommendations using session-based tracking and JWT authentication. The backend runs as a systemd service (`nexus.service`) under the `nexus` user.
 
 ## Architecture & Key Patterns
 - Backend: FastAPI, async SQLAlchemy, PostgreSQL
@@ -35,6 +37,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 - JWT tokens must be fresh for WebSocket connections; frontend must fetch a new token before opening a socket
 - Debugging: Check `/home/nexus/nexus/logs/error.log` and `/access.log` on EC2; use debug logging in WebSocket handlers for token troubleshooting
 - Always force a frontend WebSocket connection after deploying debug code to generate new log entries
+- For endpoint or handler code not found in expected folders, always search the entire workspace for relevant keywords before proceeding
 
 ## Integration Points
 - PyTrends: `app/services/pytrends_service.py`
