@@ -99,7 +99,21 @@ class FeedNotifier {
     }
     
     async fetchFreshAccessToken() {
-        // Fetch a fresh token from backend refresh endpoint
+        // Check for existing token
+        let accessToken = null;
+        if (document.cookie) {
+            const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+            if (match) accessToken = match[1];
+        }
+        if (!accessToken && window.localStorage) {
+            accessToken = localStorage.getItem('access_token');
+        }
+        // If no token, prompt for login
+        if (!accessToken) {
+            alert('Please log in to enable real-time feed updates.');
+            return null;
+        }
+        // Try to refresh token
         try {
             const response = await fetch('/api/v1/auth/refresh', {
                 method: 'POST',
@@ -116,15 +130,7 @@ class FeedNotifier {
         } catch (err) {
             console.error('Failed to fetch fresh access token:', err);
         }
-        // Fallback to old method
-        let accessToken = null;
-        if (document.cookie) {
-            const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
-            if (match) accessToken = match[1];
-        }
-        if (!accessToken && window.localStorage) {
-            accessToken = localStorage.getItem('access_token');
-        }
+        // Fallback to old token
         return accessToken;
     }
 
