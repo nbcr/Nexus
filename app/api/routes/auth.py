@@ -109,3 +109,13 @@ async def login(
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+# Logout endpoint: clears access/refresh tokens
+from fastapi import Response
+
+@router.post("/logout")
+async def logout(response: Response):
+    # Remove access and refresh tokens from cookies
+    response.delete_cookie(key="access_token", path="/")
+    response.delete_cookie(key="refresh_token", path="/")
+    return {"detail": "Logged out"}
