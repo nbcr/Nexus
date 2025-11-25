@@ -28,6 +28,9 @@ from app.models import User
 
 # Router Configuration
 router = APIRouter()
+@router.get("/debug")
+async def debug_auth_router():
+    return {"status": "auth router loaded"}
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 # Dependencies
