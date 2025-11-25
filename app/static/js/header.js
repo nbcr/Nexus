@@ -1,4 +1,3 @@
-console.log('[DEBUG] header.js loaded');
 // Set persistent visitor_id cookie if not present
 function setVisitorIdCookie() {
     let visitorId = null;
@@ -47,7 +46,6 @@ async function checkAuthStatus() {
             if (authBtn) {
                 authBtn.textContent = 'Logout';
                 authBtn.onclick = handleLogout;
-                console.log('[DEBUG] Attached logout handler to auth button');
             }
             const registerBtn = document.getElementById('register-btn');
             if (registerBtn) {
@@ -59,7 +57,6 @@ async function checkAuthStatus() {
             if (authBtn) {
                 authBtn.textContent = 'Login';
                 authBtn.onclick = handleAuth;
-                console.log('[DEBUG] Attached login handler to auth button');
             }
             const registerBtn = document.getElementById('register-btn');
             if (registerBtn) {
@@ -67,7 +64,6 @@ async function checkAuthStatus() {
             }
         }
     } catch (error) {
-        console.log('[DEBUG] Entered catch block in checkAuthStatus()', error);
     }
 }
 
@@ -76,7 +72,6 @@ async function checkAuthStatus() {
  */
 function handleAuth() {
     // Debug message for login button click
-    console.log('[DEBUG] Login button clicked');
     // Only redirect to login if not authenticated
     window.location.href = '/static/login.html';
 }
