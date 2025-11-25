@@ -1,3 +1,7 @@
+body.dark-mode.login-page .login-container {
+    background: #222 !important;
+    color: #fff;
+}
 body.dark-mode.login-page {
     background: #181818 !important;
 }
