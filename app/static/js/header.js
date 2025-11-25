@@ -49,6 +49,10 @@ async function checkAuthStatus() {
                 authBtn.textContent = 'Logout';
                 authBtn.onclick = handleLogout;
             }
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.style.display = 'none';
+            }
         }
     } catch (error) {
         // User not authenticated - show login button and handler
@@ -56,6 +60,10 @@ async function checkAuthStatus() {
         if (authBtn) {
             authBtn.textContent = 'Login';
             authBtn.onclick = handleAuth;
+        }
+        const registerBtn = document.getElementById('register-btn');
+        if (registerBtn) {
+            registerBtn.style.display = '';
         }
     }
 }
