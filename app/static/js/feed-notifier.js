@@ -114,11 +114,11 @@ class FeedNotifier {
         if (accessToken) {
             wsUrl += `?token=${encodeURIComponent(accessToken)}`;
         }
-        console.log('🔌 Connecting to WebSocket:', wsUrl);
+        // ...existing code...
         try {
             this.ws = new WebSocket(wsUrl);
             this.ws.onopen = () => {
-                console.log('✅ WebSocket connected');
+                // ...existing code...
                 this.reconnectAttempts = 0;
                 this.startHeartbeat();
             };
@@ -134,7 +134,7 @@ class FeedNotifier {
                 console.error('❌ WebSocket error:', error);
             };
             this.ws.onclose = () => {
-                console.log('🔌 WebSocket disconnected');
+                // ...existing code...
                 this.stopHeartbeat();
                 this.attemptReconnect();
             };
@@ -145,11 +145,11 @@ class FeedNotifier {
     }
     
     handleMessage(data) {
-        console.log('📨 WebSocket message:', data);
+        // ...existing code...
         
         switch (data.type) {
             case 'connected':
-                console.log('🎉 Connected to feed updates');
+                // ...existing code...
                 break;
                 
             case 'new_content':
@@ -162,7 +162,7 @@ class FeedNotifier {
                 break;
                 
             default:
-                console.log('Unknown message type:', data.type);
+                // ...existing code...
         }
     }
     
@@ -231,14 +231,14 @@ class FeedNotifier {
     
     attemptReconnect() {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.log('❌ Max reconnect attempts reached');
+            // ...existing code...
             return;
         }
         
         this.reconnectAttempts++;
         const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
         
-        console.log(`🔄 Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        // ...existing code...
         
         setTimeout(() => {
             this.connect();
