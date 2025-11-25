@@ -57,33 +57,53 @@ manager = ConnectionManager()
 async def websocket_feed_updates(websocket: WebSocket):
     """
     WebSocket endpoint for real-time feed updates
-    
     Clients connect to receive notifications about:
     - New content available
     - Content refresh suggestions
     """
+    import logging
+    logger = logging.getLogger("uvicorn.error")
+    token = None
+    # Try header first (for JS clients)
+    if "authorization" in websocket.headers:
+        auth_header = websocket.headers["authorization"]
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:]
+    # Try cookies
+    if not token:
+        cookie_header = websocket.headers.get("cookie", "")
+        for part in cookie_header.split(';'):
+            if "access_token=" in part:
+                token = part.split("access_token=")[-1].strip()
+    # Try query param
+    if not token:
+        token = websocket.query_params.get("token")
+    # Validate token
+    from app.core.auth import verify_token
+    username = verify_token(token) if token else None
+    if not username:
+        logger.warning(f"WebSocket rejected: missing or invalid token. Headers: {websocket.headers}")
+        await websocket.close(code=1008)
+        return
+    logger.info(f"WebSocket accepted for user: {username}")
     await manager.connect(websocket)
-    
     try:
         # Send initial connection confirmation
         await websocket.send_json({
             "type": "connected",
-            "message": "Connected to Nexus feed updates",
+            "message": f"Connected to Nexus feed updates as {username}",
             "timestamp": datetime.now().isoformat()
         })
-        
         # Keep connection alive and handle incoming messages
         while True:
             data = await websocket.receive_text()
-            
             # Handle ping/pong for keepalive
             if data == "ping":
                 await websocket.send_json({"type": "pong"})
-            
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
 async def notify_new_content(count: int = 1, category: str = None):
