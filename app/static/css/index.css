@@ -1,3 +1,19 @@
+/* Register button styles */
+.register-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    background: var(--accent, #0078d7);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.register-btn:hover {
+    background: var(--accent-hover, #005fa3);
+}
 /* Mobile Styles */
 @media (max-width: 768px) {
     .login-container {
