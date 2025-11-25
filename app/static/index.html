@@ -127,6 +127,17 @@
         });
         
         // Dark mode and auth status are initialized by header.js
+
+        // Direct event listener for login button debug
+        document.addEventListener('DOMContentLoaded', function() {
+            const authBtn = document.getElementById('auth-btn');
+            if (authBtn) {
+                authBtn.addEventListener('click', function() {
+                    console.log('[DEBUG] Login button clicked (direct listener)');
+                    window.location.href = '/static/login.html';
+                });
+            }
+        });
     </script>
     
     <!-- WebSocket Feed Notifier -->
