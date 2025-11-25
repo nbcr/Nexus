@@ -63,6 +63,13 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         # Pass password as string directly to user_service
         logger.warning(f"Password length (characters): {len(user_data.password)}")
         user = await create_user(db, user_data)
+        # Migrate anonymous session data if visitor_id cookie is present
+        from fastapi import Request
+        request = Request(scope={})
+        visitor_id = request.cookies.get('visitor_id')
+        if visitor_id:
+            from app.services.session_service import migrate_session_to_user
+            await migrate_session_to_user(db, visitor_id, user.id)
         # Send registration email
         try:
             send_registration_email(to_email=user_data.email, username=user_data.username)
@@ -79,6 +86,13 @@ async def login(
     db: AsyncSession = Depends(get_db)
 ):
     user = await authenticate_user(db, form_data.username, form_data.password)
+    # Migrate anonymous session data if visitor_id cookie is present
+    from fastapi import Request
+    request = Request(scope={})
+    visitor_id = request.cookies.get('visitor_id')
+    if visitor_id:
+        from app.services.session_service import migrate_session_to_user
+        await migrate_session_to_user(db, visitor_id, user.id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
