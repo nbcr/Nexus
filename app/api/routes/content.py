@@ -1,3 +1,13 @@
+@router.get("/categories")
+async def get_all_categories(db: AsyncSession = Depends(get_db)):
+    """Return all unique categories from ContentItem and Topic tables."""
+    from sqlalchemy import select, distinct
+    categories = set()
+    result1 = await db.execute(select(distinct(ContentItem.category)).where(ContentItem.category.isnot(None)))
+    categories.update([row[0] for row in result1.fetchall() if row[0]])
+    result2 = await db.execute(select(distinct(Topic.category)).where(Topic.category.isnot(None)))
+    categories.update([row[0] for row in result2.fetchall() if row[0]])
+    return {"categories": sorted(categories)}
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
 from sqlalchemy import select # pyright: ignore[reportMissingImports]
