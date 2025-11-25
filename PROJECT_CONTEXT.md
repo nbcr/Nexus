@@ -79,6 +79,7 @@ This file should be updated after every significant change, fix, or troubleshoot
 ---
 
 ## Troubleshooting Steps (Nov 24, 2025)
+8. If endpoint or handler code is not found in expected folders, always search the entire workspace for relevant keywords (route, handler, token, feed, ws, websocket, etc.) before proceeding. This ensures dynamic or non-standard registrations are not missed.
 
 1. Checked service status and error logs for backend crash (`status=3/NOTIMPLEMENTED`).
 2. Identified root cause: Python SyntaxError due to 'return' in async generator in /categories endpoint and get_db dependency.
