@@ -103,12 +103,6 @@ This file should be updated after every significant change, fix, or troubleshoot
 
 > **Append new updates below, newest at the bottom. Do not rewrite previous entries.**
 
-### 2025-11-24 22:15:00 UTC: Modal Text Color Fix (Dark Mode)
-
-- Removed the last hardcoded inline color (`#333`) from modal summary rendering in `feed.js`.
-- Modal and error message text color now fully relies on CSS for both light and dark modes.
-- Verified modal readability in dark mode; no inline color overrides remain.
-
 ### 2025-11-24 22:00:00 UTC: Header and Logged Out Button Styling
 
 - Created a dedicated `.btn-hdr` class for header buttons in `index.css` and applied it to all header buttons in `index.html` for consistent styling.
@@ -145,5 +139,11 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Fixed JS error in `logged-out.html` by moving dark mode and redirect script to end of file, ensuring `document.body` is available before accessing `.classList`.
 - Added POST `/api/v1/auth/logout` endpoint to backend (`auth.py`) to clear access/refresh tokens for proper logout support.
 - Committed, pushed, and redeployed backend changes. Logout endpoint is now live and should resolve frontend 404 errors.
+
+### 2025-11-24 22:15:00 UTC: Modal Text Color Fix (Dark Mode)
+
+- Removed the last hardcoded inline color (`#333`) from modal summary rendering in `feed.js`.
+- Modal and error message text color now fully relies on CSS for both light and dark modes.
+- Verified modal readability in dark mode; no inline color overrides remain.
 
 ---
