@@ -90,8 +90,8 @@ async function handleLogout() {
             authBtn.onclick = handleAuth;
         }
         
-        // Reload current page to refresh content
-        window.location.reload();
+        // Redirect to dedicated logged out page
+        window.location.href = "/logged-out.html";
     } catch (error) {
         console.error('Logout error:', error);
     }
