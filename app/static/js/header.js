@@ -64,11 +64,8 @@ async function checkAuthStatus() {
  * Handle authentication button click
  */
 function handleAuth() {
-    if (currentUser) {
-        handleLogout();
-    } else {
-        window.location.href = '/static/login.html';
-    }
+    // Only redirect to login if not authenticated
+    window.location.href = '/static/login.html';
 }
 
 /**
