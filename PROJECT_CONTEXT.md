@@ -66,6 +66,8 @@ Password registration and login now support any length/character set, with no bc
 Categories endpoint and slug integrity are now robust, but backend is currently crashing with `status=3/NOTIMPLEMENTED` (pending fix).
 
 **Command Patterns:**
+- Push local files after changes: `git add <file>; git commit -m "<message>"; git push`
+- Always push PROJECT_CONTEXT.md after updating: `git add PROJECT_CONTEXT.md; git commit -m "Update context"; git push`
 - Test endpoint: `curl -s 'http://localhost:8000/api/v1/content/...'`
 - Check logs: `sudo tail -100 /home/nexus/nexus/logs/error.log`
 - Service status: `systemctl status nexus`
@@ -79,6 +81,7 @@ This file should be updated after every significant change, fix, or troubleshoot
 ---
 
 ## Troubleshooting Steps (Nov 24, 2025)
+9. Always push PROJECT_CONTEXT.md after updating to ensure context changes are tracked and synced with the remote repository.
 8. If endpoint or handler code is not found in expected folders, always search the entire workspace for relevant keywords (route, handler, token, feed, ws, websocket, etc.) before proceeding. This ensures dynamic or non-standard registrations are not missed.
 
 1. Checked service status and error logs for backend crash (`status=3/NOTIMPLEMENTED`).
