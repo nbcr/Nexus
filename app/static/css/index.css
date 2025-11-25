@@ -1,3 +1,7 @@
+body.dark-mode .modal-content p,
+body.dark-mode .content-modal p {
+    color: #fafafa !important;
+}
 body.dark-mode .modal-content p {
     color: #e0e0e0;
 }
