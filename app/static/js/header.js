@@ -1,3 +1,4 @@
+console.log('[DEBUG] header.js loaded');
 // Set persistent visitor_id cookie if not present
 function setVisitorIdCookie() {
     let visitorId = null;
