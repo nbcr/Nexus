@@ -42,22 +42,6 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error in /categories endpoint: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
-from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie # type: ignore
-from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
-from sqlalchemy import select # pyright: ignore[reportMissingImports]
-from typing import List, Optional
-from datetime import datetime
-
-from app.db import AsyncSessionLocal
-from app.models import ContentItem, Topic
-from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
-from app.services.content_recommendation import recommendation_service
-from app.services.article_scraper import article_scraper
-from app.services.deduplication import deduplication_service
-
-router = APIRouter()
-
-async def get_db():
     async with AsyncSessionLocal() as session:
         try:
             yield session
