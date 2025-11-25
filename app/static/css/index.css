@@ -1,3 +1,62 @@
+.login-btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+.login-btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    border: none;
+    background: var(--accent, #0078d7);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 16px;
+}
+.login-btn:hover {
+    background: var(--accent-hover, #005fa3);
+}
+.register-btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    border: none;
+    background: #eee;
+    color: #222;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 16px;
+}
+.register-btn:hover {
+    background: #e0e0e0;
+}
+.social-login-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+.social-btn {
+    padding: 10px 18px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+    background: #f5f5f5;
+    color: #222;
+    transition: background 0.2s;
+}
+.social-btn:hover {
+    background: #e0e0e0;
+}
+.microsoft-btn { background: #2F2F2F; color: #fff; }
+.google-btn { background: #fff; color: #4285F4; border: 1px solid #ddd; }
+.apple-btn { background: #000; color: #fff; }
+.x-btn { background: #14171A; color: #fff; }
+.instagram-btn { background: linear-gradient(45deg, #fd1d1d, #fcb045, #833ab4); color: #fff; }
 body.login-page .login-container {
     color: #222;
     border-radius: 14px;

@@ -18,9 +18,18 @@
             <input type="text" id="username" name="username" required autofocus>
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
-            <button type="submit">Login</button>
+            <div class="login-btn-row">
+                <button type="submit" class="login-btn">Login</button>
+                <button type="button" class="register-btn" onclick="window.location.href='/register'">Register</button>
+            </div>
         </form>
-        <button class="register-btn" onclick="window.location.href='/register'">Register</button>
+        <div class="social-login-row">
+            <button class="social-btn microsoft-btn" title="Login with Microsoft">Microsoft</button>
+            <button class="social-btn google-btn" title="Login with Google">Google</button>
+            <button class="social-btn apple-btn" title="Login with Apple">Apple</button>
+            <button class="social-btn x-btn" title="Login with X">X</button>
+            <button class="social-btn instagram-btn" title="Login with Instagram">Instagram</button>
+        </div>
     </div>
     <script>
     // Dark mode toggle logic
