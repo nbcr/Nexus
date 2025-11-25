@@ -43,20 +43,20 @@ async def hide_empty_pytrends():
                 items_to_hide.append(item)
         
         if not items_to_hide:
-            print("✅ No empty PyTrends items found - all clean!")
+            # ...existing code...
             return
         
-        print(f"Found {len(items_to_hide)} empty PyTrends items to hide:")
+        # ...existing code...
         for item in items_to_hide:
-            print(f"  - {item.id}: {item.title}")
+            # ...existing code...
         
         # Update them to unpublished
         for item in items_to_hide:
             item.is_published = False
         
         await db.commit()
-        print(f"✅ Successfully hid {len(items_to_hide)} empty PyTrends items!")
-        print("These items will become visible again when users click them and they get scraped.")
+        # ...existing code...
+        # ...existing code...
 
 if __name__ == "__main__":
     asyncio.run(hide_empty_pytrends())

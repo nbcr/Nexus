@@ -16,7 +16,7 @@ async def run_migration():
     """Add new columns to content_items table"""
     async with AsyncSessionLocal() as session:
         try:
-            print("Adding new columns to content_items table...")
+            # ...existing code...
             
             # Add new columns
             await session.execute(text("""
@@ -54,12 +54,12 @@ async def run_migration():
             
             await session.commit()
             
-            print("✅ Migration completed successfully!")
-            print("✅ Added columns: title, description, category, tags")
+            # ...existing code...
+            # ...existing code...
             
         except Exception as e:
             await session.rollback()
-            print(f"❌ Migration failed: {e}")
+            # ...existing code...
             sys.exit(1)
 
 if __name__ == "__main__":

@@ -7,6 +7,6 @@ async def start_background_tasks():
     try:
         # Start periodic content refresh in background
         asyncio.create_task(start_periodic_refresh())
-        print("✅ Background tasks started")
+        # ...existing code...
     except Exception as e:
-        print(f"❌ Failed to start background tasks: {e}")
+        # ...existing code...

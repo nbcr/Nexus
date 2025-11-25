@@ -40,7 +40,7 @@ class TrendingManager {
                 this.enhancedTrends = newTrends;
             }
             
-            console.log('Received trends data:', this.enhancedTrends);
+            // ...existing code...
             this.renderEnhancedTrends(append);
             
             if (this.hasMore) {
@@ -87,10 +87,10 @@ class TrendingManager {
             // Existing trend rendering code...
         }).join('');
 
-        console.log('Rendering trends:', this.enhancedTrends);
+        // ...existing code...
         
         container.innerHTML = this.enhancedTrends.map(trend => {
-            console.log('Processing trend:', trend);
+            // ...existing code...
             
             const imageHtml = trend.image_url ? 
                 `<img src="${trend.image_url}" alt="${trend.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'image-placeholder\\'></div>'">`
@@ -110,10 +110,10 @@ class TrendingManager {
                 ? trend.news_items 
                 : [defaultNewsItem];
 
-            console.log('News items for rendering:', newsItems);
+            // ...existing code...
 
             const newsItemsHtml = newsItems.map(news => {
-                console.log('Processing news item:', news);
+                // ...existing code...
                 const newsImageHtml = news.picture ? 
                     `<div class="news-item-image">
                         <img src="${news.picture}" alt="${news.title}" onerror="this.style.display='none'; this.parentElement.style.display='none';">
