@@ -437,7 +437,7 @@ class InfiniteFeed {
                     <div class="content-inner">
                         ${(item.content_text || item.description) ? `
                             <p class="feed-item-summary">${this.truncateText(item.content_text || item.description, 400)}</p>
-                        ` : '<p class="feed-item-summary" style="color: #999; font-style: italic;">No snippet available</p>'}
+                        ` : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>'}
                         <div class="feed-item-actions">
                             ${isNewsArticle ? `
                                 <button class="btn-read-more" data-content-id="${item.content_id}">
@@ -505,14 +505,14 @@ class InfiniteFeed {
                                         summaryEl.innerHTML = `<p style="line-height: 1.8; color: #333;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Full article content available</p>' : ''}`;
                                         article.dataset.snippetLoaded = 'true';
                                     } else {
-                                        summaryEl.innerHTML = '<em style="color: #999;">No preview available from this source</em>';
+                                        summaryEl.innerHTML = '<em>No preview available from this source</em>';
                                     }
                                 } else {
-                                    summaryEl.innerHTML = '<em style="color: #999;">Unable to load preview</em>';
+                                    summaryEl.innerHTML = '<em>Unable to load preview</em>';
                                 }
                             } catch (error) {
                                 console.error('Error loading snippet:', error);
-                                summaryEl.innerHTML = '<em style="color: #999;">Error loading preview</em>';
+                                summaryEl.innerHTML = '<em>Error loading preview</em>';
                             }
                         }
                     }
