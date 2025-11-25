@@ -5,13 +5,22 @@
     padding: 8px 16px;
     border-radius: 6px;
     transition: background 0.2s;
-    background: transparent;
-    border: 1px solid transparent;
+    background: #007bff;
+    border: 1px solid #007bff;
     cursor: pointer;
     font-size: 14px;
 }
 .btn-hdr:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: #0056b3;
+    border-color: #0056b3;
+}
+body.dark-mode .btn-hdr {
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+}
+body.dark-mode .btn-hdr:hover {
+    background: #274472;
+    border-color: #274472;
 }
 .logged-out-btn {
     color: #fff;
