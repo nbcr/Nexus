@@ -372,7 +372,7 @@ class HoverTracker {
         };
         
         try {
-            const response = await fetch('/api/v1/session/track-interest', {
+            const response = await fetch(`/api/v1/session/track-interest/${this.contentId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
