@@ -1,13 +1,38 @@
-@router.get("/categories")
+from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie # type: ignore
+from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
+from sqlalchemy import select # pyright: ignore[reportMissingImports]
+from typing import List, Optional
+from datetime import datetime
+
+from app.db import AsyncSessionLocal
+from app.models import ContentItem, Topic
+from app.schemas import ContentItem as ContentItemSchema, ContentWithTopic, Topic as TopicSchema
+from app.services.content_recommendation import recommendation_service
+from app.services.article_scraper import article_scraper
+from app.services.deduplication import deduplication_service
+
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+class CategoriesResponse(BaseModel):
+    categories: List[str]
+
+@router.get("/categories", response_model=CategoriesResponse)
 async def get_all_categories(db: AsyncSession = Depends(get_db)):
     """Return all unique categories from ContentItem and Topic tables."""
-    from sqlalchemy import select, distinct
-    categories = set()
-    result1 = await db.execute(select(distinct(ContentItem.category)).where(ContentItem.category.isnot(None)))
-    categories.update([row[0] for row in result1.fetchall() if row[0]])
-    result2 = await db.execute(select(distinct(Topic.category)).where(Topic.category.isnot(None)))
-    categories.update([row[0] for row in result2.fetchall() if row[0]])
-    return {"categories": sorted(categories)}
+    import logging
+    logger = logging.getLogger("uvicorn.error")
+    try:
+        from sqlalchemy import select, distinct
+        categories = set()
+        result1 = await db.execute(select(distinct(ContentItem.category)).where(ContentItem.category.isnot(None)))
+        categories.update([row[0] for row in result1.fetchall() if row[0]])
+        result2 = await db.execute(select(distinct(Topic.category)).where(Topic.category.isnot(None)))
+        categories.update([row[0] for row in result2.fetchall() if row[0]])
+        return CategoriesResponse(categories=sorted(categories))
+    except Exception as e:
+        logger.error(f"Error in /categories endpoint: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch categories")
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
 from sqlalchemy import select # pyright: ignore[reportMissingImports]
