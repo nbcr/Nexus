@@ -78,9 +78,18 @@ async def websocket_feed_updates(websocket: WebSocket):
     # Try query param
     if not token:
         token = websocket.query_params.get("token")
+    # Debug: print received token
+    logger.info(f"WebSocket received token: {token}")
     # Validate token
-    from app.core.auth import verify_token
-    username = verify_token(token) if token else None
+    from app.core.auth import verify_token, jwt, SECRET_KEY, ALGORITHM
+    payload = None
+    if token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        except Exception as e:
+            logger.error(f"WebSocket token decode error: {e}")
+    logger.info(f"WebSocket decoded payload: {payload}")
+    username = payload.get("sub") if payload else None
     if not username:
         logger.warning(f"WebSocket rejected: missing or invalid token. Headers: {websocket.headers}")
         await websocket.close(code=1008)
