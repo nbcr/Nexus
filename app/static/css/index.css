@@ -1,3 +1,6 @@
+body.dark-mode .modal-content p {
+    color: #e0e0e0;
+}
 .btn-hdr {
     color: #fff;
     text-decoration: none;
