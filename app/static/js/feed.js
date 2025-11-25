@@ -502,7 +502,7 @@ class InfiniteFeed {
                                         </div>`;
                                         article.dataset.snippetLoaded = 'rate-limited';
                                     } else if (data.snippet) {
-                                        summaryEl.innerHTML = `<p style="line-height: 1.8; color: #333;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Full article content available</p>' : ''}`;
+                                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Full article content available</p>' : ''}`;
                                         article.dataset.snippetLoaded = 'true';
                                     } else {
                                         summaryEl.innerHTML = '<em>No preview available from this source</em>';
