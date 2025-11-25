@@ -294,11 +294,30 @@ class TrendingService:
         return 0.7
     
     def _extract_category(self, entry) -> str:
-        """Extract category from entry"""
-        categories = entry.get('tags', [])
-        if categories and hasattr(categories[0], 'term'):
-            return categories[0].term
-        return "General"
+        """Determine category using keywords in title, description, and tags."""
+        CATEGORY_KEYWORDS = {
+            "Technology": ["tech", "ai", "machine learning", "software", "hardware", "computer", "internet", "gadget", "robot", "cyber"],
+            "Business": ["business", "finance", "stock", "market", "economy", "startup", "trade", "investment", "company", "entrepreneur"],
+            "Entertainment": ["entertainment", "movie", "film", "music", "celebrity", "tv", "show", "game", "concert", "festival"],
+            "Sports": ["sport", "football", "soccer", "basketball", "tennis", "olympic", "athlete", "baseball", "golf", "match"],
+            "Health": ["health", "medicine", "medical", "doctor", "hospital", "wellness", "fitness", "disease", "nutrition", "vaccine"],
+            "Politics": ["politics", "government", "election", "policy", "law", "president", "minister", "congress", "senate", "vote"]
+        }
+        title = getattr(entry, 'title', '')
+        description = getattr(entry, 'ht_news_item_snippet', '') or getattr(entry, 'summary', '') or getattr(entry, 'description', '')
+        tags = []
+        if hasattr(entry, 'tags'):
+            for tag in entry.tags:
+                if hasattr(tag, 'term'):
+                    tags.append(tag.term.lower())
+        text = f"{title} {description} {' '.join(tags)}".lower()
+        scores = {cat: 0 for cat in CATEGORY_KEYWORDS}
+        for cat, keywords in CATEGORY_KEYWORDS.items():
+            for kw in keywords:
+                if kw in text:
+                    scores[cat] += 1
+        best_category = max(scores, key=scores.get)
+        return best_category if scores[best_category] > 0 else "General"
     
     def _extract_tags(self, entry) -> List[str]:
         """Extract tags from entry"""
