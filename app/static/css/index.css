@@ -1,3 +1,21 @@
+/* Inline row for label and input */
+.form-row-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.form-row-inline label {
+    min-width: 90px;
+    font-weight: 500;
+}
+.form-row-inline input {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
 /* Form row for login fields */
 .form-row {
     display: flex;
