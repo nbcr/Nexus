@@ -21,10 +21,7 @@ class CategoriesResponse(BaseModel):
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+        return session
 
 @router.get("/categories", response_model=CategoriesResponse)
 async def get_all_categories(db: AsyncSession = Depends(get_db)):
@@ -42,11 +39,6 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         logger.error(f"Error in /categories endpoint: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
 
 @router.get("/feed")
 async def get_personalized_feed(
