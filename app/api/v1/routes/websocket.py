@@ -90,12 +90,33 @@ async def websocket_feed_updates(websocket: WebSocket):
             logger.error(f"WebSocket token decode error: {e}")
     logger.info(f"WebSocket decoded payload: {payload}")
     username = payload.get("sub") if payload else None
-    if not username:
-        logger.warning(f"WebSocket rejected: missing or invalid token. Headers: {websocket.headers}")
-        await websocket.close(code=1008)
-        return
-    logger.info(f"WebSocket accepted for user: {username}")
-    await manager.connect(websocket)
+        if not username:
+            # Accept anonymous connection, track by visitor_id
+            cookie_header = websocket.headers.get("cookie", "")
+            visitor_id = None
+            for part in cookie_header.split(';'):
+                if "visitor_id=" in part:
+                    visitor_id = part.split("visitor_id=")[-1].strip()
+            logger.info(f"WebSocket accepted for anonymous visitor_id: {visitor_id}")
+            await manager.connect(websocket)
+            try:
+                await websocket.send_json({
+                    "type": "connected",
+                    "message": f"Connected to Nexus feed updates as anonymous visitor {visitor_id}",
+                    "timestamp": datetime.now().isoformat()
+                })
+                while True:
+                    data = await websocket.receive_text()
+                    if data == "ping":
+                        await websocket.send_json({"type": "pong"})
+            except WebSocketDisconnect:
+                manager.disconnect(websocket)
+            except Exception as e:
+                logger.error(f"WebSocket error: {e}")
+                manager.disconnect(websocket)
+            return
+        logger.info(f"WebSocket accepted for user: {username}")
+        await manager.connect(websocket)
     try:
         # Send initial connection confirmation
         await websocket.send_json({
