@@ -81,25 +81,33 @@ function handleAuth() {
  */
 async function handleLogout() {
     try {
+        // Call backend logout endpoint
+        await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
+
         // Clear cookies
-        document.cookie.split(";").forEach(function(c) { 
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+        document.cookie.split(';').forEach(function(c) {
+            document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
         });
-        
+
+        // Clear localStorage
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('darkMode');
+
         currentUser = null;
-        
+
         const welcomeEl = document.getElementById('user-welcome');
         const authBtn = document.getElementById('auth-btn');
-        
+
         if (welcomeEl) {
             welcomeEl.style.display = 'none';
         }
-        
+
         if (authBtn) {
             authBtn.textContent = 'Login';
             authBtn.onclick = handleAuth;
         }
-        
+
         // Redirect to dedicated logged out page
         window.location.href = "/logged-out.html";
     } catch (error) {
