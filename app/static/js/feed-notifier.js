@@ -15,7 +15,23 @@ class FeedNotifier {
         this.reconnectDelay = 2000;
         this.newContentCount = 0;
         
+        // Ensure persistent visitor/session tracking for all users
+        this.ensureSessionToken();
+        
         this.init();
+    }
+    
+    ensureSessionToken() {
+        let visitorId = null;
+        const match = document.cookie.match(/(?:^|; )visitor_id=([^;]*)/);
+        if (match) visitorId = match[1];
+        if (!visitorId) {
+            visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substr(2, 16) + Date.now());
+            const expires = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toUTCString(); // 2 years
+            document.cookie = `visitor_id=${visitorId}; expires=${expires}; path=/; SameSite=Lax`;
+        }
+        // Optionally store in localStorage for redundancy
+        localStorage.setItem('visitor_id', visitorId);
     }
     
     init() {
