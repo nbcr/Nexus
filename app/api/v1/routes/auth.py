@@ -1,3 +1,12 @@
+
+# ...existing code...
+
+router = APIRouter()
+
+@router.get("/debug")
+async def debug_auth_router():
+    return {"status": "auth router loaded"}
+
 @router.post("/logout")
 async def logout(response: Response):
     """Logout endpoint: clears access/refresh tokens"""
