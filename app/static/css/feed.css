@@ -523,6 +523,9 @@ body.dark-mode .feed-item-title {
 
 body.dark-mode .feed-item-description,
 body.dark-mode .feed-item-summary {
+    color: #fafafa !important;
+}
+body.dark-mode .feed-item-description {
     color: #b0b0b0;
 }
 
