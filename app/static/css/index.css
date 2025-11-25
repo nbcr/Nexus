@@ -10,7 +10,7 @@
     font-weight: 500;
 }
 .form-row-inline input {
-    flex: 1;
+    width: 220px;
     padding: 8px 12px;
     font-size: 16px;
     border-radius: 4px;
