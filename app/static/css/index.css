@@ -1,3 +1,19 @@
+.dark-mode-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 10001;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    background: #333;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+}
+.dark-mode-toggle:hover {
+    background: #222;
+}
 body.dark-mode.login-page .login-container {
     background: #222 !important;
     color: #fff;
