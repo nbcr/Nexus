@@ -72,6 +72,8 @@ async function checkAuthStatus() {
  * Handle authentication button click
  */
 function handleAuth() {
+    // Debug message for login button click
+    console.log('[DEBUG] Login button clicked');
     // Only redirect to login if not authenticated
     window.location.href = '/static/login.html';
 }
