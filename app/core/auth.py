@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.hash import bcrypt_sha256
+from passlib.handlers.bcrypt import bcrypt_sha256 as bcrypt_sha256_handler
+import logging
 from app.core.config import settings
 
 # Password hashing
@@ -13,10 +15,17 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def verify_password(plain_password, hashed_password):
     # Use bcrypt_sha256 for robust password verification
+    # Force backend to builtin to avoid C extension bug
+    bcrypt_sha256_handler.set_backend("builtin")
+    logger = logging.getLogger("uvicorn.error")
+    logger.info(f"bcrypt_sha256 backend: {bcrypt_sha256_handler.get_backend()}")
     return bcrypt_sha256.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
     # Use bcrypt_sha256 for robust password hashing
+    bcrypt_sha256_handler.set_backend("builtin")
+    logger = logging.getLogger("uvicorn.error")
+    logger.info(f"bcrypt_sha256 backend: {bcrypt_sha256_handler.get_backend()}")
     return bcrypt_sha256.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
