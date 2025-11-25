@@ -132,12 +132,23 @@ function initDarkMode() {
         // Use system preference
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.body.classList.add('dark-mode');
+            // Remove inline color from .feed-item-summary in dark mode
+            document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+                if (el.style.color) {
+                    el.style.removeProperty('color');
+                }
+            });
         }
         
         // Listen for system preference changes
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
             if (e.matches) {
                 document.body.classList.add('dark-mode');
+                document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+                    if (el.style.color) {
+                        el.style.removeProperty('color');
+                    }
+                });
             } else {
                 document.body.classList.remove('dark-mode');
             }
@@ -152,10 +163,20 @@ function initDarkMode() {
             localStorage.setItem('darkMode', 'true');
             if (toggleBtn) toggleBtn.textContent = '☀️';
             if (toggleLabel) toggleLabel.textContent = 'Dark Mode: On';
+            document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+                if (el.style.color) {
+                    el.style.removeProperty('color');
+                }
+            });
         } else if (savedPreference === 'true') {
             document.body.classList.add('dark-mode');
             if (toggleBtn) toggleBtn.textContent = '☀️';
             if (toggleLabel) toggleLabel.textContent = 'Dark Mode: On';
+            document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+                if (el.style.color) {
+                    el.style.removeProperty('color');
+                }
+            });
         } else {
             if (toggleBtn) toggleBtn.textContent = '🌙';
             if (toggleLabel) toggleLabel.textContent = 'Dark Mode: Off';
