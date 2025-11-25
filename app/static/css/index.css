@@ -1,3 +1,6 @@
+body.dark-mode div.feed-item-expanded-content div.content-inner p.feed-item-summary {
+    color: #fafafa !important;
+}
 body.dark-mode .feed-item-expanded-content .content-inner .feed-item-summary {
     color: #fafafa !important;
 }
