@@ -73,7 +73,7 @@ async function checkAuthStatus() {
  */
 function handleAuth() {
     // Only redirect to login if not authenticated
-    window.location.href = '/static/login.html';
+    window.location.href = '/login.html';
 }
 
 /**
