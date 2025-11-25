@@ -10,8 +10,17 @@ let currentUser = null;
  */
 async function checkAuthStatus() {
     try {
+        // Get access token from cookie or localStorage
+        let accessToken = null;
+        const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+        if (match) accessToken = match[1];
+        if (!accessToken && window.localStorage) {
+            accessToken = localStorage.getItem('access_token');
+        }
+        const headers = accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {};
         const response = await fetch('/api/v1/auth/me', {
-            credentials: 'include'
+            credentials: 'include',
+            headers
         });
         
         if (response.ok) {
