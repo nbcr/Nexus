@@ -1,3 +1,6 @@
+body.dark-mode.login-page {
+    background: #181818 !important;
+}
 /* Desktop centering for login page */
 body.login-page {
     display: flex;
