@@ -15,15 +15,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def verify_password(plain_password, hashed_password):
     # Use bcrypt_sha256 for robust password verification
-    # Force backend to builtin to avoid C extension bug
-    bcrypt_sha256_handler.set_backend("builtin")
     logger = logging.getLogger("uvicorn.error")
     logger.info(f"bcrypt_sha256 backend: {bcrypt_sha256_handler.get_backend()}")
     return bcrypt_sha256.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
     # Use bcrypt_sha256 for robust password hashing
-    bcrypt_sha256_handler.set_backend("builtin")
     logger = logging.getLogger("uvicorn.error")
     logger.info(f"bcrypt_sha256 backend: {bcrypt_sha256_handler.get_backend()}")
     return bcrypt_sha256.hash(password)
