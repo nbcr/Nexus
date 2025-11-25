@@ -19,10 +19,14 @@
         function setDarkMode() {
             if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
             }
         }
-        setDarkMode();
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkMode);
+        document.addEventListener('DOMContentLoaded', function() {
+            setDarkMode();
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkMode);
+        });
         setTimeout(function() {
             window.location.href = "/";
         }, 2500);
