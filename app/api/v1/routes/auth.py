@@ -39,6 +39,49 @@ async def get_db() -> AsyncSession:
         finally:
             await session.close()
 
+# --- Token Refresh Endpoint ---
+from datetime import timedelta
+from app.schemas import Token
+
+@router.post(
+    "/refresh",
+    response_model=Token,
+    responses={
+        200: {"description": "Successfully refreshed token"},
+        401: {"description": "Not authenticated"}
+    }
+)
+async def refresh_token(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    access_token: Optional[str] = Cookie(default=None)
+) -> Token:
+    """
+    Issue a new JWT if the user has a valid session (access_token cookie).
+    """
+    token = None
+    # Try to get token from cookie or Authorization header
+    if access_token:
+        token = access_token.replace('Bearer ', '')
+    else:
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header[7:]
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing token")
+    username = verify_token(token)
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    user = await get_user_by_username(db, username=username)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    access_token_expires = timedelta(minutes=30)
+    new_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires
+    )
+    return Token(access_token=new_token, token_type="bearer")
+
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Annotated[AsyncSession, Depends(get_db)]
