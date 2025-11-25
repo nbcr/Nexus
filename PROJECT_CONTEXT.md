@@ -37,37 +37,6 @@ echo "" | plink -batch admin@ec2-54-167-58-129.compute-1.amazonaws.com "sudo -u 
 3. Search query cards - PyTrends queries that open searches in new tabs (not article modals)
 4. Related content matching - links news articles with trending searches using keyword extraction and scoring
 
-**Recent Issues Resolved & New Fixes:**
----
-
-**2025-11-24: Header and Logged Out Button Styling**
-- Created a dedicated `.btn-hdr` class for header buttons in `index.css` and applied it to all header buttons in `index.html` for consistent styling.
-- Updated the logged out page button to use `.btn-hdr` for visual consistency with header buttons.
-- Removed previous generic `.btn` and `.logged-out-btn` classes from these buttons to avoid style conflicts.
-- Verified button alignment and appearance across header and logged out page.
----
-
-**2025-11-24: Logout Flow and Auth Button Fixes**
-- Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
-- Updated frontend logout logic to always redirect to `/logged-out.html` after logout, instead of the login page or reloading.
-- Changed the auth button in `index.html` from `<a href="/login">` to `<button>`, so JS controls navigation and prevents unwanted redirects.
-- Ensured the JS handler for the auth button always triggers the correct login/logout logic and label.
-- Verified and deployed these changes; logout now works as intended.
-- Fixed content endpoint returning 500 errors (NULL titles in database, needed `.all()` for result iteration, topic serialization)
-- Article endpoint was missing from old routes file - added manually
-- Article scraper returns fallback message when content extraction fails
-- Search query detection: checks for `pytrends` tag or search engine URLs to open in new tab vs. article modal
-- **Password hashing/authentication:**  
-  - Resolved persistent bcrypt 72-byte errors by switching to passlib’s `bcrypt_sha256` scheme for all password operations (OWASP-recommended).
-  - Removed all manual password encoding/truncation logic; always pass password as string.
-  - Pinned `bcrypt` to version 4.0.1 in requirements.txt to avoid compatibility issues with newer versions.
-  - Reinstalled dependencies and restarted backend service after pinning bcrypt.
-- **Categories Endpoint:**  
-  - Refactored `/categories` endpoint to a normal async function (no generator).
-  - Cleaned up imports and response models.
-  - Ensured all new `ContentItem` objects have a slug.
-  - Restarted backend service and checked logs after each fix.
-
 **Important Files:**
 - Routes: content.py (active), content.py (not used)
 - Frontend: index.html, feed.js
@@ -111,3 +80,45 @@ This file should be updated after every significant change, fix, or troubleshoot
 5. Restarted backend service after code changes.
 6. Checked logs after restart to confirm service is running and errors are resolved.
 7. Updated PROJECT_CONTEXT.md with new command pattern and troubleshooting steps.
+
+# 2025-11-24
+
+## Next Steps
+- Test logout flow to confirm session is fully cleared and user is redirected as expected.
+- Monitor for any further frontend/backend errors related to authentication or session management.
+
+---
+
+## Recent Issues Resolved & Bug Fixes
+
+**2025-11-24: Header and Logged Out Button Styling**
+- Created a dedicated `.btn-hdr` class for header buttons in `index.css` and applied it to all header buttons in `index.html` for consistent styling.
+- Updated the logged out page button to use `.btn-hdr` for visual consistency with header buttons.
+- Removed previous generic `.btn` and `.logged-out-btn` classes from these buttons to avoid style conflicts.
+- Verified button alignment and appearance across header and logged out page.
+
+**2025-11-24: Logout Flow and Auth Button Fixes**
+- Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
+- Updated frontend logout logic to always redirect to `/logged-out.html` after logout, instead of the login page or reloading.
+- Changed the auth button in `index.html` from `<a href="/login">` to `<button>`, so JS controls navigation and prevents unwanted redirects.
+- Ensured the JS handler for the auth button always triggers the correct login/logout logic and label.
+- Verified and deployed these changes; logout now works as intended.
+- Fixed content endpoint returning 500 errors (NULL titles in database, needed `.all()` for result iteration, topic serialization)
+- Article endpoint was missing from old routes file - added manually
+- Article scraper returns fallback message when content extraction fails
+- Search query detection: checks for `pytrends` tag or search engine URLs to open in new tab vs. article modal
+- **Password hashing/authentication:**
+  - Resolved persistent bcrypt 72-byte errors by switching to passlib’s `bcrypt_sha256` scheme for all password operations (OWASP-recommended).
+  - Removed all manual password encoding/truncation logic; always pass password as string.
+  - Pinned `bcrypt` to version 4.0.1 in requirements.txt to avoid compatibility issues with newer versions.
+  - Reinstalled dependencies and restarted backend service after pinning bcrypt.
+- **Categories Endpoint:**
+  - Refactored `/categories` endpoint to a normal async function (no generator).
+  - Cleaned up imports and response models.
+  - Ensured all new `ContentItem` objects have a slug.
+  - Restarted backend service and checked logs after each fix.
+- Fixed JS error in `logged-out.html` by moving dark mode and redirect script to end of file, ensuring `document.body` is available before accessing `.classList`.
+- Added POST `/api/v1/auth/logout` endpoint to backend (`auth.py`) to clear access/refresh tokens for proper logout support.
+- Committed, pushed, and redeployed backend changes. Logout endpoint is now live and should resolve frontend 404 errors.
+
+---
