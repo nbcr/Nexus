@@ -192,6 +192,14 @@ function initHeader() {
     initDarkMode();
     setVisitorIdCookie();
     checkAuthStatus();
+
+    // Always attach login button event listener
+    const authBtn = document.getElementById('auth-btn');
+    if (authBtn) {
+        authBtn.addEventListener('click', () => {
+            window.location.href = '/static/login.html';
+        });
+    }
 }
 
 // Auto-initialize if DOM is already loaded
