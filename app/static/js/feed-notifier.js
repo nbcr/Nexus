@@ -100,19 +100,28 @@ class FeedNotifier {
     
     connect() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/feed-updates`;
-        
+        // Try to get access token from cookies
+        let accessToken = null;
+        if (document.cookie) {
+            const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+            if (match) accessToken = match[1];
+        }
+        // Fallback: try localStorage
+        if (!accessToken && window.localStorage) {
+            accessToken = localStorage.getItem('access_token');
+        }
+        let wsUrl = `${protocol}//${window.location.host}/api/v1/ws/feed-updates`;
+        if (accessToken) {
+            wsUrl += `?token=${encodeURIComponent(accessToken)}`;
+        }
         console.log('🔌 Connecting to WebSocket:', wsUrl);
-        
         try {
             this.ws = new WebSocket(wsUrl);
-            
             this.ws.onopen = () => {
                 console.log('✅ WebSocket connected');
                 this.reconnectAttempts = 0;
                 this.startHeartbeat();
             };
-            
             this.ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
@@ -121,17 +130,14 @@ class FeedNotifier {
                     console.error('❌ Error parsing WebSocket message:', error);
                 }
             };
-            
             this.ws.onerror = (error) => {
                 console.error('❌ WebSocket error:', error);
             };
-            
             this.ws.onclose = () => {
                 console.log('🔌 WebSocket disconnected');
                 this.stopHeartbeat();
                 this.attemptReconnect();
             };
-            
         } catch (error) {
             console.error('❌ WebSocket connection error:', error);
             this.attemptReconnect();
