@@ -47,6 +47,14 @@
                 body: params.toString()
             });
             if (res.ok) {
+                // Store access token in cookie and localStorage
+                const data = await res.json();
+                if (data.access_token) {
+                    // Set cookie (expires in 30 days)
+                    document.cookie = `access_token=${data.access_token}; path=/; max-age=${60*60*24*30}`;
+                    // Also store in localStorage
+                    localStorage.setItem('access_token', data.access_token);
+                }
                 window.location.href = '/';
             } else {
                 let errorMsg = 'Login failed.';
