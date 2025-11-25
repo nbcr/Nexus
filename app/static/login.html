@@ -14,10 +14,14 @@
         <h2>Login to Nexus</h2>
         <div id="login-error" class="login-error"></div>
         <form id="login-form" autocomplete="off">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autofocus>
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+            <div class="form-row">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            <div class="form-row">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
             <div class="login-btn-row">
                 <button type="submit" class="login-btn">Login</button>
                 <button type="button" class="register-btn" onclick="window.location.href='/register'">Register</button>
