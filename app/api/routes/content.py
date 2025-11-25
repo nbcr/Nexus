@@ -19,6 +19,13 @@ router = APIRouter()
 class CategoriesResponse(BaseModel):
     categories: List[str]
 
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
 @router.get("/categories", response_model=CategoriesResponse)
 async def get_all_categories(db: AsyncSession = Depends(get_db)):
     """Return all unique categories from ContentItem and Topic tables."""
