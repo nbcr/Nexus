@@ -390,9 +390,12 @@ class TrendingService:
                     continue
                 
                 # No duplicate, create new content item
+                from app.utils.slug import generate_slug, generate_slug_from_url
+                slug = generate_slug(title) if title else generate_slug_from_url(url)
                 content_item = ContentItem(
                     topic_id=topic_id,
                     title=title,
+                    slug=slug,
                     description=news_item.get('snippet', ''),  # Add the snippet as description
                     category='News',  # Set category to News for news articles
                     content_type="news_update",
@@ -459,12 +462,18 @@ class TrendingService:
                         trend_data.get('description', '')
                     )
                     
+                    from app.utils.slug import generate_slug, generate_slug_from_url
+                    title = trend_data.get('title', '')
+                    url = trend_data.get('url', '')
+                    slug = generate_slug(title) if title else generate_slug_from_url(url)
                     content_item = ContentItem(
                         topic_id=existing_topic.id,
+                        title=title,
+                        slug=slug,
                         content_type="trending_analysis",
                         content_text=ai_summary,
                         ai_model_used="google_trends_analyzer_v1",
-                        source_urls=[trend_data.get('url', '')],
+                        source_urls=[url],
                         is_published=True
                     )
                     db.add(content_item)
@@ -493,12 +502,18 @@ class TrendingService:
                         trend_data.get('description', '')
                     )
                     
+                    from app.utils.slug import generate_slug, generate_slug_from_url
+                    title = trend_data.get('title', '')
+                    url = trend_data.get('url', '')
+                    slug = generate_slug(title) if title else generate_slug_from_url(url)
                     content_item = ContentItem(
                         topic_id=topic.id,
+                        title=title,
+                        slug=slug,
                         content_type="trending_analysis",
                         content_text=ai_summary,
                         ai_model_used="google_trends_analyzer_v1",
-                        source_urls=[trend_data.get('url', '')],
+                        source_urls=[url],
                         is_published=True
                     )
                     db.add(content_item)
