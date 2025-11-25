@@ -50,8 +50,12 @@ async def get_personalized_feed(
     # User authentication can be added later
     user_id = None
     
+    import logging
+    logger = logging.getLogger("uvicorn.error")
+    logger.info(f"Feed request: page={page}, category={category}, exclude_ids={exclude_ids}, cursor={cursor}")
     # Get personalized feed
     if category:
+        logger.info(f"Filtering feed by category: {category}")
         result = await recommendation_service.get_trending_feed(
             db=db,
             page=page,
