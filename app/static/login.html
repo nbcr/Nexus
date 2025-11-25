@@ -9,6 +9,7 @@
     <!-- Inline styles removed to allow external CSS to control layout, especially for mobile responsiveness -->
 </head>
 <body class="login-page">
+    <button id="darkModeToggle" class="dark-mode-toggle">Toggle Dark Mode</button>
     <div class="login-container">
         <h2>Login to Nexus</h2>
         <div id="login-error" class="login-error"></div>
@@ -22,6 +23,17 @@
         <button class="register-btn" onclick="window.location.href='/register'">Register</button>
     </div>
     <script>
+    // Dark mode toggle logic
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? '1' : '0');
+    });
+    // Restore dark mode from localStorage
+    if (localStorage.getItem('darkMode') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+
     document.getElementById('login-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const username = document.getElementById('username').value;
