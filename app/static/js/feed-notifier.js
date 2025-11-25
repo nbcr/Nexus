@@ -98,18 +98,39 @@ class FeedNotifier {
         document.body.appendChild(this.scrollButton);
     }
     
-    connect() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Try to get access token from cookies
+    async fetchFreshAccessToken() {
+        // Try to get a fresh token from backend (assumes /api/v1/auth/refresh or similar endpoint exists)
+        try {
+            const response = await fetch('/api/v1/auth/refresh', {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.access_token) {
+                    // Store fresh token in localStorage and cookie
+                    localStorage.setItem('access_token', data.access_token);
+                    document.cookie = `access_token=${data.access_token}; path=/; SameSite=Lax`;
+                    return data.access_token;
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch fresh access token:', err);
+        }
+        // Fallback to old method
         let accessToken = null;
         if (document.cookie) {
             const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
             if (match) accessToken = match[1];
         }
-        // Fallback: try localStorage
         if (!accessToken && window.localStorage) {
             accessToken = localStorage.getItem('access_token');
         }
+        return accessToken;
+    }
+
+    async connect() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        let accessToken = await this.fetchFreshAccessToken();
         let wsUrl = `${protocol}//${window.location.host}/api/v1/ws/feed-updates`;
         if (accessToken) {
             wsUrl += `?token=${encodeURIComponent(accessToken)}`;
