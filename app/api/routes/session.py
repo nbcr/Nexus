@@ -11,6 +11,8 @@ from app.services.session_service import (
     migrate_session_to_user,
     # Add a stub for interest tracking if not present
 )
+
+router = APIRouter()
 @router.post("/track-interest/{content_id}")
 async def track_content_interest(
     content_id: int,
