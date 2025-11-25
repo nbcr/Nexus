@@ -40,12 +40,10 @@ async function checkAuthStatus() {
             currentUser = await response.json();
             const welcomeEl = document.getElementById('user-welcome');
             const authBtn = document.getElementById('auth-btn');
-            
             if (welcomeEl) {
                 welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
                 welcomeEl.style.display = 'inline';
             }
-            
             if (authBtn) {
                 authBtn.textContent = 'Logout';
                 authBtn.onclick = handleLogout;
@@ -55,20 +53,21 @@ async function checkAuthStatus() {
             if (registerBtn) {
                 registerBtn.style.display = 'none';
             }
+        } else {
+            // User not authenticated - show login button and handler
+            const authBtn = document.getElementById('auth-btn');
+            if (authBtn) {
+                authBtn.textContent = 'Login';
+                authBtn.onclick = handleAuth;
+                console.log('[DEBUG] Attached login handler to auth button');
+            }
+            const registerBtn = document.getElementById('register-btn');
+            if (registerBtn) {
+                registerBtn.style.display = '';
+            }
         }
     } catch (error) {
         console.log('[DEBUG] Entered catch block in checkAuthStatus()', error);
-        // User not authenticated - show login button and handler
-        const authBtn = document.getElementById('auth-btn');
-        if (authBtn) {
-            authBtn.textContent = 'Login';
-            authBtn.onclick = handleAuth;
-            console.log('[DEBUG] Attached login handler to auth button');
-        }
-        const registerBtn = document.getElementById('register-btn');
-        if (registerBtn) {
-            registerBtn.style.display = '';
-        }
     }
 }
 
