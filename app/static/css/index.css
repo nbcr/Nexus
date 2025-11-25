@@ -1,3 +1,18 @@
+.btn-hdr {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-hdr:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
 .logged-out-btn {
     color: #fff;
     text-decoration: none;
