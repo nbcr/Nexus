@@ -38,6 +38,14 @@ echo "" | plink -batch admin@ec2-54-167-58-129.compute-1.amazonaws.com "sudo -u 
 4. Related content matching - links news articles with trending searches using keyword extraction and scoring
 
 **Recent Issues Resolved & New Fixes:**
+---
+
+**2025-11-24: Logout Flow and Auth Button Fixes**
+- Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
+- Updated frontend logout logic to always redirect to `/logged-out.html` after logout, instead of the login page or reloading.
+- Changed the auth button in `index.html` from `<a href="/login">` to `<button>`, so JS controls navigation and prevents unwanted redirects.
+- Ensured the JS handler for the auth button always triggers the correct login/logout logic and label.
+- Verified and deployed these changes; logout now works as intended.
 - Fixed content endpoint returning 500 errors (NULL titles in database, needed `.all()` for result iteration, topic serialization)
 - Article endpoint was missing from old routes file - added manually
 - Article scraper returns fallback message when content extraction fails
