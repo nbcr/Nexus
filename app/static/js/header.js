@@ -51,7 +51,12 @@ async function checkAuthStatus() {
             }
         }
     } catch (error) {
-        // User not authenticated - leave default login button
+        // User not authenticated - show login button and handler
+        const authBtn = document.getElementById('auth-btn');
+        if (authBtn) {
+            authBtn.textContent = 'Login';
+            authBtn.onclick = handleAuth;
+        }
     }
 }
 
