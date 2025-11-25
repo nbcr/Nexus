@@ -23,6 +23,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
   ```
 - Database: Use `db_setup.sh` and migration scripts for setup/updates
 - Always update and push `PROJECT_CONTEXT.md` after significant changes
+ - After updating files, always commit and push your changes to the repository
 - Test endpoint: `curl -s 'http://localhost:8000/api/v1/content/...'`
 - Check logs: `sudo tail -100 /home/nexus/nexus/logs/error.log`
 - Service status: `systemctl status nexus`
