@@ -1,3 +1,6 @@
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
 /* Inline row for label and input */
 .form-row-inline {
     display: flex;
@@ -42,6 +45,11 @@
     margin-bottom: 18px;
 }
 .login-btn {
+    }
+    .login-btn, .register-btn {
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
     padding: 10px 24px;
     border-radius: 6px;
     border: none;
