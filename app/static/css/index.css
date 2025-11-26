@@ -434,10 +434,12 @@ body {
             height: 100vh !important;
             background: #007bff !important;
             z-index: 9999 !important;
-            flex-direction: column;
-            align-items: flex-end;
-            padding: 60px 0 0 0;
-            box-shadow: 0 2px 16px #0002;
+            flex-direction: column !important;
+            align-items: flex-end !important;
+            padding: 60px 0 0 0 !important;
+            box-shadow: 0 2px 16px #0002 !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         .nav-links a,
         .nav-links button,
