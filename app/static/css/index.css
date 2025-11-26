@@ -136,7 +136,6 @@ body.dark-mode.login-page {
 /* Register button styles */
 .register-btn {
     width: auto;
-    margin-top: 0;
     padding: 10px 24px;
     border-radius: 6px;
     border: none;
