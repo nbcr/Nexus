@@ -63,20 +63,6 @@
 .login-btn:hover {
     background: var(--accent-hover, #005fa3);
 }
-.register-btn {
-    padding: 10px 24px;
-    border-radius: 6px;
-    border: none;
-    background: #eee;
-    color: #222;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-size: 16px;
-}
-.register-btn:hover {
-    background: #e0e0e0;
-}
 .social-login-row {
     display: flex;
     gap: 10px;
