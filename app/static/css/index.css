@@ -8,7 +8,7 @@
     margin-bottom: 16px;
     width: 100%;
     max-width: 400px;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
 .form-row-inline label {
     min-width: 90px;
@@ -80,9 +80,7 @@
         }
 
         .form-row-inline input {
-    flex: 1 1 220px;
-    min-width: 180px;
-    max-width: 220px;
+    width: 220px;
     padding: 8px;
     border-radius: 4px;
     border: 1px solid #ccc;
@@ -90,6 +88,8 @@
     line-height: 1.5;
     vertical-align: middle;
     margin-left: 0;
+    /* Align right edge of all fields */
+    box-sizing: border-box;
 }
 /* Removed stray background property */
 }
