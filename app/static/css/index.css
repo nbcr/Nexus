@@ -551,3 +551,10 @@ body.dark-mode footer {
         justify-content: space-between;
     }
 }
+
+/* Centering for Login to Nexus heading */
+body.login-page .login-container h2,
+body.login-page .login-container h1 {
+    text-align: center;
+    width: 100%;
+}
