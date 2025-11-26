@@ -322,7 +322,7 @@ body {
 }
 
 .hamburger {
-    display: none;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -342,9 +342,18 @@ body {
     transition: 0.3s;
 }
 .nav-links {
-    display: flex;
-    gap: 12px;
-    align-items: center;
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    align-items: flex-end;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: #007bff;
+    width: 220px;
+    padding: 16px 0;
+    border-radius: 0 0 0 12px;
+    box-shadow: 0 2px 16px #0002;
 }
 @media (max-width: 900px) {
     .main-header nav {
