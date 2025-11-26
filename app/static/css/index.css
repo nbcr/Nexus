@@ -357,14 +357,16 @@ body {
     flex-direction: column;
     gap: 0;
     align-items: flex-end;
-    position: absolute;
-    top: 60px;
+    position: fixed;
+    top: 0;
     right: 0;
     background: #007bff;
-    width: 220px;
-    padding: 16px 0;
+    width: 260px;
+    height: 100vh;
+    padding: 60px 0 0 0;
     border-radius: 0 0 0 12px;
     box-shadow: 0 2px 16px #0002;
+    z-index: 9999;
 }
 @media (max-width: 900px) {
     .main-header nav {
