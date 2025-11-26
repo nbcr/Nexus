@@ -23,7 +23,25 @@ from fastapi.responses import FileResponse
 
 @app.get("/login", include_in_schema=False)
 async def login_page():
-    return FileResponse("app/static/login.html")
+    from fastapi import Request
+    from fastapi.responses import RedirectResponse
+    from app.core.auth import verify_token
+    def get_token_from_cookie(request: Request):
+        cookie = request.cookies.get('access_token')
+        if cookie:
+            return cookie
+        return None
+    def get_token_from_header(request: Request):
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            return auth_header.split(' ', 1)[1]
+        return None
+    async def _login_page(request: Request):
+        token = get_token_from_cookie(request) or get_token_from_header(request)
+        if token and verify_token(token):
+            return RedirectResponse(url="/")
+        return FileResponse("app/static/login.html")
+    return await _login_page
 
 @app.get("/register", include_in_schema=False)
 async def register_page():
