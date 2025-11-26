@@ -398,8 +398,9 @@ body {
         border: none;
         color: #fff;
     }
+    /* Hamburger is always visible */
     .hamburger {
-        display: none;
+        display: flex;
     }
     }
 
