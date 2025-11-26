@@ -8,7 +8,7 @@
 }
 .social-login-columns {
     display: flex;
-    gap: 16px;
+    gap: 0;
     justify-content: center;
     margin-top: 18px;
 }
@@ -16,6 +16,12 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+}
+.social-login-col:first-child {
+    margin-right: 8px;
+}
+.social-login-col:last-child {
+    margin-left: 8px;
 }
 .facebook-btn { background: #1877F3; color: #fff; }
 .login-btn-row {
