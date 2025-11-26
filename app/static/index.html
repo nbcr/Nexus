@@ -49,8 +49,12 @@
             if (hamburger && navLinks) {
                 hamburger.addEventListener('click', function() {
                     console.log('Hamburger clicked!');
-                    navLinks.classList.toggle('open');
-                    hamburger.classList.toggle('open');
+                    const isOpen = hamburger.classList.toggle('open');
+                    if (isOpen) {
+                        navLinks.classList.add('open');
+                    } else {
+                        navLinks.classList.remove('open');
+                    }
                 });
                 // Close menu on link click (UX)
                 navLinks.querySelectorAll('a,button').forEach(el => {
