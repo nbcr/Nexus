@@ -607,6 +607,9 @@ footer {
 
 /* Dark Mode Styles */
 body.dark-mode {
+    body.dark-mode .hamburger .bar {
+        background: #e0e0e0;
+    }
     background: #1a1a1a;
     color: #e0e0e0;
 }
