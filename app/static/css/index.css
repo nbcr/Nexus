@@ -11,21 +11,15 @@
     gap: 16px;
     justify-content: center;
     margin-top: 18px;
-    max-width: 440px;
+    width: 440px;
     margin-left: auto;
     margin-right: auto;
-    width: 100%;
 }
 .social-login-col {
     display: flex;
     flex-direction: column;
     gap: 16px;
-}
-.social-login-col:first-child {
-    margin-right: 8px;
-}
-.social-login-col:last-child {
-    margin-left: 8px;
+    width: 212px;
 }
 .facebook-btn { background: #1877F3; color: #fff; }
 .login-btn-row {
@@ -33,18 +27,11 @@
     gap: 16px;
     justify-content: center;
     margin-bottom: 18px;
-    max-width: 440px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
 }
-
-.login-btn, .register-btn,
-.social-login-col button {
-    min-width: 210px;
-    max-width: 210px;
-    width: 210px;
-    margin: 0;
+.login-btn, .register-btn {
+    min-width: 0;
+    max-width: none;
+    width: auto;
 }
 
 .login-btn {
