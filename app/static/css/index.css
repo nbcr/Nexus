@@ -341,6 +341,16 @@ body {
     border-radius: 2px;
     transition: 0.3s;
 }
+/* Hamburger open (X) animation */
+.hamburger.open .bar:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+.hamburger.open .bar:nth-child(2) {
+    opacity: 0;
+}
+.hamburger.open .bar:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
 .nav-links {
     display: none;
     flex-direction: column;
@@ -426,6 +436,11 @@ body {
             border: none;
             color: #fff;
         }
+            /* Make hamburger more visible on mobile */
+            .hamburger {
+                background: #007bff;
+                border-radius: 8px;
+            }
     }
 
 .main-header nav a,
