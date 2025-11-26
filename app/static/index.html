@@ -48,6 +48,7 @@
             const navLinks = document.getElementById('nav-links');
             if (hamburger && navLinks) {
                 hamburger.addEventListener('click', function() {
+                    console.log('Hamburger clicked!');
                     navLinks.classList.toggle('open');
                     hamburger.classList.toggle('open');
                 });
