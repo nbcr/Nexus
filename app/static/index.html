@@ -13,17 +13,51 @@
         <div class="container">
             <h1>🚀 Nexus - The Ai News Portal</h1>
             <nav>
-                <span id="user-welcome" class="user-welcome"></span>
-                <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌙</button>
-                <span id="dark-mode-label" class="dark-mode-label">Dark Mode: Off</span>
-                <a href="/" class="active">Feed</a>
-                <a href="/history.html">History</a>
-                <button id="auth-btn" class="btn-hdr">Login</button>
-                <button id="register-btn" class="btn-hdr" onclick="window.location.href='/register'">Register</button>
+                <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <div class="nav-links" id="nav-links">
+                    <span id="user-welcome" class="user-welcome"></span>
+                    <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌙</button>
+                    <span id="dark-mode-label" class="dark-mode-label">Dark Mode: Off</span>
+                    <a href="/" class="active">Feed</a>
+                    <a href="/history.html">History</a>
+                    <a href="/privacy.html">Privacy Policy</a>
+                    <a href="/admin.html" id="admin-link" style="display:none;">Admin</a>
+                    <button id="auth-btn" class="btn-hdr">Login</button>
+                    <button id="register-btn" class="btn-hdr" onclick="window.location.href='/register'">Register</button>
+                </div>
             </nav>
         </div>
     </header>
 
+    <script>
+        // Show admin link if user is admin
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (user && user.is_admin) {
+                    document.getElementById('admin-link').style.display = 'block';
+                }
+            } catch (e) {}
+        });
+    // Hamburger menu toggle
+    const hamburger = document.getElementById('hamburger-menu');
+    const navLinks = document.getElementById('nav-links');
+    hamburger.addEventListener('click', function() {
+        navLinks.classList.toggle('open');
+        hamburger.classList.toggle('open');
+    });
+    // Close menu on link click (mobile UX)
+    navLinks.querySelectorAll('a,button').forEach(el => {
+        el.addEventListener('click', () => {
+            navLinks.classList.remove('open');
+            hamburger.classList.remove('open');
+        });
+    });
+    </script>
     <main>
         <!-- Category Filter -->
         <div class="feed-controls">
