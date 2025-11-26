@@ -11,7 +11,8 @@
     gap: 8px;
     justify-content: center;
     margin-top: 18px;
-    width: 440px;
+    width: 500px;
+    max-width: 500px;
     margin-left: auto;
     margin-right: auto;
 }
@@ -19,7 +20,7 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    width: 212px;
+    width: 244px;
 }
 .facebook-btn { background: #1877F3; color: #fff; }
 .login-btn-row {
@@ -27,6 +28,10 @@
     gap: 16px;
     justify-content: center;
     margin-bottom: 18px;
+    width: 500px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 .login-btn, .register-btn {
     min-width: 0;
