@@ -48,6 +48,16 @@
             margin-bottom: 16px;
         }
 
+        .form-row-inline {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 400px;
+    justify-content: center;
+    position: relative;
+}
+
         .form-row-inline label {
     min-width: 120px;
     margin-right: 16px;
@@ -66,8 +76,9 @@
     line-height: 1.5;
     vertical-align: middle;
     margin-left: 0;
-    /* Align right edge of all fields */
     box-sizing: border-box;
+    position: absolute;
+    right: 0;
 }
 
 .microsoft-btn { background: #2F2F2F; color: #fff; }
