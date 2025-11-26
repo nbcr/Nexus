@@ -316,6 +316,9 @@ body {
 
 .main-header nav {
     display: flex;
+    overflow: visible !important;
+    position: relative;
+    z-index: 1000;
     gap: 12px;
     align-items: center;
     position: relative;
@@ -440,6 +443,7 @@ body {
             box-shadow: 0 2px 16px #0002 !important;
             opacity: 1 !important;
             visibility: visible !important;
+            overflow: visible !important;
         }
         .nav-links a,
         .nav-links button,
