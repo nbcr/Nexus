@@ -34,29 +34,32 @@
     </header>
 
     <script>
-        // Show admin link if user is admin
         document.addEventListener('DOMContentLoaded', function() {
+            // Show admin link if user is admin
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (user && user.is_admin) {
                     document.getElementById('admin-link').style.display = 'block';
                 }
             } catch (e) {}
+
+            // Hamburger menu toggle
+            const hamburger = document.getElementById('hamburger-menu');
+            const navLinks = document.getElementById('nav-links');
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', function() {
+                    navLinks.classList.toggle('open');
+                    hamburger.classList.toggle('open');
+                });
+                // Close menu on link click (UX)
+                navLinks.querySelectorAll('a,button').forEach(el => {
+                    el.addEventListener('click', () => {
+                        navLinks.classList.remove('open');
+                        hamburger.classList.remove('open');
+                    });
+                });
+            }
         });
-    // Hamburger menu toggle
-    const hamburger = document.getElementById('hamburger-menu');
-    const navLinks = document.getElementById('nav-links');
-    hamburger.addEventListener('click', function() {
-        navLinks.classList.toggle('open');
-        hamburger.classList.toggle('open');
-    });
-    // Close menu on link click (mobile UX)
-    navLinks.querySelectorAll('a,button').forEach(el => {
-        el.addEventListener('click', () => {
-            navLinks.classList.remove('open');
-            hamburger.classList.remove('open');
-        });
-    });
     </script>
     <main>
         <!-- Category Filter -->
