@@ -14,12 +14,12 @@
     max-width: 440px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
 }
 .social-login-col {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    flex: 1;
 }
 .social-login-col:first-child {
     margin-right: 8px;
@@ -36,9 +36,18 @@
     max-width: 440px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
 }
 
-.login-btn, .register-btn {
+.login-btn, .register-btn,
+.social-login-col button {
+    min-width: 210px;
+    max-width: 210px;
+    width: 210px;
+    margin: 0;
+}
+
+.login-btn {
     height: 44px;
     display: inline-flex;
     align-items: center;
