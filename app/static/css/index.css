@@ -8,14 +8,18 @@
 }
 .social-login-columns {
     display: flex;
-    gap: 0;
+    gap: 16px;
     justify-content: center;
     margin-top: 18px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
 }
 .social-login-col {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    flex: 1;
 }
 .social-login-col:first-child {
     margin-right: 8px;
@@ -29,6 +33,9 @@
     gap: 16px;
     justify-content: center;
     margin-bottom: 18px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .login-btn, .register-btn {
