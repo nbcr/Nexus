@@ -5,6 +5,9 @@
 
 This file tracks the current project context, architecture, deployment details, recent fixes, and any ongoing issues or changes. It should be updated after every significant change or troubleshooting step.
 
+**Instructions:**
+Always append new changes, fixes, or updates to the bottom of the file (below the most recent entry), without rewriting or modifying previous information. This ensures a complete historical record and avoids accidental loss of context.
+
 ---
 
 ## Project Context: Nexus - AI News Portal
@@ -105,7 +108,18 @@ This file should be updated after every significant change, fix, or troubleshoot
 
 ### 2025-11-24 22:00:00 UTC: Logout Flow and Auth Button Fixes
 
+
 - Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
+### 2025-11-27 15:00 UTC: Hamburger Menu and UI Redesign
+
+- Refactored hamburger menu to use icon-above-text layout, touch-friendly spacing, and grid layout (2 icons per row, no borders).
+- Moved Privacy Policy, Terms, and History links to a new sidebar-based settings page (`settings.html`).
+- Added quick links to Feed, Settings, Profile, and Admin in the menu.
+- Added a dark mode toggle to the hamburger menu for mobile; ensured only one toggle is visible at a time.
+- Fixed CSS: moved all `.nav-links.open` child rules to top-level selectors and duplicated styles for each selector for browser compatibility.
+- Updated menu item styles for proper spacing, alignment, and responsiveness.
+- Updated TODO.md to include profile page and settings page tasks.
+- Committed and pushed all changes after each edit; stopped auto-restarting the service after every change.
 - Updated frontend logout logic to always redirect to `/logged-out.html` after logout, instead of the login page or reloading.
 - Changed the auth button in `index.html` from `<a href="/login">` to `<button>`, so JS controls navigation and prevents unwanted redirects.
 - Ensured the JS handler for the auth button always triggers the correct login/logout logic and label.
