@@ -404,7 +404,7 @@ body {
     min-height: 72px;
     font-size: 17px;
     padding: 18px 0 10px 0;
-    border: none;
+    border: none !important;
     background: transparent;
     color: #fff;
     font-family: inherit;
@@ -449,7 +449,83 @@ body {
     .main-header nav {
         flex-direction: row;
     }
-    /* Only keep .main-header nav flex-direction: row for mobile */
+    .nav-links {
+        position: absolute;
+        top: 60px;
+        right: 0;
+        background: #007bff;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+        width: 220px;
+        padding: 16px 0;
+        border-radius: 0 0 0 12px;
+        box-shadow: 0 2px 16px #0002;
+        display: none;
+    }
+    .nav-links.open {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px 0;
+        align-items: stretch;
+        justify-items: center;
+        width: 260px;
+        min-width: 160px;
+        max-width: 90vw;
+        padding: 16px 0;
+        background: #007bff;
+        border-radius: 0 0 0 12px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        position: absolute;
+        top: 60px;
+        right: 0;
+        z-index: 9999;
+    }
+    .nav-links.open a,
+    .nav-links.open button,
+    .nav-links.open #admin-link {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 16px 24px;
+        font-size: 18px;
+        background: transparent;
+        border: none;
+        color: #fff;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+        letter-spacing: 0.02em;
+        border-radius: 0;
+        box-shadow: none;
+        font-family: inherit;
+        margin: 0;
+        outline: none;
+        font-weight: 500;
+    }
+    .nav-links.open a:hover,
+    .nav-links.open button:hover,
+    .nav-links.open #admin-link:hover {
+        background: #26324a;
+        color: #ffd700;
+    }
+    .nav-links.open a:last-child,
+    .nav-links.open button:last-child,
+    .nav-links.open #admin-link:last-child {
+        border-bottom: none;
+    }
+    .nav-links a,
+    .nav-links button,
+    #admin-link {
+        width: 100%;
+        text-align: right;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 0;
+        background: transparent;
+        border: none;
+        color: #fff;
+    }
     /* Hamburger is always visible */
     .hamburger {
         display: flex;
