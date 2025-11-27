@@ -1,3 +1,11 @@
+# 2025-11-27 18:00 UTC: CSS Cleanup and Consolidation
+
+- Removed all duplicate blocks for .main-header, .main-header .container, .main-header nav, .nav-links, .nav-links.open, button, and .hamburger in index.css, keeping only the most complete and correct version for each selector.
+- Removed all !important rules from these blocks to allow proper JS and CSS control.
+- Fixed color contrast by removing global body { color: #fff; } and setting .main-header .container { color: #000; } to prevent white text on white backgrounds.
+- Consolidated button styles for consistency and removed unnecessary overrides.
+- Verified no CSS errors remain after cleanup.
+- Committed and pushed changes as per workflow; service restart is handled automatically by the push.
 # Nexus Project Context
 
 > **Agent Instruction:**
