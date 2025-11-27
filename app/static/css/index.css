@@ -356,7 +356,7 @@ button {
     background: #3498db;
     color: #fff;
     border: none;
-    border-radius: 6px;
+     display: none;
     padding: 8px 16px;
     font-size: 16px;
     cursor: pointer;
