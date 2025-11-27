@@ -372,46 +372,49 @@ body {
     display: none;
 }
 .nav-links.open {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex !important;
+    flex-wrap: wrap;
+    flex-direction: row;
     gap: 8px 0;
     align-items: stretch;
-    justify-items: center;
-    position: absolute;
-    top: 60px;
-    right: 0;
+    justify-content: center;
+    z-index: 9999;
     background: #1a2332;
-    width: 220px;
+    width: 260px;
     height: auto;
     padding: 12px 0;
     border-radius: 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    .nav-links.open a,
-    .nav-links.open button,
-    .nav-links.open #admin-link {
-           border-radius: 14px;
-           margin: 0;
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           gap: 6px;
-           box-shadow: none;
-           min-height: 72px;
-           font-size: 17px;
-           padding: 12px 0 8px 0;
-           border: none;
-    }
-    .menu-icon {
-        font-size: 32px;
-        margin-bottom: 4px;
-        color: #ffd700;
-        display: block;
-    }
-    .menu-label {
-        font-size: 15px;
-        color: #fff;
-        text-align: center;
-        display: block;
+
+.nav-links.open a,
+.nav-links.open button,
+.nav-links.open #admin-link {
+    border-radius: 14px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    box-shadow: none;
+    min-height: 72px;
+    font-size: 17px;
+    padding: 12px 0 8px 0;
+    border: none;
+    width: 100%;
+    justify-content: center;
+}
+
+.nav-links.open .menu-icon {
+    font-size: 32px;
+    margin-bottom: 4px;
+    color: #ffd700;
+    display: block;
+}
+.nav-links.open .menu-label {
+    font-size: 15px;
+    color: #fff;
+    text-align: center;
+    display: block;
     }
     .nav-links.open a:hover,
     .nav-links.open button:hover,
@@ -435,7 +438,6 @@ body {
         color: #ffd700;
         flex-shrink: 0;
     }
-    z-index: 9999;
 }
 @media (max-width: 900px) {
     .main-header nav {
@@ -456,10 +458,12 @@ body {
         display: none;
     }
     .nav-links.open {
-        display: flex !important;
-        flex-direction: column;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px 0;
         align-items: stretch;
-        width: 200px;
+        justify-items: center;
+        width: 260px;
         min-width: 160px;
         max-width: 90vw;
         padding: 16px 0;
