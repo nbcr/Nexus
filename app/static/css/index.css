@@ -329,9 +329,6 @@ body {
     align-items: center;
 }
 
-.nav-links {
-    display: none;
-}
 
 .nav-links.open {
     display: grid;
@@ -922,10 +919,7 @@ body.dark-mode footer {
         align-items: flex-start;
     }
     
-    .main-header nav {
-        width: 100%;
-        justify-content: space-between;
-    }
+    /* Removed duplicate .main-header nav rule */
 }
 
 /* Centering for Login to Nexus heading */
