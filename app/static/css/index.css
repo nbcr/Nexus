@@ -388,21 +388,20 @@ body {
 
 .nav-links.open a,
 .nav-links.open button,
-.nav-links.open #admin-link {
-    border-radius: 14px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    box-shadow: none;
-    min-height: 72px;
-    font-size: 17px;
-    padding: 12px 0 8px 0;
-    border: none;
-    width: 100%;
+     display: flex !important;
+     flex-wrap: wrap;
+     flex-direction: row;
+     gap: 0;
+     align-items: flex-start;
+     justify-content: flex-start;
+     z-index: 9999;
+     background: #1a2332;
+     width: 260px;
+     height: auto;
+     padding: 12px 0;
+     border-radius: 18px;
+     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
     justify-content: center;
-}
 
 .nav-links.open .menu-icon {
     font-size: 32px;
