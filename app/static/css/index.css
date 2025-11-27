@@ -369,7 +369,7 @@ body {
     transform: translateY(-8px) rotate(-45deg);
 }
 .nav-links {
-    display: none;
+    display: none !important;
 }
 .nav-links.open {
     display: grid !important;
