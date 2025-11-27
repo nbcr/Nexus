@@ -222,6 +222,23 @@ function initHeader() {
     initDarkMode();
     setVisitorIdCookie();
     checkAuthStatus();
+
+    // Hamburger menu toggle logic
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.querySelector('.nav-links');
+    if (hamburger && navLinks) {
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            navLinks.classList.toggle('open');
+        });
+
+        // Close menu when clicking outside
+        document.body.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-links') && !e.target.closest('#hamburger')) {
+                navLinks.classList.remove('open');
+            }
+        });
+    }
 }
 
 // Auto-initialize if DOM is already loaded
