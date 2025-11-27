@@ -357,6 +357,10 @@ body {
 }
 .nav-links {
     display: none;
+}
+.nav-links.open {
+    display: flex !important;
+}
     flex-direction: column;
     gap: 0;
     align-items: flex-end;
@@ -390,7 +394,7 @@ body {
         display: none;
     }
     .nav-links.open {
-        display: flex;
+           display: flex !important;
     }
     .nav-links a,
     .nav-links button,
