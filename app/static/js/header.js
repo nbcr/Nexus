@@ -189,6 +189,10 @@ function initDarkMode() {
  */
 function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
+}
+
+// Expose dark mode toggle globally for inline script
+window.toggleDarkMode = toggleDarkMode;
     const isDark = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDark);
     
