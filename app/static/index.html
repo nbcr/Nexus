@@ -48,13 +48,10 @@
             const navLinks = document.getElementById('nav-links');
             if (hamburger && navLinks) {
                 hamburger.addEventListener('click', function() {
-                    console.log('Hamburger clicked!');
-                    const isOpen = hamburger.classList.toggle('open');
-                    if (isOpen) {
-                        navLinks.classList.add('open');
-                    } else {
-                        navLinks.classList.remove('open');
-                    }
+                    const nowOpen = !navLinks.classList.contains('open');
+                    hamburger.classList.toggle('open', nowOpen);
+                    navLinks.classList.toggle('open', nowOpen);
+                    console.log('Hamburger clicked! navLinks open:', nowOpen);
                 });
                 // Close menu on link click (UX)
                 navLinks.querySelectorAll('a,button').forEach(el => {
