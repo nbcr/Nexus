@@ -1,3 +1,12 @@
+/* Generic container styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
 /* Removed orphaned class and stray properties at the top */
 /* Form row for login fields */
 .form-row {
@@ -44,7 +53,7 @@
     display: inline-flex;
     align-items: center;
     padding: 10px 24px;
-     display: flex;
+     display: flex !important;
      flex-direction: column;
      align-items: stretch;
      width: 200px;
@@ -137,11 +146,11 @@ body.dark-mode.login-page .login-container {
     background: #222;
 }
 body.dark-mode.login-page .login-container {
-    background: #222;
+    background: #222 !important;
     color: #fff;
 }
 body.dark-mode.login-page {
-    background: #181818;
+    background: #181818 !important;
 }
 /* Desktop centering for login page */
 body.login-page {
@@ -315,18 +324,17 @@ body {
 }
 
 .main-header .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
     background: transparent;
+    padding: 0 20px;
     box-shadow: none;
     border-radius: 0;
-    color: #000; /* Ensure readable text on white backgrounds */
+}
+
+header.main-header .container {
+    background: transparent;
+    padding: 0 20px;
+    box-shadow: none;
+    border-radius: 0;
 }
 
 .main-header nav {
@@ -565,7 +573,7 @@ button {
         display: none;
     }
     .nav-links.open {
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         align-items: stretch;
         width: 200px;
