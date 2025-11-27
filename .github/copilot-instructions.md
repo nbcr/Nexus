@@ -1,7 +1,7 @@
 # Copilot Instructions for Nexus
 
 > **Agent Instruction:**
-> Always review and follow the latest instructions, workflow, troubleshooting steps, and update conventions in the `PROJECT_CONTEXT.md` file before making any changes or answering questions. Re-read this file after any edit or when context may have changed.
+> Always review and follow the latest instructions, workflow, troubleshooting steps, and update conventions in the `PROJECT_CONTEXT.md` file before making any changes or answering questions. Re-read `PROJECT_CONTEXT.md` after any edit or when context may have changed.
 
 ## Project Overview & Context
 Nexus is a FastAPI-based AI news aggregation and personalization platform deployed on AWS EC2. It fetches trending Canadian news and provides personalized recommendations using session-based tracking and JWT authentication. The backend runs as a systemd service (`nexus.service`) under the `nexus` user.
