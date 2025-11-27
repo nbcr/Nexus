@@ -185,3 +185,18 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Removed stray property blocks and closing braces that caused CSS syntax errors.
 - Verified that all lint/compile errors are resolved and CSS is valid.
 - Committed and pushed changes to the repo as per workflow.
+
+# 2025-11-27 20:00 UTC: Hamburger Menu Toggle Bug Fixes
+- Investigated double toggling of the hamburger menu due to duplicate event listeners in the inline script in `index.html`.
+- Removed the duplicate hamburger click event listener, ensuring only one listener is present for correct menu open/close behavior.
+- Verified that the menu now toggles correctly with a single click.
+- Restored the correct event listener after user feedback, ensuring menu functionality is preserved.
+
+# 2025-11-27 21:00 UTC: Menu Layout and Cleanup
+- Updated `.nav-links.open` in `index.css` to use flexbox with wrapping and 50% width for child items, resulting in two items per row for improved menu layout.
+- Removed the dark mode label and moon icon button from the menu in `index.html` for a cleaner appearance.
+- Committed and pushed all changes to the repository to maintain a clear history for easy reversion.
+
+# Next: Menu Layout Update
+- User requested to update the menu layout so that menu items display two per row.
+- Will update CSS for `.nav-links.open` to use a grid layout with two columns, ensuring all menu items are arranged in two-item rows for improved usability and appearance.
