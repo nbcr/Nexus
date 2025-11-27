@@ -375,7 +375,7 @@ body {
     display: flex !important;
     flex-direction: column;
     gap: 0;
-    align-items: flex-end;
+    align-items: center;
     position: absolute;
     top: 60px;
     right: 0;
