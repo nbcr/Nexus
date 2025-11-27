@@ -34,16 +34,6 @@
     </header>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-                            hamburger.addEventListener('click', function() {
-                                const nowOpen = !navLinks.classList.contains('open');
-                                hamburger.classList.toggle('open', nowOpen);
-                                navLinks.classList.toggle('open', nowOpen);
-                                if (darkToggleHeader) {
-                                    darkToggleHeader.style.display = nowOpen ? 'none' : '';
-                                }
-                                console.log('Hamburger clicked! navLinks open:', nowOpen);
-                            });
             // Show admin link if user is admin
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
