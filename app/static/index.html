@@ -25,6 +25,7 @@
                     <span id="user-welcome" class="user-welcome"></span>
                     <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌙</button>
                     <span id="dark-mode-label" class="dark-mode-label">Dark: Off</span>
+                    <button id="dark-mode-toggle-menu" class="menu-quick"><span class="menu-icon">🌗</span><span class="menu-label">Dark</span></button>
                     <a href="/" class="active menu-quick"><span class="menu-icon">🏠</span><span class="menu-label">Feed</span></a>
                     <a href="/settings.html" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
                     <a href="/profile.html" class="menu-quick"><span class="menu-icon">👤</span><span class="menu-label">Profile</span></a>
@@ -48,6 +49,15 @@
             const hamburger = document.getElementById('hamburger-menu');
             const navLinks = document.getElementById('nav-links');
             if (hamburger && navLinks) {
+                // Dark mode toggle in menu
+                const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
+                if (darkToggleMenu) {
+                    darkToggleMenu.addEventListener('click', function() {
+                        toggleDarkMode();
+                        navLinks.classList.remove('open');
+                        hamburger.classList.remove('open');
+                    });
+                }
                 hamburger.addEventListener('click', function() {
                     const nowOpen = !navLinks.classList.contains('open');
                     hamburger.classList.toggle('open', nowOpen);
