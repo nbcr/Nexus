@@ -23,8 +23,6 @@
                 </button>
                 <div class="nav-links" id="nav-links">
                     <span id="user-welcome" class="user-welcome"></span>
-                    <button id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌙</button>
-                    <span id="dark-mode-label" class="dark-mode-label">Dark: Off</span>
                     <button id="dark-mode-toggle-menu" class="menu-quick"><span class="menu-icon">🌗</span><span class="menu-label">Dark</span></button>
                     <a href="/" class="active menu-quick"><span class="menu-icon">🏠</span><span class="menu-label">Feed</span></a>
                     <a href="/settings.html" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
@@ -37,6 +35,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+                            hamburger.addEventListener('click', function() {
+                                const nowOpen = !navLinks.classList.contains('open');
+                                hamburger.classList.toggle('open', nowOpen);
+                                navLinks.classList.toggle('open', nowOpen);
+                                if (darkToggleHeader) {
+                                    darkToggleHeader.style.display = nowOpen ? 'none' : '';
+                                }
+                                console.log('Hamburger clicked! navLinks open:', nowOpen);
+                            });
             // Show admin link if user is admin
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
@@ -68,12 +75,6 @@
                         hamburger.classList.remove('open');
                     });
                 }
-                hamburger.addEventListener('click', function() {
-                    const nowOpen = !navLinks.classList.contains('open');
-                    hamburger.classList.toggle('open', nowOpen);
-                    navLinks.classList.toggle('open', nowOpen);
-                    console.log('Hamburger clicked! navLinks open:', nowOpen);
-                });
                 // Close menu on link click (UX)
                 navLinks.querySelectorAll('a,button').forEach(el => {
                     el.addEventListener('click', () => {
