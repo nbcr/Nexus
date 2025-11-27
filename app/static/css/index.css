@@ -5,6 +5,7 @@
     flex-direction: column;
     gap: 6px;
     margin-bottom: 16px;
+}
 .social-login-columns {
     display: flex;
     flex-direction: column;
@@ -196,10 +197,7 @@ body.dark-mode.login-page {
         justify-content: flex-start;
     }
     /* Remove mobile override for body.login-page, keep desktop flex centering */
-    .login-container input {
-        font-size: 18px;
-        margin-bottom: 16px;
-    }
+    .login-container input,
     .login-container button {
         font-size: 18px;
         margin-bottom: 16px;
@@ -208,12 +206,8 @@ body.dark-mode.login-page {
         background: #f5f5f5;
     }
 }
-body.dark-mode div.feed-item-expanded-content div.content-inner p.feed-item-summary {
-    color: #fafafa !important;
-}
-body.dark-mode div.feed-item-expanded-content div.content-inner p.feed-item-summary[style] {
-    color: #fafafa !important;
-}
+body.dark-mode div.feed-item-expanded-content div.content-inner p.feed-item-summary,
+body.dark-mode div.feed-item-expanded-content div.content-inner p.feed-item-summary[style],
 body.dark-mode .feed-item-summary {
     color: #fafafa !important;
 }
@@ -223,9 +217,7 @@ body.dark-mode div.feed-item-expanded-content div.content-inner p.feed-item-summ
 body.dark-mode .feed-item-expanded-content .content-inner .feed-item-summary {
     color: #fafafa !important;
 }
-body.dark-mode .modal-content p {
-    color: #fafafa !important;
-}
+body.dark-mode .modal-content p,
 body.dark-mode .content-modal p {
     color: #fafafa !important;
 }
@@ -302,6 +294,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: #f5f5f5;
     font-size: 18px;
+    color: #fff;
 }
 
 .main-header {
@@ -322,73 +315,26 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 12px;
     background: transparent;
     box-shadow: none;
     border-radius: 0;
-    color: #000; /* Ensure readable text on white backgrounds */
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #fff;
 }
 
 .main-header nav {
     display: flex;
-    overflow: visible;
+    overflow: visible !important;
     position: relative;
     z-index: 1000;
-    gap: 20px;
+    gap: 12px;
     align-items: center;
-}
-
-
-.nav-links.open {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px 0;
-    align-items: stretch;
-    justify-items: center;
-    position: absolute;
-    top: 60px;
-    right: 0;
-    background: #1a2332;
-    width: 220px;
-    height: auto;
-    padding: 12px 0;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    z-index: 9999;
-}
-
-
-button {
-    background: #3498db;
-    color: #fff;
-    padding: 12px 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.main-header nav button {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #fff;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.main-header nav button {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #fff;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.2s;
+    position: relative;
 }
 
 .hamburger {
@@ -402,20 +348,6 @@ button {
     border: none;
     cursor: pointer;
     z-index: 200;
-}
-
-.hamburger {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 40px;
-    height: 40px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    z-index: 200;
-}
 }
 .hamburger .bar {
     width: 28px;
@@ -454,97 +386,56 @@ button {
     padding: 12px 0;
     border-radius: 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    .nav-links.open a,
+    .nav-links.open button,
+    .nav-links.open #admin-link {
+           border-radius: 14px;
+           margin: 0;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           gap: 6px;
+           box-shadow: none;
+           min-height: 72px;
+           font-size: 17px;
+           padding: 12px 0 8px 0;
+           border: none;
+    }
+    .menu-icon {
+        font-size: 32px;
+        margin-bottom: 4px;
+        color: #ffd700;
+        display: block;
+    }
+    .menu-label {
+        font-size: 15px;
+        color: #fff;
+        text-align: center;
+        display: block;
+    }
+    .nav-links.open a:hover,
+    .nav-links.open button:hover,
+    .nav-links.open #admin-link:hover {
+           background: #26324a;
+           color: #ffd700;
+           box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+           border: none;
+    }
+    .nav-links.open a.active,
+    .nav-links.open button.active,
+    .nav-links.open #admin-link.active {
+           background: #31405a;
+           color: #fff;
+           box-shadow: 0 2px 12px rgba(0,0,0,0.14);
+           border: none;
+    }
+    .nav-links.open .menu-icon {
+        font-size: 22px;
+        margin-right: 8px;
+        color: #ffd700;
+        flex-shrink: 0;
+    }
     z-index: 9999;
-}
-.nav-links.open a {
-    border-radius: 14px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    box-shadow: none;
-    min-height: 72px;
-    font-size: 17px;
-    padding: 12px 0 8px 0;
-    border: none;
-}
-/* Removed duplicate and stray selectors */
-
-.nav-links.open {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px 0;
-    align-items: stretch;
-    justify-items: center;
-    position: absolute;
-    top: 60px;
-    right: 0;
-    background: #1a2332;
-    width: 220px;
-    height: auto;
-    padding: 12px 0;
-    border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    z-index: 9999;
-    border-radius: 14px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    box-shadow: none;
-    min-height: 72px;
-    font-size: 17px;
-    padding: 12px 0 8px 0;
-    border: none;
-}
-.nav-links.open #admin-link {
-    border-radius: 14px;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    box-shadow: none;
-    min-height: 72px;
-    font-size: 17px;
-    padding: 12px 0 8px 0;
-    border: none;
-}
-.menu-icon {
-    font-size: 32px;
-    margin-bottom: 4px;
-    color: #ffd700;
-    display: block;
-}
-.menu-label {
-    font-size: 15px;
-    color: #fff;
-    text-align: center;
-    display: block;
-}
-.nav-links.open a:hover,
-.nav-links.open button:hover,
-.nav-links.open #admin-link:hover {
-    background: #26324a;
-    color: #ffd700;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    border: none;
-}
-.nav-links.open a.active,
-.nav-links.open button.active,
-.nav-links.open #admin-link.active {
-    background: #31405a;
-    color: #fff;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.14);
-    border: none;
-}
-.nav-links.open .menu-icon {
-    font-size: 22px;
-    margin-right: 8px;
-    color: #ffd700;
-    flex-shrink: 0;
 }
 @media (max-width: 900px) {
     .main-header nav {
@@ -918,7 +809,10 @@ body.dark-mode footer {
         align-items: flex-start;
     }
     
-    /* Removed duplicate .main-header nav rule */
+    .main-header nav {
+        width: 100%;
+        justify-content: space-between;
+    }
 }
 
 /* Centering for Login to Nexus heading */
