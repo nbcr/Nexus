@@ -1,3 +1,21 @@
+## Add profile page
+
+- Create a user profile page with avatar, username, editable info, profile picture update, recent activity/history, and privacy/account settings quick links.
+
+## Add settings page
+
+- Create a settings page with a sidebar for categories: Privacy Policy, Terms of Service, History, Account, Appearance. Each category loads content in the main area. Touch-friendly, modern layout.
+
+## Update navigation/menu
+
+- Hamburger menu: icon above text, spaced items, quick links to Feed, Settings, Profile, Admin.
+- Login/Register remain in header.
+- Dark/Light toggle labeled as such.
+
+## Move links to settings page
+
+- Move Privacy Policy, Terms, History to settings page.
+- Make all menu and sidebar items touch-friendly.
 # Project Todo List
 
 ## Improve login page layout
