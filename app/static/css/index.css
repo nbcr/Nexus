@@ -372,10 +372,11 @@ body {
     display: none;
 }
 .nav-links.open {
-    display: flex !important;
-    flex-direction: column;
-    gap: 0;
-    align-items: center;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 0;
+    align-items: stretch;
+    justify-items: center;
     position: absolute;
     top: 60px;
     right: 0;
@@ -389,16 +390,16 @@ body {
     .nav-links.open button,
     .nav-links.open #admin-link {
            border-radius: 14px;
-           margin: 16px 12px;
+           margin: 0;
            display: flex;
            flex-direction: column;
            align-items: center;
            gap: 6px;
-           box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+           box-shadow: none;
            min-height: 72px;
            font-size: 17px;
            padding: 12px 0 8px 0;
-           flex: 1 1 40%;
+           border: none;
     }
     .menu-icon {
         font-size: 32px;
