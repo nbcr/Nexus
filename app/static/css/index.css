@@ -379,7 +379,7 @@ body {
     position: fixed;
     top: 0;
     right: 0;
-    background: #007bff;
+        background: #1a2332;
     width: 260px;
     height: 100vh;
     padding: 60px 0 0 0;
@@ -432,15 +432,21 @@ body {
         background: transparent;
         border: none;
         color: #fff;
-        border-bottom: 1px solid rgba(255,255,255,0.15);
+        border-bottom: 1px solid rgba(255,255,255,0.12);
         cursor: pointer;
         transition: background 0.2s, color 0.2s;
         letter-spacing: 0.02em;
+        border-radius: 0;
+        box-shadow: none;
+        font-family: inherit;
+        margin: 0;
+        outline: none;
+        font-weight: 500;
     }
     .nav-links.open a:hover,
     .nav-links.open button:hover,
     .nav-links.open #admin-link:hover {
-        background: rgba(255,255,255,0.08);
+        background: #26324a;
         color: #ffd700;
     }
     .nav-links.open a:last-child,
