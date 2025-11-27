@@ -449,23 +449,32 @@ body {
     .main-header nav {
         flex-direction: row;
     }
-    .nav-links {
-        position: absolute;
-        top: 60px;
-        right: 0;
-        background: #007bff;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 0;
-        width: 220px;
-        padding: 16px 0;
-        border-radius: 0 0 0 12px;
-        box-shadow: 0 2px 16px #0002;
-        display: none;
-    }
     .nav-links.open {
-        display: grid !important;
-        grid-template-columns: repeat(2, 1fr);
+        display: flex !important;
+        flex-wrap: wrap !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        width: 260px !important;
+        height: 340px !important;
+        background: #007bff !important;
+        z-index: 9999 !important;
+        padding: 60px 0 0 0 !important;
+        box-shadow: 0 2px 16px #0002 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        overflow-y: auto !important;
+    }
+    .nav-links.open a,
+    .nav-links.open button,
+    .nav-links.open #admin-link {
+        width: 50% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        border-bottom: none !important;
+    }
         gap: 8px 0;
         align-items: stretch;
         justify-items: center;
