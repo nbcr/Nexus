@@ -224,7 +224,7 @@ function initHeader() {
     checkAuthStatus();
 
     // Hamburger menu toggle logic
-    const hamburger = document.getElementById('hamburger');
+    const hamburger = document.getElementById('hamburger-menu');
     const navLinks = document.querySelector('.nav-links');
     if (hamburger && navLinks) {
         hamburger.addEventListener('click', function(e) {
