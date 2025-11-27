@@ -171,3 +171,8 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Consolidated button styles for consistency and removed unnecessary overrides.
 - Verified no CSS errors remain after cleanup.
 - Committed and pushed changes as per workflow; service restart is handled automatically by the push.
+
+# 2025-11-27 18:10 UTC: CSS .nav-links !important Fix
+
+- Removed !important from .nav-links { display: none; } in index.css to allow JavaScript toggling to work correctly and ensure the menu can be shown/hidden as intended.
+- Committed and pushed the change as per workflow.
