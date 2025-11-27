@@ -49,6 +49,16 @@
             const hamburger = document.getElementById('hamburger-menu');
             const navLinks = document.getElementById('nav-links');
             if (hamburger && navLinks) {
+                const darkToggleHeader = document.getElementById('dark-mode-toggle');
+                hamburger.addEventListener('click', function() {
+                    const nowOpen = !navLinks.classList.contains('open');
+                    hamburger.classList.toggle('open', nowOpen);
+                    navLinks.classList.toggle('open', nowOpen);
+                    if (darkToggleHeader) {
+                        darkToggleHeader.style.display = nowOpen ? 'none' : '';
+                    }
+                    console.log('Hamburger clicked! navLinks open:', nowOpen);
+                });
                 // Dark mode toggle in menu
                 const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
                 if (darkToggleMenu) {
