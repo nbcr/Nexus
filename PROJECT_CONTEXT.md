@@ -1,15 +1,8 @@
-# 2025-11-27 18:00 UTC: CSS Cleanup and Consolidation
-
-- Removed all duplicate blocks for .main-header, .main-header .container, .main-header nav, .nav-links, .nav-links.open, button, and .hamburger in index.css, keeping only the most complete and correct version for each selector.
-- Removed all !important rules from these blocks to allow proper JS and CSS control.
-- Fixed color contrast by removing global body { color: #fff; } and setting .main-header .container { color: #000; } to prevent white text on white backgrounds.
-- Consolidated button styles for consistency and removed unnecessary overrides.
-- Verified no CSS errors remain after cleanup.
-- Committed and pushed changes as per workflow; service restart is handled automatically by the push.
 # Nexus Project Context
 
 > **Agent Instruction:**
-> Always review and follow the latest instructions, workflow, troubleshooting steps, and update conventions in this file before making any changes or answering questions. Re-read this file after any edit or when context may have changed.
+> **ALWAYS append new changes, fixes, or updates to the BOTTOM of this file, below the most recent entry. NEVER overwrite, prepend, or modify previous information. This ensures a complete historical record and avoids accidental loss of context.**
+> Re-read this file after any edit or when context may have changed.
 
 This file tracks the current project context, architecture, deployment details, recent fixes, and any ongoing issues or changes. It should be updated after every significant change or troubleshooting step.
 
@@ -169,3 +162,12 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Verified modal readability in dark mode; no inline color overrides remain.
 
 ---
+
+# 2025-11-27 18:00 UTC: CSS Cleanup and Consolidation
+
+- Removed all duplicate blocks for .main-header, .main-header .container, .main-header nav, .nav-links, .nav-links.open, button, and .hamburger in index.css, keeping only the most complete and correct version for each selector.
+- Removed all !important rules from these blocks to allow proper JS and CSS control.
+- Fixed color contrast by removing global body { color: #fff; } and setting .main-header .container { color: #000; } to prevent white text on white backgrounds.
+- Consolidated button styles for consistency and removed unnecessary overrides.
+- Verified no CSS errors remain after cleanup.
+- Committed and pushed changes as per workflow; service restart is handled automatically by the push.
