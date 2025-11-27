@@ -176,3 +176,12 @@ This file should be updated after every significant change, fix, or troubleshoot
 
 - Removed !important from .nav-links { display: none; } in index.css to allow JavaScript toggling to work correctly and ensure the menu can be shown/hidden as intended.
 - Committed and pushed the change as per workflow.
+
+---
+
+## [2025-11-27] CSS Selector Comma Fixes & Syntax Cleanup
+- Fixed selectors in `index.css` that ended in a comma but had no rule block, by copying the rules from the group below to each such selector.
+- Ensured all selectors (e.g., `.nav-links.open a,`, `.main-header nav a,`) have their own rule blocks for clarity and maintainability.
+- Removed stray property blocks and closing braces that caused CSS syntax errors.
+- Verified that all lint/compile errors are resolved and CSS is valid.
+- Committed and pushed changes to the repo as per workflow.
