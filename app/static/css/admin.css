@@ -94,6 +94,7 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .admin-header button:hover {
@@ -132,6 +133,7 @@ body {
     font-size: 16px;
     font-weight: 500;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .tab-btn:hover {
@@ -226,6 +228,7 @@ body {
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .btn-refresh:hover {
