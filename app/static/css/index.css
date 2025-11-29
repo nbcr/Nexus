@@ -395,7 +395,7 @@ button.hamburger,
 .hamburger.open .bar:nth-child(1),
 .main-header nav .hamburger.open .bar:nth-child(1),
 #hamburger-menu.open .bar:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
+    transform: rotate(45deg);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -412,7 +412,7 @@ button.hamburger,
 .hamburger.open .bar:nth-child(3),
 .main-header nav .hamburger.open .bar:nth-child(3),
 #hamburger-menu.open .bar:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
+    transform: rotate(-45deg);
     position: absolute;
     top: 50%;
     left: 50%;
