@@ -339,7 +339,7 @@ body {
 
 /* Hamburger menu - visible on all screen sizes */
 .hamburger {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -348,21 +348,23 @@ body {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     cursor: pointer;
-    z-index: 200;
+    position: relative;
+    z-index: 10001;
     padding: 8px;
     border-radius: 8px;
+    flex-shrink: 0;
 }
 
 .hamburger .bar {
     width: 28px;
     height: 4px;
-    background: #fff;
+    background: #fff !important;
     margin: 4px 0;
     border-radius: 2px;
     transition: transform 0.3s, opacity 0.3s;
-    display: block;
-    opacity: 1;
-    visibility: visible;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* Hamburger open (X) animation - bars transform into X */
