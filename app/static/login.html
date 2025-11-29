@@ -131,10 +131,12 @@
         const password = passwordInput.value;
         const errorDiv = document.getElementById('login-error');
         
-        // Clear previous error
+        // Clear previous error and flash classes
         errorDiv.style.display = 'none';
         errorDiv.textContent = '';
         errorDiv.innerHTML = '';
+        usernameInput.classList.remove('flash-error', 'flash-success');
+        passwordInput.classList.remove('flash-error', 'flash-success');
         
         try {
             const params = new URLSearchParams();
@@ -146,6 +148,10 @@
                 body: params.toString()
             });
             if (res.ok) {
+                // Flash green for success
+                usernameInput.classList.add('flash-success');
+                passwordInput.classList.add('flash-success');
+                
                 // Store access token in cookie and localStorage
                 const data = await res.json();
                 if (data.access_token) {
@@ -154,7 +160,10 @@
                     // Also store in localStorage
                     localStorage.setItem('access_token', data.access_token);
                 }
-                window.location.href = '/';
+                // Wait for animation to complete before redirect
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 600);
             } else {
                 let errorMsg = 'Login failed.';
                 try {
@@ -174,6 +183,9 @@
                 // Preserve form values
                 usernameInput.value = username;
                 passwordInput.value = password;
+                // Flash red for error
+                usernameInput.classList.add('flash-error');
+                passwordInput.classList.add('flash-error');
                 // Show error
                 errorDiv.innerHTML = errorMsg;
                 errorDiv.style.display = 'block';
@@ -182,6 +194,9 @@
             // Preserve form values
             usernameInput.value = username;
             passwordInput.value = password;
+            // Flash red for error
+            usernameInput.classList.add('flash-error');
+            passwordInput.classList.add('flash-error');
             // Show error
             errorDiv.textContent = 'Network or CORS error.';
             errorDiv.style.display = 'block';
