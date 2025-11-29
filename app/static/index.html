@@ -34,6 +34,31 @@
     </header>
 
     <script>
+        // Ensure hamburger bars exist immediately (before DOMContentLoaded)
+        (function() {
+            function ensureHamburgerBars() {
+                const hamburger = document.getElementById('hamburger-menu');
+                if (hamburger && hamburger.children.length === 0) {
+                    for (let i = 0; i < 3; i++) {
+                        const bar = document.createElement('span');
+                        bar.className = 'bar';
+                        hamburger.appendChild(bar);
+                    }
+                }
+            }
+            
+            // Try immediately if DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ensureHamburgerBars);
+            } else {
+                ensureHamburgerBars();
+            }
+            
+            // Also try after a short delay to catch any scripts that remove them
+            setTimeout(ensureHamburgerBars, 100);
+            setTimeout(ensureHamburgerBars, 500);
+        })();
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Show admin link if user is admin
             try {
