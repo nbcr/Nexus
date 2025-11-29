@@ -82,11 +82,22 @@
     
     document.getElementById('register-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const username = document.getElementById('username').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const username = usernameInput.value;
+        const email = emailInput.value;
+        const password = passwordInput.value;
         const errorDiv = document.getElementById('register-error');
+        
+        // Clear previous error and flash classes
         errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+        errorDiv.innerHTML = '';
+        usernameInput.classList.remove('flash-error', 'flash-success');
+        emailInput.classList.remove('flash-error', 'flash-success');
+        passwordInput.classList.remove('flash-error', 'flash-success');
+        
         try {
             const res = await fetch('/api/v1/auth/register', {
                 method: 'POST',
@@ -94,7 +105,15 @@
                 body: JSON.stringify({ username, email, password })
             });
             if (res.ok) {
-                window.location.href = '/login.html';
+                // Flash green for success
+                usernameInput.classList.add('flash-success');
+                emailInput.classList.add('flash-success');
+                passwordInput.classList.add('flash-success');
+                
+                // Wait for animation to complete before redirect
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 600);
             } else {
                 let errorMsg = 'Registration failed.';
                 try {
@@ -110,10 +129,20 @@
                     const text = await res.text();
                     errorMsg = text || errorMsg;
                 }
+                // Flash red for error
+                usernameInput.classList.add('flash-error');
+                emailInput.classList.add('flash-error');
+                passwordInput.classList.add('flash-error');
+                // Show error
                 errorDiv.innerHTML = errorMsg;
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
+            // Flash red for error
+            usernameInput.classList.add('flash-error');
+            emailInput.classList.add('flash-error');
+            passwordInput.classList.add('flash-error');
+            // Show error
             errorDiv.textContent = 'Network or CORS error.';
             errorDiv.style.display = 'block';
         }

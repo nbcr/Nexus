@@ -186,6 +186,43 @@ body.login-page .login-container {
     text-align: center;
     display: none;
 }
+/* Field flash animations */
+@keyframes flash-red {
+    0%, 100% { background-color: inherit; }
+    25% { background-color: #ffebee; }
+    50% { background-color: #ffcdd2; }
+    75% { background-color: #ffebee; }
+}
+@keyframes flash-green {
+    0%, 100% { background-color: inherit; }
+    25% { background-color: #e8f5e9; }
+    50% { background-color: #c8e6c9; }
+    75% { background-color: #e8f5e9; }
+}
+.form-row-inline input.flash-error {
+    animation: flash-red 0.6s ease-in-out;
+}
+.form-row-inline input.flash-success {
+    animation: flash-green 0.6s ease-in-out;
+}
+body.dark-mode .form-row-inline input.flash-error {
+    animation: flash-red-dark 0.6s ease-in-out;
+}
+body.dark-mode .form-row-inline input.flash-success {
+    animation: flash-green-dark 0.6s ease-in-out;
+}
+@keyframes flash-red-dark {
+    0%, 100% { background-color: inherit; }
+    25% { background-color: #3d1f1f; }
+    50% { background-color: #4d2a2a; }
+    75% { background-color: #3d1f1f; }
+}
+@keyframes flash-green-dark {
+    0%, 100% { background-color: inherit; }
+    25% { background-color: #1f3d1f; }
+    50% { background-color: #2a4d2a; }
+    75% { background-color: #1f3d1f; }
+}
 body.dark-mode.login-page {
     background: #181818 !important;
 }
