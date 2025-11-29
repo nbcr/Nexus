@@ -24,7 +24,7 @@
             </div>
             <div class="login-btn-row">
                 <button type="submit" class="login-btn">Login</button>
-                <button type="button" class="register-btn" onclick="window.location.href='/register'">Register</button>
+                <button type="button" class="register-btn" onclick="saveFormDataAndRedirect()">Register</button>
             </div>
         </form>
         <div class="social-login-columns">
@@ -74,6 +74,20 @@
         }
     }
     checkAuthAndRedirect();
+    
+    // Save form data when clicking register button
+    function saveFormDataAndRedirect() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        if (username) {
+            sessionStorage.setItem('register_username', username);
+        }
+        if (password) {
+            sessionStorage.setItem('register_password', password);
+        }
+        window.location.href = '/register';
+    }
+    
     // Dark mode toggle logic - matches header.js format
     const darkModeToggle = document.getElementById('darkModeToggle');
     
