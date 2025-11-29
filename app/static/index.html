@@ -39,13 +39,17 @@
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
                 if (user && user.is_admin) {
-                    document.getElementById('admin-link').style.display = 'block';
+                    const adminLink = document.getElementById('admin-link');
+                    if (adminLink) {
+                        adminLink.style.display = 'block';
+                    }
                 }
             } catch (e) {}
 
-            // Hamburger menu toggle
+            // Hamburger menu toggle - declare variables first
             const hamburger = document.getElementById('hamburger-menu');
             const navLinks = document.getElementById('nav-links');
+            
             if (hamburger && navLinks) {
                 const darkToggleHeader = document.getElementById('dark-mode-toggle');
                 hamburger.addEventListener('click', function(e) {
