@@ -440,12 +440,20 @@ body {
         max-width: 90vw;
         padding: 16px 0;
         background: #007bff !important;
+        background-color: #007bff !important;
         border-radius: 0 0 0 12px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.18);
         position: absolute;
         top: 60px;
         right: 0;
         z-index: 9999;
+    }
+    
+    .nav-links.open .menu-quick,
+    .nav-links.open a.menu-quick,
+    .nav-links.open button.menu-quick {
+        background: transparent !important;
+        background-color: transparent !important;
     }
     .nav-links.open a,
     .nav-links.open button,
@@ -455,7 +463,7 @@ body {
         text-align: left;
         padding: 16px 24px;
         font-size: 18px;
-        background: transparent;
+        background: transparent !important;
         border: none;
         color: #fff;
         border-bottom: 1px solid rgba(255,255,255,0.12);
