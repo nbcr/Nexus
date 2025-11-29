@@ -126,10 +126,19 @@
     // Restore form data from sessionStorage
     function restoreFormData() {
         const savedUsername = sessionStorage.getItem('login_username');
+        const savedPassword = sessionStorage.getItem('login_password');
         if (savedUsername) {
             const usernameInput = document.getElementById('username');
             if (usernameInput) {
                 usernameInput.value = savedUsername;
+            }
+        }
+        if (savedPassword) {
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.value = savedPassword;
+                // Clear it after use so it doesn't persist
+                sessionStorage.removeItem('login_password');
             }
         }
     }
@@ -195,6 +204,7 @@
                 }
                 // Clear saved form data on successful login
                 sessionStorage.removeItem('login_username');
+                sessionStorage.removeItem('login_password');
                 // Wait for animation to complete before redirect
                 setTimeout(() => {
                     window.location.href = '/';
