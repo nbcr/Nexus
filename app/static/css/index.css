@@ -563,6 +563,18 @@ button.hamburger,
     color: #fff;
 }
 
+/* Override main.css button styles for hamburger specifically */
+.main-header nav button.hamburger,
+#hamburger-menu {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 8px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+}
+
 #admin-link {
     display: none;
     text-decoration: none;
@@ -578,7 +590,7 @@ button.hamburger,
 
 .main-header nav a:hover,
 .main-header nav a.active,
-.main-header nav button:hover {
+.main-header nav button:hover:not(.hamburger) {
     background: rgba(255, 255, 255, 0.2);
 }
 
