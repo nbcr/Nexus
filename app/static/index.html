@@ -46,12 +46,17 @@
                 }
             } catch (e) {}
 
-            // Hamburger menu toggle - declare variables first
-            const hamburger = document.getElementById('hamburger-menu');
-            const navLinks = document.getElementById('nav-links');
-            
-            if (hamburger && navLinks) {
+            // Hamburger menu toggle - wrapped in IIFE to prevent initialization issues
+            (function() {
+                const hamburger = document.getElementById('hamburger-menu');
+                const navLinks = document.getElementById('nav-links');
+                
+                if (!hamburger || !navLinks) {
+                    return;
+                }
+                
                 const darkToggleHeader = document.getElementById('dark-mode-toggle');
+                
                 hamburger.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const nowOpen = !navLinks.classList.contains('open');
@@ -73,8 +78,8 @@
                 }
                 
                 // Close menu on link click (UX)
-                navLinks.querySelectorAll('a,button').forEach(el => {
-                    el.addEventListener('click', () => {
+                navLinks.querySelectorAll('a,button').forEach(function(el) {
+                    el.addEventListener('click', function() {
                         navLinks.classList.remove('open');
                         hamburger.classList.remove('open');
                     });
@@ -87,7 +92,7 @@
                         hamburger.classList.remove('open');
                     }
                 });
-            }
+            })();
         });
     </script>
     <main>
