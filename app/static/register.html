@@ -13,8 +13,6 @@
         .register-container h2 { margin-bottom: 18px; color: var(--text-primary, #fff); text-align: center; }
         .register-container label { display: block; margin-bottom: 8px; color: var(--text-secondary, #bbb); text-align: center; }
         .register-container input { width: 100%; max-width: 260px; box-sizing: border-box; padding: 10px; margin-bottom: 16px; border-radius: 6px; border: 1px solid var(--border, #444); background: var(--bg-input, #181818); color: var(--text-primary, #fff); display: block; margin-left: auto; margin-right: auto; }
-        .register-container button { width: 100%; padding: 10px; border-radius: 6px; border: none; background: var(--accent, #0078d7); color: #fff; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .register-container button:hover { background: var(--accent-hover, #005fa3); }
         .register-error { color: #ff4d4f; margin-bottom: 12px; text-align: center; display: none; }
     </style>
 </head>
@@ -57,9 +55,11 @@
             <input type="email" id="email" name="email" required>
             <label for="password">Password</label>
             <input type="password" id="password" name="password" required>
-            <button type="submit">Register</button>
+            <div class="login-btn-row">
+                <button type="submit" class="login-btn">Register</button>
+                <button type="button" class="register-btn" onclick="window.location.href='/login'">Back to Login</button>
+            </div>
         </form>
-        <button style="width:100%;margin-top:10px;" onclick="window.location.href='/login.html'">Back to Login</button>
     </div>
     <script>
     // Pre-fill form data from login page if available
