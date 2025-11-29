@@ -551,6 +551,20 @@ button.hamburger,
 
 .nav-links.open {
     display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    position: absolute;
+    top: 75px;
+    right: 0;
+    background: #007bff;
+    min-width: 200px;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    z-index: 9999;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
 }
 
 /* Desktop: header auth buttons - visible in header */
