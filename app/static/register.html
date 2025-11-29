@@ -8,11 +8,9 @@
     <link rel="stylesheet" href="/static/css/index.css">
     <style>
         body.register-page { display: block; min-height: 100vh; background: var(--bg-primary, #181818); padding-top: 0; }
-        body.register-page .register-container { margin: 40px auto; max-width: 350px; }
-        .register-container { background: var(--bg-secondary, #222); padding: 32px 24px; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.2); width: 100%; max-width: 350px; }
+        body.register-page .register-container { margin: 40px auto; max-width: 500px; }
+        .register-container { background: var(--bg-secondary, #222); padding: 32px 24px; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.2); width: 100%; max-width: 500px; }
         .register-container h2 { margin-bottom: 18px; color: var(--text-primary, #fff); text-align: center; }
-        .register-container label { display: block; margin-bottom: 8px; color: var(--text-secondary, #bbb); text-align: center; }
-        .register-container input { width: 100%; max-width: 260px; box-sizing: border-box; padding: 10px; margin-bottom: 16px; border-radius: 6px; border: 1px solid var(--border, #444); background: var(--bg-input, #181818); color: var(--text-primary, #fff); display: block; margin-left: auto; margin-right: auto; }
         .register-error { color: #ff4d4f; margin-bottom: 12px; text-align: center; display: none; }
     </style>
 </head>
@@ -49,12 +47,18 @@
         <h2>Create Your Nexus Account</h2>
         <div id="register-error" class="register-error"></div>
         <form id="register-form" autocomplete="off">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autofocus>
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+            <div class="form-row-inline form-row-align">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            <div class="form-row-inline form-row-align">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-row-inline form-row-align">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
             <div class="login-btn-row">
                 <button type="submit" class="login-btn">Register</button>
                 <button type="button" class="register-btn" onclick="window.location.href='/login'">Back to Login</button>
