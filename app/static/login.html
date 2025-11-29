@@ -39,7 +39,6 @@
     </header>
     <div class="login-container">
         <h2>Login to Nexus</h2>
-        <div id="login-error" class="login-error"></div>
         <form id="login-form" autocomplete="off">
             <div class="form-row-inline form-row-align">
                 <label for="username">Username</label>
@@ -49,6 +48,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
+            <div id="login-error" class="login-error"></div>
             <div class="login-btn-row">
                 <button type="submit" class="login-btn">Login</button>
                 <button type="button" class="register-btn" onclick="saveFormDataAndRedirect()">Register</button>
