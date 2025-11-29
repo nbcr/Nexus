@@ -358,13 +358,13 @@ body {
     background: #fff;
     margin: 4px 0;
     border-radius: 2px;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s;
     display: block;
     opacity: 1;
     visibility: visible;
 }
 
-/* Hamburger open (X) animation */
+/* Hamburger open (X) animation - bars transform into X */
 .hamburger.open .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
@@ -375,6 +375,12 @@ body {
 
 .hamburger.open .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Ensure bars are visible when hamburger is not open */
+.hamburger:not(.open) .bar {
+    opacity: 1;
+    transform: none;
 }
 
 /* Desktop: nav-links visible as horizontal menu */
