@@ -384,20 +384,27 @@ body {
     transform: none;
 }
 
-/* Desktop: nav-links visible as horizontal menu */
+/* Desktop: nav-links hidden by default, shown when hamburger is clicked */
 .nav-links {
-    display: flex;
+    display: none;
     flex-direction: row;
     gap: 12px;
     align-items: center;
-    position: relative;
+    position: absolute;
+    top: 60px;
+    right: 0;
     background: #007bff;
     width: auto;
+    min-width: 200px;
     height: auto;
-    padding: 0;
-    border-radius: 0;
-    box-shadow: none;
-    z-index: 100;
+    padding: 16px;
+    border-radius: 0 0 0 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+    z-index: 9999;
+}
+
+.nav-links.open {
+    display: flex;
 }
 
 .nav-links a,
