@@ -683,17 +683,14 @@ button.hamburger,
         color: #fff;
     }
     .nav-links.open .text-size-controls {
+        grid-column: 1 / -1;
         width: 100%;
         margin-top: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        letter-spacing: 0.02em;
-        border-radius: 0;
-        box-shadow: none;
-        font-family: inherit;
-        margin: 0;
-        outline: none;
-        font-weight: 500;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     .nav-links.open a:hover,
     .nav-links.open button:hover,
