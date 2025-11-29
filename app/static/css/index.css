@@ -42,8 +42,10 @@
     gap: 8px;
 }
 .social-icon {
-    font-size: 18px;
-    line-height: 1;
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 .social-btn:hover {
     opacity: 0.9;
