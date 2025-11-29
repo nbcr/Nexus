@@ -55,7 +55,16 @@
             </div>
             <div class="form-row-inline form-row-align">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" title="Password must be at least 8 characters and contain uppercase, lowercase, number, and special character">
+                <div style="display: flex; flex-direction: column; width: 300px;">
+                    <input type="password" id="password" name="password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" title="Password must be at least 8 characters and contain uppercase, lowercase, number, and special character">
+                    <div id="password-requirements" class="password-requirements" style="margin-top: 8px; font-size: 12px; color: #666;">
+                        <div class="req-item" data-requirement="length"><span class="req-icon">❌</span> At least 8 characters</div>
+                        <div class="req-item" data-requirement="lowercase"><span class="req-icon">❌</span> One lowercase letter (a-z)</div>
+                        <div class="req-item" data-requirement="uppercase"><span class="req-icon">❌</span> One uppercase letter (A-Z)</div>
+                        <div class="req-item" data-requirement="number"><span class="req-icon">❌</span> One number (0-9)</div>
+                        <div class="req-item" data-requirement="special"><span class="req-icon">❌</span> One special character (@$!%*?&)</div>
+                    </div>
+                </div>
             </div>
             <div id="register-error" class="register-error"></div>
             <div class="login-btn-row">
@@ -65,6 +74,34 @@
         </form>
     </div>
     <script>
+    // Password requirements checker
+    function checkPasswordRequirements(password) {
+        const requirements = {
+            length: password.length >= 8,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            special: /[@$!%*?&]/.test(password)
+        };
+        
+        // Update UI for each requirement
+        Object.keys(requirements).forEach(req => {
+            const reqItem = document.querySelector(`.req-item[data-requirement="${req}"]`);
+            if (reqItem) {
+                const icon = reqItem.querySelector('.req-icon');
+                if (requirements[req]) {
+                    icon.textContent = '✅';
+                    reqItem.style.color = '#4caf50';
+                } else {
+                    icon.textContent = '❌';
+                    reqItem.style.color = '#666';
+                }
+            }
+        });
+        
+        return requirements;
+    }
+    
     // Pre-fill form data from login page if available
     window.addEventListener('DOMContentLoaded', function() {
         const savedUsername = sessionStorage.getItem('register_username');
@@ -75,8 +112,18 @@
             sessionStorage.removeItem('register_username');
         }
         if (savedPassword) {
-            document.getElementById('password').value = savedPassword;
+            const passwordInput = document.getElementById('password');
+            passwordInput.value = savedPassword;
+            checkPasswordRequirements(savedPassword);
             sessionStorage.removeItem('register_password');
+        }
+        
+        // Add real-time password requirement checking
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function(e) {
+                checkPasswordRequirements(e.target.value);
+            });
         }
     });
     
