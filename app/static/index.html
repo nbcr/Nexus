@@ -55,6 +55,15 @@
                     return;
                 }
                 
+                // Ensure hamburger bars exist (fallback in case HTML is cached/modified)
+                if (hamburger.children.length === 0) {
+                    for (let i = 0; i < 3; i++) {
+                        const bar = document.createElement('span');
+                        bar.className = 'bar';
+                        hamburger.appendChild(bar);
+                    }
+                }
+                
                 const darkToggleHeader = document.getElementById('dark-mode-toggle');
                 
                 hamburger.addEventListener('click', function(e) {
