@@ -60,10 +60,16 @@
                 if (response.ok) {
                     // Token is valid, redirect to home
                     window.location.href = '/';
+                } else {
+                    // Token is invalid/expired, clear it
+                    localStorage.removeItem('access_token');
+                    // Clear cookie by setting it to expire
+                    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
                 }
-                // If token is invalid, stay on login page
             } catch (error) {
-                // If check fails, stay on login page
+                // If check fails, clear token and stay on login page
+                localStorage.removeItem('access_token');
+                document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
             }
         }
     }
