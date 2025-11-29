@@ -446,7 +446,7 @@ button.hamburger,
     min-width: 200px;
     height: auto;
     padding: 16px;
-    border-radius: 0 0 0 12px;
+    border-radius: 12px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.18);
     z-index: 9999;
 }
@@ -541,7 +541,7 @@ button.hamburger,
         padding: 16px 0;
         background: #007bff;
         background-color: #007bff;
-        border-radius: 0 0 0 12px;
+        border-radius: 12px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.18);
         position: absolute;
         top: 60px;
