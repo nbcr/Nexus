@@ -133,10 +133,17 @@
 
     document.getElementById('login-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const username = usernameInput.value;
+        const password = passwordInput.value;
         const errorDiv = document.getElementById('login-error');
+        
+        // Clear previous error
         errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+        errorDiv.innerHTML = '';
+        
         try {
             const params = new URLSearchParams();
             params.append('username', username);
@@ -172,10 +179,18 @@
                     const text = await res.text();
                     errorMsg = text || errorMsg;
                 }
+                // Preserve form values
+                usernameInput.value = username;
+                passwordInput.value = password;
+                // Show error
                 errorDiv.innerHTML = errorMsg;
                 errorDiv.style.display = 'block';
             }
         } catch (err) {
+            // Preserve form values
+            usernameInput.value = username;
+            passwordInput.value = password;
+            // Show error
             errorDiv.textContent = 'Network or CORS error.';
             errorDiv.style.display = 'block';
         }
