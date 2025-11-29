@@ -67,7 +67,7 @@
             <div id="register-error" class="register-error"></div>
             <div class="login-btn-row">
                 <button type="submit" class="login-btn">Register</button>
-                <button type="button" class="register-btn" onclick="window.location.href='/login'">Back to Login</button>
+                <button type="button" class="register-btn" onclick="saveRegisterDataAndRedirect()">Back to Login</button>
             </div>
         </form>
     </div>
@@ -79,6 +79,19 @@
         // Don't save password for security
         sessionStorage.setItem('register_username', username);
         sessionStorage.setItem('register_email', email);
+    }
+    
+    // Save register form data and redirect to login page
+    function saveRegisterDataAndRedirect() {
+        const username = document.getElementById('username')?.value || '';
+        const password = document.getElementById('password')?.value || '';
+        if (username) {
+            sessionStorage.setItem('login_username', username);
+        }
+        if (password) {
+            sessionStorage.setItem('login_password', password);
+        }
+        window.location.href = '/login';
     }
     
     // Restore form data from sessionStorage (but don't override pre-filled data from login page)
