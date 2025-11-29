@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/index.css">
     <style>
-        body { display: flex; align-items: center; justify-content: center; height: 100vh; background: var(--bg-primary, #181818); }
+        body.register-page { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-primary, #181818); padding-top: 80px; }
         .register-container { background: var(--bg-secondary, #222); padding: 32px 24px; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.2); width: 100%; max-width: 350px; }
         .register-container h2 { margin-bottom: 18px; color: var(--text-primary, #fff); text-align: center; }
         .register-container label { display: block; margin-bottom: 8px; color: var(--text-secondary, #bbb); text-align: center; }
@@ -17,7 +17,35 @@
         .register-error { color: #ff4d4f; margin-bottom: 12px; text-align: center; display: none; }
     </style>
 </head>
-<body>
+<body class="register-page">
+    <header class="main-header">
+        <div class="container">
+            <h1>🚀 Nexus - The Ai News Portal</h1>
+            <nav>
+                <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <!-- Desktop auth buttons - visible in header -->
+                <div class="header-auth-buttons" id="header-auth-buttons">
+                    <a href="/login" id="auth-btn" class="header-btn"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" id="register-btn" class="header-btn"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                </div>
+                <div class="nav-links" id="nav-links">
+                    <span id="user-welcome" class="user-welcome"></span>
+                    <a href="/" class="menu-quick"><span class="menu-icon">🏠</span><span class="menu-label">Feed</span></a>
+                    <button id="dark-mode-toggle-menu" class="menu-quick"><span class="menu-icon">🌗</span><span class="menu-label">Dark</span></button>
+                    <a href="/profile.html" class="menu-quick"><span class="menu-icon">👤</span><span class="menu-label">Profile</span></a>
+                    <a href="/settings.html" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
+                    <a href="/admin.html" id="admin-link" class="menu-quick" style="display:none;"><span class="menu-icon">🛠️</span><span class="menu-label">Admin</span></a>
+                    <!-- Mobile auth buttons - in menu -->
+                    <a href="/login" id="auth-btn-mobile" class="menu-quick auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" id="register-btn-mobile" class="menu-quick register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                </div>
+            </nav>
+        </div>
+    </header>
     <div class="register-container">
         <h2>Create Your Nexus Account</h2>
         <div id="register-error" class="register-error"></div>
@@ -86,6 +114,65 @@
             errorDiv.style.display = 'block';
         }
     });
+    </script>
+    <script src="/static/js/header.js?v=202511210100"></script>
+    <script>
+        // Hamburger menu toggle - wrapped in IIFE to prevent initialization issues
+        (function() {
+            const hamburger = document.getElementById('hamburger-menu');
+            const navLinks = document.getElementById('nav-links');
+            if (!hamburger || !navLinks) {
+                return;
+            }
+            
+            // Ensure hamburger bars exist
+            if (hamburger.children.length === 0) {
+                for (let i = 0; i < 3; i++) {
+                    const bar = document.createElement('span');
+                    bar.className = 'bar';
+                    hamburger.appendChild(bar);
+                }
+            }
+            
+            const darkToggleHeader = document.getElementById('dark-mode-toggle');
+            hamburger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const nowOpen = !navLinks.classList.contains('open');
+                hamburger.classList.toggle('open', nowOpen);
+                navLinks.classList.toggle('open', nowOpen);
+                if (darkToggleHeader) {
+                    darkToggleHeader.style.display = nowOpen ? 'none' : '';
+                }
+            });
+            
+            // Dark mode toggle in menu
+            const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
+            if (darkToggleMenu) {
+                darkToggleMenu.addEventListener('click', function() {
+                    if (typeof toggleDarkMode === 'function') {
+                        toggleDarkMode();
+                    }
+                    navLinks.classList.remove('open');
+                    hamburger.classList.remove('open');
+                });
+            }
+            
+            // Close menu on link click
+            navLinks.querySelectorAll('a,button').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    navLinks.classList.remove('open');
+                    hamburger.classList.remove('open');
+                });
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+                    navLinks.classList.remove('open');
+                    hamburger.classList.remove('open');
+                }
+            });
+        })();
     </script>
 </body>
 </html>
