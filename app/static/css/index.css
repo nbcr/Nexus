@@ -337,19 +337,20 @@ body {
     background: #007bff;
 }
 
-/* Hamburger menu - hidden on desktop, visible on mobile */
+/* Hamburger menu - visible on all screen sizes */
 .hamburger {
-    display: none;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 40px;
     height: 40px;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     cursor: pointer;
     z-index: 200;
     padding: 8px;
+    border-radius: 8px;
 }
 
 .hamburger .bar {
@@ -415,12 +416,6 @@ body {
 
 /* Mobile: hamburger menu */
 @media (max-width: 900px) {
-    .hamburger {
-        display: flex !important;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-    }
-    
     body.dark-mode .hamburger {
         background: rgba(255, 255, 255, 0.15);
     }
