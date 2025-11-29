@@ -337,36 +337,42 @@ body {
     background: #007bff;
 }
 
-/* Hamburger menu - visible on all screen sizes */
+/* Hamburger menu - visible on all screen sizes - must override main.css */
 .hamburger,
 .main-header nav .hamburger,
-button.hamburger {
+.main-header nav button.hamburger,
+button.hamburger,
+#hamburger-menu {
     display: flex !important;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 40px;
-    height: 40px;
+    width: 40px !important;
+    height: 40px !important;
     background: rgba(255, 255, 255, 0.1) !important;
     border: none !important;
     cursor: pointer;
     position: relative;
     z-index: 10001;
-    padding: 8px;
+    padding: 8px !important;
     border-radius: 8px;
     flex-shrink: 0;
+    margin: 0;
+    font-size: inherit;
 }
 
-.hamburger .bar {
+.hamburger .bar,
+.main-header nav .hamburger .bar,
+#hamburger-menu .bar {
     width: 28px;
     height: 4px;
-    background: #fff !important;
+    background: #fff;
     margin: 4px 0;
     border-radius: 2px;
     transition: transform 0.3s, opacity 0.3s;
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
+    display: block;
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Hamburger open (X) animation - bars transform into X */
