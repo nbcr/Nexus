@@ -35,15 +35,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-                            hamburger.addEventListener('click', function() {
-                                const nowOpen = !navLinks.classList.contains('open');
-                                hamburger.classList.toggle('open', nowOpen);
-                                navLinks.classList.toggle('open', nowOpen);
-                                if (darkToggleHeader) {
-                                    darkToggleHeader.style.display = nowOpen ? 'none' : '';
-                                }
-                                console.log('Hamburger clicked! navLinks open:', nowOpen);
-                            });
             // Show admin link if user is admin
             try {
                 const user = JSON.parse(localStorage.getItem('user'));
@@ -57,15 +48,16 @@
             const navLinks = document.getElementById('nav-links');
             if (hamburger && navLinks) {
                 const darkToggleHeader = document.getElementById('dark-mode-toggle');
-                hamburger.addEventListener('click', function() {
+                hamburger.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     const nowOpen = !navLinks.classList.contains('open');
                     hamburger.classList.toggle('open', nowOpen);
                     navLinks.classList.toggle('open', nowOpen);
                     if (darkToggleHeader) {
                         darkToggleHeader.style.display = nowOpen ? 'none' : '';
                     }
-                    console.log('Hamburger clicked! navLinks open:', nowOpen);
                 });
+                
                 // Dark mode toggle in menu
                 const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
                 if (darkToggleMenu) {
@@ -75,12 +67,21 @@
                         hamburger.classList.remove('open');
                     });
                 }
+                
                 // Close menu on link click (UX)
                 navLinks.querySelectorAll('a,button').forEach(el => {
                     el.addEventListener('click', () => {
                         navLinks.classList.remove('open');
                         hamburger.classList.remove('open');
                     });
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+                        navLinks.classList.remove('open');
+                        hamburger.classList.remove('open');
+                    }
                 });
             }
         });
