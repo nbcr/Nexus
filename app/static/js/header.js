@@ -45,22 +45,32 @@ async function checkAuthStatus() {
             }
             if (authBtn) {
                 authBtn.textContent = 'Logout';
-                authBtn.onclick = handleLogout;
+                authBtn.href = '#';
+                authBtn.onclick = function(e) {
+                    e.preventDefault();
+                    handleLogout();
+                };
             }
             const registerBtn = document.getElementById('register-btn');
             if (registerBtn) {
                 registerBtn.style.display = 'none';
             }
         } else {
-            // User not authenticated - show login button and handler
+            // User not authenticated - show login and register buttons
+            const welcomeEl = document.getElementById('user-welcome');
+            if (welcomeEl) {
+                welcomeEl.style.display = 'none';
+            }
             const authBtn = document.getElementById('auth-btn');
             if (authBtn) {
                 authBtn.textContent = 'Login';
-                authBtn.onclick = handleAuth;
+                authBtn.href = '/login';
+                authBtn.onclick = null;
             }
             const registerBtn = document.getElementById('register-btn');
             if (registerBtn) {
                 registerBtn.style.display = '';
+                registerBtn.href = '/register';
             }
         }
     } catch (error) {

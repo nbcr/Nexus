@@ -455,6 +455,18 @@ button.hamburger,
     display: flex;
 }
 
+/* Desktop: show auth buttons in header when menu is open */
+.nav-links.open .auth-btn-header,
+.nav-links.open .register-btn-header {
+    display: flex;
+}
+
+/* Desktop: hide auth buttons when user is logged in (handled by JS) */
+.user-welcome:not([style*="display: none"]) ~ .auth-btn-header,
+.user-welcome:not([style*="display: none"]) ~ .register-btn-header {
+    display: none;
+}
+
 .nav-links a,
 .nav-links button,
 .nav-links #admin-link {
