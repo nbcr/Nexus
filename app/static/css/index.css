@@ -355,13 +355,13 @@ body {
 .hamburger .bar {
     width: 28px;
     height: 4px;
-    background: #fff !important;
+    background: #fff;
     margin: 4px 0;
     border-radius: 2px;
-    transition: 0.3s;
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
+    transition: all 0.3s;
+    display: block;
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Hamburger open (X) animation */
