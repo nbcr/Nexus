@@ -338,15 +338,17 @@ body {
 }
 
 /* Hamburger menu - visible on all screen sizes */
-.hamburger {
+.hamburger,
+.main-header nav .hamburger,
+button.hamburger {
     display: flex !important;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: none !important;
     cursor: pointer;
     position: relative;
     z-index: 10001;
