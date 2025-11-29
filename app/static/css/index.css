@@ -362,6 +362,8 @@ button.hamburger,
     margin: 0;
     font-size: inherit;
     box-sizing: border-box;
+    opacity: 1;
+    visibility: visible;
 }
 
 .hamburger .bar,
