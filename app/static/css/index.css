@@ -355,11 +355,13 @@ body {
 .hamburger .bar {
     width: 28px;
     height: 4px;
-    background: #fff;
+    background: #fff !important;
     margin: 4px 0;
     border-radius: 2px;
     transition: 0.3s;
-    display: block;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 /* Hamburger open (X) animation */
@@ -701,7 +703,7 @@ body.dark-mode {
 }
 
 body.dark-mode .hamburger .bar {
-    background: #e0e0e0;
+    background: #fff !important;
 }
 
 body.dark-mode .main-header {
