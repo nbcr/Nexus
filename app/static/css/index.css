@@ -1036,7 +1036,6 @@ body.login-page .login-container h1 {
     gap: 8px;
     padding: 12px 16px;
     margin-top: auto;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
     flex-wrap: nowrap;
 }
 .text-size-controls .text-size-btn {
@@ -1055,7 +1054,12 @@ body.login-page .login-container h1 {
     text-align: center;
     white-space: nowrap;
     padding: 0 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
 }
-body.dark-mode .text-size-controls {
-    border-top-color: rgba(255, 255, 255, 0.1);
+.text-size-line1,
+.text-size-line2 {
+    display: block;
 }

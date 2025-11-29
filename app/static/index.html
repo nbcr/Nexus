@@ -156,9 +156,16 @@
                     });
                 }
                 
-                // Close menu on link click (UX)
+                // Close menu on link click (UX) - but not for text size or dark mode buttons
                 navLinks.querySelectorAll('a,button').forEach(function(el) {
-                    el.addEventListener('click', function() {
+                    el.addEventListener('click', function(e) {
+                        // Don't close menu for text size buttons or dark mode toggle
+                        if (el.id === 'text-size-decrease' || 
+                            el.id === 'text-size-increase' || 
+                            el.id === 'dark-mode-toggle-menu' ||
+                            el.classList.contains('text-size-btn')) {
+                            return;
+                        }
                         navLinks.classList.remove('open');
                         hamburger.classList.remove('open');
                     });
