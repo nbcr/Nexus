@@ -386,16 +386,22 @@ button.hamburger,
     box-sizing: border-box;
 }
 
-/* Hamburger open (X) animation - bars transform into X */
-.hamburger.open .bar:nth-child(1) {
+/* Hamburger open (X) animation - bars transform into X - use specific selectors */
+.hamburger.open .bar:nth-child(1),
+.main-header nav .hamburger.open .bar:nth-child(1),
+#hamburger-menu.open .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
 }
 
-.hamburger.open .bar:nth-child(2) {
+.hamburger.open .bar:nth-child(2),
+.main-header nav .hamburger.open .bar:nth-child(2),
+#hamburger-menu.open .bar:nth-child(2) {
     opacity: 0;
 }
 
-.hamburger.open .bar:nth-child(3) {
+.hamburger.open .bar:nth-child(3),
+.main-header nav .hamburger.open .bar:nth-child(3),
+#hamburger-menu.open .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
 }
 
