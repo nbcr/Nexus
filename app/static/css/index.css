@@ -342,7 +342,10 @@ body {
 .main-header nav .hamburger,
 .main-header nav button.hamburger,
 button.hamburger,
-#hamburger-menu {
+#hamburger-menu,
+.hamburger.open,
+.main-header nav .hamburger.open,
+#hamburger-menu.open {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -369,7 +372,10 @@ button.hamburger,
 
 .hamburger .bar,
 .main-header nav .hamburger .bar,
-#hamburger-menu .bar {
+#hamburger-menu .bar,
+.hamburger.open .bar,
+.main-header nav .hamburger.open .bar,
+#hamburger-menu.open .bar {
     width: 28px;
     height: 4px;
     min-width: 28px;
@@ -379,7 +385,6 @@ button.hamburger,
     border-radius: 2px;
     transition: transform 0.3s, opacity 0.3s;
     display: block;
-    opacity: 1;
     visibility: visible;
     position: relative;
     flex-shrink: 0;
