@@ -44,7 +44,6 @@
     </header>
     <div class="register-container">
         <h2>Create Your Nexus Account</h2>
-        <div id="register-error" class="register-error"></div>
         <form id="register-form" autocomplete="off">
             <div class="form-row-inline form-row-align">
                 <label for="username">Username</label>
@@ -58,6 +57,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
+            <div id="register-error" class="register-error"></div>
             <div class="login-btn-row">
                 <button type="submit" class="login-btn">Register</button>
                 <button type="button" class="register-btn" onclick="window.location.href='/login'">Back to Login</button>
