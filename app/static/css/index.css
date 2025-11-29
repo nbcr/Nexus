@@ -23,6 +23,22 @@
     gap: 16px;
     width: 100%;
 }
+.social-btn {
+    width: 100%;
+    max-width: 220px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    font-size: 14px;
+    text-align: center;
+    margin: 0 auto;
+}
+.social-btn:hover {
+    opacity: 0.9;
+}
 .facebook-btn { background: #1877F3; color: #fff; }
 .login-btn-row {
     display: flex;
