@@ -268,9 +268,12 @@
                 isPersonalized: true
             });
             setupCategoryButtons();
+            
+            // Initialize header (auth status, dark mode)
+            if (typeof initHeader === 'function') {
+                initHeader();
+            }
         });
-        
-        // Dark mode and auth status are initialized by header.js
     </script>
     
     <!-- WebSocket Feed Notifier -->
