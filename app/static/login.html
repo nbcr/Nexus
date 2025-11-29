@@ -74,16 +74,21 @@
         }
     }
     checkAuthAndRedirect();
-    // Dark mode toggle logic
+    // Dark mode toggle logic - matches header.js format
     const darkModeToggle = document.getElementById('darkModeToggle');
-    darkModeToggle.addEventListener('click', function() {
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode') ? '1' : '0');
-    });
-    // Restore dark mode from localStorage
-    if (localStorage.getItem('darkMode') === '1') {
+    
+    // Restore dark mode from localStorage (check for both 'true' and '1' for backward compatibility)
+    const savedPreference = localStorage.getItem('darkMode');
+    if (savedPreference === 'true' || savedPreference === '1' || savedPreference === true) {
         document.body.classList.add('dark-mode');
     }
+    
+    darkModeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        // Store as boolean to match header.js format
+        localStorage.setItem('darkMode', isDark);
+    });
 
     document.getElementById('login-form').addEventListener('submit', async function(e) {
         e.preventDefault();
