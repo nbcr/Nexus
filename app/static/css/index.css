@@ -439,7 +439,7 @@ button.hamburger,
     gap: 12px;
     align-items: center;
     position: absolute;
-    top: 60px;
+    top: 75px;
     right: 0;
     background: #007bff;
     width: auto;
@@ -544,7 +544,7 @@ button.hamburger,
         border-radius: 12px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.18);
         position: absolute;
-        top: 60px;
+        top: 75px;
         right: 0;
         z-index: 9999;
     }
