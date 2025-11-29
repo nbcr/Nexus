@@ -329,7 +329,7 @@ body {
 
 .main-header nav {
     display: flex;
-    overflow: visible !important;
+    overflow: visible;
     position: relative;
     z-index: 1000;
     gap: 12px;
@@ -399,14 +399,16 @@ button.hamburger,
     transform: translateY(-8px) rotate(-45deg);
 }
 
-/* Ensure bars are visible when hamburger is not open */
-.hamburger:not(.open) .bar {
-    opacity: 1 !important;
-    transform: none !important;
-    width: 28px !important;
-    height: 4px !important;
-    display: block !important;
-    visibility: visible !important;
+/* Ensure bars are visible when hamburger is not open - use specific selectors to override */
+.hamburger:not(.open) .bar,
+.main-header nav .hamburger:not(.open) .bar,
+#hamburger-menu:not(.open) .bar {
+    opacity: 1;
+    transform: none;
+    width: 28px;
+    height: 4px;
+    display: block;
+    visibility: visible;
 }
 
 /* Desktop: nav-links hidden by default, shown when hamburger is clicked */
