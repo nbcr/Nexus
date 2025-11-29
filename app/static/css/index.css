@@ -703,6 +703,25 @@ body.dark-mode .main-header {
     background: #1e3a5f;
 }
 
+body.dark-mode .nav-links {
+    background: #1e3a5f;
+}
+
+body.dark-mode .main-header nav {
+    background: #1e3a5f;
+}
+
+@media (max-width: 900px) {
+    body.dark-mode .nav-links {
+        background: #1e3a5f;
+    }
+    
+    body.dark-mode .nav-links.open {
+        background: #1e3a5f;
+        background-color: #1e3a5f;
+    }
+}
+
 body.dark-mode .feed-controls h2 {
     color: #e0e0e0;
 }
