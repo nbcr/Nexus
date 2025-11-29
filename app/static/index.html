@@ -269,10 +269,7 @@
             });
             setupCategoryButtons();
             
-            // Initialize header (auth status, dark mode)
-            if (typeof initHeader === 'function') {
-                initHeader();
-            }
+            // Header is auto-initialized by header.js, no need to call initHeader again
         });
     </script>
     
