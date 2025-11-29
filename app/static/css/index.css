@@ -396,6 +396,7 @@ button.hamburger,
 .main-header nav .hamburger.open .bar:nth-child(1),
 #hamburger-menu.open .bar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
+    position: absolute;
 }
 
 .hamburger.open .bar:nth-child(2),
@@ -408,6 +409,7 @@ button.hamburger,
 .main-header nav .hamburger.open .bar:nth-child(3),
 #hamburger-menu.open .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
+    position: absolute;
 }
 
 /* Ensure bars are visible when hamburger is not open - use specific selectors to override */
