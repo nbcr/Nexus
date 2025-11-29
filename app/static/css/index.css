@@ -487,6 +487,16 @@ body {
     .nav-links.open #admin-link:hover {
         background: #26324a;
         color: #ffd700;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4);
+        transform: scale(1.05);
+        transition: all 0.3s ease;
+    }
+    
+    .nav-links.open a:hover .menu-icon,
+    .nav-links.open button:hover .menu-icon,
+    .nav-links.open #admin-link:hover .menu-icon {
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+        transform: scale(1.1);
     }
 
     .nav-links a,
