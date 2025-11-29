@@ -455,16 +455,38 @@ button.hamburger,
     display: flex;
 }
 
-/* Desktop: show auth buttons in header when menu is open */
-.nav-links.open .auth-btn-header,
-.nav-links.open .register-btn-header {
+/* Desktop: header auth buttons - visible in header */
+.header-auth-buttons {
     display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
-/* Desktop: hide auth buttons when user is logged in (handled by JS) */
-.user-welcome:not([style*="display: none"]) ~ .auth-btn-header,
-.user-welcome:not([style*="display: none"]) ~ .register-btn-header {
-    display: none;
+.header-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.header-btn .menu-icon {
+    font-size: 16px;
+}
+
+.header-btn .menu-label {
+    font-size: 14px;
 }
 
 .nav-links a,
@@ -604,14 +626,13 @@ button.hamburger,
         font-size: 14px;
     }
     
-    /* Mobile: hide auth buttons in header, show in menu */
-    .auth-btn-header,
-    .register-btn-header {
+    /* Mobile: hide desktop auth buttons, show mobile ones in menu */
+    .header-auth-buttons {
         display: none;
     }
     
-    .nav-links.open .auth-btn-header,
-    .nav-links.open .register-btn-header {
+    .nav-links.open .auth-btn-mobile,
+    .nav-links.open .register-btn-mobile {
         display: flex;
     }
 }

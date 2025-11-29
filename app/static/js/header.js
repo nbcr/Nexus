@@ -39,21 +39,36 @@ async function checkAuthStatus() {
             currentUser = await response.json();
             const welcomeEl = document.getElementById('user-welcome');
             const authBtn = document.getElementById('auth-btn');
+            const authBtnMobile = document.getElementById('auth-btn-mobile');
             if (welcomeEl) {
                 welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
                 welcomeEl.style.display = 'inline';
             }
             if (authBtn) {
-                authBtn.textContent = 'Logout';
+                const label = authBtn.querySelector('.menu-label');
+                if (label) label.textContent = 'Logout';
                 authBtn.href = '#';
                 authBtn.onclick = function(e) {
                     e.preventDefault();
                     handleLogout();
                 };
             }
+            if (authBtnMobile) {
+                const label = authBtnMobile.querySelector('.menu-label');
+                if (label) label.textContent = 'Logout';
+                authBtnMobile.href = '#';
+                authBtnMobile.onclick = function(e) {
+                    e.preventDefault();
+                    handleLogout();
+                };
+            }
             const registerBtn = document.getElementById('register-btn');
+            const registerBtnMobile = document.getElementById('register-btn-mobile');
             if (registerBtn) {
                 registerBtn.style.display = 'none';
+            }
+            if (registerBtnMobile) {
+                registerBtnMobile.style.display = 'none';
             }
         } else {
             // User not authenticated - show login and register buttons
@@ -62,15 +77,28 @@ async function checkAuthStatus() {
                 welcomeEl.style.display = 'none';
             }
             const authBtn = document.getElementById('auth-btn');
+            const authBtnMobile = document.getElementById('auth-btn-mobile');
             if (authBtn) {
-                authBtn.textContent = 'Login';
+                const label = authBtn.querySelector('.menu-label');
+                if (label) label.textContent = 'Login';
                 authBtn.href = '/login';
                 authBtn.onclick = null;
             }
+            if (authBtnMobile) {
+                const label = authBtnMobile.querySelector('.menu-label');
+                if (label) label.textContent = 'Login';
+                authBtnMobile.href = '/login';
+                authBtnMobile.onclick = null;
+            }
             const registerBtn = document.getElementById('register-btn');
+            const registerBtnMobile = document.getElementById('register-btn-mobile');
             if (registerBtn) {
                 registerBtn.style.display = '';
                 registerBtn.href = '/register';
+            }
+            if (registerBtnMobile) {
+                registerBtnMobile.style.display = '';
+                registerBtnMobile.href = '/register';
             }
         }
     } catch (error) {
