@@ -179,6 +179,12 @@ body.login-page .login-container {
     margin: 40px auto;
     max-width: 500px;
 }
+.login-error {
+    color: #ff4d4f;
+    margin-bottom: 12px;
+    text-align: center;
+    display: none;
+}
 body.dark-mode.login-page {
     background: #181818 !important;
 }
