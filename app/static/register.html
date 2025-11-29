@@ -33,6 +33,21 @@
         <button style="width:100%;margin-top:10px;" onclick="window.location.href='/login.html'">Back to Login</button>
     </div>
     <script>
+    // Pre-fill form data from login page if available
+    window.addEventListener('DOMContentLoaded', function() {
+        const savedUsername = sessionStorage.getItem('register_username');
+        const savedPassword = sessionStorage.getItem('register_password');
+        
+        if (savedUsername) {
+            document.getElementById('username').value = savedUsername;
+            sessionStorage.removeItem('register_username');
+        }
+        if (savedPassword) {
+            document.getElementById('password').value = savedPassword;
+            sessionStorage.removeItem('register_password');
+        }
+    });
+    
     document.getElementById('register-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         const username = document.getElementById('username').value;
