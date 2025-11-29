@@ -179,7 +179,8 @@ body.login-page .login-container {
     margin: 40px auto;
     max-width: 500px;
 }
-.login-error {
+.login-error,
+.register-error {
     color: #ff4d4f;
     margin-bottom: 12px;
     text-align: center;
