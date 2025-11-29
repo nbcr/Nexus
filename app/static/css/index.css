@@ -223,6 +223,33 @@ body.dark-mode .form-row-inline input.flash-success {
     50% { background-color: #2a4d2a; }
     75% { background-color: #1f3d1f; }
 }
+/* Password requirements styling */
+.password-requirements {
+    margin-top: 8px;
+    font-size: 12px;
+}
+.req-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+}
+.req-icon {
+    font-size: 14px;
+    width: 16px;
+    display: inline-block;
+    text-align: center;
+}
+body.dark-mode .password-requirements {
+    color: #bbb;
+}
+body.dark-mode .req-item {
+    color: #bbb;
+}
+body.dark-mode .req-item[style*="color: rgb(76, 175, 80)"] {
+    color: #4caf50 !important;
+}
 body.dark-mode.login-page {
     background: #181818 !important;
 }
