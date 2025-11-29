@@ -25,7 +25,7 @@
 }
 .social-btn {
     width: 100%;
-    max-width: 100%;
+    max-width: 360px;
     padding: 10px 16px;
     border: none;
     border-radius: 6px;
