@@ -41,16 +41,33 @@
         </div>
     </div>
     <script>
-    // Redirect authenticated users away from login page
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
+    // Redirect authenticated users away from login page - but verify token is valid first
+    async function checkAuthAndRedirect() {
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        const token = localStorage.getItem('access_token') || getCookie('access_token');
+        if (token) {
+            // Verify token is actually valid before redirecting
+            try {
+                const response = await fetch('/api/v1/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    // Token is valid, redirect to home
+                    window.location.href = '/';
+                }
+                // If token is invalid, stay on login page
+            } catch (error) {
+                // If check fails, stay on login page
+            }
+        }
     }
-    const token = localStorage.getItem('access_token') || getCookie('access_token');
-    if (token) {
-        window.location.href = '/';
-    }
+    checkAuthAndRedirect();
     // Dark mode toggle logic
     const darkModeToggle = document.getElementById('darkModeToggle');
     darkModeToggle.addEventListener('click', function() {
