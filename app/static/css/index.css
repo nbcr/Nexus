@@ -603,6 +603,17 @@ button.hamburger,
         display: block;
         font-size: 14px;
     }
+    
+    /* Mobile: hide auth buttons in header, show in menu */
+    .auth-btn-header,
+    .register-btn-header {
+        display: none;
+    }
+    
+    .nav-links.open .auth-btn-header,
+    .nav-links.open .register-btn-header {
+        display: flex;
+    }
 }
 
 .main-header nav a,
