@@ -461,15 +461,17 @@ body {
     .nav-links.open a,
     .nav-links.open button,
     .nav-links.open #admin-link {
-        display: block;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         width: 100%;
-        text-align: left;
-        padding: 16px 24px;
+        text-align: center;
+        padding: 16px 8px;
         font-size: 18px;
         background: transparent !important;
         border: none;
         color: #fff;
-        border-bottom: 1px solid rgba(255,255,255,0.12);
         cursor: pointer;
         transition: background 0.2s, color 0.2s;
         letter-spacing: 0.02em;
@@ -486,11 +488,6 @@ body {
         background: #26324a;
         color: #ffd700;
     }
-    .nav-links.open a:last-child,
-    .nav-links.open button:last-child,
-    .nav-links.open #admin-link:last-child {
-        border-bottom: none;
-    }
 
     .nav-links a,
     .nav-links button,
@@ -506,13 +503,14 @@ body {
     }
     
     .nav-links.open .menu-icon {
-        font-size: 20px;
-        margin-right: 8px;
-        display: inline-block;
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
     }
     
     .nav-links.open .menu-label {
-        display: inline-block;
+        display: block;
+        font-size: 14px;
     }
 }
 
