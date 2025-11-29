@@ -34,11 +34,21 @@
     </header>
 
     <script>
-        // Ensure hamburger bars exist immediately (before DOMContentLoaded)
+        // Ensure hamburger bars exist immediately and continuously monitor
         (function() {
             function ensureHamburgerBars() {
                 const hamburger = document.getElementById('hamburger-menu');
-                if (hamburger && hamburger.children.length === 0) {
+                if (!hamburger) return;
+                
+                // Count existing bars
+                const existingBars = hamburger.querySelectorAll('.bar').length;
+                
+                // If we don't have exactly 3 bars, recreate them
+                if (existingBars !== 3) {
+                    // Remove all existing bars first
+                    hamburger.querySelectorAll('.bar').forEach(bar => bar.remove());
+                    
+                    // Create 3 new bars
                     for (let i = 0; i < 3; i++) {
                         const bar = document.createElement('span');
                         bar.className = 'bar';
@@ -49,14 +59,35 @@
             
             // Try immediately if DOM is ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', ensureHamburgerBars);
+                document.addEventListener('DOMContentLoaded', function() {
+                    ensureHamburgerBars();
+                    // Set up MutationObserver to watch for changes
+                    const hamburger = document.getElementById('hamburger-menu');
+                    if (hamburger) {
+                        const observer = new MutationObserver(function(mutations) {
+                            ensureHamburgerBars();
+                        });
+                        observer.observe(hamburger, { childList: true, subtree: true });
+                    }
+                });
             } else {
                 ensureHamburgerBars();
+                // Set up MutationObserver immediately
+                const hamburger = document.getElementById('hamburger-menu');
+                if (hamburger) {
+                    const observer = new MutationObserver(function(mutations) {
+                        ensureHamburgerBars();
+                    });
+                    observer.observe(hamburger, { childList: true, subtree: true });
+                }
             }
             
-            // Also try after a short delay to catch any scripts that remove them
+            // Also try after delays to catch any scripts that remove them
+            setTimeout(ensureHamburgerBars, 50);
             setTimeout(ensureHamburgerBars, 100);
+            setTimeout(ensureHamburgerBars, 300);
             setTimeout(ensureHamburgerBars, 500);
+            setTimeout(ensureHamburgerBars, 1000);
         })();
         
         document.addEventListener('DOMContentLoaded', function() {
