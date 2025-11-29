@@ -36,6 +36,14 @@
     text-align: center;
     margin: 0 auto;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.social-icon {
+    font-size: 18px;
+    line-height: 1;
 }
 .social-btn:hover {
     opacity: 0.9;
