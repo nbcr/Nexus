@@ -359,6 +359,7 @@ body {
     margin: 4px 0;
     border-radius: 2px;
     transition: 0.3s;
+    display: block;
 }
 
 /* Hamburger open (X) animation */
@@ -407,9 +408,13 @@ body {
 /* Mobile: hamburger menu */
 @media (max-width: 900px) {
     .hamburger {
-        display: flex;
+        display: flex !important;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 8px;
+    }
+    
+    body.dark-mode .hamburger {
+        background: rgba(255, 255, 255, 0.15);
     }
 
     .nav-links {
