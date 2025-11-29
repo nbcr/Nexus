@@ -46,21 +46,27 @@ async function checkAuthStatus() {
             }
             if (authBtn) {
                 const label = authBtn.querySelector('.menu-label');
+                const icon = authBtn.querySelector('.menu-icon');
                 if (label) label.textContent = 'Logout';
+                if (icon) icon.textContent = '🚪';
                 authBtn.href = '#';
                 authBtn.onclick = function(e) {
                     e.preventDefault();
                     handleLogout();
                 };
+                authBtn.style.display = 'flex';
             }
             if (authBtnMobile) {
                 const label = authBtnMobile.querySelector('.menu-label');
+                const icon = authBtnMobile.querySelector('.menu-icon');
                 if (label) label.textContent = 'Logout';
+                if (icon) icon.textContent = '🚪';
                 authBtnMobile.href = '#';
                 authBtnMobile.onclick = function(e) {
                     e.preventDefault();
                     handleLogout();
                 };
+                authBtnMobile.style.display = 'flex';
             }
             const registerBtn = document.getElementById('register-btn');
             const registerBtnMobile = document.getElementById('register-btn-mobile');
@@ -80,24 +86,30 @@ async function checkAuthStatus() {
             const authBtnMobile = document.getElementById('auth-btn-mobile');
             if (authBtn) {
                 const label = authBtn.querySelector('.menu-label');
+                const icon = authBtn.querySelector('.menu-icon');
                 if (label) label.textContent = 'Login';
+                if (icon) icon.textContent = '🔐';
                 authBtn.href = '/login';
                 authBtn.onclick = null;
+                authBtn.style.display = 'flex';
             }
             if (authBtnMobile) {
                 const label = authBtnMobile.querySelector('.menu-label');
+                const icon = authBtnMobile.querySelector('.menu-icon');
                 if (label) label.textContent = 'Login';
+                if (icon) icon.textContent = '🔐';
                 authBtnMobile.href = '/login';
                 authBtnMobile.onclick = null;
+                authBtnMobile.style.display = 'flex';
             }
             const registerBtn = document.getElementById('register-btn');
             const registerBtnMobile = document.getElementById('register-btn-mobile');
             if (registerBtn) {
-                registerBtn.style.display = '';
+                registerBtn.style.display = 'flex';
                 registerBtn.href = '/register';
             }
             if (registerBtnMobile) {
-                registerBtnMobile.style.display = '';
+                registerBtnMobile.style.display = 'flex';
                 registerBtnMobile.href = '/register';
             }
         }
