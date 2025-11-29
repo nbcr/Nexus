@@ -440,7 +440,7 @@ body {
         max-width: 90vw;
         height: auto;
         max-height: calc(100vh - 80px);
-        overflow-y: auto;
+        overflow: hidden;
         padding: 16px 0;
         background: #007bff;
         background-color: #007bff;
@@ -489,6 +489,7 @@ body {
         color: #ffd700;
         box-shadow: none;
         transform: scale(1.05);
+        overflow: visible;
     }
     
     .nav-links.open a:hover .menu-icon,
