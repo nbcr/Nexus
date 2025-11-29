@@ -277,9 +277,61 @@ function initHeader() {
     // Removed duplicate setup to avoid conflicts
 }
 
+/**
+ * Initialize text size controls
+ */
+function initTextSize() {
+    const savedSize = localStorage.getItem('textSize');
+    const baseSize = 16; // Base font size in pixels
+    const minSize = 12;
+    const maxSize = 24;
+    let currentSize = savedSize ? parseInt(savedSize, 10) : baseSize;
+    
+    function applyTextSize(size) {
+        // Clamp size between min and max
+        size = Math.max(minSize, Math.min(maxSize, size));
+        currentSize = size;
+        localStorage.setItem('textSize', size.toString());
+        
+        // Apply to body, but exclude buttons and controls
+        document.body.style.fontSize = size + 'px';
+        
+        // Ensure buttons and controls maintain their size
+        const buttons = document.querySelectorAll('button, .text-size-btn, .text-size-controls, .hamburger, .header-btn, .menu-quick');
+        buttons.forEach(btn => {
+            btn.style.fontSize = '14px';
+        });
+    }
+    
+    // Restore saved size
+    if (savedSize) {
+        applyTextSize(parseInt(savedSize, 10));
+    }
+    
+    // Set up increase button
+    const increaseBtn = document.getElementById('text-size-increase');
+    if (increaseBtn) {
+        increaseBtn.addEventListener('click', function() {
+            applyTextSize(currentSize + 2);
+        });
+    }
+    
+    // Set up decrease button
+    const decreaseBtn = document.getElementById('text-size-decrease');
+    if (decreaseBtn) {
+        decreaseBtn.addEventListener('click', function() {
+            applyTextSize(currentSize - 2);
+        });
+    }
+}
+
 // Auto-initialize if DOM is already loaded
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initHeader);
+    document.addEventListener('DOMContentLoaded', function() {
+        initHeader();
+        initTextSize();
+    });
 } else {
     initHeader();
+    initTextSize();
 }
