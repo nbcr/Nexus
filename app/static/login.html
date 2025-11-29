@@ -115,8 +115,41 @@
         window.location.href = '/register';
     }
     
+    // Save form data to sessionStorage
+    function saveFormData() {
+        const username = document.getElementById('username')?.value || '';
+        const password = document.getElementById('password')?.value || '';
+        sessionStorage.setItem('login_username', username);
+        // Don't save password for security, but we can restore username
+    }
+    
+    // Restore form data from sessionStorage
+    function restoreFormData() {
+        const savedUsername = sessionStorage.getItem('login_username');
+        if (savedUsername) {
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.value = savedUsername;
+            }
+        }
+    }
+    
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', function() {
+        // Restore saved form data
+        restoreFormData();
+        
+        // Save form data as user types
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        if (usernameInput) {
+            usernameInput.addEventListener('input', saveFormData);
+            usernameInput.addEventListener('blur', saveFormData);
+        }
+        if (passwordInput) {
+            passwordInput.addEventListener('blur', saveFormData);
+        }
+        
         const loginForm = document.getElementById('login-form');
         if (!loginForm) {
             console.error('Login form not found');
@@ -160,6 +193,8 @@
                     // Also store in localStorage
                     localStorage.setItem('access_token', data.access_token);
                 }
+                // Clear saved form data on successful login
+                sessionStorage.removeItem('login_username');
                 // Wait for animation to complete before redirect
                 setTimeout(() => {
                     window.location.href = '/';

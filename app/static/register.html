@@ -74,6 +74,36 @@
         </form>
     </div>
     <script>
+    // Save form data to sessionStorage
+    function saveRegisterFormData() {
+        const username = document.getElementById('username')?.value || '';
+        const email = document.getElementById('email')?.value || '';
+        // Don't save password for security
+        sessionStorage.setItem('register_username', username);
+        sessionStorage.setItem('register_email', email);
+    }
+    
+    // Restore form data from sessionStorage (but don't override pre-filled data from login page)
+    function restoreRegisterFormData() {
+        // Only restore if fields are empty (to preserve pre-filled data from login page)
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        
+        if (usernameInput && !usernameInput.value) {
+            const savedUsername = sessionStorage.getItem('register_username');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+            }
+        }
+        
+        if (emailInput && !emailInput.value) {
+            const savedEmail = sessionStorage.getItem('register_email');
+            if (savedEmail) {
+                emailInput.value = savedEmail;
+            }
+        }
+    }
+    
     // Password requirements checker
     function checkPasswordRequirements(password) {
         const requirements = {
@@ -104,26 +134,45 @@
     
     // Pre-fill form data from login page if available
     window.addEventListener('DOMContentLoaded', function() {
-        const savedUsername = sessionStorage.getItem('register_username');
-        const savedPassword = sessionStorage.getItem('register_password');
+        // First, check for pre-filled data from login page
+        const loginUsername = sessionStorage.getItem('register_username');
+        const loginPassword = sessionStorage.getItem('register_password');
         
-        if (savedUsername) {
-            document.getElementById('username').value = savedUsername;
+        if (loginUsername) {
+            document.getElementById('username').value = loginUsername;
             sessionStorage.removeItem('register_username');
         }
-        if (savedPassword) {
+        if (loginPassword) {
             const passwordInput = document.getElementById('password');
-            passwordInput.value = savedPassword;
-            checkPasswordRequirements(savedPassword);
+            passwordInput.value = loginPassword;
+            checkPasswordRequirements(loginPassword);
             sessionStorage.removeItem('register_password');
         }
         
-        // Add real-time password requirement checking
+        // Then restore any saved form data (if fields are still empty)
+        restoreRegisterFormData();
+        
+        // Save form data as user types
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
+        
+        if (usernameInput) {
+            usernameInput.addEventListener('input', saveRegisterFormData);
+            usernameInput.addEventListener('blur', saveRegisterFormData);
+        }
+        if (emailInput) {
+            emailInput.addEventListener('input', saveRegisterFormData);
+            emailInput.addEventListener('blur', saveRegisterFormData);
+        }
+        
+        // Add real-time password requirement checking
         if (passwordInput) {
             passwordInput.addEventListener('input', function(e) {
                 checkPasswordRequirements(e.target.value);
+                saveRegisterFormData();
             });
+            passwordInput.addEventListener('blur', saveRegisterFormData);
         }
     });
     
@@ -185,6 +234,10 @@
                 usernameInput.classList.add('flash-success');
                 emailInput.classList.add('flash-success');
                 passwordInput.classList.add('flash-success');
+                
+                // Clear saved form data on successful registration
+                sessionStorage.removeItem('register_username');
+                sessionStorage.removeItem('register_email');
                 
                 // Wait for animation to complete before redirect
                 setTimeout(() => {
