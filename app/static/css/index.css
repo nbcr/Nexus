@@ -364,6 +364,7 @@ button.hamburger,
     box-sizing: border-box;
     opacity: 1;
     visibility: visible;
+    overflow: visible;
 }
 
 .hamburger .bar,
@@ -371,6 +372,8 @@ button.hamburger,
 #hamburger-menu .bar {
     width: 28px;
     height: 4px;
+    min-width: 28px;
+    min-height: 4px;
     background: #fff;
     margin: 4px 0;
     border-radius: 2px;
@@ -378,6 +381,9 @@ button.hamburger,
     display: block;
     opacity: 1;
     visibility: visible;
+    position: relative;
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 
 /* Hamburger open (X) animation - bars transform into X */
@@ -395,8 +401,12 @@ button.hamburger,
 
 /* Ensure bars are visible when hamburger is not open */
 .hamburger:not(.open) .bar {
-    opacity: 1;
-    transform: none;
+    opacity: 1 !important;
+    transform: none !important;
+    width: 28px !important;
+    height: 4px !important;
+    display: block !important;
+    visibility: visible !important;
 }
 
 /* Desktop: nav-links hidden by default, shown when hamburger is clicked */
