@@ -381,7 +381,7 @@ body {
     gap: 12px;
     align-items: center;
     position: relative;
-    background: transparent;
+    background: #007bff;
     width: auto;
     height: auto;
     padding: 0;
