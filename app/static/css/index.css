@@ -334,7 +334,7 @@ body {
     z-index: 1000;
     gap: 12px;
     align-items: center;
-    position: relative;
+    background: #007bff;
 }
 
 /* Hamburger menu - hidden on desktop, visible on mobile */
@@ -381,7 +381,7 @@ body {
     gap: 12px;
     align-items: center;
     position: relative;
-    background: #007bff;
+    background: #007bff !important;
     width: auto;
     height: auto;
     padding: 0;
@@ -420,7 +420,7 @@ body {
         position: fixed;
         top: 0;
         right: 0;
-        background: #007bff;
+        background: #007bff !important;
         width: 260px;
         height: 100vh;
         padding: 60px 0 0 0;
@@ -439,7 +439,7 @@ body {
         min-width: 160px;
         max-width: 90vw;
         padding: 16px 0;
-        background: #007bff;
+        background: #007bff !important;
         border-radius: 0 0 0 12px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.18);
         position: absolute;
