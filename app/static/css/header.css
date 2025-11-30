@@ -1,0 +1,476 @@
+/* ======================================
+   HEADER & NAVIGATION STYLES
+   ====================================== */
+
+/* Main Header */
+.main-header {
+    background: #007bff;
+    color: #fff;
+    padding: 20px 0;
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.1));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.main-header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #fff;
+}
+
+.main-header nav {
+    display: flex;
+    overflow: visible;
+    position: relative;
+    z-index: 1000;
+    gap: 12px;
+    align-items: center;
+    background: #007bff;
+}
+
+/* User Welcome Message */
+.user-welcome {
+    color: #fff;
+    font-size: 14px;
+    margin-right: 12px;
+    display: none;
+}
+
+/* ======================================
+   HAMBURGER MENU BUTTON
+   ====================================== */
+
+.hamburger,
+.main-header nav .hamburger,
+.main-header nav button.hamburger,
+button.hamburger,
+#hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    z-index: 10001;
+    padding: 8px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    margin: 0;
+    font-size: inherit;
+    box-sizing: border-box;
+    opacity: 1;
+    visibility: visible;
+    overflow: visible;
+    transition: background var(--transition-base, 0.2s ease);
+}
+
+.hamburger:hover,
+body.dark-mode .hamburger {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Hamburger Bars */
+.hamburger .bar,
+.main-header nav .hamburger .bar,
+#hamburger-menu .bar {
+    width: 28px;
+    height: 4px;
+    min-width: 28px;
+    min-height: 4px;
+    background: #fff;
+    margin: 4px 0;
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+    display: block;
+    visibility: visible;
+    position: relative;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+/* Hamburger Open (X) Animation */
+.hamburger.open .bar:nth-child(1),
+.main-header nav .hamburger.open .bar:nth-child(1),
+#hamburger-menu.open .bar:nth-child(1) {
+    transform: rotate(45deg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -14px;
+    margin-top: -2px;
+}
+
+.hamburger.open .bar:nth-child(2),
+.main-header nav .hamburger.open .bar:nth-child(2),
+#hamburger-menu.open .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.open .bar:nth-child(3),
+.main-header nav .hamburger.open .bar:nth-child(3),
+#hamburger-menu.open .bar:nth-child(3) {
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -14px;
+    margin-top: -2px;
+}
+
+/* Hamburger Not Open State */
+.hamburger:not(.open) .bar,
+.main-header nav .hamburger:not(.open) .bar,
+#hamburger-menu:not(.open) .bar {
+    opacity: 1;
+    transform: none;
+    width: 28px;
+    height: 4px;
+    display: block;
+    visibility: visible;
+}
+
+body.dark-mode .hamburger .bar {
+    background: #fff;
+}
+
+/* ======================================
+   DESKTOP HEADER AUTH BUTTONS
+   ====================================== */
+
+.header-auth-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.header-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: var(--font-size-base, 14px);
+    border-radius: var(--border-radius, 6px);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background var(--transition-base, 0.2s ease);
+    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.header-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.header-btn .menu-icon {
+    font-size: 16px;
+}
+
+.header-btn .menu-label {
+    font-size: var(--font-size-base, 14px);
+}
+
+/* ======================================
+   NAVIGATION MENU
+   ====================================== */
+
+/* Desktop: nav-links hidden by default */
+.nav-links {
+    display: none;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    position: absolute;
+    top: 75px;
+    right: 0;
+    background: #007bff;
+    width: auto;
+    min-width: 200px;
+    height: auto;
+    padding: 16px;
+    border-radius: var(--border-radius-large, 12px);
+    box-shadow: var(--shadow-xl, 0 4px 24px rgba(0,0,0,0.18));
+    z-index: 9999;
+}
+
+.nav-links.open {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+}
+
+/* Base menu item styling */
+.nav-links a,
+.nav-links button {
+    width: auto;
+    text-align: center;
+    padding: 8px 16px;
+    font-size: var(--font-size-base, 14px);
+    border-radius: var(--border-radius, 6px);
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all var(--transition-base, 0.2s ease);
+}
+
+/* Menu icon and label structure */
+.menu-icon {
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform var(--transition-base, 0.2s ease);
+}
+
+.menu-label {
+    font-size: var(--font-size-base, 14px);
+}
+
+/* ======================================
+   TEXT SIZE CONTROLS
+   ====================================== */
+
+.text-size-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    margin-top: auto;
+    flex-wrap: nowrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.text-size-controls .text-size-btn {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-size-base, 14px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+}
+
+.text-size-label {
+    color: #fff;
+    font-size: var(--font-size-base, 14px);
+    font-weight: 500;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.text-size-line1,
+.text-size-line2 {
+    display: block;
+}
+
+/* ======================================
+   MOBILE: HAMBURGER MENU
+   ====================================== */
+
+@media (max-width: 900px) {
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        gap: 0;
+        align-items: flex-end;
+        position: fixed;
+        top: 0;
+        right: 0;
+        background: #007bff;
+        width: 260px;
+        height: 100vh;
+        padding: 60px 0 0 0;
+        border-radius: 0 0 0 12px;
+        box-shadow: var(--shadow-md, 0 2px 16px rgba(0, 0, 0, 0.2));
+        z-index: 9999;
+    }
+
+    .nav-links.open {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px 0;
+        align-items: stretch;
+        justify-items: center;
+        width: 260px;
+        min-width: 160px;
+        max-width: 90vw;
+        height: auto;
+        max-height: calc(100vh - 80px);
+        overflow: hidden;
+        padding: 16px 0;
+        background: #007bff;
+        border-radius: var(--border-radius-large, 12px);
+        box-shadow: var(--shadow-xl, 0 4px 24px rgba(0,0,0,0.18));
+        position: absolute;
+        top: 75px;
+        right: 0;
+        z-index: 9999;
+    }
+    
+    /* Mobile menu items styling */
+    .nav-links.open a,
+    .nav-links.open button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        text-align: center;
+        padding: 16px 8px;
+        font-size: var(--font-size-lg, 18px);
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+    }
+    
+    /* Text size controls in mobile menu */
+    .nav-links.open .text-size-controls {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-top: 8px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    /* Mobile menu hover effects */
+    .nav-links.open a:hover,
+    .nav-links.open button:hover {
+        background: transparent;
+        color: #ffd700;
+    }
+    
+    .nav-links.open a:hover .menu-icon,
+    .nav-links.open button:hover .menu-icon {
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+        transform: scale(1.1);
+    }
+    
+    .nav-links.open a:hover .menu-label,
+    .nav-links.open button:hover .menu-label {
+        text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    }
+
+    .nav-links a,
+    .nav-links button {
+        width: 100%;
+        text-align: right;
+        padding: 12px 24px;
+        font-size: var(--font-size-md, 16px);
+        border-radius: 0;
+        background: transparent;
+        border: none;
+        color: #fff;
+    }
+    
+    .nav-links.open .menu-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        margin-right: 0;
+        display: block;
+    }
+    
+    .nav-links.open .menu-label {
+        display: block;
+        font-size: var(--font-size-base, 14px);
+        font-weight: 500;
+    }
+    
+    /* Mobile: hide desktop auth buttons, show mobile auth buttons */
+    .header-auth-buttons {
+        display: none;
+    }
+    
+    .nav-links.open .auth-btn-mobile,
+    .nav-links.open .register-btn-mobile {
+        display: flex;
+    }
+}
+
+/* Desktop: hide mobile auth buttons, show desktop header buttons */
+@media (min-width: 901px) {
+    .auth-btn-mobile,
+    .register-btn-mobile {
+        display: none;
+    }
+}
+
+/* ======================================
+   DARK MODE HEADER STYLES
+   ====================================== */
+
+body.dark-mode .main-header {
+    background: #1e3a5f;
+}
+
+body.dark-mode .main-header nav {
+    background: #1e3a5f;
+}
+
+body.dark-mode .nav-links {
+    background: #1e3a5f;
+}
+
+@media (max-width: 900px) {
+    body.dark-mode .nav-links {
+        background: #1e3a5f;
+    }
+    
+    body.dark-mode .nav-links.open {
+        background: #1e3a5f;
+        background-color: #1e3a5f;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .main-header .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .main-header nav {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .main-header h1 {
+        font-size: 24px;
+    }
+}
+

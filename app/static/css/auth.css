@@ -1,0 +1,350 @@
+/* ======================================
+   AUTHENTICATION FORMS
+   ====================================== */
+
+/* Login/Register Container */
+.login-container,
+.register-container {
+    background: var(--bg-secondary, #222);
+    padding: 32px 24px;
+    border-radius: var(--border-radius-large, 12px);
+    box-shadow: var(--shadow-lg, 0 2px 16px rgba(0,0,0,0.2));
+    width: 100%;
+    max-width: 500px;
+    margin: 40px auto;
+}
+
+body.login-page,
+body.register-page {
+    display: block;
+    min-height: 100vh;
+    background: var(--bg-primary, #181818);
+    padding-top: 0;
+}
+
+.login-container h2,
+.register-container h2,
+.login-container h1,
+.register-container h1 {
+    margin-bottom: 18px;
+    color: var(--text-primary, #fff);
+    text-align: center;
+    width: 100%;
+}
+
+/* ======================================
+   FORM STRUCTURE
+   ====================================== */
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: var(--spacing-md, 16px);
+}
+
+.form-row-inline {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    margin-bottom: var(--spacing-md, 16px);
+    align-items: center;
+}
+
+.form-row-align {
+    align-items: center;
+}
+
+.form-row-inline label {
+    min-width: 120px;
+    font-weight: 600;
+    text-align: right;
+    color: var(--text-primary, #fff);
+}
+
+.form-row-inline input {
+    flex: 1;
+    width: 300px;
+    max-width: 300px;
+    padding: 10px 12px;
+    border: 1px solid var(--bg-tertiary, #444);
+    border-radius: var(--border-radius, 6px);
+    font-size: var(--font-size-base, 14px);
+    background: var(--bg-primary, #181818);
+    color: var(--text-primary, #fff);
+    transition: border-color var(--transition-fast, 0.15s ease), box-shadow var(--transition-fast, 0.15s ease);
+}
+
+.form-row-inline input:focus {
+    outline: none;
+    border-color: var(--accent, #0078d7);
+    box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.2);
+}
+
+/* ======================================
+   FIELD FLASH ANIMATIONS
+   ====================================== */
+
+@keyframes flash-red {
+    0%, 100% { background: var(--bg-primary, #181818); }
+    50% { background: rgba(244, 67, 54, 0.3); }
+}
+
+@keyframes flash-green {
+    0%, 100% { background: var(--bg-primary, #181818); }
+    50% { background: rgba(76, 175, 80, 0.3); }
+}
+
+@keyframes flash-red-dark {
+    0%, 100% { background: #181818; }
+    50% { background: rgba(244, 67, 54, 0.3); }
+}
+
+@keyframes flash-green-dark {
+    0%, 100% { background: #181818; }
+    50% { background: rgba(76, 175, 80, 0.3); }
+}
+
+.form-row-inline input.flash-error {
+    animation: flash-red 0.6s ease;
+}
+
+.form-row-inline input.flash-success {
+    animation: flash-green 0.6s ease;
+}
+
+body.dark-mode .form-row-inline input.flash-error {
+    animation: flash-red-dark 0.6s ease;
+}
+
+body.dark-mode .form-row-inline input.flash-success {
+    animation: flash-green-dark 0.6s ease;
+}
+
+/* ======================================
+   ERROR MESSAGES
+   ====================================== */
+
+.login-error,
+.register-error {
+    color: var(--error, #f44336);
+    margin-bottom: var(--spacing-md, 16px);
+    padding: 12px;
+    background: rgba(244, 67, 54, 0.1);
+    border-radius: var(--border-radius, 6px);
+    border-left: 4px solid var(--error, #f44336);
+    display: none;
+    font-size: var(--font-size-sm, 12px);
+    text-align: center;
+}
+
+/* ======================================
+   PASSWORD REQUIREMENTS
+   ====================================== */
+
+.password-requirements {
+    margin-top: 8px;
+    margin-bottom: var(--spacing-md, 16px);
+    font-size: var(--font-size-sm, 12px);
+    color: var(--text-secondary, #666);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 136px;
+}
+
+.req-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.req-icon {
+    min-width: 20px;
+    text-align: center;
+}
+
+/* ======================================
+   FORM BUTTONS
+   ====================================== */
+
+.login-btn-row {
+    display: flex;
+    gap: var(--spacing-md, 16px);
+    justify-content: center;
+    margin-bottom: 18px;
+    width: 500px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.login-btn,
+.register-btn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
+    border: none;
+    border-radius: var(--border-radius, 6px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-base, 0.2s ease);
+    font-size: var(--font-size-md, 16px);
+    box-shadow: var(--shadow-md, 0 2px 6px rgba(0, 0, 0, 0.15));
+}
+
+.login-btn {
+    background: var(--accent, #0078d7);
+    color: #fff;
+}
+
+.login-btn:hover {
+    background: var(--accent-hover, #005fa3);
+}
+
+.register-btn {
+    background: var(--bg-tertiary, #666);
+    color: #fff;
+}
+
+.register-btn:hover {
+    background: #555;
+}
+
+/* ======================================
+   SOCIAL LOGIN BUTTONS
+   ====================================== */
+
+.social-login-columns {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md, 16px);
+    justify-content: center;
+    margin-top: 18px;
+    width: 500px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.social-login-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md, 16px);
+    width: 100%;
+}
+
+.social-btn {
+    width: 100%;
+    max-width: 360px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: var(--border-radius, 6px);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-base, 0.2s ease), opacity var(--transition-base, 0.2s ease);
+    font-size: var(--font-size-base, 14px);
+    margin: 0 auto;
+    box-shadow: var(--shadow-md, 0 2px 6px rgba(0, 0, 0, 0.15));
+    display: flex;
+    align-items: center;
+    position: relative;
+    white-space: nowrap;
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    object-fit: contain;
+    flex-shrink: 0;
+    display: block;
+    position: absolute;
+    left: 16px;
+}
+
+.social-text {
+    flex: 1;
+    text-align: center;
+}
+
+.social-btn:hover {
+    opacity: 0.9;
+}
+
+/* Social Button Colors */
+.microsoft-btn {
+    background: #2F2F2F;
+    color: #fff;
+}
+
+.google-btn {
+    background: #fff;
+    color: #4285F4;
+    border: 1px solid #ddd;
+}
+
+.apple-btn {
+    background: #000;
+    color: #fff;
+}
+
+.facebook-btn {
+    background: #1877F3;
+    color: #fff;
+}
+
+.x-btn {
+    background: #14171A;
+    color: #fff;
+}
+
+.instagram-btn {
+    background: linear-gradient(45deg, #fd1d1d, #fcb045, #833ab4);
+    color: #fff;
+}
+
+/* ======================================
+   MOBILE RESPONSIVE
+   ====================================== */
+
+@media (max-width: 768px) {
+    .login-container,
+    .register-container {
+        padding: 24px 16px;
+        max-width: 95%;
+    }
+    
+    .form-row-inline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+    
+    .form-row-inline label {
+        text-align: left;
+        min-width: auto;
+    }
+    
+    .form-row-inline input {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .login-btn-row,
+    .social-login-columns {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .password-requirements {
+        padding-left: 0;
+    }
+}
+
