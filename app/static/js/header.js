@@ -367,7 +367,19 @@ function initTextSize() {
             el.style.fontSize = size + 'px';
         });
         
-        // 3. Feed item content text (full article text when expanded)
+        // 3. Feed item tags
+        const tags = document.querySelectorAll('.tag, .feed-item-tags');
+        tags.forEach(el => {
+            el.style.fontSize = size + 'px';
+        });
+        
+        // 4. Related query links
+        const relatedQueries = document.querySelectorAll('.related-query, .related-queries');
+        relatedQueries.forEach(el => {
+            el.style.fontSize = size + 'px';
+        });
+        
+        // 5. Feed item content text (full article text when expanded)
         const contents = document.querySelectorAll('.feed-item-content p:not(.feed-item-title):not(.feed-item-description):not(.feed-item-summary)');
         contents.forEach(el => {
             el.style.fontSize = size + 'px';
