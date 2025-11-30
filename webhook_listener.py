@@ -25,11 +25,17 @@ print(f"Virtual environment PIP: {VENV_PIP}")
 @app.route('/webhook', methods=['POST'])
 def webhook():
     # Prevent concurrent deployments with file lock
+    lock_fd = None
     try:
         lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_WRONLY | os.O_EXCL)
     except FileExistsError:
         print("⚠️  Another deployment is already in progress, skipping...")
         return jsonify({'status': 'skipped', 'reason': 'deployment_in_progress'}), 409
+    except Exception as e:
+        print(f"❌ Error creating lock file: {e}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({'status': 'error', 'message': f'Lock file error: {str(e)}'}), 500
     
     try:
         print("=== WEBHOOK RECEIVED ===")
@@ -40,6 +46,11 @@ def webhook():
         signature = request.headers.get('X-Hub-Signature-256', '')
         print(f"Signature header: '{signature}'")
         print(f"WEBHOOK_SECRET exists: {WEBHOOK_SECRET is not None}")
+        
+        # Add more detailed error logging
+        if not WEBHOOK_SECRET:
+            print("❌ WEBHOOK_SECRET is not set!")
+            return jsonify({'error': 'Webhook secret not configured'}), 500
 
         # Verify signature first
         if not verify_signature(request.get_data(), signature):
@@ -135,18 +146,26 @@ def webhook():
                     })
             except Exception as e:
                 import traceback
-                print(f"Error processing webhook: {e}")
-                print(traceback.format_exc())
-                return jsonify({'status': 'error', 'message': str(e)}), 500
+                error_trace = traceback.format_exc()
+                print(f"❌ Error processing webhook: {e}")
+                print(f"Traceback:\n{error_trace}")
+                return jsonify({'status': 'error', 'message': str(e), 'traceback': error_trace}), 500
 
         return jsonify({'status': 'ignored'})
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"❌ Unexpected error in webhook handler: {e}")
+        print(f"Traceback:\n{error_trace}")
+        return jsonify({'status': 'error', 'message': str(e), 'traceback': error_trace}), 500
     finally:
         # Always release the lock
-        try:
-            os.close(lock_fd)
-            os.unlink(LOCK_FILE)
-        except:
-            pass
+        if lock_fd is not None:
+            try:
+                os.close(lock_fd)
+                os.unlink(LOCK_FILE)
+            except Exception as e:
+                print(f"⚠️  Error releasing lock: {e}")
 
 def verify_signature(payload_body, signature_header):
     print(f"=== SIGNATURE VERIFICATION DEBUG ===")
