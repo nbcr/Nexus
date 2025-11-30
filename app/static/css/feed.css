@@ -98,7 +98,7 @@
     max-width: 360px;
     height: 200px;
     overflow: hidden;
-    background: #f5f5f5;
+    background: transparent;
     border-radius: 12px;
     margin: 16px auto;
 }
