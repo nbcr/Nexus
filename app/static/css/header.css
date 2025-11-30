@@ -347,6 +347,8 @@ body.dark-mode .hamburger .bar {
         align-items: center;
         justify-content: center;
         width: 100%;
+        min-height: 100px;
+        max-height: 100px;
         text-align: center;
         padding: 16px 8px;
         font-size: var(--font-size-lg, 18px);
@@ -354,6 +356,7 @@ body.dark-mode .hamburger .bar {
         border: none;
         outline: none;
         color: #fff;
+        overflow: hidden;
     }
     
     /* Text size controls in mobile menu */
@@ -403,12 +406,17 @@ body.dark-mode .hamburger .bar {
         margin-bottom: 8px;
         margin-right: 0;
         display: block;
+        flex-shrink: 0;
+        line-height: 1;
     }
     
     .nav-links.open .menu-label {
         display: block;
         font-size: var(--font-size-base, 14px);
         font-weight: 500;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     /* Mobile: hide desktop auth buttons, show mobile auth buttons */
