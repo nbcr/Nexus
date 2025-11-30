@@ -3,6 +3,8 @@ import hmac
 import hashlib
 import subprocess
 import os
+import time
+import fcntl
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -14,6 +16,7 @@ PROJECT_PATH = '/home/nexus/nexus'
 VENV_PATH = os.path.join(PROJECT_PATH, 'venv')
 VENV_PYTHON = os.path.join(VENV_PATH, 'bin', 'python')
 VENV_PIP = os.path.join(VENV_PATH, 'bin', 'pip')
+LOCK_FILE = '/tmp/nexus_webhook.lock'
 
 print(f"Webhook secret loaded: {WEBHOOK_SECRET is not None}")
 print(f"Virtual environment Python: {VENV_PYTHON}")
@@ -21,24 +24,32 @@ print(f"Virtual environment PIP: {VENV_PIP}")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    print("=== WEBHOOK RECEIVED ===")
-    print(f"Remote addr: {request.remote_addr}")
-    print(f"User-Agent: {request.headers.get('User-Agent')}")
-    print(f"X-GitHub-Event: {request.headers.get('X-GitHub-Event')}")
+    # Prevent concurrent deployments with file lock
+    try:
+        lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_WRONLY | os.O_EXCL)
+    except FileExistsError:
+        print("⚠️  Another deployment is already in progress, skipping...")
+        return jsonify({'status': 'skipped', 'reason': 'deployment_in_progress'}), 409
     
-    signature = request.headers.get('X-Hub-Signature-256', '')
-    print(f"Signature header: '{signature}'")
-    print(f"WEBHOOK_SECRET exists: {WEBHOOK_SECRET is not None}")
+    try:
+        print("=== WEBHOOK RECEIVED ===")
+        print(f"Remote addr: {request.remote_addr}")
+        print(f"User-Agent: {request.headers.get('User-Agent')}")
+        print(f"X-GitHub-Event: {request.headers.get('X-GitHub-Event')}")
+        
+        signature = request.headers.get('X-Hub-Signature-256', '')
+        print(f"Signature header: '{signature}'")
+        print(f"WEBHOOK_SECRET exists: {WEBHOOK_SECRET is not None}")
 
-    # Verify signature first
-    if not verify_signature(request.get_data(), signature):
-        print("SIGNATURE VERIFICATION FAILED")
-        return jsonify({'error': 'Invalid signature'}), 401
+        # Verify signature first
+        if not verify_signature(request.get_data(), signature):
+            print("SIGNATURE VERIFICATION FAILED")
+            return jsonify({'error': 'Invalid signature'}), 401
 
-    print("SIGNATURE VERIFICATION SUCCESSFUL!")
-    
-    # Only process if it's a push event
-    if request.headers.get('X-GitHub-Event') == 'push':
+        print("SIGNATURE VERIFICATION SUCCESSFUL!")
+        
+        # Only process if it's a push event
+        if request.headers.get('X-GitHub-Event') == 'push':
         try:
             payload = request.get_json()
             branch = payload.get('ref', '').split('/')[-1]
@@ -52,6 +63,7 @@ def webhook():
                     capture_output=True,
                     text=True,
                     check=True,
+                    timeout=60,  # 1 minute timeout for git pull
                     env={
                         **os.environ,
                         'GIT_SSH_COMMAND': 'ssh -i /home/nexus/.ssh/id_nexus -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
@@ -64,11 +76,18 @@ def webhook():
                     [VENV_PIP, 'install', '-r', 'requirements.txt'],
                     cwd=PROJECT_PATH,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    timeout=300  # 5 minute timeout
                 )
                 print(f"pip install stdout: {pip_result.stdout}")
                 print(f"pip install stderr: {pip_result.stderr}")
                 print(f"pip install returncode: {pip_result.returncode}")
+                
+                # Fail if pip install had errors
+                if pip_result.returncode != 0:
+                    error_msg = f"pip install failed with return code {pip_result.returncode}: {pip_result.stderr}"
+                    print(f"❌ {error_msg}")
+                    raise Exception(error_msg)
 
                 # Verify uvicorn is available in venv
                 print("Verifying uvicorn installation in venv...")
@@ -76,15 +95,37 @@ def webhook():
                     [VENV_PYTHON, '-c', 'import uvicorn; print("uvicorn available")'],
                     cwd=PROJECT_PATH,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    timeout=10
                 )
                 print(f"Uvicorn verification returncode: {verify_result.returncode}")
                 print(f"Uvicorn stdout: {verify_result.stdout}")
                 if verify_result.stderr:
                     print(f"Uvicorn stderr: {verify_result.stderr}")
+                
+                # Fail if uvicorn is not available
+                if verify_result.returncode != 0:
+                    error_msg = f"uvicorn not available in virtual environment: {verify_result.stderr}"
+                    print(f"❌ {error_msg}")
+                    raise Exception(error_msg)
 
                 print("Restarting application via systemd...")
                 restart_application()
+                
+                # Verify service started successfully
+                print("Verifying service status...")
+                time.sleep(3)  # Give service a moment to start
+                status_result = subprocess.run(
+                    ['sudo', 'systemctl', 'is-active', 'nexus.service'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if status_result.returncode == 0 and status_result.stdout.strip() == 'active':
+                    print("✅ Service is active and running")
+                else:
+                    print(f"⚠️  Service status check: {status_result.stdout.strip()}")
+                    # Don't fail here, but log the warning
 
                 return jsonify({
                     'status': 'success',
@@ -92,13 +133,20 @@ def webhook():
                     'branch': branch,
                     'uvicorn_available': verify_result.returncode == 0
                 })
-        except Exception as e:
-            print(f"Error processing webhook: {e}")
-            import traceback
-            print(traceback.format_exc())
-            return jsonify({'status': 'error', 'message': str(e)}), 500
+            except Exception as e:
+                print(f"Error processing webhook: {e}")
+                import traceback
+                print(traceback.format_exc())
+                return jsonify({'status': 'error', 'message': str(e)}), 500
 
-    return jsonify({'status': 'ignored'})
+        return jsonify({'status': 'ignored'})
+    finally:
+        # Always release the lock
+        try:
+            os.close(lock_fd)
+            os.unlink(LOCK_FILE)
+        except:
+            pass
 
 def verify_signature(payload_body, signature_header):
     print(f"=== SIGNATURE VERIFICATION DEBUG ===")
