@@ -41,7 +41,9 @@
     width: 48px;
     vertical-align: middle;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px;
 }
 
 .main-header nav {
@@ -495,7 +497,8 @@ body.dark-mode .nav-links {
     .site-logo {
         height: 40px;
         width: 40px;
-        border-radius: 6px;
+        border-radius: 10px;
+        padding: 3px;
     }
 }
 
