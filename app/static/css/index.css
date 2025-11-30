@@ -614,6 +614,14 @@ button.hamburger,
     color: #fff;
     white-space: nowrap;
 }
+/* Override main.css .main-header nav button border with more specific selector */
+.main-header nav .nav-links button,
+.main-header nav .nav-links button.menu-quick,
+.main-header nav .nav-links button#dark-mode-toggle-menu,
+.main-header nav .nav-links button.text-size-btn {
+    border: none;
+    outline: none;
+}
 
 /* Mobile: hamburger menu */
 @media (max-width: 900px) {
