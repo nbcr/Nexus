@@ -679,7 +679,8 @@ button.hamburger,
         padding: 16px 8px;
         font-size: 18px;
         background: transparent !important;
-        border: none;
+        border: none !important;
+        outline: none !important;
         color: #fff;
     }
     .nav-links.open .text-size-controls {
@@ -1049,6 +1050,9 @@ body.login-page .login-container h1 {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
 }
 .text-size-label {
     color: #fff;
