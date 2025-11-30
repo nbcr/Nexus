@@ -354,20 +354,36 @@ function initTextSize() {
         currentSize = size;
         localStorage.setItem('textSize', size.toString());
         
-        // Apply to body for all text
-        document.body.style.fontSize = size + 'px';
+        // Create or update style tag for text sizing
+        let styleTag = document.getElementById('dynamic-text-size');
+        if (!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'dynamic-text-size';
+            document.head.appendChild(styleTag);
+        }
         
-        // Exclude headings - keep them at their original size
-        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6, .feed-item-title');
-        headings.forEach(heading => {
-            heading.style.fontSize = '';
-        });
-        
-        // Exclude buttons and controls - keep them at 14px
-        const controls = document.querySelectorAll('button, .text-size-btn, .text-size-controls, .hamburger, .header-btn, .menu-quick, input, select, textarea');
-        controls.forEach(control => {
-            control.style.fontSize = '14px';
-        });
+        // Use CSS rules with higher specificity instead of inline styles
+        styleTag.textContent = `
+            /* Dynamic text sizing - affects all text except headings */
+            body, body * {
+                font-size: ${size}px !important;
+            }
+            
+            /* Keep headings at their original size */
+            h1, h2, h3, h4, h5, h6,
+            .feed-item-title,
+            .main-header h1 {
+                font-size: revert !important;
+            }
+            
+            /* Keep controls at 14px */
+            button, .text-size-btn, .text-size-controls,
+            .hamburger, .header-btn, .menu-quick,
+            input, select, textarea,
+            .menu-icon, .menu-label {
+                font-size: 14px !important;
+            }
+        `;
     }
     
     // Restore saved size
