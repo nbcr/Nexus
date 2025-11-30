@@ -265,6 +265,69 @@ function toggleDarkMode() {
 }
 
 /**
+ * Initialize hamburger menu toggle with proper event handling
+ */
+function initHamburgerMenu() {
+    const hamburger = document.getElementById('hamburger-menu');
+    const navLinks = document.getElementById('nav-links');
+    
+    if (!hamburger || !navLinks) {
+        return;
+    }
+    
+    // Ensure hamburger bars exist
+    if (hamburger.children.length === 0) {
+        for (let i = 0; i < 3; i++) {
+            const bar = document.createElement('span');
+            bar.className = 'bar';
+            hamburger.appendChild(bar);
+        }
+    }
+    
+    // Toggle menu on hamburger click
+    hamburger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const nowOpen = !navLinks.classList.contains('open');
+        hamburger.classList.toggle('open', nowOpen);
+        navLinks.classList.toggle('open', nowOpen);
+    });
+    
+    // Dark mode toggle in menu (don't close menu)
+    const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
+    if (darkToggleMenu) {
+        darkToggleMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleDarkMode();
+            // Don't close menu
+        });
+    }
+    
+    // Close menu on link/button click, EXCEPT for text size and dark mode buttons
+    navLinks.querySelectorAll('a, button').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            // Don't close menu for text size buttons or dark mode toggle
+            if (el.id === 'text-size-decrease' || 
+                el.id === 'text-size-increase' || 
+                el.id === 'dark-mode-toggle-menu' ||
+                el.classList.contains('text-size-btn')) {
+                return; // Don't close menu
+            }
+            // Close menu for everything else
+            navLinks.classList.remove('open');
+            hamburger.classList.remove('open');
+        });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+            navLinks.classList.remove('open');
+            hamburger.classList.remove('open');
+        }
+    });
+}
+
+/**
  * Initialize header on page load
  * Call this in DOMContentLoaded
  */
@@ -272,9 +335,7 @@ function initHeader() {
     initDarkMode();
     setVisitorIdCookie();
     checkAuthStatus();
-
-    // Hamburger menu toggle logic is handled in index.html
-    // Removed duplicate setup to avoid conflicts
+    initHamburgerMenu();
 }
 
 /**
