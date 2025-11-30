@@ -50,92 +50,92 @@ def webhook():
         
         # Only process if it's a push event
         if request.headers.get('X-GitHub-Event') == 'push':
-        try:
-            payload = request.get_json()
-            branch = payload.get('ref', '').split('/')[-1]
-            print(f"Push event to branch: {branch}")
+            try:
+                payload = request.get_json()
+                branch = payload.get('ref', '').split('/')[-1]
+                print(f"Push event to branch: {branch}")
 
-            if branch == 'main':
-                print("Pulling latest changes...")
-                result = subprocess.run(
-                    ['git', 'pull', 'origin', 'main'],
-                    cwd=PROJECT_PATH,
-                    capture_output=True,
-                    text=True,
-                    check=True,
-                    timeout=60,  # 1 minute timeout for git pull
-                    env={
-                        **os.environ,
-                        'GIT_SSH_COMMAND': 'ssh -i /home/nexus/.ssh/id_nexus -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-                    }
-                )
-                print(f"Git pull output: {result.stdout}")
+                if branch == 'main':
+                    print("Pulling latest changes...")
+                    result = subprocess.run(
+                        ['git', 'pull', 'origin', 'main'],
+                        cwd=PROJECT_PATH,
+                        capture_output=True,
+                        text=True,
+                        check=True,
+                        timeout=60,  # 1 minute timeout for git pull
+                        env={
+                            **os.environ,
+                            'GIT_SSH_COMMAND': 'ssh -i /home/nexus/.ssh/id_nexus -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+                        }
+                    )
+                    print(f"Git pull output: {result.stdout}")
 
-                print("Installing dependencies in virtual environment...")
-                pip_result = subprocess.run(
-                    [VENV_PIP, 'install', '-r', 'requirements.txt'],
-                    cwd=PROJECT_PATH,
-                    capture_output=True,
-                    text=True,
-                    timeout=300  # 5 minute timeout
-                )
-                print(f"pip install stdout: {pip_result.stdout}")
-                print(f"pip install stderr: {pip_result.stderr}")
-                print(f"pip install returncode: {pip_result.returncode}")
-                
-                # Fail if pip install had errors
-                if pip_result.returncode != 0:
-                    error_msg = f"pip install failed with return code {pip_result.returncode}: {pip_result.stderr}"
-                    print(f"❌ {error_msg}")
-                    raise Exception(error_msg)
+                    print("Installing dependencies in virtual environment...")
+                    pip_result = subprocess.run(
+                        [VENV_PIP, 'install', '-r', 'requirements.txt'],
+                        cwd=PROJECT_PATH,
+                        capture_output=True,
+                        text=True,
+                        timeout=300  # 5 minute timeout
+                    )
+                    print(f"pip install stdout: {pip_result.stdout}")
+                    print(f"pip install stderr: {pip_result.stderr}")
+                    print(f"pip install returncode: {pip_result.returncode}")
+                    
+                    # Fail if pip install had errors
+                    if pip_result.returncode != 0:
+                        error_msg = f"pip install failed with return code {pip_result.returncode}: {pip_result.stderr}"
+                        print(f"❌ {error_msg}")
+                        raise Exception(error_msg)
 
-                # Verify uvicorn is available in venv
-                print("Verifying uvicorn installation in venv...")
-                verify_result = subprocess.run(
-                    [VENV_PYTHON, '-c', 'import uvicorn; print("uvicorn available")'],
-                    cwd=PROJECT_PATH,
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                print(f"Uvicorn verification returncode: {verify_result.returncode}")
-                print(f"Uvicorn stdout: {verify_result.stdout}")
-                if verify_result.stderr:
-                    print(f"Uvicorn stderr: {verify_result.stderr}")
-                
-                # Fail if uvicorn is not available
-                if verify_result.returncode != 0:
-                    error_msg = f"uvicorn not available in virtual environment: {verify_result.stderr}"
-                    print(f"❌ {error_msg}")
-                    raise Exception(error_msg)
+                    # Verify uvicorn is available in venv
+                    print("Verifying uvicorn installation in venv...")
+                    verify_result = subprocess.run(
+                        [VENV_PYTHON, '-c', 'import uvicorn; print("uvicorn available")'],
+                        cwd=PROJECT_PATH,
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    print(f"Uvicorn verification returncode: {verify_result.returncode}")
+                    print(f"Uvicorn stdout: {verify_result.stdout}")
+                    if verify_result.stderr:
+                        print(f"Uvicorn stderr: {verify_result.stderr}")
+                    
+                    # Fail if uvicorn is not available
+                    if verify_result.returncode != 0:
+                        error_msg = f"uvicorn not available in virtual environment: {verify_result.stderr}"
+                        print(f"❌ {error_msg}")
+                        raise Exception(error_msg)
 
-                print("Restarting application via systemd...")
-                restart_application()
-                
-                # Verify service started successfully
-                print("Verifying service status...")
-                time.sleep(3)  # Give service a moment to start
-                status_result = subprocess.run(
-                    ['sudo', 'systemctl', 'is-active', 'nexus.service'],
-                    capture_output=True,
-                    text=True,
-                    timeout=5
-                )
-                if status_result.returncode == 0 and status_result.stdout.strip() == 'active':
-                    print("✅ Service is active and running")
-                else:
-                    print(f"⚠️  Service status check: {status_result.stdout.strip()}")
-                    # Don't fail here, but log the warning
+                    print("Restarting application via systemd...")
+                    restart_application()
+                    
+                    # Verify service started successfully
+                    print("Verifying service status...")
+                    time.sleep(3)  # Give service a moment to start
+                    status_result = subprocess.run(
+                        ['sudo', 'systemctl', 'is-active', 'nexus.service'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    if status_result.returncode == 0 and status_result.stdout.strip() == 'active':
+                        print("✅ Service is active and running")
+                    else:
+                        print(f"⚠️  Service status check: {status_result.stdout.strip()}")
+                        # Don't fail here, but log the warning
 
-                return jsonify({
-                    'status': 'success',
-                    'output': result.stdout,
-                    'branch': branch,
-                    'uvicorn_available': verify_result.returncode == 0
-                })
+                    return jsonify({
+                        'status': 'success',
+                        'output': result.stdout,
+                        'branch': branch,
+                        'uvicorn_available': verify_result.returncode == 0
+                    })
             except Exception as e:
-                print(f"Error processing webhook: {e}")
                 import traceback
+                print(f"Error processing webhook: {e}")
                 print(traceback.format_exc())
                 return jsonify({'status': 'error', 'message': str(e)}), 500
 
