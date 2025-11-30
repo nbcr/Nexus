@@ -369,10 +369,13 @@ function initTextSize() {
                 font-size: ${size}px !important;
             }
             
-            /* Keep headings at their original size */
+            /* Keep headings and titles at their original size */
             h1, h2, h3, h4, h5, h6,
             .feed-item-title,
-            .main-header h1 {
+            .main-header h1,
+            .page-title,
+            header h1,
+            header h2 {
                 font-size: revert !important;
             }
             
