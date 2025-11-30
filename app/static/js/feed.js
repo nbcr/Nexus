@@ -414,7 +414,7 @@ class InfiniteFeed {
                 <div class="feed-item-header">
                     ${imageUrl ? `
                         <div class="feed-item-image">
-                            <img src="${imageUrl}" alt="${item.title}" loading="lazy" 
+                            <img src="${imageUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous"
                                  onerror="this.parentElement.style.display='none'">
                         </div>
                     ` : ''}
@@ -810,10 +810,13 @@ class InfiniteFeed {
             
             // Set the color as a CSS variable on the card
             card.style.setProperty('--card-color', `rgb(${r}, ${g}, ${b})`);
+            console.debug(`Extracted color for card: rgb(${r}, ${g}, ${b})`);
             
         } catch (error) {
-            // Silently fail for cross-origin images
-            console.debug('Could not extract color from image:', error);
+            // If color extraction fails (CORS or other issues), use a default subtle color
+            console.debug('Could not extract color from image:', error.message);
+            // Set a default subtle blue tint as fallback
+            card.style.setProperty('--card-color', 'rgb(100, 149, 237)');
         }
     }
     
