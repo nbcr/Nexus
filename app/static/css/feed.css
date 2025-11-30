@@ -8,14 +8,27 @@
 
 /* Feed Item */
 .feed-item {
-    background: var(--card-color, #fff);
-    background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.98)), var(--card-color, #fff);
+    background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 24px;
     overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s, background 0.3s ease;
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
+}
+
+/* Base subtle color tint - always visible */
+.feed-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--card-color, transparent);
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* Colored background overlay on hover - intensify the color */
@@ -544,8 +557,12 @@ body.dark-mode {
 }
 
 body.dark-mode .feed-item {
-    background: linear-gradient(to bottom, rgba(45,45,45,0.95), rgba(45,45,45,0.98)), var(--card-color, #2d2d2d);
+    background: #2d2d2d;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .feed-item::after {
+    opacity: 0.08;
 }
 
 body.dark-mode .feed-item:hover::before {
