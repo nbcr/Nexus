@@ -17,6 +17,27 @@
     position: relative;
 }
 
+/* Colored background overlay on hover */
+.feed-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--card-color, transparent);
+    opacity: 0;
+    transform: scale(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.feed-item:hover::before {
+    opacity: 0.08;
+    transform: scale(1);
+}
+
 /* Interest tracking indicator (optional visual feedback) */
 .feed-item::after {
     content: '';
@@ -57,6 +78,8 @@
 .feed-item-content {
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
 }
 
 /* Feed Item Header (Clickable) */
@@ -69,18 +92,22 @@
     color: #007bff;
 }
 
-/* Feed Item Image */
+/* Feed Item Image - YouTube Style */
 .feed-item-image {
     width: 100%;
-    height: 400px;
+    max-width: 360px;
+    height: 200px;
     overflow: hidden;
     background: #f5f5f5;
+    border-radius: 12px;
+    margin: 16px auto;
 }
 
 .feed-item-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 12px;
 }
 
 /* Feed Item Header Content */
@@ -474,7 +501,8 @@
     }
     
     .feed-item-image {
-        height: 240px;
+        max-width: 100%;
+        height: 180px;
     }
     
     .feed-item-body {
@@ -517,6 +545,10 @@ body.dark-mode {
 body.dark-mode .feed-item {
     background: #2d2d2d;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .feed-item:hover::before {
+    opacity: 0.15;
 }
 
 body.dark-mode .feed-item-title {

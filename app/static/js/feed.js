@@ -594,6 +594,14 @@ class InfiniteFeed {
         
         this.container.appendChild(article);
         
+        // Extract dominant color from image for hover effect
+        if (imageUrl) {
+            const img = article.querySelector('.feed-item-image img');
+            if (img) {
+                this.extractDominantColor(img, article);
+            }
+        }
+        
         // Create hover tracker for this card
         if (window.HoverTracker && this.globalScrollTracker) {
             const tracker = new HoverTracker(article, item.content_id);
@@ -759,6 +767,54 @@ class InfiniteFeed {
         }
         
         return 'View Source';
+    }
+    
+    extractDominantColor(img, card) {
+        // Wait for image to load before extracting color
+        if (!img.complete) {
+            img.addEventListener('load', () => this.extractDominantColor(img, card));
+            return;
+        }
+        
+        try {
+            // Create canvas to extract color
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Use small canvas for performance
+            canvas.width = 50;
+            canvas.height = 50;
+            
+            // Draw scaled-down image
+            ctx.drawImage(img, 0, 0, 50, 50);
+            
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, 50, 50);
+            const data = imageData.data;
+            
+            // Calculate average color (simple approach)
+            let r = 0, g = 0, b = 0;
+            let count = 0;
+            
+            // Sample pixels (skip some for performance)
+            for (let i = 0; i < data.length; i += 16) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+                count++;
+            }
+            
+            r = Math.floor(r / count);
+            g = Math.floor(g / count);
+            b = Math.floor(b / count);
+            
+            // Set the color as a CSS variable on the card
+            card.style.setProperty('--card-color', `rgb(${r}, ${g}, ${b})`);
+            
+        } catch (error) {
+            // Silently fail for cross-origin images
+            console.debug('Could not extract color from image:', error);
+        }
     }
     
     async trackView(contentId) {
