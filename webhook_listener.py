@@ -11,8 +11,13 @@ load_dotenv()
 app = Flask(__name__)
 WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET')
 PROJECT_PATH = '/home/nexus/nexus'
+VENV_PATH = os.path.join(PROJECT_PATH, 'venv')
+VENV_PYTHON = os.path.join(VENV_PATH, 'bin', 'python')
+VENV_PIP = os.path.join(VENV_PATH, 'bin', 'pip')
 
 print(f"Webhook secret loaded: {WEBHOOK_SECRET is not None}")
+print(f"Virtual environment Python: {VENV_PYTHON}")
+print(f"Virtual environment PIP: {VENV_PIP}")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -54,24 +59,43 @@ def webhook():
                 )
                 print(f"Git pull output: {result.stdout}")
 
-                print("Installing dependencies...")
+                print("Installing dependencies in virtual environment...")
                 pip_result = subprocess.run(
-                    ['pip', 'install', '-r', 'requirements.txt'],
+                    [VENV_PIP, 'install', '-r', 'requirements.txt'],
                     cwd=PROJECT_PATH,
                     capture_output=True,
                     text=True
                 )
+                print(f"pip install stdout: {pip_result.stdout}")
+                print(f"pip install stderr: {pip_result.stderr}")
+                print(f"pip install returncode: {pip_result.returncode}")
 
-                print("Restarting application...")
+                # Verify uvicorn is available in venv
+                print("Verifying uvicorn installation in venv...")
+                verify_result = subprocess.run(
+                    [VENV_PYTHON, '-c', 'import uvicorn; print("uvicorn available")'],
+                    cwd=PROJECT_PATH,
+                    capture_output=True,
+                    text=True
+                )
+                print(f"Uvicorn verification returncode: {verify_result.returncode}")
+                print(f"Uvicorn stdout: {verify_result.stdout}")
+                if verify_result.stderr:
+                    print(f"Uvicorn stderr: {verify_result.stderr}")
+
+                print("Restarting application via systemd...")
                 restart_application()
 
                 return jsonify({
                     'status': 'success',
                     'output': result.stdout,
-                    'branch': branch
+                    'branch': branch,
+                    'uvicorn_available': verify_result.returncode == 0
                 })
         except Exception as e:
             print(f"Error processing webhook: {e}")
+            import traceback
+            print(traceback.format_exc())
             return jsonify({'status': 'error', 'message': str(e)}), 500
 
     return jsonify({'status': 'ignored'})
@@ -113,7 +137,7 @@ def verify_signature(payload_body, signature_header):
 
 def restart_application():
     """Restart the nexus systemd service"""
-    print("Restarting nexus.service...")
+    print("Restarting nexus.service via systemctl...")
     result = subprocess.run(
         ['sudo', 'systemctl', 'restart', 'nexus.service'],
         capture_output=True,
@@ -121,6 +145,7 @@ def restart_application():
     )
     if result.returncode == 0:
         print("✅ Service restarted successfully")
+        print(f"Service output: {result.stdout}")
     else:
         print(f"❌ Error restarting service: {result.stderr}")
         raise Exception(f"Failed to restart service: {result.stderr}")
