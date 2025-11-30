@@ -25,12 +25,12 @@ After=network.target
 
 [Service]
 Type=simple
-User=admin
-Group=admin
-WorkingDirectory=/home/admin/nexus
-Environment="PATH=/home/admin/nexus/venv/bin"
+User=nexus
+Group=nexus
+WorkingDirectory=/home/nexus/nexus
+Environment="PATH=/home/nexus/nexus/venv/bin"
 Environment="DATABASE_URL=$DATABASE_URL"
-ExecStart=/home/admin/nexus/run.sh
+ExecStart=/home/nexus/nexus/run.sh
 Restart=always
 RestartSec=10
 

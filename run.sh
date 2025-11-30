@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Nexus API startup script
-cd /home/admin/nexus
+cd /home/nexus/nexus
 
 # Activate virtual environment
 source venv/bin/activate
