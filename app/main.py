@@ -39,7 +39,7 @@ async def login_page():
             username = verify_token(token)
             if username:
                 # Token is valid, redirect to home
-            return RedirectResponse(url="/")
+                return RedirectResponse(url="/")
             # Token is invalid/expired, clear it and show login page
             response = FileResponse("app/static/login.html")
             response.delete_cookie("access_token", path="/")
