@@ -10,7 +10,7 @@
 .feed-item {
     background: transparent;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     margin-bottom: 24px;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -544,7 +544,7 @@ body.dark-mode {
 
 body.dark-mode .feed-item {
     background: transparent;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: none;
 }
 
 body.dark-mode .feed-item:hover::before {
