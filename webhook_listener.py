@@ -112,13 +112,18 @@ def verify_signature(payload_body, signature_header):
     return match
 
 def restart_application():
-    subprocess.run(['pkill', '-f', 'python run_server.py'], capture_output=True)
-    subprocess.Popen(
-        ['python', 'run_server.py'],
-        cwd=PROJECT_PATH,
-        stdout=open('/home/nexus/nexus/server.log', 'a'),
-        stderr=subprocess.STDOUT
+    """Restart the nexus systemd service"""
+    print("Restarting nexus.service...")
+    result = subprocess.run(
+        ['sudo', 'systemctl', 'restart', 'nexus.service'],
+        capture_output=True,
+        text=True
     )
+    if result.returncode == 0:
+        print("✅ Service restarted successfully")
+    else:
+        print(f"❌ Error restarting service: {result.stderr}")
+        raise Exception(f"Failed to restart service: {result.stderr}")
 
 @app.route('/health', methods=['GET'])
 def health():
