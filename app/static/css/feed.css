@@ -8,16 +8,17 @@
 
 /* Feed Item */
 .feed-item {
-    background: #fff;
+    background: var(--card-color, #fff);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.98)), var(--card-color, #fff);
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 24px;
     overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.3s ease;
     position: relative;
 }
 
-/* Colored background overlay on hover */
+/* Colored background overlay on hover - intensify the color */
 .feed-item::before {
     content: '';
     position: absolute;
@@ -34,7 +35,7 @@
 }
 
 .feed-item:hover::before {
-    opacity: 0.08;
+    opacity: 0.15;
     transform: scale(1);
 }
 
@@ -543,12 +544,12 @@ body.dark-mode {
 }
 
 body.dark-mode .feed-item {
-    background: #2d2d2d;
+    background: linear-gradient(to bottom, rgba(45,45,45,0.95), rgba(45,45,45,0.98)), var(--card-color, #2d2d2d);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .feed-item:hover::before {
-    opacity: 0.15;
+    opacity: 0.25;
 }
 
 body.dark-mode .feed-item-title {
