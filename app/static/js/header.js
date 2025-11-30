@@ -397,12 +397,11 @@ function initTextSize() {
                 }
             }
             
-            /* Keep controls at 14px (but not content buttons) */
+            /* Keep controls at 14px (but not content buttons or menu items) */
             button:not(.btn-read-more):not(.btn-source),
             .text-size-btn, .text-size-controls,
-            .hamburger, .header-btn, .menu-quick,
-            input, select, textarea,
-            .menu-icon, .menu-label {
+            .hamburger, .header-btn,
+            input, select, textarea {
                 font-size: 14px !important;
             }
         `;
