@@ -601,9 +601,13 @@ button.hamburger,
     font-size: 14px;
 }
 
+/* ===========================
+   MENU ITEMS - CONSOLIDATED
+   =========================== */
+
+/* Base menu item styling - applies to all menu items */
 .nav-links a,
-.nav-links button,
-.nav-links #admin-link {
+.nav-links button {
     width: auto;
     text-align: center;
     padding: 8px 16px;
@@ -611,16 +615,22 @@ button.hamburger,
     border-radius: 6px;
     background: transparent;
     border: none;
+    outline: none;
     color: #fff;
     white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-/* Override main.css .main-header nav button border with more specific selector */
-.main-header nav .nav-links button,
-.main-header nav .nav-links button.menu-quick,
-.main-header nav .nav-links button#dark-mode-toggle-menu,
-.main-header nav .nav-links button.text-size-btn {
-    border: none;
-    outline: none;
+
+/* Menu icon and label structure */
+.menu-icon {
+    display: inline-block;
+    margin-right: 8px;
+    transition: transform 0.2s ease;
+}
+
+.menu-label {
+    font-size: 14px;
 }
 
 /* Mobile: hamburger menu */
