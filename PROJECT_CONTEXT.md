@@ -21,6 +21,12 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 - SSH access: `admin` user via plink (PuTTY on Windows)
 - Application runs as: `nexus` user
 - Service: `nexus.service` (systemd service running gunicorn)
+- Webhook Listener: `nexus-webhook.service` (Flask app on port 5000)
+  - Location: `/home/nexus/nexus/webhook_listener.py`
+  - Listens for GitHub webhooks to automatically deploy changes
+  - Requires Flask and python-dotenv in venv
+  - Sudoers configured: nexus can restart nexus.service without password
+  - Webhook secret: Configured in `.env` file as `WEBHOOK_SECRET`
 
 ### Code Structure
 
@@ -208,3 +214,49 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Will update CSS for `.nav-links.open` to use a grid layout with two columns, ensuring all menu items are arranged in two-item rows for improved usability and appearance.
 Test commit to trigger webhook
 Testing webhook with sudo permissions
+
+---
+
+# 2025-11-30: Webhook Listener & Automated Deployment Setup
+
+## Issues Fixed:
+1. **Flask Missing**: Webhook listener was crash-looping with `ModuleNotFoundError: No module named 'flask'`
+   - Solution: Installed Flask and python-dotenv in the venv
+   
+2. **Sudo Permission Error**: Webhook could pull code but couldn't restart service due to `pam_unix(sudo:auth): conversation failed`
+   - Solution: Added `/etc/sudoers.d/nexus-webhook` with NOPASSWD for systemctl commands:
+     ```
+     nexus ALL=(ALL) NOPASSWD: /bin/systemctl restart nexus.service, /bin/systemctl is-active nexus.service
+     ```
+
+3. **Indentation Error in app/main.py**: Service was crashing with exit code 3 after deployment
+   - Solution: Fixed indentation on line 42 (return statement after if username check)
+
+4. **Better Error Logging**: Added detailed error logging, tracebacks, and lock file error handling to webhook_listener.py
+
+## Webhook Status:
+- ✅ Active and running on port 5000
+- ✅ Signature verification working correctly
+- ✅ Automatically pulls code, installs dependencies, and restarts service
+- ✅ HTTP 200 responses for successful deployments
+- Webhook Secret: `f9e80cbc2b9c15a6cfc230907226174e2140b0a606465b2cc608318209e3b02f` (in .env)
+
+## CSS Restructuring (2025-11-30):
+- Removed old `index.css` (1016 lines) and `main.css` (214 lines)
+- Created modular CSS architecture:
+  - `base.css` (152 lines): Global styles, CSS variables, typography
+  - `header.css` (433 lines): Header, hamburger menu, navigation
+  - `auth.css` (302 lines): Login/register forms, social buttons, password validation
+  - `components.css` (318 lines): Buttons, modals, cards, spinners
+  - `feed.css` (880 lines): Feed-specific styles (unchanged)
+  - `admin.css` (619 lines): Admin panel (unchanged)
+  - `trending.css` (267 lines): Trending page (unchanged)
+- Benefits: Better organization, easier maintenance, reduced duplication
+
+## Menu Code Consolidation (2025-11-30):
+- Moved all hamburger menu logic from HTML files to `header.js`
+- Removed ~450 lines of duplicate JavaScript across 3 HTML files
+- Ensured consistent behavior: text size and dark mode buttons don't close menu
+- Simplified CSS selectors for better performance
+- All menu items now have identical visual styling and behavior across all pages
+
