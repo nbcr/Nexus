@@ -370,13 +370,31 @@ function initTextSize() {
             }
             
             /* Keep headings and titles at their original size */
-            h1, h2, h3, h4, h5, h6,
-            .feed-item-title,
-            .main-header h1,
-            .page-title,
-            header h1,
-            header h2 {
+            h1, h2, h3, h4, h5, h6 {
                 font-size: revert !important;
+            }
+            
+            /* Site title - keep at original size */
+            .main-header h1,
+            header h1 {
+                font-size: 32px !important;
+            }
+            
+            /* Card titles - keep at original size */
+            .feed-item-title {
+                font-size: 28px !important;
+            }
+            
+            /* Mobile adjustments */
+            @media (max-width: 768px) {
+                .main-header h1,
+                header h1 {
+                    font-size: 24px !important;
+                }
+                
+                .feed-item-title {
+                    font-size: 20px !important;
+                }
             }
             
             /* Keep controls at 14px */
