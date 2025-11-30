@@ -354,13 +354,30 @@ function initTextSize() {
         currentSize = size;
         localStorage.setItem('textSize', size.toString());
         
-        // Apply to body, but exclude buttons and controls
-        document.body.style.fontSize = size + 'px';
+        // Target specific elements only:
+        // 1. Category buttons text
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        categoryBtns.forEach(btn => {
+            btn.style.fontSize = size + 'px';
+        });
         
-        // Ensure buttons and controls maintain their size
-        const buttons = document.querySelectorAll('button, .text-size-btn, .text-size-controls, .hamburger, .header-btn, .menu-quick');
-        buttons.forEach(btn => {
-            btn.style.fontSize = '14px';
+        // 2. Feed item descriptions/summaries (but NOT titles)
+        const summaries = document.querySelectorAll('.feed-item-description, .feed-item-summary');
+        summaries.forEach(el => {
+            el.style.fontSize = size + 'px';
+        });
+        
+        // 3. Feed item content text (full article text when expanded)
+        const contents = document.querySelectorAll('.feed-item-content p:not(.feed-item-title):not(.feed-item-description):not(.feed-item-summary)');
+        contents.forEach(el => {
+            el.style.fontSize = size + 'px';
+        });
+        
+        // Keep titles at their original size (don't change)
+        const titles = document.querySelectorAll('.feed-item-title, h1, h2');
+        titles.forEach(title => {
+            // Remove any inline font-size that might have been applied
+            title.style.fontSize = '';
         });
     }
     
@@ -383,6 +400,18 @@ function initTextSize() {
         decreaseBtn.addEventListener('click', function() {
             applyTextSize(currentSize - 2);
         });
+    }
+    
+    // Re-apply text size when new feed items are loaded
+    // Watch for new feed items being added to the DOM
+    const feedContainer = document.getElementById('feed-container');
+    if (feedContainer) {
+        const observer = new MutationObserver(function() {
+            if (savedSize) {
+                applyTextSize(currentSize);
+            }
+        });
+        observer.observe(feedContainer, { childList: true, subtree: true });
     }
 }
 
