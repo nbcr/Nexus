@@ -36,7 +36,7 @@ echo ""
 
 # 3. Update .env file
 echo -e "${YELLOW}Step 3: Configuring environment...${NC}"
-cd /home/admin/nexus
+cd /home/nexus/nexus
 
 cat >> .env << EOF
 
@@ -85,7 +85,7 @@ echo ""
 echo "Next steps:"
 echo "1. Restart Nexus API: sudo systemctl restart nexus"
 echo "2. Test new endpoints: curl http://localhost:8000/api/v1/topics"
-echo "3. Check logs: tail -f /home/admin/nexus/logs/error.log"
+echo "3. Check logs: tail -f /home/nexus/nexus/logs/error.log"
 echo ""
 echo "Useful commands:"
 echo "  - Connect to DB: psql -U nexus_user -d nexus"
