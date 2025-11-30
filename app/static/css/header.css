@@ -37,10 +37,11 @@
 }
 
 .site-logo {
-    height: 28px;
-    width: 28px;
+    height: 48px;
+    width: 48px;
     vertical-align: middle;
     object-fit: contain;
+    border-radius: 8px;
 }
 
 .main-header nav {
@@ -492,8 +493,9 @@ body.dark-mode .nav-links {
     }
     
     .site-logo {
-        height: 22px;
-        width: 22px;
+        height: 40px;
+        width: 40px;
+        border-radius: 6px;
     }
 }
 
