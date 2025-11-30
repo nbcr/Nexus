@@ -33,12 +33,12 @@
     color: #fff;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
 .site-logo {
-    height: 40px;
-    width: 40px;
+    height: 28px;
+    width: 28px;
     vertical-align: middle;
     object-fit: contain;
 }
@@ -492,8 +492,8 @@ body.dark-mode .nav-links {
     }
     
     .site-logo {
-        height: 32px;
-        width: 32px;
+        height: 22px;
+        width: 22px;
     }
 }
 
