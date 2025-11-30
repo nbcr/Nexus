@@ -354,42 +354,19 @@ function initTextSize() {
         currentSize = size;
         localStorage.setItem('textSize', size.toString());
         
-        // Target specific elements only:
-        // 1. Category buttons text
-        const categoryBtns = document.querySelectorAll('.category-btn');
-        categoryBtns.forEach(btn => {
-            btn.style.fontSize = size + 'px';
+        // Apply to body for all text
+        document.body.style.fontSize = size + 'px';
+        
+        // Exclude headings - keep them at their original size
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6, .feed-item-title');
+        headings.forEach(heading => {
+            heading.style.fontSize = '';
         });
         
-        // 2. Feed item descriptions/summaries (but NOT titles)
-        const summaries = document.querySelectorAll('.feed-item-description, .feed-item-summary');
-        summaries.forEach(el => {
-            el.style.fontSize = size + 'px';
-        });
-        
-        // 3. Feed item tags
-        const tags = document.querySelectorAll('.tag, .feed-item-tags');
-        tags.forEach(el => {
-            el.style.fontSize = size + 'px';
-        });
-        
-        // 4. Related query links
-        const relatedQueries = document.querySelectorAll('.related-query, .related-queries');
-        relatedQueries.forEach(el => {
-            el.style.fontSize = size + 'px';
-        });
-        
-        // 5. Feed item content text (full article text when expanded)
-        const contents = document.querySelectorAll('.feed-item-content p:not(.feed-item-title):not(.feed-item-description):not(.feed-item-summary)');
-        contents.forEach(el => {
-            el.style.fontSize = size + 'px';
-        });
-        
-        // Keep titles at their original size (don't change)
-        const titles = document.querySelectorAll('.feed-item-title, h1, h2');
-        titles.forEach(title => {
-            // Remove any inline font-size that might have been applied
-            title.style.fontSize = '';
+        // Exclude buttons and controls - keep them at 14px
+        const controls = document.querySelectorAll('button, .text-size-btn, .text-size-controls, .hamburger, .header-btn, .menu-quick, input, select, textarea');
+        controls.forEach(control => {
+            control.style.fontSize = '14px';
         });
     }
     
