@@ -39,7 +39,7 @@ async def login_page():
             username = verify_token(token)
             if username:
                 # Token is valid, redirect to home
-                return RedirectResponse(url="/")
+            return RedirectResponse(url="/")
             # Token is invalid/expired, clear it and show login page
             response = FileResponse("app/static/login.html")
             response.delete_cookie("access_token", path="/")
@@ -76,16 +76,24 @@ app = FastAPI(
 async def startup_event():
     """Start background scheduler on app startup"""
     import logging
+    from datetime import datetime
     logger = logging.getLogger("uvicorn")
-    logger.info("🚀 Starting Nexus API...")
+    logger.info("=" * 80)
+    logger.info(f"🚀 Nexus API Started - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Version: {settings.VERSION}")
+    logger.info(f"Environment: {'Development' if settings.debug else 'Production'}")
+    logger.info("=" * 80)
     scheduler_service.start()
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Stop background scheduler on app shutdown"""
     import logging
+    from datetime import datetime
     logger = logging.getLogger("uvicorn")
-    logger.info("🛑 Shutting down Nexus API...")
+    logger.info("=" * 80)
+    logger.info(f"🛑 Nexus API Shutting Down - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 80)
     scheduler_service.stop()
 
 # Configure CORS
