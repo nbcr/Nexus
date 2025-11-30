@@ -207,3 +207,4 @@ This file should be updated after every significant change, fix, or troubleshoot
 - User requested to update the menu layout so that menu items display two per row.
 - Will update CSS for `.nav-links.open` to use a grid layout with two columns, ensuring all menu items are arranged in two-item rows for improved usability and appearance.
 Test commit to trigger webhook
+Testing webhook with sudo permissions
