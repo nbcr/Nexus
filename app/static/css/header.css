@@ -351,12 +351,19 @@ body.dark-mode .hamburger .bar {
     .nav-links.open .text-size-controls {
         grid-column: 1 / -1;
         width: 100%;
-        margin-top: 8px;
+        margin-top: auto;
         padding: 12px 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        order: 999;
+    }
+    
+    /* Ensure text size controls don't get menu item styling */
+    .nav-links.open .text-size-controls {
+        min-height: auto;
+        max-height: none;
     }
     
     /* Mobile menu hover effects */
@@ -512,12 +519,19 @@ body.dark-mode .hamburger .bar {
     .nav-links.open .text-size-controls {
         grid-column: 1 / -1;
         width: 100%;
-        margin-top: 8px;
+        margin-top: auto;
         padding: 12px 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        order: 999;
+    }
+    
+    /* Ensure text size controls don't get menu item styling */
+    .nav-links.open .text-size-controls {
+        min-height: auto;
+        max-height: none;
     }
 }
 
