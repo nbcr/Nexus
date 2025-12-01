@@ -1,3 +1,38 @@
+---
+
+## 🔧 BROWSER ISSUES & TECHNICAL DEBT (Added 2025-12-01)
+
+### Accessibility Issues (HIGH PRIORITY)
+- [ ] Images must have alternate text: Add alt attributes to all img tags
+- [ ] Frames/iframes must have accessible name: Add title attributes to iframes (AdSense)
+
+### Compatibility Issues (MEDIUM PRIORITY)
+- [ ] Fix 'content-type' header charset to 'utf-8' in nginx/backend
+- [ ] Fix 'content-type' header media type to 'text/html' not 'text/javascript'
+- [ ] Remove unsupported 'font-size-adjust' CSS property
+- [ ] Fix 'min-height: auto' for Firefox 22+ compatibility
+- [ ] Move 'charset' meta element to be first thing in '<head>'
+
+### Performance Issues (MEDIUM PRIORITY)
+- [ ] Add 'cache-control' header to nginx config
+- [ ] Remove 'must-revalidate' directive from cache-control headers
+- [ ] Remove 'no-store' directive from cache-control headers
+- [ ] Remove unneeded 'x-xss-protection' header from nginx
+- [ ] Optimize 'box-shadow' in @keyframes animations (paint trigger)
+- [ ] Optimize 'transform' in @keyframes animations (paint trigger)
+
+### Security Issues (MEDIUM PRIORITY)
+- [ ] Remove deprecated 'P3P' header (IE-only, non-standard)
+- [ ] Remove deprecated 'Pragma' header (use Cache-Control instead)
+- [ ] Replace 'X-Frame-Options' with 'Content-Security-Policy: frame-ancestors'
+
+### Code Quality Issues (LOW PRIORITY)
+- [ ] Reorder CSS: 'transform' should be listed after '-webkit-transform'
+- [ ] Move all inline styles to external CSS files
+- [ ] Fix Page layout Quirks Mode issue (ensure DOCTYPE is correct)
+
+---
+
 ### User Profile Features
 - Profile page (separate from account settings)
   - Avatar upload and management
