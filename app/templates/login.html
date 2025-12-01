@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Nexus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/auth.css?v=202512010100">
+{% endblock %}
+
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <h2>Login to Nexus</h2>
+    <form id="login-form">
+        <div class="form-row form-row-inline form-row-align">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+        </div>
+        <div class="form-row form-row-inline form-row-align">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div id="login-error" class="login-error"></div>
+        <div class="login-btn-row">
+            <button type="submit" class="login-btn">Login</button>
+            <button type="button" class="register-btn" onclick="saveFormDataAndRedirect()">Register</button>
+        </div>
+    </form>
+    <div class="social-login-columns">
+        <div class="social-login-col">
+            <button class="social-btn microsoft-btn" title="Login with Microsoft"><img src="https://www.microsoft.com/favicon.ico" alt="Microsoft" class="social-icon"><span class="social-text">Log in with your Microsoft account</span></button>
+            <button class="social-btn google-btn" title="Login with Google"><img src="https://www.google.com/favicon.ico" alt="Google" class="social-icon"><span class="social-text">Log in with your Google account</span></button>
+            <button class="social-btn apple-btn" title="Login with Apple"><img src="https://www.apple.com/favicon.ico" alt="Apple" class="social-icon"><span class="social-text">Log in with your Apple account</span></button>
+        </div>
+        <div class="social-login-col">
+            <button class="social-btn facebook-btn" title="Login with Facebook"><img src="https://www.facebook.com/favicon.ico" alt="Facebook" class="social-icon"><span class="social-text">Log in with your Facebook account</span></button>
+            <button class="social-btn x-btn" title="Login with X"><img src="https://abs.twimg.com/favicons/twitter.ico" alt="X" class="social-icon"><span class="social-text">Log in with your X account</span></button>
+            <button class="social-btn instagram-btn" title="Login with Instagram"><img src="https://www.instagram.com/static/images/ico/favicon-192.png/68d99ba29cc8.png" alt="Instagram" class="social-icon" onerror="this.src='https://www.instagram.com/favicon.ico'; this.onerror=null;"><span class="social-text">Log in with your Instagram account</span></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Redirect authenticated users away from login page - but verify token is valid first
+async function checkAuthAndRedirect() {
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const token = localStorage.getItem('access_token') || getCookie('access_token');
+    if (token) {
+        // Verify token is actually valid before redirecting
+        try {
+            const response = await fetch('/api/v1/auth/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                // Token is valid, redirect to home
+                window.location.href = '/';
+            } else {
+                // Token is invalid/expired, clear it
+                localStorage.removeItem('access_token');
+                // Clear cookie by setting it to expire
+                document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            }
+        } catch (error) {
+            // If check fails, clear token and stay on login page
+            localStorage.removeItem('access_token');
+            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        }
+    }
+}
+checkAuthAndRedirect();
+
+// Save form data when clicking register button
+function saveFormDataAndRedirect() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    if (username) {
+        sessionStorage.setItem('register_username', username);
+    }
+    if (password) {
+        sessionStorage.setItem('register_password', password);
+    }
+    window.location.href = '/register';
+}
+
+// Save form data to sessionStorage
+function saveFormData() {
+    const username = document.getElementById('username')?.value || '';
+    const password = document.getElementById('password')?.value || '';
+    sessionStorage.setItem('login_username', username);
+    // Don't save password for security, but we can restore username
+}
+
+// Restore form data from sessionStorage
+function restoreFormData() {
+    const savedUsername = sessionStorage.getItem('login_username');
+    const savedPassword = sessionStorage.getItem('login_password');
+    if (savedUsername) {
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) {
+            usernameInput.value = savedUsername;
+        }
+    }
+    if (savedPassword) {
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.value = savedPassword;
+            // Clear it after use so it doesn't persist
+            sessionStorage.removeItem('login_password');
+        }
+    }
+}
+
+// Flash animations
+function flashRed(element) {
+    element.classList.add('flash-error');
+    setTimeout(() => element.classList.remove('flash-error'), 600);
+}
+
+function flashGreen(element) {
+    element.classList.add('flash-success');
+    setTimeout(() => element.classList.remove('flash-success'), 600);
+}
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Restore saved form data
+    restoreFormData();
+    
+    // Save form data as user types
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    if (usernameInput) {
+        usernameInput.addEventListener('input', saveFormData);
+        usernameInput.addEventListener('blur', saveFormData);
+    }
+    if (passwordInput) {
+        passwordInput.addEventListener('blur', saveFormData);
+    }
+    
+    const loginForm = document.getElementById('login-form');
+    if (!loginForm) {
+        console.error('Login form not found');
+        return;
+    }
+    
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const username = usernameInput.value;
+        const password = passwordInput.value;
+        const errorDiv = document.getElementById('login-error');
+        
+        // Clear previous error and flash classes
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+        errorDiv.innerHTML = '';
+        usernameInput.classList.remove('flash-error', 'flash-success');
+        passwordInput.classList.remove('flash-error', 'flash-success');
+        
+        try {
+            const params = new URLSearchParams();
+            params.append('username', username);
+            params.append('password', password);
+            const res = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString()
+            });
+            if (res.ok) {
+                // Flash green for success
+                usernameInput.classList.add('flash-success');
+                passwordInput.classList.add('flash-success');
+                
+                // Store access token in cookie and localStorage
+                const data = await res.json();
+                localStorage.setItem('access_token', data.access_token);
+                document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
+                
+                // Clear session storage after successful login
+                sessionStorage.removeItem('login_username');
+                sessionStorage.removeItem('login_password');
+                
+                window.location.href = '/';
+            } else {
+                // Flash red for error
+                flashRed(usernameInput);
+                flashRed(passwordInput);
+                
+                const error = await res.json();
+                errorDiv.textContent = error.detail || 'Invalid credentials';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            // Flash red for error
+            flashRed(usernameInput);
+            flashRed(passwordInput);
+            
+            errorDiv.textContent = 'Network error. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}
+

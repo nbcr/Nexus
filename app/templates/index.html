@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/feed.css?v=202512010100">
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript" data-cmp-ab="1" src="https://cdn.consentmanager.net/delivery/autoblocking/626e849982db2.js" data-cmp-host="b.delivery.consentmanager.net" data-cmp-cdn="cdn.consentmanager.net" data-cmp-codesrc="0"></script>
+
+<script>
+    // Hamburger bars safeguard - ensure bars exist in case header loads after page load
+    (function() {
+        function ensureHamburgerBars() {
+            const hamburger = document.getElementById('hamburger-menu');
+            if (hamburger && hamburger.children.length === 0) {
+                for (let i = 0; i < 3; i++) {
+                    const bar = document.createElement('span');
+                    bar.className = 'bar';
+                    hamburger.appendChild(bar);
+                }
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                ensureHamburgerBars();
+                // Set up MutationObserver to watch for changes
+                const hamburger = document.getElementById('hamburger-menu');
+                if (hamburger) {
+                    const observer = new MutationObserver(function(mutations) {
+                        ensureHamburgerBars();
+                    });
+                    observer.observe(hamburger, { childList: true, subtree: true });
+                }
+            });
+        } else {
+            ensureHamburgerBars();
+            // Set up MutationObserver immediately
+            const hamburger = document.getElementById('hamburger-menu');
+            if (hamburger) {
+                const observer = new MutationObserver(function(mutations) {
+                    ensureHamburgerBars();
+                });
+                observer.observe(hamburger, { childList: true, subtree: true });
+            }
+        }
+        
+        // Also try after delays to catch any scripts that remove them
+        setTimeout(ensureHamburgerBars, 50);
+        setTimeout(ensureHamburgerBars, 100);
+        setTimeout(ensureHamburgerBars, 300);
+        setTimeout(ensureHamburgerBars, 500);
+        setTimeout(ensureHamburgerBars, 1000);
+    })();
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show admin link if user is admin
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user && user.is_admin) {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'block';
+                }
+            }
+        } catch (e) {}
+        
+        // Hamburger menu initialization is now handled by header.js
+    });
+</script>
+
+<main>
+    <!-- Category Filter -->
+    <div class="feed-controls">
+        <h2>Your Personalized Feed</h2>
+        <div class="category-filter" id="category-filter">
+            <!-- Category buttons will be generated dynamically -->
+        </div>
+    </div>
+
+    <!-- Feed Container -->
+    <div id="feed-container"></div>
+    
+    <!-- Article Modal -->
+    <div id="article-modal" class="article-modal">
+        <div class="article-modal-content">
+            <button class="article-modal-close">&times;</button>
+            <div class="article-modal-header">
+                <h1 id="article-title"></h1>
+                <div class="article-meta">
+                    <span id="article-author"></span>
+                    <span id="article-date"></span>
+                    <span id="article-domain"></span>
+                </div>
+            </div>
+            <img id="article-image" class="article-image" style="display: none;">
+            <div id="article-body" class="article-body"></div>
+            <div id="article-related" class="article-related" style="display: none;">
+                <h3>Related Content</h3>
+                <div id="article-related-items" class="related-items-list"></div>
+            </div>
+            <div class="article-loading">
+                <div class="spinner"></div>
+                <p>Loading article...</p>
+            </div>
+            <div class="article-error" style="display: none;">
+                <p>We couldn't extract the full article content from this source.</p>
+                <p style="margin-top: 10px; font-size: 14px; color: #666;">Some websites restrict content scraping. Click below to read the article on the original site.</p>
+                <a id="article-source-link" target="_blank" class="btn-source">Read on Source Site</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2025 Nexus. Powered by Google Trends.</p>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/hover-tracker.js?v=202511210100"></script>
+<script src="/static/js/history-tracker.js?v=202511210100"></script>
+<script src="/static/js/feed.js?v=202511210100"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    let feed;
+    
+    async function setupCategoryButtons() {
+        const filterDiv = document.getElementById('category-filter');
+        if (!filterDiv) return;
+        
+        let categories = [];
+        try {
+            const response = await fetch('/api/v1/topics/');
+            if (response.ok) {
+                const data = await response.json();
+                categories = data.map(t => t.name);
+            }
+        } catch (e) {
+            console.error('Failed to load categories:', e);
+            // fallback: use defaults if fetch fails
+            categories = ['Technology','Business','Entertainment','Sports','Health','Politics'];
+        }
+        categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.dataset.category = cat;
+            btn.textContent = cat;
+            filterDiv.appendChild(btn);
+        });
+
+        // Setup click handlers
+        const categoryButtons = filterDiv.querySelectorAll('.category-btn');
+        categoryButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                categoryButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const category = this.dataset.category;
+                feed.setCategory(category || null);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        feed = new InfiniteFeed('feed-container', {
+            pageSize: 20,
+            isPersonalized: true
+        });
+        setupCategoryButtons();
+        
+        // Header is auto-initialized by header.js, no need to call initHeader again
+    });
+</script>
+
+<!-- WebSocket Feed Notifier -->
+<script src="/static/js/feed-notifier.js?v=202511210700"></script>
+
+<!-- History Tracker -->
+<script src="/static/js/history-tracker.js"></script>
+{% endblock %}
+

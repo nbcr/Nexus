@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nexus - The AI News Portal{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="/static/css/base.css?v=202512010100">
+    <link rel="stylesheet" href="/static/css/header.css?v=202512010100">
+    <link rel="stylesheet" href="/static/css/components.css?v=202512010100">
+    
+    <!-- Page-specific CSS -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body{% if body_class %} class="{{ body_class }}"{% endif %}>
+    <!-- SHARED HEADER - Edit once, applies everywhere -->
+    <header class="main-header">
+        <div class="container">
+            <a href="/" class="header-title-link">
+                <h1><img src="/static/favicon.png" alt="Nexus" class="site-logo"> Nexus - The Ai News Portal</h1>
+            </a>
+            <nav>
+                <span id="user-welcome" class="user-welcome"></span>
+                <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <!-- Desktop auth buttons -->
+                <div class="header-auth-buttons" id="header-auth-buttons">
+                    <a href="/login" id="auth-btn" class="header-btn"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" id="register-btn" class="header-btn"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                </div>
+                <div class="nav-links" id="nav-links">
+                    <a href="/" class="menu-quick"><span class="menu-icon">🏠</span><span class="menu-label">Feed</span></a>
+                    <a href="/settings" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
+                    <button id="dark-mode-toggle-menu"><span class="menu-icon">🌙</span><span class="menu-label">Dark Mode</span></button>
+                    
+                    <!-- Mobile auth buttons -->
+                    <a href="/login" class="auth-btn-mobile" id="auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" class="auth-btn-mobile" id="register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                    
+                    <!-- Text size controls -->
+                    <div class="text-size-controls">
+                        <button id="text-size-decrease" class="text-size-btn" aria-label="Decrease text size">➖</button>
+                        <span class="text-size-label">
+                            <span class="text-size-line1">Text</span>
+                            <span class="text-size-line2">Size</span>
+                        </span>
+                        <button id="text-size-increase" class="text-size-btn" aria-label="Increase text size">➕</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Page content -->
+    {% block content %}{% endblock %}
+    
+    <!-- Shared scripts -->
+    <script src="/static/js/header.js"></script>
+    
+    <!-- Page-specific scripts -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+
