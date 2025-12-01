@@ -738,9 +738,29 @@ class InfiniteFeed {
                 image.style.display = 'block';
             }
             
-            // Split content into paragraphs
+            // Display content as facts (already formatted with bullet points)
+            // The content comes pre-formatted with • bullet points from backend
             const paragraphs = article.content.split('\n\n');
-            body.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+            
+            // Add "Key Facts" header
+            body.innerHTML = '<h3 style="margin-bottom: 16px; color: #007bff;">📋 Key Facts:</h3>';
+            body.innerHTML += paragraphs.map(p => `<p>${p}</p>`).join('');
+            
+            // Add "Continue Reading" button if this is an excerpt
+            if (article.is_excerpt || article.full_article_available) {
+                const continueReadingBtn = document.createElement('div');
+                continueReadingBtn.className = 'continue-reading-cta';
+                continueReadingBtn.innerHTML = `
+                    <p style="margin: 20px 0 10px; font-weight: bold; color: #666; text-align: center;">
+                        📚 Want the full story with context and analysis?
+                    </p>
+                    <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
+                       class="btn-continue-reading">
+                        Read Full Article on ${article.domain || 'Source Site'} →
+                    </a>
+                `;
+                body.appendChild(continueReadingBtn);
+            }
             
             // Display related items if available
             if (article.related_items && article.related_items.length > 0) {

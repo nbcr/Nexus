@@ -19,6 +19,9 @@ class ArticleScraperService:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         self.timeout = 10
+        # AdSense Compliance: Limit content to excerpts only (not full articles)
+        self.MAX_EXCERPT_WORDS = 300  # Safe limit for copyright and AdSense compliance
+        self.MAX_EXCERPT_CHARS = 2000  # Fallback character limit
     
     async def fetch_article(self, url: str) -> Optional[Dict]:
         """
@@ -54,7 +57,13 @@ class ArticleScraperService:
             
             # Validate we got meaningful content
             if article_data['content'] and len(article_data['content']) > 200:
-                print(f"✅ Successfully scraped {len(article_data['content'])} characters")
+                # Limit to excerpt for AdSense/copyright compliance
+                original_length = len(article_data['content'])
+                article_data['content'] = self._limit_to_excerpt(article_data['content'])
+                article_data['is_excerpt'] = True  # Flag to show "Continue Reading" button
+                article_data['full_article_available'] = True
+                
+                print(f"✅ Successfully scraped {original_length} characters, limited to excerpt ({len(article_data['content'])} chars)")
                 return article_data
             else:
                 print(f"⚠️ Content too short or empty. Length: {len(article_data['content']) if article_data['content'] else 0}")
@@ -64,12 +73,129 @@ class ArticleScraperService:
                     print("ℹ️ Returning article with limited content")
                     # Set a message indicating content couldn't be extracted
                     article_data['content'] = f"Unable to extract full article content. Please visit the source site to read the full article."
+                    article_data['is_excerpt'] = False
+                    article_data['full_article_available'] = False
                     return article_data
                 return None
                 
         except Exception as e:
             print(f"❌ Error scraping article: {e}")
             return None
+    
+    def _limit_to_excerpt(self, content: str) -> str:
+        """
+        Extract key facts from article content using hybrid approach.
+        Combines heuristics and simple NLP to identify important sentences.
+        
+        Args:
+            content: Full article content
+            
+        Returns:
+            Bullet-point list of 5-7 key facts (AdSense/copyright compliant)
+        """
+        # Split into sentences
+        sentences = re.split(r'(?<=[.!?])\s+', content)
+        
+        # If very short content, return as-is
+        if len(sentences) <= 3:
+            return content
+        
+        # Score each sentence for importance
+        scored_sentences = []
+        for sentence in sentences:
+            if len(sentence.strip()) < 20:  # Skip very short sentences
+                continue
+            
+            score = self._score_sentence_importance(sentence)
+            scored_sentences.append((score, sentence.strip()))
+        
+        # Sort by score and take top 5-7 facts
+        scored_sentences.sort(reverse=True, key=lambda x: x[0])
+        top_facts = scored_sentences[:7]  # Take top 7
+        
+        # Re-sort by original order (maintain narrative flow)
+        # Find original index for each fact
+        fact_sentences = [fact[1] for fact in top_facts]
+        ordered_facts = []
+        for sentence in sentences:
+            if sentence.strip() in fact_sentences:
+                ordered_facts.append(sentence.strip())
+        
+        # Format as bullet points
+        if ordered_facts:
+            facts_text = "\n\n".join([f"• {fact}" for fact in ordered_facts])
+            return facts_text
+        
+        # Fallback to first 300 words if extraction fails
+        words = content.split()
+        return ' '.join(words[:self.MAX_EXCERPT_WORDS])
+    
+    def _score_sentence_importance(self, sentence: str) -> float:
+        """
+        Score a sentence based on importance indicators.
+        
+        Args:
+            sentence: Sentence to score
+            
+        Returns:
+            Importance score (higher = more important)
+        """
+        score = 0.0
+        sentence_lower = sentence.lower()
+        
+        # 1. Contains numbers/statistics (high value)
+        if re.search(r'\d+[\d,\.]*\s*(?:%|percent|million|billion|thousand|dollars?|years?)', sentence_lower):
+            score += 3.0
+        elif re.search(r'\d+', sentence):
+            score += 1.5
+        
+        # 2. Contains quotes (direct information)
+        if '"' in sentence or '"' in sentence or '"' in sentence:
+            score += 2.5
+        
+        # 3. Contains key action words
+        action_words = [
+            'announced', 'revealed', 'confirmed', 'discovered', 'found', 
+            'reported', 'stated', 'said', 'according to', 'will', 'plans to',
+            'launches', 'released', 'unveiled', 'introduces', 'shows'
+        ]
+        for word in action_words:
+            if word in sentence_lower:
+                score += 2.0
+                break
+        
+        # 4. Contains named entities (people, places, organizations)
+        # Simple heuristic: capitalized words (excluding start of sentence)
+        words = sentence.split()
+        if len(words) > 1:
+            caps_count = sum(1 for word in words[1:] if word and word[0].isupper() and len(word) > 2)
+            score += min(caps_count * 0.5, 2.0)  # Cap at 2.0
+        
+        # 5. Contains temporal information (when things happened/will happen)
+        time_indicators = [
+            'today', 'yesterday', 'tomorrow', 'this week', 'last month',
+            'next year', 'january', 'february', 'march', 'april', 'may', 
+            'june', 'july', 'august', 'september', 'october', 'november', 'december',
+            'monday', 'tuesday', 'wednesday', 'thursday', 'friday', '2024', '2025'
+        ]
+        for indicator in time_indicators:
+            if indicator in sentence_lower:
+                score += 1.0
+                break
+        
+        # 6. Sentence position bonus (first few sentences often important)
+        # This will be applied by caller if needed
+        
+        # 7. Length penalty (too short or too long sentences less important)
+        word_count = len(words)
+        if word_count < 8:
+            score -= 1.0
+        elif word_count > 50:
+            score -= 0.5
+        elif 15 <= word_count <= 30:  # Sweet spot
+            score += 0.5
+        
+        return score
     
     async def fetch_search_context(self, url: str) -> Optional[Dict]:
         """
