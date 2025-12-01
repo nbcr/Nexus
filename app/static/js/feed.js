@@ -303,21 +303,8 @@ class InfiniteFeed {
     }
     
     async sendDuration(contentId, durationSeconds) {
-        try {
-            await fetch(`/api/v1/session/track-view/${contentId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    duration_seconds: Math.round(durationSeconds)
-                })
-            });
-            console.log(`✅ Sent duration for content ${contentId}: ${durationSeconds}s`);
-        } catch (error) {
-            console.error(`❌ Failed to send duration for content ${contentId}:`, error);
-        }
+        // Duration tracking disabled - endpoint not implemented yet
+        return;
     }
     
     sendAllDurations() {
