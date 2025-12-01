@@ -3,6 +3,12 @@
 > **Agent Instruction:**
 > Always review and follow the latest instructions, workflow, troubleshooting steps, and update conventions in the `PROJECT_CONTEXT.md` file before making any changes or answering questions. Re-read this file after any edit or when context may have changed.
 
+> **Verbosity & Communication:**
+> - **DO NOT explain unless explicitly asked** - Complete tasks without explanations
+> - **Keep responses as short as possible** - Verbosity set to minimum
+> - **No response after completing tasks** - Just complete the work, no confirmation messages unless requested
+> - **Only provide details when user asks questions** - Don't volunteer information
+
 ## Project Overview & Context
 Nexus is a FastAPI-based AI news aggregation and personalization platform deployed on AWS EC2. It fetches trending Canadian news and provides personalized recommendations using session-based tracking and JWT authentication. The backend runs as a systemd service (`nexus.service`) under the `nexus` user.
 
