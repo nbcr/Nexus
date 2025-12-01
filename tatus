@@ -1,0 +1,40 @@
+[1mdiff --git a/app/templates/base.html b/app/templates/base.html[m
+[1mindex 175e1a0..3794263 100644[m
+[1m--- a/app/templates/base.html[m
+[1m+++ b/app/templates/base.html[m
+[36m@@ -69,7 +69,7 @@[m
+     {% block content %}{% endblock %}[m
+     [m
+     <!-- Shared scripts -->[m
+[31m-    <script src="/static/js/header.js"></script>[m
+[32m+[m[32m    <script src="/static/js/header.js?v=202512010100"></script>[m[41m[m
+     [m
+     <!-- Page-specific scripts -->[m
+     {% block extra_js %}{% endblock %}[m
+[1mdiff --git a/app/templates/index.html b/app/templates/index.html[m
+[1mindex f3f9548..7adb7e3 100644[m
+[1m--- a/app/templates/index.html[m
+[1m+++ b/app/templates/index.html[m
+[36m@@ -118,10 +118,10 @@[m
+ {% endblock %}[m
+ [m
+ {% block extra_js %}[m
+[31m-<script src="/static/js/hover-tracker.js?v=202511210100"></script>[m
+[31m-<script src="/static/js/history-tracker.js?v=202511210100"></script>[m
+[31m-<script src="/static/js/feed.js?v=202511210100"></script>[m
+[31m-<script src="/static/js/auth.js"></script>[m
+[32m+[m[32m<script src="/static/js/hover-tracker.js?v=202512010100"></script>[m[41m[m
+[32m+[m[32m<script src="/static/js/history-tracker.js?v=202512010100"></script>[m[41m[m
+[32m+[m[32m<script src="/static/js/feed.js?v=202512010100"></script>[m[41m[m
+[32m+[m[32m<script src="/static/js/auth.js?v=202512010100"></script>[m[41m[m
+ <script>[m
+     let feed;[m
+     [m
+[36m@@ -193,6 +193,6 @@[m
+ </script>[m
+ [m
+ <!-- WebSocket Feed Notifier -->[m
+[31m-<script src="/static/js/feed-notifier.js?v=202511210700"></script>[m
+[32m+[m[32m<script src="/static/js/feed-notifier.js?v=202512010100"></script>[m[41m[m
+ {% endblock %}[m
+ [m

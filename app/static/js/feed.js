@@ -362,9 +362,14 @@ class InfiniteFeed {
             
             // Add new content items
             if (data.items && data.items.length > 0) {
-                data.items.forEach(item => {
+                data.items.forEach((item, index) => {
                     this.viewedContentIds.add(item.content_id);
                     this.renderContentItem(item);
+                    
+                    // Insert AdSense ad every 3 articles (after 3rd, 6th, 9th, etc.)
+                    if ((index + 1) % 3 === 0) {
+                        this.insertAdUnit();
+                    }
                 });
                 
                 this.currentPage++;
@@ -620,6 +625,27 @@ class InfiniteFeed {
         }
     }
     
+    insertAdUnit() {
+        const adContainer = document.createElement('div');
+        adContainer.className = 'feed-ad-unit';
+        adContainer.innerHTML = `
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-format="fluid"
+                 data-ad-layout-key="-fb+5w+4e-db+86"
+                 data-ad-client="ca-pub-1529513529221142"
+                 data-ad-slot="1234567890"></ins>
+        `;
+        this.container.appendChild(adContainer);
+        
+        // Initialize the ad
+        try {
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+            console.error('AdSense error:', e);
+        }
+    }
+    
     async defaultContentClick(item) {
         // Check if this is a search query (pytrends) item
         const isPytrends = item.tags && item.tags.includes('pytrends');
@@ -739,12 +765,32 @@ class InfiniteFeed {
             }
             
             // Display content as facts (already formatted with bullet points)
-            // The content comes pre-formatted with • bullet points from backend
             const paragraphs = article.content.split('\n\n');
             
             // Add "Key Facts" header
             body.innerHTML = '<h3 style="margin-bottom: 16px; color: #007bff;">📋 Key Facts:</h3>';
             body.innerHTML += paragraphs.map(p => `<p>${p}</p>`).join('');
+            
+            // Add in-article ad after facts
+            const inArticleAd = document.createElement('div');
+            inArticleAd.className = 'article-ad-unit';
+            inArticleAd.style.margin = '20px 0';
+            inArticleAd.innerHTML = `
+                <ins class="adsbygoogle"
+                     style="display:block; text-align:center;"
+                     data-ad-layout="in-article"
+                     data-ad-format="fluid"
+                     data-ad-client="ca-pub-1529513529221142"
+                     data-ad-slot="9876543210"></ins>
+            `;
+            body.appendChild(inArticleAd);
+            
+            // Initialize ad
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            } catch (e) {
+                console.error('In-article ad error:', e);
+            }
             
             // Add "Continue Reading" button if this is an excerpt
             if (article.is_excerpt || article.full_article_available) {
