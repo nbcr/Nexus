@@ -476,6 +476,20 @@ body.dark-mode .hamburger .bar {
     .register-btn-mobile {
         display: none;
     }
+    
+    /* Desktop hamburger menu - icons above text */
+    .nav-links.open a .menu-icon,
+    .nav-links.open button .menu-icon {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 8px;
+        font-size: 28px;
+    }
+    
+    .nav-links.open a .menu-label,
+    .nav-links.open button .menu-label {
+        display: block;
+    }
 }
 
 /* ======================================
