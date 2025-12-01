@@ -129,54 +129,78 @@ app.include_router(v1_settings.router, prefix=f"{settings.API_V1_STR}/settings",
 app.include_router(websocket.router, prefix=f"{settings.API_V1_STR}/ws", tags=["websocket"])
 
 
-# Serve /login, /register, and /history as static files
-from fastapi.responses import FileResponse
-
-@app.get("/login", include_in_schema=False)
-async def login_page():
-    return FileResponse("app/static/login.html")
-
-@app.get("/register", include_in_schema=False)
-async def register_page():
-    return FileResponse("app/static/register.html")
-
-@app.get("/history", include_in_schema=False)
-async def history_page():
-    return FileResponse("app/static/history.html")
-
 # Include history routes
 app.include_router(history.router, prefix=f"{settings.API_V1_STR}/history", tags=["history"])
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to Nexus API", "version": "1.0.0"}
+# Page routes - using Jinja2 templates
+@app.get("/", include_in_schema=False)
+async def root(request: Request):
+    """Serve the main feed page"""
+    return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    """Serve login page, redirect if already logged in"""
+    from app.core.auth import verify_token
+    
+    # Check if user has a valid token
+    token = request.cookies.get('access_token')
+    if not token:
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ', 1)[1]
+    
+    # Only redirect if token exists AND is valid
+    if token:
+        username = verify_token(token)
+        if username:
+            # Token is valid, redirect to home
+            return RedirectResponse(url="/")
+        # Token is invalid/expired, clear it and show login page
+        response = templates.TemplateResponse("login.html", {"request": request})
+        response.delete_cookie("access_token", path="/")
+        return response
+    
+    # No token, show login page
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    """Serve registration page"""
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.get("/settings", include_in_schema=False)
+async def settings_page(request: Request):
+    """Serve settings page"""
+    return templates.TemplateResponse("settings.html", {"request": request})
+
+# Legacy routes for backwards compatibility
+@app.get("/app", include_in_schema=False)
+async def serve_frontend(request: Request):
+    """Legacy route - redirect to /"""
+    return RedirectResponse(url="/")
+
+@app.get("/history", include_in_schema=False)
+async def history_page_legacy(request: Request):
+    """Legacy route - redirect to /settings"""
+    return RedirectResponse(url="/settings")
+
+# Utility routes
 @app.get("/health")
 async def health_check():
+    """Health check endpoint"""
     return {"status": "healthy", "service": "nexus-api"}
 
 @app.get("/robots.txt")
 async def robots():
-    from fastapi.responses import FileResponse # type: ignore
+    """Serve robots.txt"""
     return FileResponse("app/static/robots.txt", media_type="text/plain")
 
-# Serve the frontend
-@app.get("/app")
-async def serve_frontend():
-    from fastapi.responses import FileResponse # type: ignore
-    return FileResponse("app/static/index.html")
-
-# Serve the admin panel
-@app.get("/admin.html")
+# Admin panel (still uses static HTML)
+@app.get("/admin.html", include_in_schema=False)
 async def serve_admin():
-    from fastapi.responses import FileResponse # type: ignore
+    """Serve admin panel"""
     return FileResponse("app/static/admin.html")
-
-# Serve the history page
-@app.get("/history.html")
-async def serve_history():
-    from fastapi.responses import FileResponse # type: ignore
-    return FileResponse("app/static/history.html")
 
 # Direct link to content by slug
 @app.get("/story/{slug}")
