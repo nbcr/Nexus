@@ -86,12 +86,6 @@
     order: 4;
 }
 
-/* Hamburger menu should be last (rightmost) */
-.hamburger {
-    order: 3 !important;
-    margin-left: auto !important;
-}
-
 /* ======================================
    HAMBURGER MENU BUTTON
    ====================================== */
@@ -118,12 +112,14 @@ button.hamburger,
     border-radius: 8px;
     flex-shrink: 0;
     margin: 0;
+    margin-left: auto; /* Push to far right */
     font-size: inherit;
     box-sizing: border-box;
     opacity: 1;
     visibility: visible;
     overflow: visible;
     transition: background var(--transition-base, 0.2s ease);
+    order: 3; /* Rightmost element */
 }
 
 .hamburger:hover,
