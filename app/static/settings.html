@@ -205,15 +205,15 @@
                 <p>Your browsing history helps us personalize your feed.</p>
                 
                 <div class="history-tabs">
-                    <button class="history-tab-btn active" data-history-type="viewed">Viewed</button>
+                    <button class="history-tab-btn active" data-history-type="seen">Seen</button>
                     <button class="history-tab-btn" data-history-type="clicked">Clicked</button>
-                    <button class="history-tab-btn" data-history-type="seen">Seen</button>
+                    <button class="history-tab-btn" data-history-type="read">Read</button>
                 </div>
                 
                 <div class="history-content">
-                    <div id="viewed-history" class="history-list active"></div>
+                    <div id="seen-history" class="history-list active"></div>
                     <div id="clicked-history" class="history-list"></div>
-                    <div id="seen-history" class="history-list"></div>
+                    <div id="read-history" class="history-list"></div>
                 </div>
                 
                 <button id="clear-history-btn" class="btn">Clear All History</button>
@@ -270,25 +270,25 @@
                         return;
                     }
                     
-                    try {
-                        const response = await fetch('/api/v1/user/history/clear', {
-                            method: 'POST',
-                            credentials: 'include'
-                        });
-                        
-                        if (response.ok) {
-                            alert('History cleared successfully');
-                            // Reload history lists
-                            loadHistory('viewed');
-                            loadHistory('clicked');
-                            loadHistory('seen');
-                        } else {
-                            alert('Failed to clear history');
-                        }
-                    } catch (error) {
-                        console.error('Error clearing history:', error);
-                        alert('Error clearing history');
+                try {
+                    const response = await fetch('/api/v1/history/clear', {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        alert('History cleared successfully');
+                        // Reload history lists
+                        loadHistory('seen');
+                        loadHistory('clicked');
+                        loadHistory('read');
+                    } else {
+                        alert('Failed to clear history');
                     }
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                    alert('Error clearing history');
+                }
                 });
             }
             
@@ -322,20 +322,20 @@
                 historyList.innerHTML = '<p>Loading...</p>';
                 
                 try {
-                    const response = await fetch(`/api/v1/user/history/${type}`, {
+                    const response = await fetch(`/api/v1/history/viewed?view_type=${type}`, {
                         credentials: 'include'
                     });
                     
                     if (response.ok) {
                         const data = await response.json();
                         
-                        if (data.length === 0) {
+                        if (data.items.length === 0) {
                             historyList.innerHTML = '<p>No history found.</p>';
                         } else {
-                            historyList.innerHTML = data.map(item => `
+                            historyList.innerHTML = data.items.map(item => `
                                 <div class="history-item">
                                     <div class="history-item-title">${item.title || 'Untitled'}</div>
-                                    <div class="history-item-date">${new Date(item.timestamp).toLocaleString()}</div>
+                                    <div class="history-item-date">${new Date(item.viewed_at).toLocaleString()}</div>
                                 </div>
                             `).join('');
                         }
@@ -350,8 +350,8 @@
                 }
             }
             
-            // Load initial history (viewed)
-            loadHistory('viewed');
+            // Load initial history (seen)
+            loadHistory('seen');
             
             // Logout button
             const logoutBtn = document.getElementById('logout-btn');
