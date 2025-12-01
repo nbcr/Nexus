@@ -449,3 +449,106 @@ Testing webhook with sudo permissions
 - Consider adding more custom events (category switches, search queries, user registration)
 - Test article_read_complete event (requires scrolling 80% of article content)
 
+---
+
+# 2025-12-01: Google Analytics Cache Fix - Successful Resolution
+
+## Problem Identified:
+- Google Analytics custom events (`article_open`, `article_read`, `filter_category`) were not appearing in GA4 Realtime reports
+- Previous agent suggested the issue was nginx serving old JavaScript files from November 21st
+- Root cause: JavaScript files had old cache-busting version parameters (`v=202511210100`)
+
+## Solution Implemented:
+- **Updated cache-busting version parameters** from `v=202511210100` to `v=202512010100` (December 1, 2025)
+- Modified files:
+  - `app/templates/base.html`: Updated `header.js` version parameter
+  - `app/templates/index.html`: Updated all JS file versions:
+    - `hover-tracker.js?v=202512010100`
+    - `history-tracker.js?v=202512010100`
+    - `feed.js?v=202512010100` ← **Contains GA tracking code**
+    - `auth.js?v=202512010100`
+    - `feed-notifier.js?v=202512010100`
+
+## Deployment Process:
+1. **Local Changes**:
+   - Updated version parameters in template files
+   - Created `deploy-analytics-fix.sh` deployment helper script
+   - Created `ANALYTICS_TROUBLESHOOTING.md` comprehensive guide
+   
+2. **Git Commit & Push**:
+   - Committed changes with message: "fix: Update cache-busting version parameters for Google Analytics tracking"
+   - Pushed to `origin/main`
+   
+3. **Automatic Deployment**:
+   - GitHub webhook automatically triggered deployment
+   - `webhook_listener.py` pulled latest changes
+   - Systemd service `nexus` restarted automatically
+   - FastAPI reloaded templates with new version parameters
+
+## Testing Results:
+Tested all custom GA events in browser using browser automation:
+
+1. **✅ `article_open` Event**:
+   - Triggered when clicking "Read Full Article" button
+   - Parameters sent:
+     - `article_title`: "Dagestan: Doubts Pour in About Conor McGregor's Return Fight..."
+     - `article_category`: "General"
+     - `article_id`: 285
+   - Status: **SUCCESS** - Appeared in GA4 Realtime reports
+
+2. **✅ `article_read` Event**:
+   - Triggered after 10 seconds of article viewing
+   - Parameters sent:
+     - Same article details as above
+     - `engagement_time_seconds`: 10
+   - Status: **SUCCESS** - Appeared in GA4 Realtime reports
+
+3. **✅ `filter_category` Event**:
+   - Triggered when clicking category filter button ("Trending")
+   - Parameters sent:
+     - `category`: "Trending"
+     - `event_label`: "Trending"
+   - Status: **SUCCESS** - Appeared in GA4 Realtime reports
+
+4. **✅ Automatic Events**:
+   - `page_view`: Initial page load tracking
+   - `scroll`: 90% scroll depth tracking
+   - Status: **SUCCESS** - Both working correctly
+
+## Technical Verification:
+- ✅ Browser cache successfully bypassed with new version parameters
+- ✅ Network requests show correct file versions: `feed.js?v=202512010100`
+- ✅ Google Analytics tag loaded correctly (Property: G-NCNEQG70WC)
+- ✅ All GA event requests returned 204 status (successful)
+- ✅ No JavaScript console errors
+- ✅ Events confirmed visible in GA4 Realtime dashboard
+
+## Files Created:
+- `deploy-analytics-fix.sh`: Bash script for manual deployment if needed
+- `ANALYTICS_TROUBLESHOOTING.md`: Complete troubleshooting guide with:
+  - Problem diagnosis steps
+  - Deployment instructions
+  - Testing procedures
+  - Common issues and solutions
+  - Event implementation details
+  - Quick test checklist
+
+## Key Learnings:
+1. **Cache-busting is critical**: Nginx 30-day cache headers require version parameters to force updates
+2. **Webhook deployment works**: GitHub webhook → Flask listener → systemd restart → Success
+3. **Browser testing validates**: Network inspection confirmed events sent before checking GA4
+4. **Documentation matters**: Created comprehensive troubleshooting guide for future issues
+
+## Next Steps (Recommended):
+1. Mark `article_read` as a conversion event in GA4 (Configure → Events)
+2. Monitor event data collection over 24-48 hours
+3. Consider implementing `article_read_complete` event (80% scroll in article modal)
+4. Set up GA4 custom reports for article engagement metrics
+5. Consider adding more events:
+   - User registration tracking
+   - Search query tracking
+   - Social share tracking (if implemented)
+
+## Status: ✅ COMPLETE
+All Google Analytics custom events are now successfully tracking and appearing in GA4 Realtime reports. The cache issue has been resolved with proper version parameters.
+
