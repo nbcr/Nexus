@@ -4,17 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - Nexus</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/css/base.css?v=202512010100">
+    <link rel="stylesheet" href="/static/css/header.css?v=202512010100">
+    <link rel="stylesheet" href="/static/css/components.css?v=202512010100">
     <style>
         .settings-layout {
             display: flex;
-            min-height: 100vh;
-            background: #181e2a;
+            min-height: calc(100vh - 80px);
+            background: var(--bg-primary);
+            margin-top: 0;
         }
         .settings-sidebar {
             width: 220px;
-            background: #222b3a;
+            background: var(--bg-secondary);
             padding: 32px 0 0 0;
             display: flex;
             flex-direction: column;
@@ -33,36 +36,223 @@
             width: 90%;
             border-radius: 12px;
             background: none;
-            color: #fff;
+            color: var(--text-primary);
             font-size: 16px;
             cursor: pointer;
             transition: background 0.2s, color 0.2s;
             text-decoration: none;
+            border: none;
         }
         .settings-sidebar .settings-link:hover {
-            background: #26324a;
-            color: #ffd700;
+            background: var(--bg-tertiary);
+            color: #007bff;
+        }
+        .settings-sidebar .settings-link.active {
+            background: var(--bg-tertiary);
+            color: #007bff;
         }
         .settings-content {
             flex: 1;
             padding: 48px 32px;
-            color: #fff;
+            color: var(--text-primary);
+        }
+        .settings-section {
+            display: none;
+        }
+        .settings-section.active {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <header class="main-header">
+        <div class="container">
+            <h1><img src="/static/favicon.png" alt="Nexus" class="site-logo"> Nexus - The Ai News Portal</h1>
+            <nav>
+                <span id="user-welcome" class="user-welcome"></span>
+                <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+                <!-- Desktop auth buttons - visible in header -->
+                <div class="header-auth-buttons" id="header-auth-buttons">
+                    <a href="/login" id="auth-btn" class="header-btn"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" id="register-btn" class="header-btn"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                </div>
+                <div class="nav-links" id="nav-links">
+                    <a href="/" class="menu-quick"><span class="menu-icon">🏠</span><span class="menu-label">Feed</span></a>
+                    <a href="/settings" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
+                    <button id="dark-mode-toggle-menu"><span class="menu-icon">🌙</span><span class="menu-label">Dark Mode</span></button>
+                    
+                    <!-- Mobile auth buttons - appear in menu -->
+                    <a href="/login" class="auth-btn-mobile" id="auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" class="auth-btn-mobile" id="register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                    
+                    <!-- Text size controls -->
+                    <div class="text-size-controls">
+                        <button id="text-size-decrease" class="text-size-btn" aria-label="Decrease text size">➖</button>
+                        <span class="text-size-label">
+                            <span class="text-size-line1">Text</span>
+                            <span class="text-size-line2">Size</span>
+                        </span>
+                        <button id="text-size-increase" class="text-size-btn" aria-label="Increase text size">➕</button>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
     <div class="settings-layout">
         <nav class="settings-sidebar">
-            <a href="#privacy" class="settings-link"><span class="menu-icon">🔒</span>Privacy Policy</a>
-            <a href="#terms" class="settings-link"><span class="menu-icon">📄</span>Terms of Service</a>
-            <a href="#history" class="settings-link"><span class="menu-icon">📜</span>History</a>
-            <a href="#account" class="settings-link"><span class="menu-icon">👤</span>Account</a>
-            <a href="#appearance" class="settings-link"><span class="menu-icon">🌗</span>Appearance</a>
+            <button data-section="privacy" class="settings-link active"><span class="menu-icon">🔒</span>Privacy Policy</button>
+            <button data-section="terms" class="settings-link"><span class="menu-icon">📄</span>Terms of Service</button>
+            <button data-section="history" class="settings-link"><span class="menu-icon">📜</span>History</button>
+            <button data-section="account" class="settings-link"><span class="menu-icon">👤</span>Account</button>
+            <button data-section="appearance" class="settings-link"><span class="menu-icon">🌗</span>Appearance</button>
         </nav>
         <main class="settings-content">
-            <h2>Settings</h2>
-            <p>Select a category from the sidebar to view or update your settings.</p>
+            <!-- Privacy Section -->
+            <div id="privacy-section" class="settings-section active">
+                <h2>Privacy Policy</h2>
+                <p>Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.</p>
+                <h3>Data Collection</h3>
+                <p>We collect information you provide directly to us, including your username, email, and browsing preferences.</p>
+                <h3>Data Usage</h3>
+                <p>We use your data to personalize your feed and improve our services.</p>
+            </div>
+            
+            <!-- Terms Section -->
+            <div id="terms-section" class="settings-section">
+                <h2>Terms of Service</h2>
+                <p>By using Nexus, you agree to these terms and conditions.</p>
+                <h3>Acceptable Use</h3>
+                <p>You agree to use our service responsibly and in accordance with all applicable laws.</p>
+            </div>
+            
+            <!-- History Section -->
+            <div id="history-section" class="settings-section">
+                <h2>Browsing History</h2>
+                <p>Your browsing history helps us personalize your feed.</p>
+                <button id="clear-history-btn" class="btn">Clear All History</button>
+            </div>
+            
+            <!-- Account Section -->
+            <div id="account-section" class="settings-section">
+                <h2>Account Settings</h2>
+                <p>Manage your account preferences here.</p>
+                <h3>Profile Information</h3>
+                <p id="account-info">Loading...</p>
+                <button id="logout-btn" class="btn">Logout</button>
+            </div>
+            
+            <!-- Appearance Section -->
+            <div id="appearance-section" class="settings-section">
+                <h2>Appearance</h2>
+                <p>Customize how Nexus looks.</p>
+                <h3>Theme</h3>
+                <button id="toggle-dark-mode-btn" class="btn">Toggle Dark Mode</button>
+                <h3>Text Size</h3>
+                <p>Adjust text size using the controls in the menu.</p>
+            </div>
         </main>
     </div>
+    
+    <script src="/static/js/header.js"></script>
+    <script>
+        // Settings page functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsLinks = document.querySelectorAll('.settings-link');
+            const sections = document.querySelectorAll('.settings-section');
+            
+            // Handle section switching
+            settingsLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    const sectionName = this.dataset.section;
+                    
+                    // Update active link
+                    settingsLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show selected section
+                    sections.forEach(s => s.classList.remove('active'));
+                    document.getElementById(`${sectionName}-section`).classList.add('active');
+                });
+            });
+            
+            // Clear history button
+            const clearHistoryBtn = document.getElementById('clear-history-btn');
+            if (clearHistoryBtn) {
+                clearHistoryBtn.addEventListener('click', async function() {
+                    if (!confirm('Are you sure you want to clear all your browsing history?')) {
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('/api/v1/user/history/clear', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+                        
+                        if (response.ok) {
+                            alert('History cleared successfully');
+                        } else {
+                            alert('Failed to clear history');
+                        }
+                    } catch (error) {
+                        console.error('Error clearing history:', error);
+                        alert('Error clearing history');
+                    }
+                });
+            }
+            
+            // Logout button
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    localStorage.removeItem('token');
+                    document.cookie = 'access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                    window.location.href = '/login';
+                });
+            }
+            
+            // Toggle dark mode button
+            const toggleDarkModeBtn = document.getElementById('toggle-dark-mode-btn');
+            if (toggleDarkModeBtn) {
+                toggleDarkModeBtn.addEventListener('click', function() {
+                    document.body.classList.toggle('dark-mode');
+                    const isDark = document.body.classList.contains('dark-mode');
+                    localStorage.setItem('darkMode', isDark);
+                    this.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+                });
+                
+                // Update button text on load
+                const isDark = document.body.classList.contains('dark-mode');
+                toggleDarkModeBtn.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+            }
+            
+            // Load account info
+            async function loadAccountInfo() {
+                try {
+                    const response = await fetch('/api/v1/auth/me', {
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('account-info').textContent = 
+                            `Username: ${data.username}\nEmail: ${data.email || 'Not provided'}`;
+                    } else {
+                        document.getElementById('account-info').textContent = 'Not logged in';
+                    }
+                } catch (error) {
+                    console.error('Error loading account info:', error);
+                    document.getElementById('account-info').textContent = 'Error loading account info';
+                }
+            }
+            
+            loadAccountInfo();
+        });
+    </script>
 </body>
 </html>
