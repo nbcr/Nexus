@@ -253,10 +253,11 @@ body.dark-mode .hamburger .bar {
 }
 
 .nav-links.open {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
     align-items: stretch;
+    justify-items: center;
 }
 
 /* Base menu item styling */
@@ -477,7 +478,13 @@ body.dark-mode .hamburger .bar {
         display: none;
     }
     
-    /* Desktop hamburger menu - icons above text */
+    /* Desktop hamburger menu - 2 columns, icons above text */
+    .nav-links.open {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
     .nav-links.open a .menu-icon,
     .nav-links.open button .menu-icon {
         display: block;
