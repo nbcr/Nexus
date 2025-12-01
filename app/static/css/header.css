@@ -431,7 +431,13 @@ body.dark-mode .hamburger .bar {
 @media (min-width: 901px) {
     .auth-btn-mobile,
     .register-btn-mobile {
-        display: none;
+        display: none !important;
+    }
+    
+    /* Ensure mobile auth buttons stay hidden even when menu is open on desktop */
+    .nav-links.open .auth-btn-mobile,
+    .nav-links.open .register-btn-mobile {
+        display: none !important;
     }
     
     /* Desktop hamburger menu - match mobile styling */
