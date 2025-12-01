@@ -84,6 +84,8 @@ Based on this analysis, here's what I recommend we do **right now**:
 - [x] Domain migration from nexus.comdat.ca to comdat.ca (✅ Completed 2025-12-01)
 - [x] AdSense auto-ads code installed (✅ Completed 2025-12-01)
 - [x] Fact extraction for AdSense compliance (✅ Completed 2025-12-01)
+- [x] AdSense ads.txt file created (✅ Completed 2025-12-01)
+- [x] AdSense setup and approval complete (✅ Completed 2025-12-01)
 - [x] Webhook endpoint at comdat.ca/webhook (✅ Completed 2025-12-01)
 - [x] Browser issues fixed (charset, headers, CSP) (✅ Completed 2025-12-01)
 
