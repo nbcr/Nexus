@@ -662,6 +662,32 @@ class InfiniteFeed {
         const articleOpenTime = Date.now();
         let readTracked = false;
         
+        // 📊 Google Analytics: Track article opened (fire immediately)
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'article_open', {
+                'article_title': item.title,
+                'article_category': item.category || 'Unknown',
+                'article_id': item.content_id
+            });
+        }
+        
+        // 📊 Track "article_read" after 10 seconds (regardless of content load success)
+        setTimeout(() => {
+            if (modal.classList.contains('active') && !readTracked) {
+                readTracked = true;
+                const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
+                
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'article_read', {
+                        'article_title': item.title,
+                        'article_category': item.category || 'Unknown',
+                        'article_id': item.content_id,
+                        'engagement_time_seconds': timeSpent
+                    });
+                }
+            }
+        }, 10000); // 10 seconds
+        
         // Show modal and loading state
         modal.classList.add('active');
         loading.style.display = 'block';
@@ -722,35 +748,7 @@ class InfiniteFeed {
                 relatedSection.style.display = 'block';
             }
             
-            // 📊 Google Analytics: Track article opened
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'article_open', {
-                    'article_title': article.title || item.title,
-                    'article_category': item.category || 'Unknown',
-                    'article_id': item.content_id,
-                    'source': article.domain || 'Unknown'
-                });
-            }
-            
-            // 📊 Track "article_read" after 10 seconds (user actually reading)
-            setTimeout(() => {
-                if (modal.classList.contains('active') && !readTracked) {
-                    readTracked = true;
-                    const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
-                    
-                    if (typeof gtag !== 'undefined') {
-                        gtag('event', 'article_read', {
-                            'article_title': article.title || item.title,
-                            'article_category': item.category || 'Unknown',
-                            'article_id': item.content_id,
-                            'engagement_time_seconds': timeSpent,
-                            'source': article.domain || 'Unknown'
-                        });
-                    }
-                }
-            }, 10000); // 10 seconds
-            
-            // 📊 Track scroll depth for "article_read_complete"
+            // 📊 Track scroll depth for "article_read_complete" (only if content loaded successfully)
             const articleBody = document.querySelector('.article-modal-content');
             if (articleBody) {
                 let scrollTracked = false;
