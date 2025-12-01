@@ -167,6 +167,15 @@
                 categoryButtons.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 const category = this.dataset.category;
+                
+                // 📊 Google Analytics: Track category filter
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'filter_category', {
+                        'category': category,
+                        'event_label': category
+                    });
+                }
+                
                 feed.setCategory(category || null);
             });
         });

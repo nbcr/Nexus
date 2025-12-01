@@ -658,6 +658,10 @@ class InfiniteFeed {
         const relatedSection = document.getElementById('article-related');
         const relatedItems = document.getElementById('article-related-items');
         
+        // Track article open start time
+        const articleOpenTime = Date.now();
+        let readTracked = false;
+        
         // Show modal and loading state
         modal.classList.add('active');
         loading.style.display = 'block';
@@ -716,6 +720,60 @@ class InfiniteFeed {
             if (article.related_items && article.related_items.length > 0) {
                 this.renderRelatedItems(article.related_items, relatedItems);
                 relatedSection.style.display = 'block';
+            }
+            
+            // 📊 Google Analytics: Track article opened
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'article_open', {
+                    'article_title': article.title || item.title,
+                    'article_category': item.category || 'Unknown',
+                    'article_id': item.content_id,
+                    'source': article.domain || 'Unknown'
+                });
+            }
+            
+            // 📊 Track "article_read" after 10 seconds (user actually reading)
+            setTimeout(() => {
+                if (modal.classList.contains('active') && !readTracked) {
+                    readTracked = true;
+                    const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
+                    
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'article_read', {
+                            'article_title': article.title || item.title,
+                            'article_category': item.category || 'Unknown',
+                            'article_id': item.content_id,
+                            'engagement_time_seconds': timeSpent,
+                            'source': article.domain || 'Unknown'
+                        });
+                    }
+                }
+            }, 10000); // 10 seconds
+            
+            // 📊 Track scroll depth for "article_read_complete"
+            const articleBody = document.querySelector('.article-modal-content');
+            if (articleBody) {
+                let scrollTracked = false;
+                articleBody.addEventListener('scroll', () => {
+                    if (scrollTracked) return;
+                    
+                    const scrollPercentage = (articleBody.scrollTop + articleBody.clientHeight) / articleBody.scrollHeight;
+                    
+                    if (scrollPercentage > 0.8) { // 80% scroll depth
+                        scrollTracked = true;
+                        const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
+                        
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'article_read_complete', {
+                                'article_title': article.title || item.title,
+                                'article_category': item.category || 'Unknown',
+                                'article_id': item.content_id,
+                                'engagement_time_seconds': timeSpent,
+                                'scroll_depth': Math.round(scrollPercentage * 100)
+                            });
+                        }
+                    }
+                });
             }
             
         } catch (err) {
