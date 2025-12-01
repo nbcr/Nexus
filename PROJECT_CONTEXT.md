@@ -786,3 +786,34 @@ Dark mode is now the default when any page loads, and user preferences are prope
 
 ---
 
+# 2025-12-01: Dark Mode Flash Prevention & Light Mode Fix
+
+## Flash Prevention Implementation:
+- **Problem**: Light mode flashed on page refresh before dark mode was applied
+- **Solution**: Added blocking inline styles in `<head>` that apply before external CSS loads
+- **Implementation**:
+  - Moved dark mode initialization script before CSS links in all HTML files
+  - Added inline `<style>` block with `!important` rules for both dark and light modes
+  - Script applies `dark-mode` class to `html` element immediately
+  - Inline styles use `html.dark-mode` and `html:not(.dark-mode)` selectors
+  - Both modes have inline styles to prevent any flash
+
+## Light Mode Background Fix:
+- **Problem**: Light mode showed dark background after fix
+- **Solution**: Added light mode inline styles using `html:not(.dark-mode)` selector
+- **Implementation**:
+  - Script explicitly removes `dark-mode` class when light mode is selected
+  - Light mode inline styles apply white background and dark text
+  - Both modes now work correctly with no flash
+
+## Files Modified:
+- `app/templates/base.html`: Added inline styles for both modes
+- All static HTML files: `index.html`, `login.html`, `register.html`, `settings.html`, `history.html`, `logged-out.html`, `admin.html`
+- Script checks localStorage and applies appropriate mode immediately
+- Inline styles prevent flash by applying before external CSS loads
+
+## Status: ✅ Complete
+Both dark and light modes now load instantly with no flash on page refresh.
+
+---
+
