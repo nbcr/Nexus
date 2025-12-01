@@ -1,12 +1,17 @@
-from fastapi import FastAPI # type: ignore
+from fastapi import FastAPI, Request # type: ignore
 from fastapi.middleware.cors import CORSMiddleware # type: ignore
 from fastapi.staticfiles import StaticFiles # type: ignore
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse, RedirectResponse
 import os
 
 from app.api.routes import topics, content, users, session, trending
 from app.api.v1.routes import admin, settings as v1_settings, websocket, history, auth as v1_auth
 from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
+
+# Configure Jinja2 templates
+templates = Jinja2Templates(directory="app/templates")
 
 # Create FastAPI application
 app = FastAPI(

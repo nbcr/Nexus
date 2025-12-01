@@ -52,13 +52,6 @@
 - Test on various mobile devices and browsers.
 - Review with user for mobile UX.
 
-## Header hides on mobile scroll
-
-- Design header auto-hide logic for mobile scroll.
-- Implement in frontend JS/CSS.
-- Test for smoothness and usability on mobile devices.
-- Review with user for UX and feedback.
-
 ## Shorten header on scroll (mobile)
 
 - Design header shrink/shorten effect for mobile scroll.
