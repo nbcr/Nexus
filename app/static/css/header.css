@@ -285,6 +285,7 @@ body.dark-mode .hamburger .bar {
 
 .menu-label {
     font-size: var(--font-size-base, 14px);
+    display: inline-block;
 }
 
 /* ======================================
@@ -439,16 +440,16 @@ body.dark-mode .hamburger .bar {
     }
     
     .nav-links.open .menu-icon {
-        font-size: 28px;
-        margin-bottom: 8px;
-        margin-right: 0;
-        display: block;
+        font-size: 28px !important;
+        margin-bottom: 8px !important;
+        margin-right: 0 !important;
+        display: block !important;
         flex-shrink: 0;
         line-height: 1;
     }
     
     .nav-links.open .menu-label {
-        display: block;
+        display: block !important;
         font-size: var(--font-size-base, 14px);
         font-weight: 500;
         line-height: 1.2;
