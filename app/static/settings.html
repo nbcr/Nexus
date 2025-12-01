@@ -132,6 +132,20 @@
             background: var(--accent-hover);
         }
     </style>
+    
+    <!-- Immediate dark mode initialization to prevent flash -->
+    <script>
+        (function() {
+            // Check localStorage for saved preference, default to dark mode
+            const savedPreference = localStorage.getItem('darkMode');
+            const shouldBeDark = savedPreference === null || savedPreference === 'true';
+            
+            if (shouldBeDark) {
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
 </head>
 <body>
     <header class="main-header">

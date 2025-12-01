@@ -80,6 +80,8 @@ Based on this analysis, here's what I recommend we do **right now**:
 - [x] Menu icons above text (not beside) (✅ Completed 2025-12-01)
 - [x] Menu layout: 2 items per row (✅ Completed 2025-12-01)
 - [x] Dark mode button beside Feed in menu (✅ Completed 2025-12-01)
+- [x] Dark mode as default on page load (✅ Completed 2025-12-01)
+- [x] Dark mode preference persistence (✅ Completed 2025-12-01)
 - [x] Body scroll lock when article modal opens (✅ Completed - Fire TV compatibility)
 - [x] Domain migration from nexus.comdat.ca to comdat.ca (✅ Completed 2025-12-01)
 - [x] AdSense auto-ads code installed (✅ Completed 2025-12-01)
@@ -93,6 +95,7 @@ Based on this analysis, here's what I recommend we do **right now**:
 - [x] Settings page with sidebar navigation and history tabs
 - [x] Navigation/menu system with hamburger, responsive design
 - [x] Dark mode toggle (mobile and desktop, persists)
+- [x] Dark mode as default with no flash on page load
 - [x] Hamburger menu with consolidated code
 - [x] Category filter buttons at top
 - [x] Font size controls with smart exclusions

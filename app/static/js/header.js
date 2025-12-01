@@ -166,102 +166,95 @@ async function handleLogout() {
 }
 
 /**
- * Initialize dark mode based on device and user preferences
- * Dark mode is enabled by default
+ * Initialize dark mode based on user preferences
+ * Dark mode is enabled by default for all devices
  */
 function initDarkMode() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const toggleBtn = document.getElementById('dark-mode-toggle');
     const toggleLabel = document.getElementById('dark-mode-label');
+    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
     
-    if (isMobile) {
-        // Hide toggle button and label on mobile
-        if (toggleBtn) toggleBtn.style.display = 'none';
-        if (toggleLabel) toggleLabel.style.display = 'none';
-        
-        // Use system preference
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.body.classList.add('dark-mode');
-            // Remove inline color from .feed-item-summary in dark mode
-            document.querySelectorAll('.feed-item-summary').forEach(function(el) {
-                if (el.style.color) {
-                    el.style.removeProperty('color');
-                }
-            });
-        }
-        
-        // Listen for system preference changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (e.matches) {
-                document.body.classList.add('dark-mode');
-                document.querySelectorAll('.feed-item-summary').forEach(function(el) {
-                    if (el.style.color) {
-                        el.style.removeProperty('color');
-                    }
-                });
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-        });
+    // Use localStorage preference, default to dark mode
+    const savedPreference = localStorage.getItem('darkMode');
+    
+    // If no preference saved, default to dark mode (true)
+    if (savedPreference === null) {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('darkMode', 'true');
+        updateDarkModeUI(true, toggleBtn, toggleLabel, toggleMenuBtn);
+        removeFeedItemSummaryColors();
+    } else if (savedPreference === 'true') {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        updateDarkModeUI(true, toggleBtn, toggleLabel, toggleMenuBtn);
+        removeFeedItemSummaryColors();
     } else {
-        // Desktop: use localStorage preference, default to dark mode
-        const savedPreference = localStorage.getItem('darkMode');
-        
-        // If no preference saved, default to dark mode (true)
-        if (savedPreference === null) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('darkMode', 'true');
-            if (toggleBtn) toggleBtn.textContent = '☀️';
-            if (toggleLabel) toggleLabel.textContent = 'Dark Mode: On';
-            document.querySelectorAll('.feed-item-summary').forEach(function(el) {
-                if (el.style.color) {
-                    el.style.removeProperty('color');
-                }
-            });
-        } else if (savedPreference === 'true') {
-            document.body.classList.add('dark-mode');
-            if (toggleBtn) toggleBtn.textContent = '☀️';
-            if (toggleLabel) toggleLabel.textContent = 'Dark Mode: On';
-            document.querySelectorAll('.feed-item-summary').forEach(function(el) {
-                if (el.style.color) {
-                    el.style.removeProperty('color');
-                }
-            });
-        } else {
-            if (toggleBtn) toggleBtn.textContent = '🌙';
-            if (toggleLabel) toggleLabel.textContent = 'Dark Mode: Off';
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+        updateDarkModeUI(false, toggleBtn, toggleLabel, toggleMenuBtn);
+    }
+}
+
+/**
+ * Update dark mode toggle UI elements
+ */
+function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
+    if (toggleBtn) {
+        toggleBtn.textContent = isDark ? '☀️' : '🌙';
+    }
+    if (toggleLabel) {
+        toggleLabel.textContent = isDark ? 'Dark Mode: On' : 'Dark Mode: Off';
+    }
+    if (toggleMenuBtn) {
+        const icon = toggleMenuBtn.querySelector('.menu-icon');
+        if (icon) {
+            icon.textContent = isDark ? '☀️' : '🌙';
+        }
+        const label = toggleMenuBtn.querySelector('.menu-label');
+        if (label) {
+            label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
         }
     }
+}
+
+/**
+ * Remove inline color styles from feed item summaries in dark mode
+ */
+function removeFeedItemSummaryColors() {
+    document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+        if (el.style.color) {
+            el.style.removeProperty('color');
+        }
+    });
 }
 
 /**
  * Toggle dark mode on/off
  */
 function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
+    const isCurrentlyDark = document.body.classList.contains('dark-mode');
+    const isDark = !isCurrentlyDark;
+    
+    // Apply or remove dark mode
+    if (isDark) {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        removeFeedItemSummaryColors();
+    } else {
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+    }
+    
+    // Save preference
     localStorage.setItem('darkMode', isDark);
     
     // Update toggle button icon and label
     const toggleBtn = document.getElementById('dark-mode-toggle');
     const toggleLabel = document.getElementById('dark-mode-label');
+    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
     
-    if (toggleBtn) {
-        toggleBtn.textContent = isDark ? '☀️' : '🌙';
-    }
-
-    // Remove inline color from .feed-item-summary in dark mode
-    if (isDark) {
-        document.querySelectorAll('.feed-item-summary').forEach(function(el) {
-            if (el.style.color) {
-                el.style.removeProperty('color');
-            }
-        });
-    }
-    
-    if (toggleLabel) {
-        toggleLabel.textContent = isDark ? 'Dark Mode: On' : 'Dark Mode: Off';
-    }
+    updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn);
 }
 
 /**

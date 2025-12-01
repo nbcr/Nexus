@@ -741,3 +741,48 @@ All Google Analytics custom events are now successfully tracking and appearing i
 
 ---
 
+# 2025-12-01: Dark Mode Default Implementation
+
+## Dark Mode as Default:
+- **Problem**: Dark mode was not applied immediately on page load, causing a flash of light mode
+- **Solution**: Added inline script in `<head>` section of all HTML files to apply dark mode before page renders
+- **Implementation**:
+  - Inline script checks `localStorage.getItem('darkMode')` 
+  - Defaults to dark mode if no preference is saved (`savedPreference === null`)
+  - Applies `dark-mode` class to both `document.documentElement` and `document.body` immediately
+  - Prevents any flash of light mode content
+
+## User Preference Persistence:
+- **Updated `initDarkMode()` function** in `header.js`:
+  - Removed mobile-specific system preference logic
+  - Now defaults to dark mode on all devices (mobile and desktop)
+  - Respects saved user preferences from localStorage
+  - Added helper functions: `updateDarkModeUI()` and `removeFeedItemSummaryColors()`
+- **Updated `toggleDarkMode()` function**:
+  - Properly toggles dark mode on both `document.documentElement` and `document.body`
+  - Updates menu toggle button icon and label correctly
+  - Saves preferences to localStorage as `'darkMode'` (or `'adminDarkMode'` for admin panel)
+
+## Files Modified:
+- `app/templates/base.html`: Added immediate dark mode initialization script
+- `app/static/index.html`: Added immediate dark mode initialization script
+- `app/static/login.html`: Added immediate dark mode initialization script
+- `app/static/register.html`: Added immediate dark mode initialization script
+- `app/static/settings.html`: Added immediate dark mode initialization script
+- `app/static/history.html`: Added immediate dark mode initialization script
+- `app/static/logged-out.html`: Updated to use same dark mode approach (removed old system preference logic)
+- `app/static/admin.html`: Added immediate dark mode initialization script
+- `app/static/js/header.js`: Refactored `initDarkMode()` and `toggleDarkMode()` functions
+
+## Benefits:
+- ✅ No flash of light mode on page load
+- ✅ Dark mode is default for all new users
+- ✅ User preferences persist across sessions
+- ✅ Consistent behavior across all devices
+- ✅ Works on all pages (templates and static HTML files)
+
+## Status: ✅ Complete
+Dark mode is now the default when any page loads, and user preferences are properly saved and restored.
+
+---
+
