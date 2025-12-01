@@ -552,3 +552,119 @@ Tested all custom GA events in browser using browser automation:
 ## Status: ✅ COMPLETE
 All Google Analytics custom events are now successfully tracking and appearing in GA4 Realtime reports. The cache issue has been resolved with proper version parameters.
 
+---
+
+## 2025-12-01: Domain Migration, AdSense Setup, UI Fixes, and Browser Issues
+
+### Domain Migration: nexus.comdat.ca → comdat.ca
+- **Reason**: AdSense requirement - cannot use subdomains
+- **Changes Made**:
+  - Updated `nginx/nexus.conf`: Changed `server_name` from `nexus.comdat.ca` to `comdat.ca`
+  - Updated SSL certificate paths to `/etc/letsencrypt/live/comdat.ca/`
+  - Updated all documentation references
+  - Removed conflicting nginx configs (`default.disabled`, `hotiptv.comdat.ca`)
+  - Made `nexus.conf` the default HTTPS server with `default_server` directive
+- **Webhook Endpoint**: Changed from `webhook.nexus.comdat.ca` to `comdat.ca/webhook`
+  - Added webhook location block in `nginx/nexus.conf` with GitHub IP allowlist
+  - Webhook now accessible at `https://comdat.ca/webhook`
+- **Status**: ✅ Complete - Site live at https://comdat.ca
+
+### AdSense Implementation
+- **Publisher ID**: `ca-pub-1529513529221142`
+- **Auto-Ads Code**: Added to `app/templates/base.html` in `<head>` section
+- **Ad Units Added**:
+  - In-feed ads: Every 3 articles in feed (`insertAdUnit()` in `feed.js`)
+  - In-article ads: After facts in article modal
+  - Placeholder slot IDs: `1234567890` and `9876543210` (to be replaced with real slots after AdSense approval)
+- **Content Compliance**: Implemented fact extraction (see below)
+- **Status**: ✅ Code installed, waiting for AdSense approval (24-48 hours)
+
+### Fact Extraction for AdSense Compliance
+- **Problem**: Scraping full articles violates AdSense policies and copyright
+- **Solution**: Hybrid fact extraction algorithm
+  - Extracts 5-7 key facts from articles using sentence scoring
+  - Scoring factors: numbers/statistics, quotes, action words, named entities, temporal info
+  - Maintains narrative flow (original sentence order)
+  - Displays as bullet points with "📋 Key Facts:" header
+- **Implementation**:
+  - Modified `app/services/article_scraper.py`: Added `_limit_to_excerpt()` and `_score_sentence_importance()` methods
+  - Updated `app/static/js/feed.js`: Added "Read Full Article on [Source] →" button when content is excerpt
+  - Added CSS styling for Continue Reading CTA
+- **Files Changed**:
+  - `app/services/article_scraper.py`
+  - `app/static/js/feed.js`
+  - `app/static/css/feed.css`
+  - `app/templates/index.html` (cache-bust version)
+- **Status**: ✅ Complete - Fact extraction working, AdSense compliant
+
+### UI/UX Fixes
+1. **Hamburger Menu Position**:
+   - Issue: Menu button was to the left of login/register buttons
+   - Fix: Reordered HTML in `base.html`, added flexbox `order` CSS properties
+   - Added `margin-left: auto` to push hamburger to far right
+   - Status: ✅ Complete
+
+2. **Menu Layout**:
+   - Changed from single column to 2 items per row using CSS grid
+   - Moved Dark Mode button beside Feed (first row)
+   - Updated both mobile and desktop media queries
+   - Status: ✅ Complete
+
+3. **Menu Icons Above Text**:
+   - Issue: Icons appearing to left of text instead of above
+   - Fix: Added desktop-specific CSS rules in `@media (min-width: 901px)`
+   - Set `display: block` and `margin-right: 0` for `.nav-links.open a .menu-icon`
+   - Status: ✅ Complete
+
+4. **Article Modal Scroll Lock**:
+   - Issue: Fire TV Silk browser couldn't scroll after opening article modal
+   - Fix: Added `document.body.style.overflow = 'hidden'` when modal opens
+   - Restored `document.body.style.overflow = ''` when modal closes
+   - Status: ✅ Complete
+
+### Browser Issues Fixed
+- **Charset Meta**: Moved to first element in `<head>` (accessibility/compatibility)
+- **Security Headers**:
+  - Removed deprecated `X-XSS-Protection` header
+  - Removed `X-Frame-Options` (replaced with CSP `frame-ancestors`)
+  - Added modern `Content-Security-Policy` with `frame-ancestors 'self'`
+  - Improved `Referrer-Policy` to `strict-origin-when-cross-origin`
+- **Cache-Control**: Updated static files to `7d` with `immutable` directive
+- **Files Changed**: `app/templates/base.html`, `nginx/nexus.conf`
+- **Status**: ✅ Complete - Most fixable issues resolved
+
+### Deployment Issues Resolved
+- **Problem**: Webhook not pulling latest code due to file permission issues
+- **Root Cause**: Git repository owned by wrong user after manual operations
+- **Fix**: `sudo chown -R nexus:nexus /home/nexus/nexus` and `git reset --hard origin/main`
+- **Service Restart**: Fixed log file permissions (`/home/nexus/nexus/logs/error.log`)
+- **Status**: ✅ Complete - Webhook and service working correctly
+
+### Files Modified (2025-12-01):
+- `app/templates/base.html`: Domain, charset, AdSense code, menu order
+- `app/templates/index.html`: Cache-bust versions, AdSense ad units
+- `app/static/js/feed.js`: Fact extraction display, ad units, scroll lock
+- `app/static/css/header.css`: Menu layout, icon positioning, grid layout
+- `app/static/css/feed.css`: Continue Reading CTA styling
+- `app/services/article_scraper.py`: Fact extraction algorithm
+- `nginx/nexus.conf`: Domain, webhook endpoint, security headers
+- `app/core/config.py`: Domain references
+- `TODO.md`: Updated with completed tasks
+
+### Current Status:
+- ✅ Site live at https://comdat.ca
+- ✅ AdSense code installed (waiting approval)
+- ✅ Fact extraction working (AdSense compliant)
+- ✅ All UI fixes deployed
+- ✅ Browser issues resolved
+- ✅ Webhook deployment working
+- ⏳ AdSense approval pending (24-48 hours)
+- ⏳ Need to replace placeholder ad slot IDs with real ones after approval
+
+### Next Steps:
+1. Wait for AdSense approval
+2. Create ad units in AdSense dashboard
+3. Replace placeholder slot IDs (`1234567890`, `9876543210`) with real slot IDs
+4. Add admin link to hamburger menu
+5. Test article modal back button and X button on mobile
+
