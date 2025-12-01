@@ -9,9 +9,8 @@
     <meta name="slurp" content="noindex, nofollow">
     <meta name="duckduckbot" content="noindex, nofollow">
     <title>Nexus Admin Panel</title>
-    <link rel="stylesheet" href="/static/css/admin.css?v=202511210200">
     
-    <!-- Immediate dark mode initialization to prevent flash -->
+    <!-- Immediate dark mode initialization to prevent flash - MUST be before CSS -->
     <script>
         (function() {
             // Check localStorage for saved preference, default to dark mode
@@ -19,15 +18,29 @@
             const shouldBeDark = savedPreference === null || savedPreference !== 'false';
             
             if (shouldBeDark) {
+                // Apply class immediately to html element
                 document.documentElement.classList.add('dark-mode');
-                document.body.classList.add('dark-mode');
-                document.body.classList.remove('light-mode');
-            } else {
-                document.body.classList.add('light-mode');
-                document.body.classList.remove('dark-mode');
             }
         })();
     </script>
+    <style>
+        /* Blocking inline styles to prevent flash - applied immediately */
+        html.dark-mode {
+            --bg-primary: #181818 !important;
+            --bg-secondary: #222222 !important;
+            --bg-tertiary: #2a2a2a !important;
+            --text-primary: #ffffff !important;
+            --text-secondary: #cccccc !important;
+            --text-muted: #999999 !important;
+        }
+        html.dark-mode,
+        html.dark-mode body {
+            background-color: #181818 !important;
+            color: #ffffff !important;
+        }
+    </style>
+    
+    <link rel="stylesheet" href="/static/css/admin.css?v=202511210200">
 </head>
 <body class="dark-mode">
     <div id="access-denied" class="access-denied" style="display: none;">
