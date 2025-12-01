@@ -27,6 +27,19 @@
     border-radius: 0;
 }
 
+.header-title-link {
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+    transition: opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.header-title-link:hover {
+    opacity: 0.9;
+    text-decoration: none;
+}
+
 .main-header h1 {
     margin: 0;
     font-size: 32px;
