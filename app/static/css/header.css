@@ -81,10 +81,15 @@
     order: 2;
 }
 
+/* Nav links (hidden dropdown) should not affect layout */
+.nav-links {
+    order: 4;
+}
+
 /* Hamburger menu should be last (rightmost) */
 .hamburger {
-    order: 3;
-    margin-left: auto;
+    order: 3 !important;
+    margin-left: auto !important;
 }
 
 /* ======================================
