@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:3000", 
         "http://localhost:8000",
-        "https://nexus.comdat.ca",
+        "https://comdat.ca",
         "https://api.test.comdat.ca"
     ]
 
