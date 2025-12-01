@@ -468,26 +468,7 @@
     flex-wrap: wrap;
 }
 
-.category-btn {
-    padding: 8px 16px;
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 20px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.category-btn:hover {
-    background: #f8f9fa;
-}
-
-.category-btn.active {
-    background: #007bff;
-    color: #fff;
-    border-color: #007bff;
-}
+/* Category buttons styles moved to components.css */
 
 /* Responsive Design */
 @media (max-width: 768px) {
