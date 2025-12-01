@@ -217,6 +217,11 @@ def restart_application():
         print(f"❌ Error restarting service: {result.stderr}")
         raise Exception(f"Failed to restart service: {result.stderr}")
 
+@app.route('/webhook', methods=['GET'])
+def webhook_get():
+    """GET endpoint for testing webhook connectivity"""
+    return jsonify({'status': 'webhook endpoint active', 'methods': ['POST']}), 200
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'webhook listener running'})
