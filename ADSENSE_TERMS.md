@@ -1,7 +1,7 @@
 # Google AdSense Terms of Service - Compliance Guide
 
 **Publisher ID:** `ca-pub-1529513529221142`  
-**Site:** Nexus (https://nexus.comdat.ca)  
+**Site:** Nexus (https://comdat.ca)  
 **Country:** Canada  
 **Last Updated:** December 1, 2025
 
