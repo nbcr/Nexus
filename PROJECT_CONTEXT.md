@@ -668,3 +668,50 @@ All Google Analytics custom events are now successfully tracking and appearing i
 4. Add admin link to hamburger menu
 5. Test article modal back button and X button on mobile
 
+---
+
+# 2025-12-01: UI Improvements & Webhook Fixes
+
+## Hamburger Menu Styling:
+- **Desktop menu matches mobile**: Applied mobile hamburger menu styling to desktop version
+  - Icons above text layout
+  - 2-column grid layout
+  - Same hover effects and sizing
+  - Menu positioned at `top: 90px` to match mobile spacing
+- **Removed conflicting base styles**: Cleaned up CSS to ensure desktop and mobile menus are identical
+
+## Text Size Controls:
+- **Icon updates**: Changed text size control icons from emoji (➖➕) to standard characters (+ -)
+- **Layout**: Text size controls remain on bottom row only with proper grid positioning
+
+## AdSense ads.txt:
+- **Created ads.txt file**: Added `/ads.txt` endpoint for AdSense authorization
+  - Publisher ID: `ca-pub-1529513529221142`
+  - Route added to `app/main.py` serving `app/static/ads.txt`
+  - Accessible at `https://comdat.ca/ads.txt`
+
+## Webhook Fixes:
+- **Removed IP restrictions**: Webhook security now relies on signature verification instead of IP allowlist
+  - More reliable (GitHub IPs can change)
+  - Signature verification in `webhook_listener.py` provides cryptographic security
+  - Removed complex IP range allowlist from nginx config
+- **Added GET handler**: Added GET endpoint to `/webhook` for testing connectivity
+- **Health check endpoint**: Added `/webhook/health` endpoint for service status checks
+- **Improved error handling**: Better nginx error pages for webhook service issues
+
+## Files Modified:
+- `app/static/css/header.css`: Desktop menu styling to match mobile
+- `app/templates/base.html`: Text size control icons updated
+- `app/static/ads.txt`: Created AdSense authorization file
+- `app/main.py`: Added `/ads.txt` route
+- `nginx/nexus.conf`: Removed IP restrictions, improved webhook error handling
+- `webhook_listener.py`: Added GET handler for webhook testing
+
+## Status:
+- ✅ Desktop menu matches mobile styling
+- ✅ Text size controls use standard icons
+- ✅ ads.txt file created and accessible
+- ✅ Webhook working reliably without IP restrictions
+
+---
+
