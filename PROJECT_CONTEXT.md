@@ -343,3 +343,109 @@ Testing webhook with sudo permissions
 - **Cross-browser**: Uses Canvas API (widely supported), flexbox, CSS variables
 - **Accessibility**: ARIA labels, semantic HTML, keyboard navigation support
 
+---
+
+# 2025-12-01: Jinja2 Templating & Google Analytics Integration
+
+## Jinja2 Templating Implementation:
+- **DRY Principle**: Single header file used across all pages instead of duplicating header HTML
+- **Created `app/templates/` directory** with template structure:
+  - `base.html`: Base template containing full header, Google Analytics tag, common CSS/JS links
+  - `index.html`: Extends base, contains feed page content
+  - `login.html`: Extends base, contains login form
+  - `register.html`: Extends base, contains registration form
+  - `settings.html`: Extends base, contains settings page
+- **Template blocks**:
+  - `{% block title %}`: Page-specific titles
+  - `{% block head_extra %}`: Additional CSS/JS for specific pages
+  - `{% block body_class %}`: Page-specific body classes
+  - `{% block content %}`: Main page content
+  - `{% block scripts_extra %}`: Page-specific scripts
+- **Updated `app/main.py`**:
+  - Configured `Jinja2Templates(directory="app/templates")`
+  - Changed all routes to return `templates.TemplateResponse()` instead of `FileResponse()`
+  - Routes: `/`, `/login`, `/register`, `/settings`
+- **Benefits**:
+  - Header changes only need to be made once in `base.html`
+  - Consistent header across all pages automatically
+  - Easier maintenance and updates
+  - Reduced code duplication (~100 lines of HTML removed per page)
+- **Created TEMPLATING_GUIDE.md**: Full documentation for template structure and migration steps
+
+## Google Analytics 4 (GA4) Integration:
+- **Global tag added**: Google tag `G-NCNEQG70WC` added to `base.html` immediately after `<head>`
+- **Custom event tracking** implemented in `feed.js`:
+  1. **`article_open`**: Fires when article modal is opened
+     - Parameters: `article_title`, `article_category`, `article_url`
+  2. **`article_read`**: Fires after 10 seconds of viewing article
+     - Parameters: `article_title`, `article_category`, `article_url`, `read_duration` (10s)
+  3. **`article_read_complete`**: Fires when user scrolls 80% of article content
+     - Parameters: `article_title`, `article_category`, `article_url`, `scroll_percentage`
+  4. **`filter_category`**: Fires when user clicks a category filter button
+     - Parameters: `category_name`
+- **Event tracking fix**: Events now fire **even if content extraction fails**
+  - Moved `gtag()` calls outside the `try...catch` block for content fetching
+  - Events fire immediately on modal open, not after successful content load
+  - Ensures all user interactions are tracked, regardless of article scraping success
+  - Added `readTracked` flag to prevent duplicate `article_read` events
+- **Fallback parameters**: Uses `item.title` and `item.category` from feed data if article content fails to load
+- **Testing**: Events verified in GA4 Realtime reports and DebugView
+
+## Nginx Configuration Fixes:
+- **Issue 1**: Google Analytics tag not appearing on live site
+  - **Root cause**: Nginx was serving static `index.html` directly from filesystem, not proxying to FastAPI for Jinja2 rendering
+  - **Fix**: Changed `location /` from `try_files` to `proxy_pass http://nexus_backend/`
+- **Issue 2**: Corrupted `proxy_set_header` values in nginx config
+  - **Root cause**: PowerShell variable expansion during `sed` commands replaced `$host`, `$remote_addr`, etc. with local PowerShell variable values
+  - **Fix**: Used single quotes in `sed` commands to prevent variable expansion, then manually verified/fixed values on server
+- **Issue 3**: Git merge conflict on `nginx/nexus.conf` on server
+  - **Root cause**: Changed file directly on server without committing, then pushed from local
+  - **Fix**: Used `git reset --hard origin/main` on server to sync with remote
+- **Issue 4**: Static file alias paths still referenced old `/home/admin/nexus/` instead of `/home/nexus/nexus/`
+  - **Fix**: Updated all `alias` directives in nginx config to correct paths
+- **Verification**: Nginx config tested with `nginx -t`, reloaded with `systemctl reload nginx`
+
+## Category Button Fixes:
+- **Issue 1**: `history-tracker.js:1 Uncaught SyntaxError: Identifier 'HistoryTracker' has already been declared`
+  - **Root cause**: `history-tracker.js` was included twice in `app/templates/index.html`
+  - **Fix**: Removed duplicate script tag
+- **Issue 2**: Category buttons showing as empty outlines with no text and `data-category="undefined"`
+  - **Root cause**: JavaScript was fetching from wrong API endpoint `/api/v1/topics/` which returns `Topic` objects, but trying to access a `name` property that doesn't exist
+  - **Fix**: Changed API endpoint to `/api/v1/content/categories` which returns a simple list of category strings
+  - **Verification**: Category buttons now display correct text ("Technology", "Business", etc.)
+
+## Files Modified (2025-12-01):
+- **Created**:
+  - `app/templates/base.html`: Base Jinja2 template with header and Google Analytics tag
+  - `app/templates/index.html`: Feed page template
+  - `app/templates/login.html`: Login page template
+  - `app/templates/register.html`: Registration page template
+  - `app/templates/settings.html`: Settings page template
+  - `TEMPLATING_GUIDE.md`: Documentation for Jinja2 implementation
+- **Modified**:
+  - `app/main.py`: Added Jinja2Templates configuration, updated all routes to use templates
+  - `app/static/js/feed.js`: Fixed event tracking to fire regardless of content extraction success
+  - `nginx/nexus.conf`: Fixed location blocks, proxy headers, and static file paths
+- **Removed duplicates**:
+  - Header HTML removed from `app/static/index.html`, `login.html`, `register.html`, `settings.html` (now served via templates)
+
+## Git Sync Resolution:
+- **Issue**: Push failed due to uncommitted changes on server
+- **Fix**: Used `git reset --hard origin/main` on server to sync with remote repository
+- **Workflow improvement**: Always commit server-side changes locally and push, or reset server before pushing
+
+## Deployment Verification:
+- ✅ Webhook listener successfully deployed all changes
+- ✅ Nginx serving Jinja2 templates correctly
+- ✅ Google Analytics tag detected on live site
+- ✅ Category buttons displaying correctly with text
+- ✅ Event tracking working (`article_open`, `article_read` verified in GA4 Realtime)
+- ✅ No console errors on live site
+- ✅ All pages loading correctly with shared header
+
+## Next Steps:
+- Mark `article_read` as a conversion in GA4 Configure → Events
+- Monitor GA4 events over next 24-48 hours for data collection
+- Consider adding more custom events (category switches, search queries, user registration)
+- Test article_read_complete event (requires scrolling 80% of article content)
+
