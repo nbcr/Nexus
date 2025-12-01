@@ -260,3 +260,86 @@ Testing webhook with sudo permissions
 - Simplified CSS selectors for better performance
 - All menu items now have identical visual styling and behavior across all pages
 
+---
+
+# 2025-12-01: UI/UX Enhancements & Feed Redesign
+
+## Text Size Controls:
+- **Fixed text size functionality**: Now properly resizes content while preserving structure
+  - Affects: Category buttons, feed descriptions, tags, related queries, menu text, content buttons
+  - Excludes: Site title (32px/24px), card titles (28px/20px), form controls (14px fixed)
+  - Uses dynamic `<style>` tag with `!important` to override CSS variables
+  - Menu items maintain fixed 100px height to prevent layout shifts during text resize
+  - Added media queries to preserve mobile font sizes
+
+## YouTube-Style Feed Redesign:
+- **Image styling**: Reduced to 360px max-width × 200px height (180px mobile) with 12px rounded corners
+- **Color extraction**: Canvas API extracts dominant color from each card image
+  - Samples pixels efficiently (every 16th pixel on 50×50 canvas)
+  - Sets `--card-color` CSS variable on each card
+  - Fallback to cornflower blue `rgb(100, 149, 237)` if extraction fails
+  - Added `crossorigin="anonymous"` for CORS support
+- **Hover effects**: Color appears only on hover, grows from center with scale transform (0→1)
+  - Light mode: 15% opacity
+  - Dark mode: 25% opacity
+  - 0.3s ease transition
+- **Clean design**: Removed all card backgrounds and shadows for ultra-minimal aesthetic
+  - Cards completely transparent until hover
+  - Only content (images, text, buttons) visible by default
+
+## Favicon & Branding:
+- **Added favicon**: `<link rel="icon">` to all pages (index, login, register, settings)
+- **Site logo**: Replaced 🚀 emoji with actual favicon image in header
+  - Desktop: 56×56px circular logo
+  - Mobile: 48×48px circular logo
+  - `border-radius: 50%` for perfect circle
+  - Flexbox alignment with 8px gap from text
+
+## Settings Page Overhaul:
+- **Added full header**: Navigation, hamburger menu, auth buttons, dark mode toggle, text size controls
+- **Fixed CSS imports**: Updated from deleted `main.css`/`index.css` to modular structure
+- **Functional sidebar**: 5 settings sections with working buttons
+  1. **Privacy Policy**: Info about data collection and usage
+  2. **Terms of Service**: Terms and acceptable use
+  3. **History**: Three-tab system (Seen, Clicked, Read) with API integration
+  4. **Account**: Shows username/email from `/api/v1/auth/me`, logout button
+  5. **Appearance**: Dark mode toggle, text size info
+- **History tabs**: 
+  - Three buttons: Seen, Clicked, Read
+  - Fetches from `/api/v1/history/viewed?view_type={type}`
+  - Lazy loading (only loads when tab clicked)
+  - Displays paginated results with title and timestamp
+  - Clear History button calls `/api/v1/history/clear` (DELETE method)
+- **Styled UI**: CSS variables for theming, hover effects, active states
+
+## History Tracking Fix:
+- **Added missing script**: `history-tracker.js` now loaded in `index.html`
+- **Anonymous user tracking**: Backend already supported session-based tracking via `session_token`
+- **Three tracking types**:
+  - `seen`: Card appeared in viewport (tracked by IntersectionObserver)
+  - `clicked`: Card was clicked
+  - `read`: Card was expanded/full article viewed
+- **API endpoints**: 
+  - Record: `POST /api/v1/history/record`
+  - View: `GET /api/v1/history/viewed?view_type={type}&page={n}&page_size={n}`
+  - Clear: `DELETE /api/v1/history/clear?view_type={type}`
+  - Seen IDs: `GET /api/v1/history/seen-ids` (for duplicate prevention)
+- **Session persistence**: History persists for anonymous users via session cookie
+
+## Files Modified (2025-12-01):
+- `app/static/js/header.js`: Updated text size controls with explicit font sizes and exclusions
+- `app/static/css/feed.css`: YouTube-style images, transparent backgrounds, hover color effects
+- `app/static/js/feed.js`: Added color extraction method, CORS support for images
+- `app/static/index.html`: Added favicon, logo image, history-tracker.js script
+- `app/static/login.html`: Added favicon, logo image
+- `app/static/register.html`: Added favicon, logo image
+- `app/static/settings.html`: Complete overhaul with header, functional buttons, history tabs
+- `app/static/css/header.css`: Logo styling (circular, proper sizing), menu item fixed heights
+
+## Technical Improvements:
+- **Performance**: Lazy loading for history tabs, efficient color sampling
+- **Error handling**: Fallback colors, graceful CORS failures, try-catch on all API calls
+- **User feedback**: Loading states, error messages, confirmation dialogs
+- **Cross-browser**: Uses Canvas API (widely supported), flexbox, CSS variables
+- **Accessibility**: ARIA labels, semantic HTML, keyboard navigation support
+
