@@ -1070,6 +1070,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
             modal.classList.remove('active');
+            document.body.style.overflow = ''; // Unlock body scroll
         });
     }
     
@@ -1077,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', function() {
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             modal.classList.remove('active');
+            document.body.style.overflow = ''; // Unlock body scroll
         }
     });
     
@@ -1084,6 +1086,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.classList.contains('active')) {
             modal.classList.remove('active');
+            document.body.style.overflow = ''; // Unlock body scroll
         }
     });
 });
