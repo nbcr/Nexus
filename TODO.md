@@ -2,20 +2,28 @@
 
 - Create a user profile page with avatar, username, editable info, profile picture update, recent activity/history, and privacy/account settings quick links.
 
-## Add settings page
+## Add settings page [COMPLETED ✅]
 
-- Create a settings page with a sidebar for categories: Privacy Policy, Terms of Service, History, Account, Appearance. Each category loads content in the main area. Touch-friendly, modern layout.
+- ✅ Create a settings page with a sidebar for categories: Privacy Policy, Terms of Service, History, Account, Appearance. Each category loads content in the main area. Touch-friendly, modern layout.
+- ✅ Implemented with full header, functional sidebar navigation
+- ✅ History section has three tabs (Seen, Clicked, Read)
+- ✅ All buttons functional (Clear History, Logout, Dark Mode toggle)
+- ✅ API integration for loading history
+- ✅ Account section displays user info from backend
 
-## Update navigation/menu
+## Update navigation/menu [COMPLETED ✅]
 
-- Hamburger menu: icon above text, spaced items, quick links to Feed, Settings, Profile, Admin.
-- Login/Register remain in header.
-- Dark/Light toggle labeled as such.
+- ✅ Hamburger menu: icon above text, spaced items, quick links to Feed, Settings
+- ✅ Login/Register remain in header on desktop, move to menu on mobile
+- ✅ Dark/Light toggle labeled and functional in menu
+- ✅ Text size controls added to menu
+- ✅ Fixed height menu items maintain position during text resize
 
-## Move links to settings page
+## Move links to settings page [COMPLETED ✅]
 
-- Move Privacy Policy, Terms, History to settings page.
-- Make all menu and sidebar items touch-friendly.
+- ✅ Move Privacy Policy, Terms, History to settings page
+- ✅ Make all menu and sidebar items touch-friendly
+- ✅ Settings page sidebar buttons functional and responsive
 # Project Todo List
 
 ## Improve login page layout
@@ -45,55 +53,58 @@
 - Publish on site and link from footer/menu.
 - Review with user for clarity.
 
-## Fix day/night option on mobile
+## Fix day/night option on mobile [COMPLETED ✅]
 
-- Audit header/menu for mobile compatibility.
-- Refactor day/night (dark mode) toggle for mobile visibility and usability.
-- Test on various mobile devices and browsers.
-- Review with user for mobile UX.
+- ✅ Dark mode toggle fully functional on mobile in hamburger menu
+- ✅ Dark mode toggle also in desktop header (removed from mobile separately)
+- ✅ Theme persists across page loads via localStorage
+- ✅ Works on all pages (index, login, register, settings)
 
-## Shorten header on scroll (mobile)
+## Shorten header on scroll (mobile) [NOT NEEDED]
 
-- Design header shrink/shorten effect for mobile scroll.
-- Implement in frontend JS/CSS.
-- Test for smoothness and visibility.
-- Review with user for UX.
+- Current sticky header works well, no complaints
+- Can revisit if user requests
 
-## Create hamburger menu
+## Create hamburger menu [COMPLETED ✅]
 
-- Design and implement responsive hamburger menu for mobile/desktop.
-- Add navigation links and controls.
-- Test for usability and accessibility.
-- Review with user for navigation experience.
+- ✅ Responsive hamburger menu implemented for mobile/desktop
+- ✅ Three-bar icon that animates to X on open (removed animation per user preference)
+- ✅ Navigation links: Feed, Settings
+- ✅ Auth buttons: Login/Register on mobile, in header on desktop
+- ✅ Dark mode toggle
+- ✅ Text size controls
+- ✅ Menu doesn't close when clicking text size or dark mode buttons
+- ✅ Fixed height items prevent layout shift
+- ✅ Consolidated JavaScript in header.js (no duplication)
 
-## Add admin spot in hamburger menu
+## Add admin spot in hamburger menu [PENDING]
 
-- Design admin link/section for hamburger menu for privileged users.
-- Implement access control and visibility logic.
-- Test for correct access and visibility.
-- Review with admin users for usability.
+- Admin link logic exists in index.html (checks localStorage for is_admin)
+- Not yet integrated into hamburger menu
+- Need to add admin link to base.html template
 
-## Add category buttons to top
+## Add category buttons to top [COMPLETED ✅]
 
-- Design category selection buttons for top of window.
-- Implement in frontend layout.
-- Test for layout and responsiveness.
-- Review with user for accessibility.
+- ✅ Category filter buttons implemented above feed
+- ✅ Dynamically loaded from /api/v1/topics/
+- ✅ Active state highlighting
+- ✅ Filter feed by category on click
+- ✅ Styled with hover effects and proper spacing
 
-## Allow users to set font size
+## Allow users to set font size [COMPLETED ✅]
 
-- Design font size setting UI for user preferences.
-- Implement font size adjustment control in frontend.
-- Persist setting per user/session (cookie/localStorage or DB).
-- Test font scaling across site for accessibility.
-- Review accessibility and user feedback.
+- ✅ Font size controls in hamburger menu (➖ Text Size ➕)
+- ✅ Adjusts all content text (12px to 24px range)
+- ✅ Excludes: Site title, card titles, menu controls
+- ✅ Includes: Category buttons, descriptions, tags, queries, menu items
+- ✅ Persists in localStorage
+- ✅ Menu items maintain fixed height during resize
+- ✅ MutationObserver handles dynamically loaded content
 
-## Font size popup on first visit
+## Font size popup on first visit [DECLINED]
 
-- Design font size selection popup for first-time users (per IP/session).
-- Implement popup logic and persistence (cookie/localStorage).
-- Test popup appearance and logic.
-- Review UX for non-intrusiveness and clarity.
+- User prefers in-menu controls, not a popup
+- Feature implemented as menu controls instead
 
 ## Fix X on pop-up card
 
@@ -121,20 +132,19 @@
 - Test for consistency and completeness.
 - Review with user for dark mode experience.
 
-## Show end of feed reached
+## Show end of feed reached [COMPLETED ✅]
 
-- Design UI indicator for end of feed (infinite scroll).
-- Implement indicator in frontend code.
-- Style message for both light and dark mode.
-- Test with long feeds and edge cases.
-- Review UX for clarity and user feedback.
+- ✅ "You've reached the end of the feed!" message implemented
+- ✅ Styled for both light and dark mode
+- ✅ Appears after all feed items loaded
+- ✅ Prevents further API calls when no more content
 
-## Show new stories first
+## Show new stories first but also on scroll [COMPLETED ✅]
 
-- Audit feed sorting logic.
-- Update backend/frontend to show newest stories at the top.
-- Test with multiple sources and refreshes.
-- Review for expected behavior and user feedback.
+- ✅ Feed shows newest stories at the top
+- ✅ Infinite scroll loads older stories as user scrolls
+- ✅ WebSocket feed notifier alerts users to new content
+- ✅ Page refresh loads latest stories first
 
 ## Balance story categories
 
@@ -165,19 +175,23 @@
 - Test with various feeds and sources to ensure duplicates are removed.
 - Review feed for uniqueness and accuracy.
 
-## Add images to scraped stories
+## Add images to scraped stories [COMPLETED ✅]
 
-- Audit scraper for image extraction capability.
-- Enhance scraper to extract and display images.
-- Test with multiple sources and formats.
-- Review image quality and placement in UI.
+- ✅ Scraper extracts images from stories (picture_url in source_metadata)
+- ✅ YouTube-style image display (360px × 200px with rounded corners)
+- ✅ Images centered with auto margins
+- ✅ Fallback: image container hidden if no image available
+- ✅ Dominant color extraction from images for hover effects
+- ✅ crossorigin="anonymous" for CORS support
 
-## Scrape story on card open, cache result
+## Scrape story on card open, cache result [COMPLETED ✅]
 
-- Refactor scraping logic to fetch story content only when card is opened.
-- Implement caching of scraped content in DB for future use.
-- Test for performance and reliability.
-- Review with user for speed and accuracy.
+- ✅ Story content scraped on-demand when "Read Full Article" clicked
+- ✅ /api/v1/content/snippet/{content_id} endpoint for fetching
+- ✅ Cached in database (content_text field)
+- ✅ Rate limiting implemented (20 requests per minute)
+- ✅ Shows "No preview available" if scraping fails
+- ✅ Links to original source as fallback
 
 ## AI bullet facts for stories
 
