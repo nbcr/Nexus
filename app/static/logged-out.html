@@ -15,6 +15,20 @@
         .dark-mode h1 { color: #e0e6ed; }
         .dark-mode p { color: #b0b8c1; }
     </style>
+    
+    <!-- Immediate dark mode initialization to prevent flash -->
+    <script>
+        (function() {
+            // Check localStorage for saved preference, default to dark mode
+            const savedPreference = localStorage.getItem('darkMode');
+            const shouldBeDark = savedPreference === null || savedPreference === 'true';
+            
+            if (shouldBeDark) {
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -24,18 +38,6 @@
         <button class="btn-hdr" onclick="window.location.href='/'">Go to Homepage</button>
     </div>
         <script>
-            // Apply dark mode if user/system prefers
-            function setDarkMode() {
-                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.body.classList.add('dark-mode');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                }
-            }
-            document.addEventListener('DOMContentLoaded', function() {
-                setDarkMode();
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setDarkMode);
-            });
             setTimeout(function() {
                 window.location.href = "/";
             }, 2500);

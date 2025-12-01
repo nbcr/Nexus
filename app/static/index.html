@@ -12,6 +12,20 @@
     <link rel="stylesheet" href="/static/css/header.css?v=202512010100">
     <link rel="stylesheet" href="/static/css/components.css?v=202512010100">
     <link rel="stylesheet" href="/static/css/feed.css?v=202512010100">
+    
+    <!-- Immediate dark mode initialization to prevent flash -->
+    <script>
+        (function() {
+            // Check localStorage for saved preference, default to dark mode
+            const savedPreference = localStorage.getItem('darkMode');
+            const shouldBeDark = savedPreference === null || savedPreference === 'true';
+            
+            if (shouldBeDark) {
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
 </head>
 <body>
     <header class="main-header">

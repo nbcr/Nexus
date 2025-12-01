@@ -10,6 +10,20 @@
     <link rel="stylesheet" href="/static/css/auth.css?v=202512010100">
     <link rel="stylesheet" href="/static/css/components.css?v=202512010100">
     <!-- Inline styles removed to allow external CSS to control layout, especially for mobile responsiveness -->
+    
+    <!-- Immediate dark mode initialization to prevent flash -->
+    <script>
+        (function() {
+            // Check localStorage for saved preference, default to dark mode
+            const savedPreference = localStorage.getItem('darkMode');
+            const shouldBeDark = savedPreference === null || savedPreference === 'true';
+            
+            if (shouldBeDark) {
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+            }
+        })();
+    </script>
 </head>
 <body class="login-page">
     <header class="main-header">
