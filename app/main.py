@@ -196,6 +196,11 @@ async def robots():
     """Serve robots.txt"""
     return FileResponse("app/static/robots.txt", media_type="text/plain")
 
+@app.get("/ads.txt")
+async def ads_txt():
+    """Serve ads.txt"""
+    return FileResponse("app/static/ads.txt", media_type="text/plain")
+
 # Admin panel (still uses static HTML)
 @app.get("/admin.html", include_in_schema=False)
 async def serve_admin():
