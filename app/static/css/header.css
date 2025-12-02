@@ -152,6 +152,11 @@ button.hamburger,
     background: rgb(255 255 255 / 10%);
 }
 
+/* Hover should precede more specific nav hamburger to satisfy specificity */
+.hamburger:hover {
+    background: rgb(255 255 255 / 15%);
+}
+
 .main-header nav .hamburger,
 .main-header nav button.hamburger {
     display: flex;
@@ -181,13 +186,10 @@ button.hamburger,
     background: rgb(255 255 255 / 10%);
 }
 
-.hamburger:hover {
-    background: rgb(255 255 255 / 15%);
-}
-
 /* Hamburger Bars */
-.hamburger .bar,
-#hamburger-menu .bar {
+/* Place ID-based bars before open/closed state rules to satisfy specificity */
+#hamburger-menu .bar,
+.hamburger .bar {
     width: 28px;
     height: 4px;
     min-width: 28px;
