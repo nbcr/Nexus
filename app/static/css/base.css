@@ -56,24 +56,24 @@ body {
 
 /* Light Mode Variables (Only when explicitly set) - must come after default */
 html.light-mode {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --bg-tertiary: #e0e0e0;
-    --text-primary: #333333;
-    --text-secondary: #666666;
+    --bg-primary: #181818;
+    --bg-secondary: #222222;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
     --text-muted: #999999;
-    background-color: #ffffff;
+    background-color: #181818;
 }
 
 html.light-mode body {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --bg-tertiary: #e0e0e0;
-    --text-primary: #333333;
-    --text-secondary: #666666;
+    --bg-primary: #181818;
+    --bg-secondary: #222222;
+    --bg-tertiary: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #cccccc;
     --text-muted: #999999;
-    background-color: #ffffff;
-    color: #333333;
+    background-color: #181818;
+    color: #ffffff;
 }
 
 /* Global Reset */

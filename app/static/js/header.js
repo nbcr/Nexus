@@ -196,22 +196,26 @@ function initDarkMode() {
 
 /**
  * Update dark mode toggle UI elements
+ * Since dark mode is default, show "Light Mode" option to switch to light
  */
 function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
     if (toggleBtn) {
         toggleBtn.textContent = isDark ? '☀️' : '🌙';
     }
     if (toggleLabel) {
-        toggleLabel.textContent = isDark ? 'Dark Mode: On' : 'Dark Mode: Off';
+        toggleLabel.textContent = isDark ? 'Light Mode: Off' : 'Light Mode: On';
     }
     if (toggleMenuBtn) {
         const icon = toggleMenuBtn.querySelector('.menu-icon');
         if (icon) {
+            // Dark mode = show sun icon (option to go to light)
+            // Light mode = show moon icon (option to go back to dark)
             icon.textContent = isDark ? '☀️' : '🌙';
         }
         const label = toggleMenuBtn.querySelector('.menu-label');
         if (label) {
-            label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            // Always show "Light Mode" as the button label since that's what it toggles
+            label.textContent = 'Light Mode';
         }
     }
 }
@@ -382,7 +386,7 @@ function initTextSize() {
             @media (max-width: 768px) {
                 .main-header h1,
                 header h1 {
-                    font-size: 24px !important;
+                    font-size: 20px !important;
                 }
                 
                 .feed-item-title {
@@ -390,9 +394,37 @@ function initTextSize() {
                 }
             }
             
-            /* Keep controls at 14px (but not content buttons or menu items) */
+            /* Keep menu items and controls at fixed sizes */
+            .nav-links.open .menu-icon,
+            .nav-links .menu-icon,
+            button .menu-icon,
+            a .menu-icon {
+                font-size: 28px !important;
+            }
+            
+            .nav-links.open .menu-label,
+            .nav-links .menu-label,
+            button .menu-label,
+            a .menu-label {
+                font-size: 14px !important;
+            }
+            
+            .text-size-btn,
+            .text-size-label,
+            .text-size-controls,
+            .text-size-controls * {
+                font-size: 14px !important;
+            }
+            
+            .text-size-btn .menu-icon {
+                font-size: 20px !important;
+            }
+            
+            .text-size-btn .menu-label {
+                font-size: 12px !important;
+            }
+            
             button:not(.btn-read-more):not(.btn-source),
-            .text-size-btn, .text-size-controls,
             .hamburger, .header-btn,
             input, select, textarea {
                 font-size: 14px !important;
