@@ -64,10 +64,14 @@ body {
     z-index: 1000;
 }
 
-.admin-header .container {
+/* Ensure base .container comes before more specific header container */
+.container {
     max-width: 1600px;
     margin: 0 auto;
     padding: 0 20px;
+}
+
+.admin-header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -108,11 +112,6 @@ body {
     padding: 40px 0;
 }
 
-.container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
 
 /* Tabs */
 .admin-tabs {
@@ -153,10 +152,10 @@ body {
 
 .tab-content.active {
     display: block;
-    animation: fadeIn 0.3s ease;
+    animation: fade-in 0.3s ease;
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
