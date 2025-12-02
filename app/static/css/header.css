@@ -187,8 +187,8 @@ button.hamburger,
 }
 
 /* Hamburger Bars */
-/* Place ID-based bars before open/closed state rules to satisfy specificity */
-#hamburger-menu .bar,
+
+/* Base hamburger bars - class selectors first */
 .hamburger .bar {
     width: 28px;
     height: 4px;
@@ -205,6 +205,17 @@ button.hamburger,
     box-sizing: border-box;
 }
 
+/* Hamburger Not Open State - class selectors */
+.hamburger:not(.open) .bar {
+    opacity: 1;
+    transform: none;
+    width: 28px;
+    height: 4px;
+    display: block;
+    visibility: visible;
+}
+
+/* Main header nav hamburger bars */
 .main-header nav .hamburger .bar {
     width: 28px;
     height: 4px;
@@ -221,9 +232,17 @@ button.hamburger,
     box-sizing: border-box;
 }
 
-/* Hamburger Open (X) Animation */
-.hamburger.open .bar:nth-child(1),
-#hamburger-menu.open .bar:nth-child(1) {
+/* Theme overrides for base hamburger bars */
+html.light-mode .hamburger .bar {
+    background: #000;
+}
+
+body.dark-mode .hamburger .bar {
+    background: #fff;
+}
+
+/* Hamburger Open State - class selectors */
+.hamburger.open .bar:nth-child(1) {
     transform: rotate(45deg);
     position: absolute;
     top: 50%;
@@ -232,6 +251,30 @@ button.hamburger,
     margin-top: -2px;
 }
 
+.hamburger.open .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.open .bar:nth-child(3) {
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -14px;
+    margin-top: -2px;
+}
+
+/* Main header nav hamburger not-open state */
+.main-header nav .hamburger:not(.open) .bar {
+    opacity: 1;
+    transform: none;
+    width: 28px;
+    height: 4px;
+    display: block;
+    visibility: visible;
+}
+
+/* Main header nav hamburger open states */
 .main-header nav .hamburger.open .bar:nth-child(1) {
     transform: rotate(45deg);
     position: absolute;
@@ -241,23 +284,8 @@ button.hamburger,
     margin-top: -2px;
 }
 
-.hamburger.open .bar:nth-child(2),
-#hamburger-menu.open .bar:nth-child(2) {
-    opacity: 0;
-}
-
 .main-header nav .hamburger.open .bar:nth-child(2) {
     opacity: 0;
-}
-
-.hamburger.open .bar:nth-child(3),
-#hamburger-menu.open .bar:nth-child(3) {
-    transform: rotate(-45deg);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-left: -14px;
-    margin-top: -2px;
 }
 
 .main-header nav .hamburger.open .bar:nth-child(3) {
@@ -269,8 +297,24 @@ button.hamburger,
     margin-top: -2px;
 }
 
-/* Hamburger Not Open State */
-.hamburger:not(.open) .bar,
+/* ID-specific bars declared after all class-based rules */
+#hamburger-menu .bar {
+    width: 28px;
+    height: 4px;
+    min-width: 28px;
+    min-height: 4px;
+    background: #fff;
+    margin: 4px 0;
+    border-radius: 2px;
+    transition: transform 0.3s, opacity 0.3s;
+    display: block;
+    visibility: visible;
+    position: relative;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+/* ID-based not-open state */
 #hamburger-menu:not(.open) .bar {
     opacity: 1;
     transform: none;
@@ -280,13 +324,36 @@ button.hamburger,
     visibility: visible;
 }
 
-.main-header nav .hamburger:not(.open) .bar {
-    opacity: 1;
-    transform: none;
-    width: 28px;
-    height: 4px;
-    display: block;
-    visibility: visible;
+/* Theme overrides for ID-based hamburger bars */
+html.light-mode #hamburger-menu .bar {
+    background: #000;
+}
+
+body.dark-mode #hamburger-menu .bar {
+    background: #fff;
+}
+
+/* ID-based open state rules */
+#hamburger-menu.open .bar:nth-child(1) {
+    transform: rotate(45deg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -14px;
+    margin-top: -2px;
+}
+
+#hamburger-menu.open .bar:nth-child(2) {
+    opacity: 0;
+}
+
+#hamburger-menu.open .bar:nth-child(3) {
+    transform: rotate(-45deg);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-left: -14px;
+    margin-top: -2px;
 }
 
 /* ======================================
@@ -667,11 +734,6 @@ html.light-mode .header-btn {
     border-color: rgb(0 0 0 / 30%);
 }
 
-html.light-mode .hamburger .bar,
-html.light-mode #hamburger-menu .bar {
-    background: #000;
-}
-
 /* ======================================
    DARK MODE OVERRIDES
    (Come after light mode)
@@ -691,11 +753,6 @@ body.dark-mode .nav-links {
 
 body.dark-mode .hamburger {
     background: rgb(255 255 255 / 15%);
-}
-
-body.dark-mode .hamburger .bar,
-body.dark-mode #hamburger-menu .bar {
-    background: #fff;
 }
 
 @media (width <= 900px) {
