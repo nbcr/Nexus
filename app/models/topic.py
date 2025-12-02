@@ -1,4 +1,5 @@
 """Topic-related models."""
+
 from sqlalchemy import Column, Integer, String, DateTime, Text, Float, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

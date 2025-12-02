@@ -7,8 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://nexus_user:nexus_pass@localhost/nexus"
+    "DATABASE_URL", "postgresql+asyncpg://nexus_user:nexus_pass@localhost/nexus"
 )
 
 engine = create_async_engine(
@@ -24,6 +23,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 Base = declarative_base()
+
 
 async def get_db():
     async with AsyncSessionLocal() as session:

@@ -8,6 +8,7 @@ USERNAME = "testuser"
 EMAIL = "testuser@example.com"
 PASSWORD = "testpass"
 
+
 async def recreate_test_user():
     async with AsyncSessionLocal() as db:
         # Delete existing user
@@ -24,6 +25,7 @@ async def recreate_test_user():
         await db.commit()
         await db.refresh(new_user)
         print(f"Created user: {USERNAME}")
+
 
 if __name__ == "__main__":
     asyncio.run(recreate_test_user())

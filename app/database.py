@@ -8,8 +8,7 @@ load_dotenv()
 
 # Database URL (update .env file)
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://nexus_user:nexus_pass@localhost/nexus"
+    "DATABASE_URL", "postgresql+asyncpg://nexus_user:nexus_pass@localhost/nexus"
 )
 
 # Create async engine
@@ -28,6 +27,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 # Base class for models
 Base = declarative_base()
+
 
 # Dependency for FastAPI endpoints
 async def get_db():

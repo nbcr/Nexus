@@ -8,8 +8,12 @@ sys.path.insert(0, project_root)
 
 from app.database import engine, Base, AsyncSessionLocal
 from app.models import (
-    User, UserSession, Topic, ContentItem,
-    UserInteraction, UserInterestProfile
+    User,
+    UserSession,
+    Topic,
+    ContentItem,
+    UserInteraction,
+    UserInterestProfile,
 )
 
 
@@ -36,7 +40,7 @@ async def create_sample_data():
                 description="The simulation of human intelligence by machines",
                 trend_score=0.85,
                 category="Technology",
-                tags=["AI", "Machine Learning", "Technology"]
+                tags=["AI", "Machine Learning", "Technology"],
             )
             session.add(topic)
             await session.commit()  # Use commit instead of flush for simplicity
@@ -48,13 +52,13 @@ async def create_sample_data():
                 content_text="Artificial Intelligence (AI) refers to the simulation of human intelligence in machines...",
                 ai_model_used="gpt-3.5-turbo",
                 source_urls=["https://example.com/ai"],
-                is_published=True
+                is_published=True,
             )
             session.add(content)
             await session.commit()
-            
+
             print("Sample data created!")
-            
+
         except Exception as e:
             print(f"Error creating sample data: {e}")
             await session.rollback()

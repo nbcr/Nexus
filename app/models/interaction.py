@@ -1,4 +1,5 @@
 """Interaction-related models."""
+
 from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -9,8 +10,12 @@ class UserInteraction(Base):
     __tablename__ = "user_interactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # NULL for anonymous
-    session_id = Column(Integer, ForeignKey("user_sessions.id"), nullable=True)  # Link to session
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )  # NULL for anonymous
+    session_id = Column(
+        Integer, ForeignKey("user_sessions.id"), nullable=True
+    )  # Link to session
     content_item_id = Column(Integer, ForeignKey("content_items.id"))
     interaction_type = Column(String(50))
     duration_seconds = Column(Integer, default=0)

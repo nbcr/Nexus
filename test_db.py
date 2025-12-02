@@ -29,21 +29,29 @@ async def test_database():
             print(f"✓ Sample topic: {topic[0]} - {topic[1]}")
 
         # Get the sample content
-        result = await session.execute(text("""
+        result = await session.execute(
+            text(
+                """
             SELECT t.title, c.content_type, c.ai_model_used 
             FROM content_items c 
             JOIN topics t ON c.topic_id = t.id
-        """))
+        """
+            )
+        )
         contents = result.fetchall()
         for content in contents:
             print(f"✓ Sample content: {content[0]} ({content[1]} via {content[2]})")
 
         # Count all tables
-        result = await session.execute(text("""
+        result = await session.execute(
+            text(
+                """
             SELECT COUNT(*) 
             FROM information_schema.tables 
             WHERE table_schema = 'public'
-        """))
+        """
+            )
+        )
         table_count = result.scalar()
         print(f"✓ Total tables in database: {table_count}")
 

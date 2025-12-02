@@ -1,3 +1,26 @@
+# Virtual environments
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+
+# VS Code settings (keep only settings.json if needed)
+.vscode/
+!.vscode/settings.json
+
 # Python
 __pycache__/
 *.py[cod]

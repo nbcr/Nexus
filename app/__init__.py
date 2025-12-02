@@ -2,6 +2,7 @@
 import asyncio
 from app.services.content_refresh import start_periodic_refresh
 
+
 async def start_background_tasks():
     """Start background tasks when application starts"""
     try:
