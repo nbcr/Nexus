@@ -3,6 +3,7 @@
    =================================== */
 
 /* CSS Variables for consistent theming */
+/* Dark Mode is the default - no class needed */
 :root,
 html,
 body {
@@ -51,11 +52,6 @@ body {
     --transition-fast: 0.15s ease;
     --transition-base: 0.2s ease;
     --transition-slow: 0.3s ease;
-}
-
-/* Dark Mode is default - no class needed, but keep for compatibility */
-body.dark-mode {
-    /* Same as default, no change needed */
 }
 
 /* Light Mode Variables (Only when explicitly set) - must come after default */

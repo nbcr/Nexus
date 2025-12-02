@@ -636,16 +636,28 @@ async function loadInitialData() {
 
 // Dark mode toggle
 function toggleDarkMode() {
-    document.body.classList.toggle('light-mode');
-    const isDark = !document.body.classList.contains('light-mode');
-    localStorage.setItem('adminDarkMode', isDark);
-    document.getElementById('dark-mode-toggle').textContent = isDark ? '🌙' : '☀️';
+    // Toggle light-mode class (dark mode is default, no class needed)
+    const isCurrentlyLight = document.documentElement.classList.contains('light-mode');
+    
+    if (isCurrentlyLight) {
+        // Switch back to dark mode (default)
+        document.documentElement.classList.remove('light-mode');
+        localStorage.setItem('adminDarkMode', 'true');
+        document.getElementById('dark-mode-toggle').textContent = '🌙';
+    } else {
+        // Switch to light mode
+        document.documentElement.classList.add('light-mode');
+        localStorage.setItem('adminDarkMode', 'false');
+        document.getElementById('dark-mode-toggle').textContent = '☀️';
+    }
 }
 
 // Initialize dark mode from localStorage (default to dark)
-if (localStorage.getItem('adminDarkMode') === 'false') {
-    document.body.classList.add('light-mode');
-    document.getElementById('dark-mode-toggle').textContent = '☀️';
+const savedAdminDarkMode = localStorage.getItem('adminDarkMode');
+if (savedAdminDarkMode === 'false') {
+    document.documentElement.classList.add('light-mode');
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+    if (toggleBtn) toggleBtn.textContent = '☀️';
 }
 
 // Logout

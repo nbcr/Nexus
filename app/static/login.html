@@ -5,49 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Nexus</title>
     <link rel="icon" type="image/png" href="/static/favicon.png">
-    <!-- Immediate dark mode initialization to prevent flash - MUST be before CSS -->
+    <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
         (function() {
-            // Check localStorage for saved preference, default to dark mode
+            // Only apply light mode if explicitly selected (dark mode is default)
             const savedPreference = localStorage.getItem('darkMode');
-            const shouldBeDark = savedPreference === null || savedPreference === 'true';
             
-            if (shouldBeDark) {
-                // Apply class immediately to html element
-                document.documentElement.classList.add('dark-mode');
-            } else {
-                // Ensure dark-mode class is removed for light mode
-                document.documentElement.classList.remove('dark-mode');
+            if (savedPreference === 'false') {
+                // User explicitly selected light mode
+                document.documentElement.classList.add('light-mode');
             }
+            // No else needed - dark mode is default without any class
         })();
     </script>
     <style>
         /* Blocking inline styles to prevent flash - applied immediately */
-        /* Light mode (default) */
-        html:not(.dark-mode),
-        html:not(.dark-mode) body {
-            --bg-primary: #ffffff !important;
-            --bg-secondary: #f5f5f5 !important;
-            --bg-tertiary: #e0e0e0 !important;
-            --text-primary: #333333 !important;
-            --text-secondary: #666666 !important;
-            --text-muted: #999999 !important;
-            background-color: #ffffff !important;
-            color: #333333 !important;
-        }
-        /* Dark mode */
-        html.dark-mode {
+        /* Dark mode (default - no class needed) */
+        html,
+        html body {
             --bg-primary: #181818 !important;
             --bg-secondary: #222222 !important;
             --bg-tertiary: #2a2a2a !important;
             --text-primary: #ffffff !important;
             --text-secondary: #cccccc !important;
             --text-muted: #999999 !important;
-        }
-        html.dark-mode,
-        html.dark-mode body {
             background-color: #181818 !important;
             color: #ffffff !important;
+        }
+        /* Light mode (only when explicitly set) */
+        html.light-mode {
+            --bg-primary: #ffffff !important;
+            --bg-secondary: #f5f5f5 !important;
+            --bg-tertiary: #e0e0e0 !important;
+            --text-primary: #333333 !important;
+            --text-secondary: #666666 !important;
+            --text-muted: #999999 !important;
+        }
+        html.light-mode,
+        html.light-mode body {
+            background-color: #ffffff !important;
+            color: #333333 !important;
         }
     </style>
     

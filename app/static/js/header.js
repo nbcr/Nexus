@@ -167,7 +167,8 @@ async function handleLogout() {
 
 /**
  * Initialize dark mode based on user preferences
- * Dark mode is enabled by default for all devices
+ * Dark mode is enabled by default for all devices (no class needed)
+ * Light mode requires explicit light-mode class
  */
 function initDarkMode() {
     const toggleBtn = document.getElementById('dark-mode-toggle');
@@ -177,19 +178,19 @@ function initDarkMode() {
     // Use localStorage preference, default to dark mode
     const savedPreference = localStorage.getItem('darkMode');
     
-    // If no preference saved, default to dark mode (no light-mode class)
-    if (savedPreference === null || savedPreference === 'true') {
+    // Check if light mode is explicitly selected
+    if (savedPreference === 'false') {
+        // Light mode - add light-mode class
+        document.documentElement.classList.add('light-mode');
+        updateDarkModeUI(false, toggleBtn, toggleLabel, toggleMenuBtn);
+    } else {
         // Dark mode is default - ensure light-mode class is removed
         document.documentElement.classList.remove('light-mode');
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('darkMode', 'true');
+        if (savedPreference === null) {
+            localStorage.setItem('darkMode', 'true');
+        }
         updateDarkModeUI(true, toggleBtn, toggleLabel, toggleMenuBtn);
         removeFeedItemSummaryColors();
-    } else {
-        // Light mode - add light-mode class (toggled on)
-        document.documentElement.classList.add('light-mode');
-        document.body.classList.remove('dark-mode');
-        updateDarkModeUI(false, toggleBtn, toggleLabel, toggleMenuBtn);
     }
 }
 
@@ -238,11 +239,9 @@ function toggleDarkMode() {
     if (willBeLight) {
         // Switch to light mode (toggled on)
         document.documentElement.classList.add('light-mode');
-        document.body.classList.remove('dark-mode');
     } else {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
-        document.body.classList.add('dark-mode');
         removeFeedItemSummaryColors();
     }
     
