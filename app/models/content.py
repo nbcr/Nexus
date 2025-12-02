@@ -1,5 +1,15 @@
 """Content-related models."""
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, JSON, ForeignKey
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Text,
+    Boolean,
+    JSON,
+    ForeignKey,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db import Base
@@ -11,7 +21,9 @@ class ContentItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     topic_id = Column(Integer, ForeignKey("topics.id"))
     title = Column(String(500))
-    slug = Column(String(255), unique=True, index=True, nullable=False)  # Unique identifier for direct linking
+    slug = Column(
+        String(255), unique=True, index=True, nullable=False
+    )  # Unique identifier for direct linking
     description = Column(Text, nullable=True)
     category = Column(String(100), nullable=True)
     tags = Column(JSON, default=list)

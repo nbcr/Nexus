@@ -1,11 +1,13 @@
 """
 Script to fix user passwords in the database by truncating to 72 bytes and re-hashing if needed.
 """
+
 import asyncio
 from app.database import AsyncSessionLocal
 from app.models.user import User
 from app.core.auth import get_password_hash
 from sqlalchemy import select, update
+
 
 async def fix_passwords():
     async with AsyncSessionLocal() as session:
@@ -23,6 +25,7 @@ async def fix_passwords():
                     print(f"Error processing user {user.id}: {e}")
         await session.commit()
     print("✅ Password fix script completed.")
+
 
 if __name__ == "__main__":
     asyncio.run(fix_passwords())

@@ -1,6 +1,7 @@
 import requests
 from app.core.config import settings
 
+
 def send_registration_email(to_email: str, username: str):
     api_key = getattr(settings, "BREVO_API_KEY", None)
     if not api_key:
@@ -10,7 +11,7 @@ def send_registration_email(to_email: str, username: str):
     headers = {
         "accept": "application/json",
         "api-key": api_key,
-        "content-type": "application/json"
+        "content-type": "application/json",
     }
     data = {
         "sender": {"name": "Nexus App", "email": "your_verified_sender@domain.com"},
@@ -23,7 +24,7 @@ def send_registration_email(to_email: str, username: str):
                     <p>Thank you for registering at Nexus.</p>
                 </body>
             </html>
-        """
+        """,
     }
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()
