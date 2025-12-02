@@ -17,9 +17,9 @@ body {
   --text-muted: #999;
 
   /* Accent Colors */
-  --accent: #0056b3;
-  --accent-hover: #004085;
-  --accent-light: #0056b3;
+  --accent: #1440a6;
+  --accent-hover: #0d2f6e;
+  --accent-light: #1440a6;
 
   /* Status Colors */
   --success: #4caf50;

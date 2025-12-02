@@ -4,7 +4,7 @@
 
 /* Main Header - Base styles first */
 .main-header {
-    background: #0056b3;
+    background: #1440a6;
     color: #fff;
     padding: 20px 0;
     box-shadow: var(--shadow-sm, 0 2px 4px rgb(0 0 0 / 10%));
@@ -47,7 +47,7 @@
     z-index: 1000;
     gap: 12px;
     align-items: center;
-    background: #0056b3;
+    background: #1440a6;
 }
 
 .site-logo {
@@ -428,7 +428,7 @@ body.dark-mode #hamburger-menu .bar {
         position: fixed;
         top: 0;
         right: 0;
-        background: #0056b3;
+        background: #1440a6;
         width: 260px;
         height: 100vh;
         padding: 60px 0 0;
@@ -462,7 +462,7 @@ body.dark-mode #hamburger-menu .bar {
         max-height: calc(100vh - 80px);
         overflow: hidden;
         padding: 16px 0;
-        background: #0056b3;
+        background: #1440a6;
         border-radius: var(--border-radius-large, 12px);
         box-shadow: var(--shadow-xl, 0 4px 24px rgb(0 0 0 / 18%));
         position: absolute;
@@ -580,7 +580,7 @@ body.dark-mode #hamburger-menu .bar {
         max-height: calc(100vh - 80px);
         overflow: hidden;
         padding: 16px 0;
-        background: #0056b3;
+        background: #1440a6;
         border-radius: var(--border-radius-large, 12px);
         box-shadow: var(--shadow-xl, 0 4px 24px rgb(0 0 0 / 18%));
         position: absolute;
@@ -708,7 +708,7 @@ body.dark-mode #hamburger-menu .bar {
    ====================================== */
 
 html.light-mode .main-header {
-    background: #2563eb;
+    background: #1440a6;
     color: #fff;
 }
 
@@ -717,11 +717,11 @@ html.light-mode .main-header h1 {
 }
 
 html.light-mode .nav-links {
-    background: #2563eb;
+    background: #1440a6;
 }
 
 html.light-mode .nav-links.open {
-    background: #2563eb !important;
+    background: #1440a6 !important;
 }
 
 html.light-mode .nav-links.open a,
