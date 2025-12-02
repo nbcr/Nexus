@@ -230,13 +230,6 @@ body.dark-mode .hamburger .bar {
    DESKTOP HEADER AUTH BUTTONS
    ====================================== */
 
-.header-auth-buttons {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-shrink: 0;
-}
-
 .header-btn {
     display: flex;
     align-items: center;
@@ -268,11 +261,6 @@ body.dark-mode .hamburger .bar {
 /* ======================================
    NAVIGATION MENU
    ====================================== */
-
-/* Desktop: nav-links hidden by default */
-.nav-links {
-    display: none;
-}
 
 /* ======================================
    TEXT SIZE CONTROLS
@@ -349,7 +337,7 @@ body.dark-mode .hamburger .bar {
         background: #007bff;
         width: 260px;
         height: 100vh;
-        padding: 60px 0 0 0;
+        padding: 60px 0 0;
         border-radius: 0 0 0 12px;
         box-shadow: var(--shadow-md, 0 2px 16px rgb(0 0 0 / 20%));
         z-index: 9999;
@@ -409,12 +397,6 @@ body.dark-mode .hamburger .bar {
         justify-content: center;
         gap: 8px;
         order: 999;
-    }
-    
-    /* Ensure text size controls don't get menu item styling */
-    .nav-links.open .text-size-controls {
-        min-height: 0;
-        max-height: none;
     }
     
     /* Mobile menu hover effects */
@@ -586,10 +568,6 @@ body.dark-mode .hamburger .bar {
         justify-content: center;
         gap: 8px;
         order: 999;
-    }
-    
-    /* Ensure text size controls don't get menu item styling */
-    .nav-links.open .text-size-controls {
         min-height: 0;
         max-height: none;
     }
