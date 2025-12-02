@@ -82,7 +82,7 @@
                     <button id="dark-mode-toggle-menu" class="menu-quick"><span class="menu-icon">🌗</span><span class="menu-label">Dark</span></button>
                     <a href="/profile.html" class="menu-quick"><span class="menu-icon">👤</span><span class="menu-label">Profile</span></a>
                     <a href="/settings.html" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
-                    <a href="/admin.html" id="admin-link" class="menu-quick" style="display:none;"><span class="menu-icon">🛠️</span><span class="menu-label">Admin</span></a>
+                    <a href="/admin.html" id="admin-link" class="menu-quick hidden"><span class="menu-icon">🛠️</span><span class="menu-label">Admin</span></a>
                     <!-- Mobile auth buttons - in menu -->
                     <a href="/login" id="auth-btn-mobile" class="menu-quick auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
                     <a href="/register" id="register-btn-mobile" class="menu-quick register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
@@ -111,7 +111,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" title="Password must be at least 8 characters and contain uppercase, lowercase, number, and special character">
             </div>
-            <div id="password-requirements" class="password-requirements" style="margin-top: 8px; margin-bottom: 16px; font-size: 12px; color: #666; max-width: 500px; margin-left: auto; margin-right: auto; padding-left: 136px;">
+            <div id="password-requirements" class="password-requirements">
                 <div class="req-item" data-requirement="length"><span class="req-icon">❌</span> At least 8 characters</div>
                 <div class="req-item" data-requirement="lowercase"><span class="req-icon">❌</span> One lowercase letter (a-z)</div>
                 <div class="req-item" data-requirement="uppercase"><span class="req-icon">❌</span> One uppercase letter (A-Z)</div>

@@ -80,7 +80,7 @@
                     <button id="dark-mode-toggle-menu" class="menu-quick"><span class="menu-icon">☀️</span><span class="menu-label">Light Mode</span></button>
                     <a href="/profile.html" class="menu-quick"><span class="menu-icon">👤</span><span class="menu-label">Profile</span></a>
                     <a href="/settings.html" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
-                    <a href="/admin.html" id="admin-link" class="menu-quick" style="display:none;"><span class="menu-icon">🛠️</span><span class="menu-label">Admin</span></a>
+                    <a href="/admin.html" id="admin-link" class="menu-quick hidden"><span class="menu-icon">🛠️</span><span class="menu-label">Admin</span></a>
                     <!-- Mobile auth buttons - in menu -->
                     <a href="/login" id="auth-btn-mobile" class="menu-quick auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
                     <a href="/register" id="register-btn-mobile" class="menu-quick register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
@@ -191,9 +191,9 @@
                         <span id="article-domain"></span>
                     </div>
                 </div>
-                <img id="article-image" class="article-image" style="display: none;">
+                <img id="article-image" class="article-image hidden">
                 <div id="article-body" class="article-body"></div>
-                <div id="article-related" class="article-related" style="display: none;">
+                <div id="article-related" class="article-related hidden">
                     <h3>Related Content</h3>
                     <div id="article-related-items" class="related-items-list"></div>
                 </div>
@@ -201,9 +201,9 @@
                     <div class="spinner"></div>
                     <p>Loading article...</p>
                 </div>
-                <div class="article-error" style="display: none;">
+                <div class="article-error hidden">
                     <p>We couldn't extract the full article content from this source.</p>
-                    <p style="margin-top: 10px; font-size: 14px; color: #666;">Some websites restrict content scraping. Click below to read the article on the original site.</p>
+                    <p class="article-error-hint">Some websites restrict content scraping. Click below to read the article on the original site.</p>
                     <a id="article-source-link" target="_blank" class="btn-source">Read on Source Site</a>
                 </div>
             </div>

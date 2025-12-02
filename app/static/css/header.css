@@ -138,7 +138,6 @@ button.hamburger,
     height: 40px;
     min-width: 40px;
     min-height: 40px;
-    background: rgb(255 255 255 / 10%);
     border: none;
     cursor: pointer;
     position: relative;
@@ -360,8 +359,7 @@ body.dark-mode .hamburger .bar {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr);
         gap: 8px 0;
-        align-items: stretch;
-        justify-items: center;
+        place-items: stretch center;
         width: 260px;
         min-width: 160px;
         max-width: 90vw;
@@ -371,7 +369,7 @@ body.dark-mode .hamburger .bar {
         padding: 16px 0;
         background: #007bff;
         border-radius: var(--border-radius-large, 12px);
-        box-shadow: var(--shadow-xl, 0 4px 24px rgba(0,0,0,0.18));
+        box-shadow: var(--shadow-xl, 0 4px 24px rgb(0 0 0 / 18%));
         position: absolute;
         top: 75px;
         right: 0;
@@ -428,13 +426,13 @@ body.dark-mode .hamburger .bar {
     
     .nav-links.open a:hover .menu-icon,
     .nav-links.open button:hover .menu-icon {
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+        text-shadow: 0 0 10px rgb(255 215 0 / 80%), 0 0 20px rgb(255 215 0 / 60%);
         transform: scale(1.1);
     }
     
     .nav-links.open a:hover .menu-label,
     .nav-links.open button:hover .menu-label {
-        text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        text-shadow: 0 0 8px rgb(255 215 0 / 60%);
     }
 
     .nav-links a,
@@ -568,13 +566,13 @@ body.dark-mode .hamburger .bar {
     
     .nav-links.open a:hover .menu-icon,
     .nav-links.open button:hover .menu-icon {
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.6);
+        text-shadow: 0 0 10px rgb(255 215 0 / 80%), 0 0 20px rgb(255 215 0 / 60%);
         transform: scale(1.1);
     }
     
     .nav-links.open a:hover .menu-label,
     .nav-links.open button:hover .menu-label {
-        text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        text-shadow: 0 0 8px rgb(255 215 0 / 60%);
     }
     
     /* Text size controls in desktop menu - match mobile */
