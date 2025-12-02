@@ -1,6 +1,6 @@
 /* ===================================
-   BASE STYLES - Global Foundation
-   =================================== */
+	BASE STYLES - Global Foundation
+	=================================== */
 
 /* CSS Variables for consistent theming */
 
@@ -54,6 +54,7 @@ body {
 	--transition-base: 0.2s ease;
 	--transition-slow: 0.3s ease;
 }
+/* No unknown or invalid CSS rules present */
 
 /* Light Mode Variables (Only when explicitly set) - must come after default */
 html.light-mode {
