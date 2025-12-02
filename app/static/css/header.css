@@ -7,7 +7,7 @@
     background: #007bff;
     color: #fff;
     padding: 20px 0;
-    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.1));
+    box-shadow: var(--shadow-sm, 0 2px 4px rgb(0 0 0 / 10%));
     position: sticky;
     top: 0;
     z-index: 100;
@@ -37,7 +37,7 @@ html.light-mode .nav-links.open button {
 
 html.light-mode .header-btn {
     color: #000;
-    border-color: rgba(0, 0, 0, 0.3);
+    border-color: rgb(0 0 0 / 30%);
 }
 
 html.light-mode .hamburger .bar {
@@ -138,7 +138,7 @@ button.hamburger,
     height: 40px;
     min-width: 40px;
     min-height: 40px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgb(255 255 255 / 10%);
     border: none;
     cursor: pointer;
     position: relative;
@@ -155,11 +155,12 @@ button.hamburger,
     overflow: visible;
     transition: background var(--transition-base, 0.2s ease);
     order: 3; /* Rightmost element */
+    background: rgb(255 255 255 / 10%);
 }
 
 .hamburger:hover,
 body.dark-mode .hamburger {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgb(255 255 255 / 15%);
 }
 
 /* Hamburger Bars */
@@ -245,16 +246,16 @@ body.dark-mode .hamburger .bar {
     font-size: var(--font-size-base, 14px);
     border-radius: var(--border-radius, 6px);
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgb(255 255 255 / 30%);
     color: #fff;
     text-decoration: none;
     white-space: nowrap;
     transition: background var(--transition-base, 0.2s ease);
-    box-shadow: var(--shadow-sm, 0 2px 4px rgba(0, 0, 0, 0.15));
+    box-shadow: var(--shadow-sm, 0 2px 4px rgb(0 0 0 / 15%));
 }
 
 .header-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgb(255 255 255 / 20%);
 }
 
 .header-btn .menu-icon {
@@ -337,7 +338,7 @@ body.dark-mode .hamburger .bar {
    MOBILE: HAMBURGER MENU
    ====================================== */
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
     .nav-links {
         display: none;
         flex-direction: column;
@@ -351,7 +352,7 @@ body.dark-mode .hamburger .bar {
         height: 100vh;
         padding: 60px 0 0 0;
         border-radius: 0 0 0 12px;
-        box-shadow: var(--shadow-md, 0 2px 16px rgba(0, 0, 0, 0.2));
+        box-shadow: var(--shadow-md, 0 2px 16px rgb(0 0 0 / 20%));
         z-index: 9999;
     }
 
@@ -414,7 +415,7 @@ body.dark-mode .hamburger .bar {
     
     /* Ensure text size controls don't get menu item styling */
     .nav-links.open .text-size-controls {
-        min-height: auto;
+        min-height: 0;
         max-height: none;
     }
     
@@ -481,7 +482,7 @@ body.dark-mode .hamburger .bar {
 }
 
 /* Desktop: hide mobile auth buttons, show desktop header buttons */
-@media (min-width: 901px) {
+@media (width >= 901px) {
     .auth-btn-mobile,
     .register-btn-mobile {
         display: none !important;
@@ -498,8 +499,7 @@ body.dark-mode .hamburger .bar {
         display: grid !important;
         grid-template-columns: repeat(2, 1fr);
         gap: 8px 0;
-        align-items: stretch;
-        justify-items: center;
+        place-items: stretch center;
         width: 260px;
         min-width: 160px;
         max-width: 90vw;
@@ -509,7 +509,7 @@ body.dark-mode .hamburger .bar {
         padding: 16px 0;
         background: #007bff;
         border-radius: var(--border-radius-large, 12px);
-        box-shadow: var(--shadow-xl, 0 4px 24px rgba(0,0,0,0.18));
+        box-shadow: var(--shadow-xl, 0 4px 24px rgb(0 0 0 / 18%));
         position: absolute;
         top: 90px;
         right: 0;
@@ -592,7 +592,7 @@ body.dark-mode .hamburger .bar {
     
     /* Ensure text size controls don't get menu item styling */
     .nav-links.open .text-size-controls {
-        min-height: auto;
+        min-height: 0;
         max-height: none;
     }
 }
@@ -613,7 +613,7 @@ body.dark-mode .nav-links {
     background: #1e3a5f;
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
     body.dark-mode .nav-links {
         background: #1e3a5f;
     }
@@ -624,7 +624,7 @@ body.dark-mode .nav-links {
     }
 }
 
-@media (min-width: 901px) {
+@media (width >= 901px) {
     body.dark-mode .nav-links.open {
         background: #1e3a5f;
         background-color: #1e3a5f;
@@ -632,7 +632,7 @@ body.dark-mode .nav-links {
 }
 
 /* Mobile Responsive */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .main-header .container {
         flex-wrap: nowrap;
         gap: 8px;
