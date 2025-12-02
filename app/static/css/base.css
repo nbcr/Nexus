@@ -59,7 +59,15 @@ body.dark-mode {
 }
 
 /* Light Mode Variables (Only when explicitly set) */
-html.light-mode,
+html.light-mode {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e0e0e0;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+}
+
 html.light-mode body {
     --bg-primary: #ffffff;
     --bg-secondary: #f5f5f5;
@@ -69,15 +77,22 @@ html.light-mode body {
     --text-muted: #999999;
 }
 
-/* Ensure white background in light mode */
-html.light-mode,
-html.light-mode body {
+/* Ensure white background in light mode - must override everything */
+html.light-mode {
     background-color: #ffffff !important;
     background: #ffffff !important;
 }
 
+html.light-mode body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #333333 !important;
+}
+
 html.light-mode main,
-html.light-mode .container {
+html.light-mode .container,
+html.light-mode #feed-container,
+html.light-mode .feed-controls {
     background-color: #ffffff !important;
     background: #ffffff !important;
 }
