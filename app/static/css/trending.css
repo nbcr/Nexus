@@ -24,7 +24,7 @@
     background: white;
     border: 1px solid #e1e8ed;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
     transition: all 0.3s ease;
     cursor: pointer;
     overflow: hidden;
@@ -32,12 +32,12 @@
 }
 
 .trending-card:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
     transform: translateY(-2px);
 }
 
 .trending-card.expanded {
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 20%);
 }
 
 .trending-card-header {
@@ -58,9 +58,9 @@
     height: 120px;
     border-radius: 10px;
     overflow: hidden;
-    background: rgba(255,255,255,0.1);
-    border: 2px solid rgba(255,255,255,0.3);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    background: rgb(255 255 255 / 10%);
+    border: 2px solid rgb(255 255 255 / 30%);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
 }
 
 .trending-image img {
@@ -77,7 +77,7 @@
 .image-placeholder {
     width: 100%;
     height: 100%;
-    background: rgba(255,255,255,0.2);
+    background: rgb(255 255 255 / 20%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -90,7 +90,7 @@
     font-size: 1.3em;
     font-weight: 600;
     line-height: 1.3;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    text-shadow: 0 1px 2px rgb(0 0 0 / 10%);
     position: relative;
     z-index: 1; /* Above flair */
 }
@@ -107,7 +107,7 @@
     position: absolute;
     bottom: -10px;
     right: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
     white-space: nowrap;
     z-index: 1;
 }
@@ -116,13 +116,7 @@
     padding: 0;
     max-height: 0;
     overflow: hidden;
-    transition: all 0.3s ease;
-}
-
-.trending-card-content {
     transition: all 0.3s ease-in-out;
-    overflow: hidden;
-    max-height: 0;
 }
 
 .trending-card.expanded .trending-card-content {
@@ -144,7 +138,7 @@
 .trending-description {
     color: #555;
     line-height: 1.6;
-    margin: 0 0 15px 0;
+    margin: 0 0 15px;
     font-size: 1em;
 }
 
@@ -169,7 +163,7 @@
 
 .news-item:hover {
     background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 10%);
 }
 
 .news-item-image {
@@ -191,7 +185,7 @@
 }
 
 .news-item-content h4 {
-    margin: 0 0 8px 0;
+    margin: 0 0 8px;
     font-size: 1.1em;
 }
 
@@ -207,9 +201,22 @@
 }
 
 .news-item-content p {
-    margin: 0 0 10px 0;
+    margin: 0 0 10px;
     color: #666;
     font-size: 0.9em;
+}
+
+.source-link {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9em;
+    transition: color 0.2s ease;
+}
+
+.source-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
 }
 
 .news-source {
@@ -257,7 +264,7 @@
 }
 
 /* Infinite scroll loading animation */
-.loading:after {
+.loading::after {
     content: '...';
     animation: dots 1.5s steps(4, end) infinite;
 }
@@ -269,21 +276,8 @@
     80%, 100% { content: ''; }
 }
 
-.source-link {
-    color: #3498db;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.9em;
-    transition: color 0.2s ease;
-}
-
-.source-link:hover {
-    color: #2980b9;
-    text-decoration: underline;
-}
-
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .trending-card-header {
         flex-direction: column;
         text-align: center;
