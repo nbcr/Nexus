@@ -178,18 +178,17 @@ function initDarkMode() {
     const savedPreference = localStorage.getItem('darkMode');
     
     // If no preference saved, default to dark mode (true)
-    if (savedPreference === null) {
+    if (savedPreference === null || savedPreference === 'true') {
+        // Dark mode is default - ensure light-mode class is removed
+        document.documentElement.classList.remove('light-mode');
         document.documentElement.classList.add('dark-mode');
         document.body.classList.add('dark-mode');
         localStorage.setItem('darkMode', 'true');
         updateDarkModeUI(true, toggleBtn, toggleLabel, toggleMenuBtn);
         removeFeedItemSummaryColors();
-    } else if (savedPreference === 'true') {
-        document.documentElement.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
-        updateDarkModeUI(true, toggleBtn, toggleLabel, toggleMenuBtn);
-        removeFeedItemSummaryColors();
     } else {
+        // Light mode - add light-mode class
+        document.documentElement.classList.add('light-mode');
         document.documentElement.classList.remove('dark-mode');
         document.body.classList.remove('dark-mode');
         updateDarkModeUI(false, toggleBtn, toggleLabel, toggleMenuBtn);
@@ -236,13 +235,17 @@ function toggleDarkMode() {
     const isCurrentlyDark = document.body.classList.contains('dark-mode');
     const isDark = !isCurrentlyDark;
     
-    // Apply or remove dark mode
+    // Apply or remove dark/light mode classes
     if (isDark) {
+        // Switch to dark mode
         document.documentElement.classList.add('dark-mode');
+        document.documentElement.classList.remove('light-mode');
         document.body.classList.add('dark-mode');
         removeFeedItemSummaryColors();
     } else {
+        // Switch to light mode
         document.documentElement.classList.remove('dark-mode');
+        document.documentElement.classList.add('light-mode');
         document.body.classList.remove('dark-mode');
     }
     

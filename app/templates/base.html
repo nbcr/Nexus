@@ -20,49 +20,51 @@
     <title>{% block title %}Nexus - The AI News Portal{% endblock %}</title>
     <link rel="icon" type="image/png" href="/static/favicon.png">
     
-    <!-- Immediate dark mode initialization to prevent flash - MUST be before CSS -->
+    <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
         (function() {
             // Check localStorage for saved preference, default to dark mode
             const savedPreference = localStorage.getItem('darkMode');
-            const shouldBeDark = savedPreference === null || savedPreference === 'true';
+            const shouldBeLight = savedPreference === 'false';
             
-            if (shouldBeDark) {
-                // Apply class immediately to html element
-                document.documentElement.classList.add('dark-mode');
-            } else {
-                // Ensure dark-mode class is removed for light mode
+            if (shouldBeLight) {
+                // Apply light-mode class for light mode
+                document.documentElement.classList.add('light-mode');
                 document.documentElement.classList.remove('dark-mode');
+            } else {
+                // Default: dark mode (no class needed, it's the default CSS)
+                document.documentElement.classList.remove('light-mode');
+                document.documentElement.classList.add('dark-mode');
             }
         })();
     </script>
     <style>
         /* Blocking inline styles to prevent flash - applied immediately */
-        /* Light mode (default) */
-        html:not(.dark-mode),
-        html:not(.dark-mode) body {
-            --bg-primary: #ffffff !important;
-            --bg-secondary: #f5f5f5 !important;
-            --bg-tertiary: #e0e0e0 !important;
-            --text-primary: #333333 !important;
-            --text-secondary: #666666 !important;
-            --text-muted: #999999 !important;
-            background-color: #ffffff !important;
-            color: #333333 !important;
-        }
-        /* Dark mode */
-        html.dark-mode {
+        /* Dark mode (default) */
+        html,
+        html body {
             --bg-primary: #181818 !important;
             --bg-secondary: #222222 !important;
             --bg-tertiary: #2a2a2a !important;
             --text-primary: #ffffff !important;
             --text-secondary: #cccccc !important;
             --text-muted: #999999 !important;
-        }
-        html.dark-mode,
-        html.dark-mode body {
             background-color: #181818 !important;
             color: #ffffff !important;
+        }
+        /* Light mode (only when explicitly set) */
+        html.light-mode {
+            --bg-primary: #ffffff !important;
+            --bg-secondary: #f5f5f5 !important;
+            --bg-tertiary: #e0e0e0 !important;
+            --text-primary: #333333 !important;
+            --text-secondary: #666666 !important;
+            --text-muted: #999999 !important;
+        }
+        html.light-mode,
+        html.light-mode body {
+            background-color: #ffffff !important;
+            color: #333333 !important;
         }
     </style>
     
@@ -83,11 +85,6 @@
             </a>
             <nav>
                 <span id="user-welcome" class="user-welcome"></span>
-                <!-- Desktop auth buttons -->
-                <div class="header-auth-buttons" id="header-auth-buttons">
-                    <a href="/login" id="auth-btn" class="header-btn"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
-                    <a href="/register" id="register-btn" class="header-btn"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
-                </div>
                 <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
                     <span class="bar"></span>
                     <span class="bar"></span>
