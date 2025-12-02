@@ -89,9 +89,15 @@
     position: relative;
 }
 
-.feed-item-header:hover .feed-item-title {
-    color: #007bff;
+.feed-item-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: #1a1a1a;
+    line-height: 1.3;
 }
+
+/* moved below dark-mode block to satisfy specificity order */
 
 /* Feed Item Image - YouTube Style */
 .feed-item-image {
@@ -171,13 +177,7 @@
     font-style: italic;
 }
 
-.feed-item-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 12px;
-    color: #1a1a1a;
-    line-height: 1.3;
-}
+/* moved earlier to satisfy no-descending-specificity */
 
 .feed-item-description {
     font-size: 18px;
@@ -518,143 +518,7 @@
     }
 }
 
-/* Explicit Dark Mode via body.dark-mode class (overrides everything) */
-body.dark-mode {
-    background: #1a1a1a;
-    color: #e0e0e0;
-}
-
-body.dark-mode .feed-item {
-    background: transparent;
-    box-shadow: none;
-}
-
-body.dark-mode .feed-item:hover::before {
-    opacity: 0.25;
-}
-
-body.dark-mode .feed-item-title {
-    color: #fff;
-}
-
-body.dark-mode .feed-item-description,
-body.dark-mode .feed-item-summary {
-    color: #fafafa !important;
-}
-
-body.dark-mode .feed-item-description {
-    color: #b0b0b0;
-}
-
-body.dark-mode .tag {
-    background: #3a3a3a;
-    color: #e0e0e0;
-}
-
-body.dark-mode .btn-source {
-    background: #3a3a3a;
-    color: #e0e0e0;
-    border-color: #555;
-}
-
-body.dark-mode .article-modal-content {
-    background: #2d2d2d;
-    box-shadow: 0 8px 32px rgb(0 0 0 / 60%);
-}
-
-body.dark-mode .article-modal-close {
-    color: #b0b0b0;
-}
-
-body.dark-mode .article-modal-close:hover {
-    background: #3a3a3a;
-    color: #fff;
-}
-
-body.dark-mode .article-modal-header h1 {
-    color: #fff;
-}
-
-body.dark-mode .article-meta {
-    border-bottom-color: #3a3a3a;
-    color: #999;
-}
-
-body.dark-mode .article-meta span:not(:empty)::before {
-    background: #999;
-}
-
-body.dark-mode .article-body {
-    color: #e0e0e0;
-}
-
-body.dark-mode .article-loading .spinner {
-    border-color: #3a3a3a;
-    border-top-color: #64b5f6;
-}
-
-body.dark-mode .article-error p {
-    color: #b0b0b0;
-}
-
-body.dark-mode .article-related {
-    border-top-color: #3a3a3a;
-}
-
-body.dark-mode .article-related h3 {
-    color: #e0e0e0;
-}
-
-body.dark-mode .related-item {
-    background: #2a2a2a;
-    border-color: #3a3a3a;
-}
-
-body.dark-mode .related-item:hover {
-    border-color: #64b5f6;
-    box-shadow: 0 2px 8px rgb(100 181 246 / 15%);
-}
-
-body.dark-mode .related-item-source {
-    color: #999;
-}
-
-body.dark-mode .related-item-title {
-    color: #e0e0e0;
-}
-
-body.dark-mode .related-item-description {
-    color: #b0b0b0;
-}
-
-body.dark-mode .modal-content {
-    background: #2d2d2d;
-}
-
-body.dark-mode .modal-content h1 {
-    color: #fff;
-}
-
-body.dark-mode .modal-meta {
-    color: #999;
-}
-
-body.dark-mode .modal-body {
-    color: #e0e0e0;
-}
-
-body.dark-mode .main-header {
-    background: #1e3a5f;
-}
-
-body.dark-mode .feed-controls h2 {
-    color: #e0e0e0;
-}
-
-body.dark-mode footer {
-    background: #2d2d2d;
-    color: #999;
-}
+/* Dark mode overrides moved to end for specificity compliance */
 
 /* Article Modal */
 .article-modal {
@@ -1073,51 +937,148 @@ footer {
     background: #357abd;
 }
 
-/* Facts list styling */
-.article-body p {
-    line-height: 1.8;
-    margin-bottom: 16px;
+/* Explicit Dark Mode via body.dark-mode class (overrides everything) */
+body.dark-mode {
+    background: #1a1a1a;
+    color: #e0e0e0;
 }
 
-/* Continue Reading CTA (AdSense Compliance - Excerpt Only) */
-.continue-reading-cta {
-    margin: 30px 0;
-    padding: 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border-radius: 12px;
-    text-align: center;
-    border-left: 4px solid #007bff;
+body.dark-mode .feed-item {
+    background: transparent;
+    box-shadow: none;
 }
 
-.btn-continue-reading {
-    display: inline-block;
-    padding: 14px 32px;
-    background: #007bff;
-    color: white !important;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 16px;
-    transition: all 0.3s;
-    box-shadow: 0 4px 12px rgb(0 123 255 / 30%);
+body.dark-mode .feed-item:hover::before {
+    opacity: 0.25;
 }
 
-.btn-continue-reading:hover {
-    background: #0056b3;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgb(0 123 255 / 40%);
+body.dark-mode .feed-item-title {
+    color: #fff;
 }
 
-/* Dark mode support */
-.dark-mode .continue-reading-cta {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    border-left-color: #4a90e2;
+body.dark-mode .feed-item-description,
+body.dark-mode .feed-item-summary {
+    color: #fafafa !important;
 }
 
-.dark-mode .btn-continue-reading {
-    background: #4a90e2;
+body.dark-mode .feed-item-description {
+    color: #b0b0b0;
 }
 
-.dark-mode .btn-continue-reading:hover {
-    background: #357abd;
+body.dark-mode .tag {
+    background: #3a3a3a;
+    color: #e0e0e0;
 }
+
+body.dark-mode .btn-source {
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-mode .article-modal-content {
+    background: #2d2d2d;
+    box-shadow: 0 8px 32px rgb(0 0 0 / 60%);
+}
+
+body.dark-mode .article-modal-close {
+    color: #b0b0b0;
+}
+
+body.dark-mode .article-modal-close:hover {
+    background: #3a3a3a;
+    color: #fff;
+}
+
+body.dark-mode .article-modal-header h1 {
+    color: #fff;
+}
+
+body.dark-mode .article-meta {
+    border-bottom-color: #3a3a3a;
+    color: #999;
+}
+
+body.dark-mode .article-meta span:not(:empty)::before {
+    background: #999;
+}
+
+body.dark-mode .article-body {
+    color: #e0e0e0;
+}
+
+body.dark-mode .article-loading .spinner {
+    border-color: #3a3a3a;
+    border-top-color: #64b5f6;
+}
+
+body.dark-mode .article-error p {
+    color: #b0b0b0;
+}
+
+body.dark-mode .article-related {
+    border-top-color: #3a3a3a;
+}
+
+body.dark-mode .article-related h3 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .related-item {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+}
+
+body.dark-mode .related-item:hover {
+    border-color: #64b5f6;
+    box-shadow: 0 2px 8px rgb(100 181 246 / 15%);
+}
+
+body.dark-mode .related-item-source {
+    color: #999;
+}
+
+body.dark-mode .related-item-title {
+    color: #e0e0e0;
+}
+
+body.dark-mode .related-item-description {
+    color: #b0b0b0;
+}
+
+body.dark-mode .modal-content {
+    background: #2d2d2d;
+}
+
+body.dark-mode .modal-content h1 {
+    color: #fff;
+}
+
+body.dark-mode .modal-meta {
+    color: #999;
+}
+
+body.dark-mode .modal-body {
+    color: #e0e0e0;
+}
+
+body.dark-mode .main-header {
+    background: #1e3a5f;
+}
+
+body.dark-mode .feed-controls h2 {
+    color: #e0e0e0;
+}
+
+body.dark-mode footer {
+    background: #2d2d2d;
+    color: #999;
+}
+
+/* Hover title color after dark-mode overrides */
+.feed-item-header:hover .feed-item-title {
+    color: #007bff;
+}
+
+
+/* Removed duplicate Continue Reading + dark mode block */
