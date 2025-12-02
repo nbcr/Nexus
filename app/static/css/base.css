@@ -72,6 +72,19 @@ html.light-mode body {
     --text-muted: #999999;
 }
 
+/* Ensure white background in light mode */
+html.light-mode,
+html.light-mode body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+}
+
+html.light-mode main,
+html.light-mode .container {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+}
+
 /* Global Reset */
 * {
     margin: 0;
