@@ -28,13 +28,11 @@
             const shouldBeLight = savedPreference === 'false';
             
             if (shouldBeLight) {
-                // Apply light-mode class for light mode
+                // Apply light-mode class for light mode (toggled on)
                 document.documentElement.classList.add('light-mode');
-                document.documentElement.classList.remove('dark-mode');
             } else {
-                // Default: dark mode (no class needed, it's the default CSS)
+                // Default: dark mode (no light-mode class, dark is default)
                 document.documentElement.classList.remove('light-mode');
-                document.documentElement.classList.add('dark-mode');
             }
         })();
     </script>
