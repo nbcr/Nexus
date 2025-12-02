@@ -243,13 +243,22 @@ function toggleDarkMode() {
     if (willBeLight) {
         // Switch to light mode (toggled on)
         document.documentElement.classList.add('light-mode');
-        document.body.style.backgroundColor = '';
-        document.documentElement.style.backgroundColor = '';
+        // Force repaint for background
+        document.body.style.removeProperty('background-color');
+        document.documentElement.style.removeProperty('background-color');
+        void document.body.offsetWidth;
+        void document.documentElement.offsetWidth;
+        document.body.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('background-color');
+        document.documentElement.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('background-color');
     } else {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
-        document.body.style.backgroundColor = '';
-        document.documentElement.style.backgroundColor = '';
+        document.body.style.removeProperty('background-color');
+        document.documentElement.style.removeProperty('background-color');
+        void document.body.offsetWidth;
+        void document.documentElement.offsetWidth;
+        document.body.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('background-color');
+        document.documentElement.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('background-color');
         removeFeedItemSummaryColors();
     }
     
