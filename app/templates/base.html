@@ -26,13 +26,12 @@
             // Check localStorage for saved preference, default to dark mode
             const savedPreference = localStorage.getItem('darkMode');
             const shouldBeLight = savedPreference === 'false';
-            
             if (shouldBeLight) {
-                // Apply light-mode class for light mode (toggled on)
                 document.documentElement.classList.add('light-mode');
+                document.body.style.backgroundColor = '#ffffff';
             } else {
-                // Default: dark mode (no light-mode class, dark is default)
                 document.documentElement.classList.remove('light-mode');
+                document.body.style.backgroundColor = '#181818';
             }
         })();
     </script>

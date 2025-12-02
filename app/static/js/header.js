@@ -243,9 +243,11 @@ function toggleDarkMode() {
     if (willBeLight) {
         // Switch to light mode (toggled on)
         document.documentElement.classList.add('light-mode');
+        document.body.style.backgroundColor = '#ffffff';
     } else {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
+        document.body.style.backgroundColor = '#181818';
         removeFeedItemSummaryColors();
     }
     
