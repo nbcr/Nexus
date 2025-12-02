@@ -243,13 +243,13 @@ function toggleDarkMode() {
     if (willBeLight) {
         // Switch to light mode (toggled on)
         document.documentElement.classList.add('light-mode');
-        document.body.style.backgroundColor = '#ffffff';
-        document.documentElement.style.backgroundColor = '#ffffff';
+        document.body.style.backgroundColor = '';
+        document.documentElement.style.backgroundColor = '';
     } else {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
-        document.body.style.backgroundColor = '#181818';
-        document.documentElement.style.backgroundColor = '#181818';
+        document.body.style.backgroundColor = '';
+        document.documentElement.style.backgroundColor = '';
         removeFeedItemSummaryColors();
     }
     
