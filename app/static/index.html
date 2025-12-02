@@ -36,19 +36,19 @@
             background-color: #181818 !important;
             color: #ffffff !important;
         }
-        /* Light mode (only when explicitly set) - same as dark mode */
+        /* Light mode (only when explicitly set) */
         html.light-mode {
-            --bg-primary: #181818 !important;
-            --bg-secondary: #222222 !important;
-            --bg-tertiary: #2a2a2a !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #cccccc !important;
+            --bg-primary: #ffffff !important;
+            --bg-secondary: #f5f5f5 !important;
+            --bg-tertiary: #e0e0e0 !important;
+            --text-primary: #333333 !important;
+            --text-secondary: #666666 !important;
             --text-muted: #999999 !important;
         }
         html.light-mode,
         html.light-mode body {
-            background-color: #181818 !important;
-            color: #ffffff !important;
+            background-color: #ffffff !important;
+            color: #333333 !important;
         }
     </style>
     
@@ -86,9 +86,9 @@
                     <a href="/register" id="register-btn-mobile" class="menu-quick register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
                     <!-- Text size controls -->
                     <div class="text-size-controls">
-                        <button id="text-size-decrease" class="menu-quick text-size-btn" aria-label="Decrease text size"><span class="menu-icon">➖</span><span class="menu-label">A-</span></button>
+                        <button id="text-size-decrease" class="menu-quick text-size-btn" aria-label="Decrease text size"><span class="menu-icon">🔻</span><span class="menu-label">A-</span></button>
                         <span class="text-size-label"><span class="text-size-line1">Text</span><span class="text-size-line2">Size</span></span>
-                        <button id="text-size-increase" class="menu-quick text-size-btn" aria-label="Increase text size"><span class="menu-icon">➕</span><span class="menu-label">A+</span></button>
+                        <button id="text-size-increase" class="menu-quick text-size-btn" aria-label="Increase text size"><span class="menu-icon">🔺</span><span class="menu-label">A+</span></button>
                     </div>
                 </div>
             </nav>
