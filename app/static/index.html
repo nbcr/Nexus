@@ -12,14 +12,8 @@
     <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
         (function() {
-            // Only apply light mode if explicitly selected (dark mode is default)
-            const savedPreference = localStorage.getItem('darkMode');
-            
-            if (savedPreference === 'false') {
-                // User explicitly selected light mode
-                document.documentElement.classList.add('light-mode');
-            }
-            // No else needed - dark mode is default without any class
+            // Force light mode on every page load
+            document.documentElement.classList.add('light-mode');
         })();
     </script>
     <style>
