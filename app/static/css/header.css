@@ -4,7 +4,7 @@
 
 /* Main Header - Base styles first */
 .main-header {
-    background: #007bff;
+    background: #0056b3;
     color: #fff;
     padding: 20px 0;
     box-shadow: var(--shadow-sm, 0 2px 4px rgb(0 0 0 / 10%));
@@ -47,7 +47,7 @@
     z-index: 1000;
     gap: 12px;
     align-items: center;
-    background: #007bff;
+    background: #0056b3;
 }
 
 .site-logo {
@@ -428,7 +428,7 @@ body.dark-mode #hamburger-menu .bar {
         position: fixed;
         top: 0;
         right: 0;
-        background: #007bff;
+        background: #0056b3;
         width: 260px;
         height: 100vh;
         padding: 60px 0 0;
@@ -462,11 +462,11 @@ body.dark-mode #hamburger-menu .bar {
         max-height: calc(100vh - 80px);
         overflow: hidden;
         padding: 16px 0;
-        background: #007bff;
+        background: #0056b3;
         border-radius: var(--border-radius-large, 12px);
         box-shadow: var(--shadow-xl, 0 4px 24px rgb(0 0 0 / 18%));
         position: absolute;
-        top: 75px;
+        top: 90px;
         right: 0;
         z-index: 9999;
     }
@@ -580,7 +580,7 @@ body.dark-mode #hamburger-menu .bar {
         max-height: calc(100vh - 80px);
         overflow: hidden;
         padding: 16px 0;
-        background: #007bff;
+        background: #0056b3;
         border-radius: var(--border-radius-large, 12px);
         box-shadow: var(--shadow-xl, 0 4px 24px rgb(0 0 0 / 18%));
         position: absolute;
@@ -708,30 +708,30 @@ body.dark-mode #hamburger-menu .bar {
    ====================================== */
 
 html.light-mode .main-header {
-    background: #4a90e2;
-    color: #000;
+    background: #2563eb;
+    color: #fff;
 }
 
 html.light-mode .main-header h1 {
-    color: #000;
+    color: #fff;
 }
 
 html.light-mode .nav-links {
-    background: #4a90e2;
+    background: #2563eb;
 }
 
 html.light-mode .nav-links.open {
-    background: #4a90e2 !important;
+    background: #2563eb !important;
 }
 
 html.light-mode .nav-links.open a,
 html.light-mode .nav-links.open button {
-    color: #000;
+    color: #fff;
 }
 
 html.light-mode .header-btn {
-    color: #000;
-    border-color: rgb(0 0 0 / 30%);
+    color: #fff;
+    border-color: rgb(255 255 255 / 30%);
 }
 
 /* ======================================
