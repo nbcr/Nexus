@@ -13,6 +13,37 @@
     z-index: 100;
 }
 
+html.light-mode .main-header {
+    background: #4a90e2;
+    color: #000;
+}
+
+html.light-mode .main-header h1 {
+    color: #000;
+}
+
+html.light-mode .nav-links {
+    background: #4a90e2;
+}
+
+html.light-mode .nav-links.open {
+    background: #4a90e2 !important;
+}
+
+html.light-mode .nav-links.open a,
+html.light-mode .nav-links.open button {
+    color: #000;
+}
+
+html.light-mode .header-btn {
+    color: #000;
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+html.light-mode .hamburger .bar {
+    background: #000;
+}
+
 .main-header .container {
     max-width: 1200px;
     margin: 0 auto;
