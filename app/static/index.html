@@ -49,6 +49,13 @@
             color: var(--text-primary);
         }
         
+        /* Explicit dark mode styles (default) */
+        html:not(.light-mode),
+        html:not(.light-mode) body {
+            background-color: #181818;
+            color: #ffffff;
+        }
+        
         /* Explicit light mode styles */
         html.light-mode,
         html.light-mode body {
