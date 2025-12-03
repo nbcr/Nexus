@@ -126,9 +126,6 @@ class ContentRecommendationService:
                 topic, content, user_categories, user_interests
             )
 
-            # Fetch related queries for this topic
-            related_queries = await self._get_related_queries(db, topic.title)
-
             feed_items.append(
                 {
                     "content_id": content.id,
@@ -154,7 +151,6 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
                     "tags": topic.tags,
-                    "related_queries": related_queries,
                 }
             )
 
