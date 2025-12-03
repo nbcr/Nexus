@@ -216,13 +216,6 @@ class TrendingService:
         
         return news_items
 
-            print(f"✅ Successfully fetched {len(trends)} trends from RSS feed")
-            return trends
-
-        except Exception as e:
-            print(f"❌ Error fetching RSS trends: {e}")
-            return []
-
     async def _fetch_reddit_trends(self) -> List[Dict]:
         """Fetch trending posts from popular subreddits using Reddit JSON API"""
         trends = []
