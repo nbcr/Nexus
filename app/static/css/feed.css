@@ -933,6 +933,10 @@ html.light-mode .feed-item-title {
     color: #1a1a1a;
 }
 
+html.light-mode .feed-item-header:hover .feed-item-title {
+    color: #1440a6;
+}
+
 html.light-mode .feed-item-description,
 html.light-mode .feed-item-summary {
     color: #222;

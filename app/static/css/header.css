@@ -87,11 +87,6 @@
     order: 2;
 }
 
-/* Nav links (hidden dropdown) should not affect layout */
-.nav-links {
-    order: 4;
-}
-
 .header-btn {
     display: flex;
     align-items: center;
@@ -424,6 +419,7 @@ body.dark-mode #hamburger-menu .bar {
 /* Hide nav-links by default (both mobile and desktop) */
 .nav-links {
     display: none;
+    order: 4;
 }
 
 @media (width <= 900px) {
