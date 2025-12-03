@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
 import os
 
-from app.api.routes import topics, content, users, session, trending
+from app.api.routes import topics, content, users, session
 from app.api.v1.routes import (
     admin,
     settings as v1_settings,
@@ -141,9 +141,7 @@ app.include_router(
 app.include_router(
     session.router, prefix=f"{settings.API_V1_STR}/session", tags=["session"]
 )
-app.include_router(
-    trending.router, prefix=f"{settings.API_V1_STR}/trending", tags=["trending"]
-)
+# Trending disabled per request
 app.include_router(
     topics.router, prefix=f"{settings.API_V1_STR}/topics", tags=["topics"]
 )

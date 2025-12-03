@@ -95,16 +95,26 @@ async def get_personalized_feed(
     logger.info(
         f"Feed request: page={page}, category={category}, exclude_ids={exclude_ids}, cursor={cursor}"
     )
-    # Get personalized feed
-    if category:
-        logger.info(f"Filtering feed by category: {category}")
-        result = await recommendation_service.get_trending_feed(
+    # Feed selection
+    if category and category.lower() == "all":
+        logger.info("Category 'All' selected: returning all items")
+        result = await recommendation_service.get_all_feed(
             db=db,
             page=page,
             page_size=page_size,
-            category=category,
             exclude_ids=excluded_ids,
             cursor=cursor,
+        )
+    elif category:
+        # Remove topic search query: treat any category as a simple filter handled by recommendation service
+        logger.info(f"Filtering feed by category: {category}")
+        result = await recommendation_service.get_all_feed(
+            db=db,
+            page=page,
+            page_size=page_size,
+            exclude_ids=excluded_ids,
+            cursor=cursor,
+            category=category,
         )
     else:
         result = await recommendation_service.get_personalized_feed(
@@ -128,40 +138,9 @@ async def get_personalized_feed(
 
 
 @router.get("/trending-feed")
-async def get_trending_feed_endpoint(
-    db: AsyncSession = Depends(get_db),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=50),
-    category: Optional[str] = Query(None),
-    exclude_ids: Optional[str] = Query(None),
-):
-    """
-    Get trending content feed (non-personalized).
-    """
-    # Parse exclude_ids
-    excluded_ids = []
-    if exclude_ids:
-        try:
-            excluded_ids = [
-                int(id.strip()) for id in exclude_ids.split(",") if id.strip()
-            ]
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
-
-    feed_items = await recommendation_service.get_trending_feed(
-        db=db,
-        page=page,
-        page_size=page_size,
-        category=category,
-        exclude_ids=excluded_ids,
-    )
-
-    return {
-        "page": page,
-        "page_size": page_size,
-        "items": feed_items,
-        "has_more": len(feed_items) == page_size,
-    }
+async def get_trending_feed_endpoint():
+    """Deprecated: Trending disabled."""
+    raise HTTPException(status_code=404, detail="Trending disabled")
 
 
 @router.get("/", response_model=List[ContentWithTopic])
