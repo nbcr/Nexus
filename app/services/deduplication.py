@@ -51,18 +51,24 @@ class DeduplicationService:
         """
         # First check for exact URL match (fastest)
         if url:
-            query = select(ContentItem).where(
-                ContentItem.source_urls.contains([url]),
-                ContentItem.is_published == True,
-            )
-            if exclude_id:
-                query = query.where(ContentItem.id != exclude_id)
+            try:
+                # Use cast to text for LIKE query to avoid JSON operator issues
+                from sqlalchemy import cast, Text
+                query = select(ContentItem).where(
+                    cast(ContentItem.source_urls, Text).like(f'%{url}%'),
+                    ContentItem.is_published == True,
+                )
+                if exclude_id:
+                    query = query.where(ContentItem.id != exclude_id)
 
-            result = await db.execute(query)
-            existing = result.scalar_one_or_none()
-            if existing:
-                print(f"✓ Found duplicate by URL: {url}")
-                return existing
+                result = await db.execute(query)
+                existing = result.scalar_one_or_none()
+                if existing:
+                    print(f"✓ Found duplicate by URL: {url}")
+                    return existing
+            except Exception as e:
+                print(f"⚠️ Error checking URL duplicate: {e}")
+                # Continue to title-based deduplication
 
         # Check for similar titles in recent content (last 7 days)
         from datetime import datetime, timedelta
