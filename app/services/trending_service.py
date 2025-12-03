@@ -49,7 +49,7 @@ class FeedFailureTracker:
 
 class TrendingService:
     def __init__(self):
-            self.failure_tracker = FeedFailureTracker(max_failures=5)
+        self.failure_tracker = FeedFailureTracker(max_failures=5)
         # Multiple RSS feeds for diverse content
         self.rss_feeds = {
             'google_trends': {
