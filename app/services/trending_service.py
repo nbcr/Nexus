@@ -613,9 +613,20 @@ class TrendingService:
                     title = trend_data.get("title", "").strip()
                     url = trend_data.get("url", "")
 
-                    # Ensure we have a valid title
+                    # Ensure we have a valid title - use topic title or news item title
                     if not title:
-                        title = existing_topic.title or "Trending Update"
+                        news_items = trend_data.get("news_items", [])
+                        if news_items and news_items[0].get("title"):
+                            title = news_items[0]["title"].strip()
+                        elif existing_topic.title:
+                            title = existing_topic.title
+                        else:
+                            title = "Trending Update"
+                    
+                    # Skip creating content if we still don't have a valid title
+                    if not title or title == "Trending Update":
+                        print(f"  ⚠️ Skipping content item for topic {existing_topic.id} - no valid title")
+                        continue
 
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
@@ -672,9 +683,20 @@ class TrendingService:
                     title = trend_data.get("title", "").strip()
                     url = trend_data.get("url", "")
 
-                    # Ensure we have a valid title
+                    # Ensure we have a valid title - use topic title or news item title
                     if not title:
-                        title = topic.title or "Trending Topic"
+                        news_items = trend_data.get("news_items", [])
+                        if news_items and news_items[0].get("title"):
+                            title = news_items[0]["title"].strip()
+                        elif topic.title:
+                            title = topic.title
+                        else:
+                            title = "Trending Topic"
+                    
+                    # Skip creating content if we still don't have a valid title
+                    if not title or title == "Trending Topic":
+                        print(f"  ⚠️ Skipping content item for topic {topic.id} - no valid title")
+                        continue
 
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
