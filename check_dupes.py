@@ -22,7 +22,8 @@ async def check_duplicates():
         print(f"Found {len(dupes)} titles with duplicates:")
         print("=" * 80)
         for title, count in dupes:
-            print(f"\n{count}x: {title[:100]}")
+            title_str = title if title else "[No Title]"
+            print(f"\n{count}x: {title_str[:100]}")
 
             # Get details for this title
             items_result = await db.execute(
