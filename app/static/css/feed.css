@@ -541,11 +541,12 @@
 .article-modal-content {
     max-width: 800px;
     margin: 40px auto;
-    background: #fff;
+    background: #ffffff;
     border-radius: 12px;
     padding: 40px;
     position: relative;
     box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
+    color: #1a1a1a;
 }
 
 .article-modal-close {
@@ -566,7 +567,7 @@
 }
 
 .article-modal-close:hover {
-    background: #f0f0f0;
+    background: #f5f5f5;
     color: #000;
 }
 
@@ -621,6 +622,7 @@
 .article-body p {
     margin-bottom: 20px;
     white-space: pre-line;
+    color: #1a1a1a;
 }
 
 .article-related {
@@ -648,11 +650,13 @@
     border-radius: 8px;
     padding: 16px;
     transition: all 0.2s ease;
+    color: #1a1a1a;
 }
 
 .related-item:hover {
     border-color: #1440a6;
     box-shadow: 0 2px 8px rgb(0 86 179 / 10%);
+    background: #ffffff;
 }
 
 .related-item-meta {
