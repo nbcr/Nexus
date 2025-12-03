@@ -8,11 +8,13 @@ Uses multiple sources to find feeds matching user's reading patterns.
 import asyncio
 import aiohttp
 import feedparser
-from typing import List, Dict, Optional, Set
+import re
+from typing import List, Dict, Optional, Set, Tuple
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from collections import Counter
+from urllib.parse import urljoin, urlparse
 
 from app.models import UserInteraction, ContentItem, Topic, UserInterestProfile
 from app.core.config import settings
@@ -334,6 +336,205 @@ class RSSDiscoveryService:
                 unique_suggestions.append(item)
 
         return unique_suggestions[:10]
+
+    async def search_feeds_by_keyword(
+        self, keyword: str, max_results: int = 5
+    ) -> List[Dict]:
+        """
+        Search for RSS feeds matching a keyword using multiple strategies.
+        
+        Strategies:
+        1. Search common RSS patterns on popular sites
+        2. Check RSS discovery services
+        3. Look for feeds in news aggregator sites
+        
+        Args:
+            keyword: Topic to search for
+            max_results: Maximum number of feeds to return
+            
+        Returns:
+            List of discovered feeds with metadata
+        """
+        discovered_feeds = []
+        
+        # Strategy 1: Try common RSS feed URL patterns
+        keyword_clean = keyword.lower().replace(" ", "-")
+        patterns = [
+            f"https://feeds.feedburner.com/{keyword_clean}",
+            f"https://www.reddit.com/r/{keyword_clean}/.rss",
+            f"https://medium.com/feed/tag/{keyword_clean}",
+        ]
+        
+        for url in patterns:
+            feed_info = await self._validate_feed(url)
+            if feed_info:
+                discovered_feeds.append(feed_info)
+                if len(discovered_feeds) >= max_results:
+                    return discovered_feeds
+        
+        # Strategy 2: Search Google News RSS for the keyword
+        google_news_url = f"https://news.google.com/rss/search?q={keyword.replace(' ', '+')}&hl=en-CA&gl=CA&ceid=CA:en"
+        feed_info = await self._validate_feed(google_news_url)
+        if feed_info:
+            discovered_feeds.append(feed_info)
+        
+        return discovered_feeds[:max_results]
+
+    async def _validate_feed(self, url: str) -> Optional[Dict]:
+        """
+        Validate an RSS feed URL and extract metadata.
+        
+        Returns:
+            Dict with feed info if valid, None otherwise
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=10) as response:
+                    if response.status != 200:
+                        return None
+                    content = await response.text()
+            
+            # Parse the feed
+            feed = feedparser.parse(content)
+            
+            # Check if it's a valid feed with entries
+            if not feed.entries or len(feed.entries) == 0:
+                return None
+            
+            # Extract feed metadata
+            title = feed.feed.get("title", "Unknown Feed")
+            description = feed.feed.get("subtitle", "") or feed.feed.get("description", "")
+            
+            # Calculate feed quality score
+            quality_score = await self._calculate_feed_quality(feed, url)
+            
+            return {
+                "url": url,
+                "title": title,
+                "description": description,
+                "quality_score": quality_score,
+                "total_entries": len(feed.entries),
+                "last_updated": feed.feed.get("updated", ""),
+                "language": feed.feed.get("language", "en"),
+            }
+        
+        except Exception as e:
+            print(f"Failed to validate feed {url}: {e}")
+            return None
+
+    async def _calculate_feed_quality(self, feed, url: str) -> float:
+        """
+        Calculate quality score for an RSS feed (0-1).
+        
+        Factors:
+        - Update frequency (recent posts)
+        - Content length (substantial articles)
+        - Number of entries available
+        - Feed metadata completeness
+        """
+        score = 0.5  # Base score
+        
+        # Check update recency
+        if feed.entries:
+            try:
+                latest_entry = feed.entries[0]
+                if hasattr(latest_entry, "published_parsed") and latest_entry.published_parsed:
+                    pub_date = datetime(*latest_entry.published_parsed[:6])
+                    days_old = (datetime.utcnow() - pub_date).days
+                    if days_old < 1:
+                        score += 0.2
+                    elif days_old < 7:
+                        score += 0.15
+                    elif days_old < 30:
+                        score += 0.1
+            except:
+                pass
+        
+        # Check content quality
+        if feed.entries:
+            avg_length = sum(
+                len(entry.get("summary", "") or entry.get("description", ""))
+                for entry in feed.entries[:5]
+            ) / min(5, len(feed.entries))
+            
+            if avg_length > 500:
+                score += 0.15
+            elif avg_length > 200:
+                score += 0.1
+        
+        # Check number of entries
+        if len(feed.entries) > 20:
+            score += 0.1
+        elif len(feed.entries) > 10:
+            score += 0.05
+        
+        # Check feed metadata
+        if feed.feed.get("title"):
+            score += 0.05
+        if feed.feed.get("description") or feed.feed.get("subtitle"):
+            score += 0.05
+        
+        return min(score, 1.0)
+
+    async def auto_discover_feeds_for_user(
+        self,
+        db: AsyncSession,
+        user_id: Optional[int],
+        session_token: Optional[str],
+        max_feeds: int = 10,
+    ) -> List[Dict]:
+        """
+        Automatically discover new RSS feeds based on user's preferences.
+        Searches for feeds matching user's top keywords and categories.
+        
+        Returns:
+            List of newly discovered feeds with quality scores
+        """
+        # Get user preferences
+        preferences = await self.analyze_user_preferences(db, user_id, session_token)
+        
+        # Get search terms from keywords and categories
+        search_terms = []
+        search_terms.extend(preferences["keywords"][:5])  # Top 5 keywords
+        search_terms.extend([cat.lower() for cat in preferences["top_categories"][:3]])  # Top 3 categories
+        
+        # Remove duplicates
+        search_terms = list(set(search_terms))
+        
+        # Search for feeds
+        all_discovered = []
+        tasks = []
+        
+        for term in search_terms[:5]:  # Search top 5 terms
+            tasks.append(self.search_feeds_by_keyword(term, max_results=3))
+        
+        # Execute searches in parallel
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Combine results
+        for result in results:
+            if isinstance(result, list):
+                all_discovered.extend(result)
+        
+        # Remove duplicates by URL
+        seen_urls = set()
+        unique_feeds = []
+        for feed in all_discovered:
+            if feed["url"] not in seen_urls:
+                seen_urls.add(feed["url"])
+                unique_feeds.append(feed)
+        
+        # Sort by quality score
+        unique_feeds.sort(key=lambda x: x["quality_score"], reverse=True)
+        
+        # Filter out feeds we already have in curated list
+        existing_urls = set()
+        for feeds in self.CURATED_FEEDS.values():
+            existing_urls.update(feeds)
+        
+        new_feeds = [f for f in unique_feeds if f["url"] not in existing_urls]
+        
+        return new_feeds[:max_feeds]
 
 
 # Global instance

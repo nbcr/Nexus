@@ -657,3 +657,54 @@ async def suggest_topics(
             status_code=500, detail=f"Failed to generate suggestions: {str(e)}"
         )
 
+
+@router.get("/rss/search")
+async def search_rss_feeds(
+    keyword: str = Query(..., description="Keyword to search for RSS feeds"),
+    max_results: int = Query(5, ge=1, le=20),
+):
+    """
+    Search for RSS feeds by keyword using multiple discovery strategies.
+    Returns validated feeds with quality scores.
+    """
+    try:
+        feeds = await rss_discovery_service.search_feeds_by_keyword(
+            keyword, max_results=max_results
+        )
+        return {"keyword": keyword, "feeds": feeds, "count": len(feeds)}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to search for feeds: {str(e)}"
+        )
+
+
+@router.get("/rss/auto-discover")
+async def auto_discover_feeds(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    nexus_session: Optional[str] = Cookie(default=None),
+    max_feeds: int = Query(10, ge=1, le=20),
+):
+    """
+    Automatically discover new RSS feeds based on user's reading preferences.
+    Searches for feeds matching user's top keywords and categories.
+    Returns newly discovered feeds not in the curated list.
+    """
+    user_id = getattr(request.state, "user_id", None)
+    session_token = nexus_session
+
+    try:
+        discovered_feeds = await rss_discovery_service.auto_discover_feeds_for_user(
+            db, user_id, session_token, max_feeds=max_feeds
+        )
+        return {
+            "discovered_feeds": discovered_feeds,
+            "count": len(discovered_feeds),
+            "message": f"Discovered {len(discovered_feeds)} new feeds based on your preferences",
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to auto-discover feeds: {str(e)}"
+        )
+
+
