@@ -453,7 +453,7 @@ body.dark-mode #hamburger-menu .bar {
         border-radius: 0;
         background: transparent;
         border: none;
-        color: #fff !important;
+        color: #fff;
     }
 
     .nav-links.open {
