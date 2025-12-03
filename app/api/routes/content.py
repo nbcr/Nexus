@@ -468,7 +468,7 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     return ThumbnailResponse(picture_url=None)
 
 
-@router.get("/image-proxy")
+@router.get("/proxy/image")
 async def image_proxy(url: str):
     """Proxy remote images to avoid mixed-content/CORS issues."""
     import httpx
