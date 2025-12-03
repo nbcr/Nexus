@@ -597,14 +597,16 @@ class TrendingService:
     }
 
     def _categorize_text(self, text: str) -> str:
-        """Categorize text based on keywords. Returns best matching category or 'General'."""
+        """Categorize text based on keywords. Returns best matching category or 'General'.
+        Sports keywords get higher priority (2x weight) to handle sports business stories correctly."""
         text_lower = text.lower()
         scores = {cat: 0 for cat in self.CATEGORY_KEYWORDS}
 
         for cat, keywords in self.CATEGORY_KEYWORDS.items():
+            weight = 2 if cat == "Sports" else 1  # Sports keywords get double weight
             for kw in keywords:
                 if kw in text_lower:
-                    scores[cat] += 1
+                    scores[cat] += weight
 
         best_category = max(scores, key=scores.get)
         return best_category if scores[best_category] > 0 else "General"
