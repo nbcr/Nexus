@@ -324,82 +324,90 @@ class TrendingService:
         """Calculate trend score based on position in feed"""
         return 0.7
 
+    # Define comprehensive news categories as class variable
+    CATEGORY_KEYWORDS = {
+        "Sports": [
+            "sport", "football", "soccer", "basketball", "hockey", "nhl", "nfl", "nba", "mlb",
+            "tennis", "olympic", "athlete", "baseball", "golf", "match", "game", "player",
+            "team", "championship", "tournament", "coach", "stadium", "league", "playoff",
+            "score", "world cup", "super bowl", "fifa", "ufc", "boxing", "racing", "f1",
+        ],
+        "Entertainment": [
+            "entertainment", "movie", "film", "music", "celebrity", "tv", "show", "series",
+            "concert", "festival", "actor", "actress", "singer", "band", "album", "grammy",
+            "oscar", "emmy", "hollywood", "netflix", "disney", "marvel", "streaming",
+            "theatre", "broadway", "comedy", "drama", "premiere", "trailer", "box office",
+        ],
+        "Technology": [
+            "tech", "ai", "artificial intelligence", "machine learning", "software", "hardware",
+            "computer", "internet", "gadget", "robot", "cyber", "smartphone", "app",
+            "iphone", "android", "google", "apple", "microsoft", "meta", "tesla",
+            "bitcoin", "crypto", "blockchain", "data", "cloud", "security", "hack",
+            "innovation", "digital", "online", "social media", "twitter", "facebook",
+        ],
+        "Business": [
+            "business", "finance", "stock", "market", "economy", "startup", "trade",
+            "investment", "company", "entrepreneur", "ceo", "revenue", "profit", "loss",
+            "merger", "acquisition", "bankruptcy", "earnings", "wall street", "nasdaq",
+            "dow jones", "s&p", "inflation", "recession", "gdp", "corporate", "industry",
+        ],
+        "Politics": [
+            "politics", "government", "election", "policy", "law", "president", "minister",
+            "prime minister", "congress", "senate", "parliament", "vote", "legislation",
+            "democrat", "republican", "liberal", "conservative", "campaign", "candidate",
+            "trudeau", "biden", "trump", "political", "federal", "provincial", "municipal",
+        ],
+        "Health": [
+            "health", "medicine", "medical", "doctor", "hospital", "wellness", "fitness",
+            "disease", "nutrition", "vaccine", "covid", "pandemic", "virus", "drug",
+            "treatment", "patient", "mental health", "therapy", "cancer", "diabetes",
+            "healthcare", "pharmacy", "clinic", "surgery", "diagnosis", "symptom",
+        ],
+        "Science": [
+            "science", "research", "study", "scientist", "discovery", "experiment",
+            "nasa", "space", "climate", "environment", "physics", "chemistry", "biology",
+            "astronomy", "planet", "mars", "rocket", "satellite", "laboratory",
+        ],
+        "World News": [
+            "international", "global", "world", "foreign", "country", "nation", "war",
+            "conflict", "peace", "treaty", "diplomatic", "united nations", "eu", "europe",
+            "asia", "africa", "middle east", "crisis", "humanitarian",
+        ],
+        "Crime": [
+            "crime", "police", "arrest", "murder", "robbery", "theft", "fraud", "investigation",
+            "court", "trial", "verdict", "guilty", "innocent", "sentence", "prison", "jail",
+            "detective", "fbi", "rcmp", "criminal", "suspect", "shooting",
+        ],
+        "Weather": [
+            "weather", "storm", "hurricane", "tornado", "flood", "snow", "blizzard",
+            "temperature", "forecast", "climate change", "wildfire", "drought", "rain",
+            "wind", "cold", "heat wave", "winter", "summer",
+        ],
+        "Education": [
+            "education", "school", "university", "college", "student", "teacher", "professor",
+            "learning", "curriculum", "exam", "graduation", "tuition", "campus", "academic",
+        ],
+        "Lifestyle": [
+            "lifestyle", "fashion", "beauty", "travel", "food", "recipe", "restaurant",
+            "cooking", "style", "trend", "home", "decor", "design", "wedding", "relationship",
+        ],
+    }
+
+    def _categorize_text(self, text: str) -> str:
+        """Categorize text based on keywords. Returns best matching category or 'General'."""
+        text_lower = text.lower()
+        scores = {cat: 0 for cat in self.CATEGORY_KEYWORDS}
+        
+        for cat, keywords in self.CATEGORY_KEYWORDS.items():
+            for kw in keywords:
+                if kw in text_lower:
+                    scores[cat] += 1
+        
+        best_category = max(scores, key=scores.get)
+        return best_category if scores[best_category] > 0 else "General"
+
     def _extract_category(self, entry) -> str:
         """Determine category using keywords in title, description, and tags."""
-        CATEGORY_KEYWORDS = {
-            "Technology": [
-                "tech",
-                "ai",
-                "machine learning",
-                "software",
-                "hardware",
-                "computer",
-                "internet",
-                "gadget",
-                "robot",
-                "cyber",
-            ],
-            "Business": [
-                "business",
-                "finance",
-                "stock",
-                "market",
-                "economy",
-                "startup",
-                "trade",
-                "investment",
-                "company",
-                "entrepreneur",
-            ],
-            "Entertainment": [
-                "entertainment",
-                "movie",
-                "film",
-                "music",
-                "celebrity",
-                "tv",
-                "show",
-                "game",
-                "concert",
-                "festival",
-            ],
-            "Sports": [
-                "sport",
-                "football",
-                "soccer",
-                "basketball",
-                "tennis",
-                "olympic",
-                "athlete",
-                "baseball",
-                "golf",
-                "match",
-            ],
-            "Health": [
-                "health",
-                "medicine",
-                "medical",
-                "doctor",
-                "hospital",
-                "wellness",
-                "fitness",
-                "disease",
-                "nutrition",
-                "vaccine",
-            ],
-            "Politics": [
-                "politics",
-                "government",
-                "election",
-                "policy",
-                "law",
-                "president",
-                "minister",
-                "congress",
-                "senate",
-                "vote",
-            ],
-        }
         title = getattr(entry, "title", "")
         description = (
             getattr(entry, "ht_news_item_snippet", "")
@@ -411,14 +419,8 @@ class TrendingService:
             for tag in entry.tags:
                 if hasattr(tag, "term"):
                     tags.append(tag.term.lower())
-        text = f"{title} {description} {' '.join(tags)}".lower()
-        scores = {cat: 0 for cat in CATEGORY_KEYWORDS}
-        for cat, keywords in CATEGORY_KEYWORDS.items():
-            for kw in keywords:
-                if kw in text:
-                    scores[cat] += 1
-        best_category = max(scores, key=scores.get)
-        return best_category if scores[best_category] > 0 else "General"
+        text = f"{title} {description} {' '.join(tags)}"
+        return self._categorize_text(text)
 
     def _extract_tags(self, entry) -> List[str]:
         """Extract tags from entry"""
@@ -528,14 +530,18 @@ class TrendingService:
                 slug = generate_slug(title) if title else generate_slug_from_url(url)
                 # Set unique timestamp by adding microseconds - newer items get later timestamps
                 created_time = base_time + timedelta(microseconds=idx * 1000)
+                
+                # Categorize based on title and snippet
+                snippet = news_item.get("snippet", "")
+                category_text = f"{title} {snippet}"
+                category = self._categorize_text(category_text)
+                
                 content_item = ContentItem(
                     topic_id=topic_id,
                     title=title,
                     slug=slug,
-                    description=news_item.get(
-                        "snippet", ""
-                    ),  # Add the snippet as description
-                    category="News",  # Set category to News for news articles
+                    description=snippet,
+                    category=category,
                     content_type="news_update",
                     content_text=news_item.get("snippet", ""),
                     ai_model_used="google_trends_news_v1",
