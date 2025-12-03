@@ -472,13 +472,17 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
 async def image_proxy(url: str):
     """Proxy remote images to avoid mixed-content/CORS issues."""
     import httpx
+    import logging
+    logger = logging.getLogger("uvicorn.error")
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+            logger.info(f"Image proxy fetch: {url}")
             resp = await client.get(url)
             resp.raise_for_status()
             content_type = resp.headers.get("content-type", "image/jpeg")
             return StreamingResponse(iter([resp.content]), media_type=content_type)
     except Exception:
+        logger.warning(f"Image proxy failed for URL: {url}")
         raise HTTPException(status_code=404, detail="Unable to fetch image")
 
 
