@@ -249,15 +249,15 @@
 }
 
 .btn-source {
-    background: #f8f9fa;
-    color: #fff;
-    border: 1px solid #dee2e6;
+    background: #3a3a3a;
+    color: #e0e0e0;
+    border: 1px solid #555;
     display: inline-flex;
     align-items: center;
 }
 
 .btn-source:hover {
-    background: #e9ecef;
+    background: #2a2a2a;
 }
 
 .feed-item-time {
@@ -279,8 +279,8 @@
 .tag {
     display: inline-block;
     padding: 4px 10px;
-    background: #f8f9fa;
-    color: #495057;
+    background: #3a3a3a;
+    color: #e0e0e0;
     border-radius: 12px;
     font-size: 12px;
 }
