@@ -262,36 +262,8 @@ class ContentRecommendationService:
         result = await db.execute(query)
         rows = result.all()
 
-        # Opportunistically populate missing thumbnails for the first page
-        # This helps cards render images without relying on frontend fallbacks.
-        try:
-            from app.services.article_scraper import article_scraper as _scraper
-        except Exception:
-            _scraper = None
-
-        if _scraper:
-            for content, _topic in rows:
-                try:
-                    sm = getattr(content, "source_metadata", {}) or {}
-                    if not sm.get("picture_url") and content.source_urls:
-                        src = content.source_urls[0]
-                        # Skip search URLs
-                        if (
-                            "duckduckgo.com" in src
-                            or "google.com/search" in src
-                            or "bing.com/search" in src
-                        ):
-                            continue
-                        data = await _scraper.fetch_article(src)
-                        if data and data.get("image_url"):
-                            if not content.source_metadata:
-                                content.source_metadata = {}
-                            content.source_metadata["picture_url"] = data["image_url"]
-                            content.source_metadata["scraped_at"] = datetime.utcnow().isoformat()
-                            await db.commit()
-                except Exception:
-                    # Best-effort; ignore failures
-                    pass
+        # Remove all blocking thumbnail scraping from feed response for speed.
+        # (A background job should handle thumbnail prefetching instead.)
 
         has_more = len(rows) > page_size
         if has_more:

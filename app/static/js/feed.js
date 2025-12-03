@@ -391,19 +391,35 @@ sendAllDurations() {
 }
 
 defaultRenderContent(item) {
+
     const article = document.createElement('article');
     article.className = 'feed-item';
     article.dataset.contentId = item.content_id;
-    article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
+    article.dataset.contentSlug = item.slug || `content-${item.content_id}`;
     article.dataset.topicId = item.topic_id;
 
-    // Get image from feed-provided thumbnail or source metadata; prefer proxy to avoid CORS/mixed-content
-    let imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
+    // Robust image fallback logic
     const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
-    const proxiedImageUrl = toProxy(imageUrl) || imageUrl;
-    const source = item.source_metadata?.source || 'News';
+    let imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
+    let proxiedImageUrl = imageUrl ? toProxy(imageUrl) : null;
+    let imageHtml = '';
 
-    // Check if this is a search query or news article
+    if (proxiedImageUrl) {
+        imageHtml = `<div class="feed-item-image">
+            <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy" style="object-fit:cover;width:100%;height:100%;max-height:180px;">
+        </div>`;
+    } else if (imageUrl) {
+        imageHtml = `<div class="feed-item-image">
+            <img src="${imageUrl}" alt="${item.title}" loading="lazy" style="object-fit:cover;width:100%;height:100%;max-height:180px;">
+        </div>`;
+    } else {
+        // Will try to fetch thumbnail below, else show placeholder
+        imageHtml = `<div class="feed-item-image">
+            <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="object-fit:contain;width:100%;height:100%;max-height:180px;filter:grayscale(1);opacity:0.5;">
+        </div>`;
+    }
+
+    const source = item.source_metadata?.source || 'News';
     const isSearchQuery = item.category === 'Search Query' ||
         (item.source_urls && item.source_urls[0] &&
             (item.source_urls[0].includes('google.com/search') ||
@@ -411,70 +427,68 @@ defaultRenderContent(item) {
     const isNewsArticle = !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
 
     article.innerHTML = `
-            <div class="feed-item-content">
-                <div class="feed-item-header">
-                    ${proxiedImageUrl ? `<div class="feed-item-image">
-                        <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy" style="object-fit:cover;width:100%;height:100%;max-height:180px;">
-                    </div>` : ''}
-                    <div class="feed-item-header-content">
-                        <div class="feed-item-meta">
-                            <span class="feed-item-category">${item.category || 'Trending'}</span>
-                            ${item.relevance_score && window.nexusDebugMode ? `
-                                <span class="feed-item-relevance" title="Relevance to your interests">
-                                    ${Math.round(item.relevance_score * 100)}% match
-                                </span>
-                            ` : ''}
-                            <span class="feed-item-source">${source}</span>
-                        </div>
-                        <h2 class="feed-item-title">${item.title}</h2>
-                        ${item.description ? `<p class="feed-item-description">${item.description}</p>` : ''}
-                        <span class="expand-indicator">▼</span>
-                    </div>
-                </div>
-                <div class="feed-item-expanded-content">
-                    <div class="content-inner">
-                        ${(item.content_text || item.description) ? `
-                            <p class="feed-item-summary">${this.truncateText(item.content_text || item.description, 400)}</p>
-                        ` : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>'}
-                        <div class="feed-item-actions">
-                            ${isNewsArticle ? `
-                                <button class="btn-read-more" data-content-id="${item.content_id}">
-                                    Read Facts
-                                </button>
-                            ` : isSearchQuery ? `
-                                <button class="btn-read-more" data-content-id="${item.content_id}">
-                                    Show Search Context
-                                </button>
-                            ` : ''}
-                            ${item.source_urls && item.source_urls.length > 0 ? `
-                                <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
-                                   class="btn-source">
-                                    ${this.getSourceButtonText(item)}
-                                </a>
-                            ` : ''}
-                            <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
-                        </div>
-                        ${item.tags && item.tags.length > 0 ? `
-                            <div class="feed-item-tags">
-                                ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                            </div>
+        <div class="feed-item-content">
+            <div class="feed-item-header">
+                ${imageHtml}
+                <div class="feed-item-header-content">
+                    <div class="feed-item-meta">
+                        <span class="feed-item-category">${item.category || 'Trending'}</span>
+                        ${item.relevance_score && window.nexusDebugMode ? `
+                            <span class="feed-item-relevance" title="Relevance to your interests">
+                                ${Math.round(item.relevance_score * 100)}% match
+                            </span>
                         ` : ''}
-                        ${item.related_queries && item.related_queries.length > 0 ? `
-                            <div class="feed-item-related">
-                                <h4 class="related-title">🔍 Related Searches:</h4>
-                                <div class="related-queries">
-                                    ${item.related_queries.map(query => `
-                                        <a href="${query.url}" target="_blank" rel="noopener" class="related-query">
-                                            ${query.title}
-                                        </a>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
+                        <span class="feed-item-source">${source}</span>
                     </div>
+                    <h2 class="feed-item-title">${item.title}</h2>
+                    ${item.description ? `<p class="feed-item-description">${item.description}</p>` : ''}
+                    <span class="expand-indicator">▼</span>
                 </div>
             </div>
-        `;
+            <div class="feed-item-expanded-content">
+                <div class="content-inner">
+                    ${(item.content_text || item.description) ? `
+                        <p class="feed-item-summary">${this.truncateText(item.content_text || item.description, 400)}</p>
+                    ` : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>'}
+                    <div class="feed-item-actions">
+                        ${isNewsArticle ? `
+                            <button class="btn-read-more" data-content-id="${item.content_id}">
+                                Read Facts
+                            </button>
+                        ` : isSearchQuery ? `
+                            <button class="btn-read-more" data-content-id="${item.content_id}">
+                                Show Search Context
+                            </button>
+                        ` : ''}
+                        ${item.source_urls && item.source_urls.length > 0 ? `
+                            <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
+                               class="btn-source">
+                                ${this.getSourceButtonText(item)}
+                            </a>
+                        ` : ''}
+                        <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
+                    </div>
+                    ${item.tags && item.tags.length > 0 ? `
+                        <div class="feed-item-tags">
+                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${item.related_queries && item.related_queries.length > 0 ? `
+                        <div class="feed-item-related">
+                            <h4 class="related-title">🔍 Related Searches:</h4>
+                            <div class="related-queries">
+                                ${item.related_queries.map(query => `
+                                    <a href="${query.url}" target="_blank" rel="noopener" class="related-query">
+                                        ${query.title}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
 
     // Add click handler for card header to expand/collapse
     const header = article.querySelector('.feed-item-header');
@@ -592,46 +606,44 @@ defaultRenderContent(item) {
 
     this.container.appendChild(article);
 
-    // Extract dominant color from image for hover effect (only if image exists)
-    if (imageUrl) {
-        const img = article.querySelector('.feed-item-image img');
-        if (img) this.extractDominantColor(img, article);
+
+    // Always try to fetch a thumbnail if not present
+    if (!item.thumbnail_url && !item.source_metadata?.picture_url) {
+        (async () => {
+            try {
+                const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (data && data.picture_url) {
+                    const header = article.querySelector('.feed-item-header');
+                    let img = article.querySelector('.feed-item-image img');
+                    const proxyUrl = toProxy(data.picture_url);
+                    const finalUrl = proxyUrl || data.picture_url;
+                    if (img) {
+                        img.src = finalUrl;
+                        if (proxyUrl) img.onerror = () => { img.src = data.picture_url; };
+                    } else if (header) {
+                        const container = article.querySelector('.feed-item-image') || document.createElement('div');
+                        container.className = 'feed-item-image';
+                        const imgEl = document.createElement('img');
+                        imgEl.src = finalUrl;
+                        if (proxyUrl) imgEl.onerror = () => { imgEl.src = data.picture_url; };
+                        imgEl.alt = item.title;
+                        imgEl.loading = 'lazy';
+                        container.innerHTML = '';
+                        container.appendChild(imgEl);
+                        if (!container.parentElement) header.insertBefore(container, header.firstChild);
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
     }
 
-    // Proactively ensure thumbnail for new stories (refreshes outdated/missing images)
-    (async () => {
-        try {
-            const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
-            if (!resp.ok) return;
-            const data = await resp.json();
-            if (data && data.picture_url) {
-                const header = article.querySelector('.feed-item-header');
-                const existingImg = article.querySelector('.feed-item-image img');
-                const proxyUrl = toProxy(data.picture_url);
-                const finalUrl = proxyUrl || data.picture_url;
-                if (existingImg) {
-                    if (existingImg.src !== finalUrl) {
-                        existingImg.src = finalUrl;
-                        if (proxyUrl) existingImg.onerror = () => { existingImg.src = data.picture_url; };
-                    }
-                } else if (header) {
-                    const container = article.querySelector('.feed-item-image') || document.createElement('div');
-                    container.className = 'feed-item-image';
-                    const imgEl = document.createElement('img');
-                    imgEl.src = finalUrl;
-                    if (proxyUrl) imgEl.onerror = () => { imgEl.src = data.picture_url; };
-                    imgEl.alt = item.title;
-                    imgEl.loading = 'lazy';
-                    if (!container.parentElement) header.insertBefore(container, header.firstChild);
-                    container.innerHTML = '';
-                    container.appendChild(imgEl);
-                    this.extractDominantColor(imgEl, article);
-                }
-            }
-        } catch (e) {
-            // ignore
-        }
-    })();
+    // Extract dominant color from image for hover effect (only if image exists)
+    const img = article.querySelector('.feed-item-image img');
+    if (img) this.extractDominantColor(img, article);
 
     // Create hover tracker for this card
     if (window.HoverTracker && this.globalScrollTracker) {
