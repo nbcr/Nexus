@@ -857,10 +857,11 @@ class TrendingService:
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
                     
-                    # Check for duplicates before creating
+                    # Check for duplicates in OTHER topics (not this one)
                     existing = await deduplication_service.find_duplicate(db, title, url)
-                    if existing:
-                        print(f"  ⚠️ Duplicate content found: '{title}' - skipping")
+                    if existing and existing.topic_id != existing_topic.id:
+                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - linking as related")
+                        await deduplication_service.link_as_related(db, existing.id, existing_topic.id)
                         continue
                     
                     content_item = ContentItem(
@@ -950,10 +951,11 @@ class TrendingService:
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
                     
-                    # Check for duplicates before creating
+                    # Check for duplicates in other topics
                     existing = await deduplication_service.find_duplicate(db, title, url)
-                    if existing:
-                        print(f"  ⚠️ Duplicate content found: '{title}' - skipping")
+                    if existing and existing.topic_id != topic.id:
+                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - linking as related")
+                        await deduplication_service.link_as_related(db, existing.id, topic.id)
                         continue
                     
                     content_item = ContentItem(
