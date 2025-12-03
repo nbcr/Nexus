@@ -499,8 +499,17 @@ class TrendingService:
             base_time = datetime.utcnow()
 
             for idx, news_item in enumerate(news_items):
-                title = news_item.get("title", "")
+                title = news_item.get("title", "").strip()
                 url = news_item.get("url", "")
+
+                # Skip items with no title or URL
+                if not title and not url:
+                    print(f"  ⊘ Skipping news item with no title or URL")
+                    continue
+
+                # Use URL as fallback title if no title provided
+                if not title:
+                    title = url.split("/")[-1][:100] or "News Update"
 
                 # Check for duplicates
                 existing = await deduplication_service.find_duplicate(db, title, url)
@@ -601,8 +610,13 @@ class TrendingService:
 
                     from app.utils.slug import generate_slug, generate_slug_from_url
 
-                    title = trend_data.get("title", "")
+                    title = trend_data.get("title", "").strip()
                     url = trend_data.get("url", "")
+
+                    # Ensure we have a valid title
+                    if not title:
+                        title = existing_topic.title or "Trending Update"
+
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
@@ -655,8 +669,13 @@ class TrendingService:
 
                     from app.utils.slug import generate_slug, generate_slug_from_url
 
-                    title = trend_data.get("title", "")
+                    title = trend_data.get("title", "").strip()
                     url = trend_data.get("url", "")
+
+                    # Ensure we have a valid title
+                    if not title:
+                        title = topic.title or "Trending Topic"
+
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
