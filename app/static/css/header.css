@@ -422,10 +422,6 @@ body.dark-mode #hamburger-menu .bar {
    ====================================== */
 
 /* Hide nav-links by default (both mobile and desktop) */
-.nav-links {
-    display: none;
-}
-
 @media (width <= 900px) {
     .nav-links {
         display: none;
