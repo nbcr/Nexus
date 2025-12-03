@@ -109,11 +109,36 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .history-stats {
             font-size: 14px;
             color: #666;
+        }
+
+        .history-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .page-size-selector select {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
         }
 
         .btn-clear-history {
@@ -193,6 +218,22 @@
 
         body.dark-mode .pagination button:hover {
             background: #007bff;
+        }
+
+        body.dark-mode .page-size-selector {
+            color: #ccc;
+        }
+
+        body.dark-mode .page-size-selector select {
+            background: #2a2a2a;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        html.light-mode .page-size-selector select {
+            background: white;
+            border-color: #ccc;
+            color: #333;
         }
     </style>
     
@@ -276,7 +317,19 @@
 
             <div id="seen-content" class="history-content active">
                 <div class="history-controls">
-                    <div class="history-stats" id="seen-stats">Loading...</div>
+                    <div class="history-controls-left">
+                        <div class="history-stats" id="seen-stats">Loading...</div>
+                        <div class="page-size-selector">
+                            <label for="seen-page-size">Show:</label>
+                            <select id="seen-page-size" onchange="changePageSize('seen', this.value)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>per page</span>
+                        </div>
+                    </div>
                     <button class="btn-clear-history" onclick="clearHistory('seen')">Clear Seen History</button>
                 </div>
                 <ul class="history-list" id="seen-list"></ul>
@@ -285,7 +338,19 @@
 
             <div id="clicked-content" class="history-content">
                 <div class="history-controls">
-                    <div class="history-stats" id="clicked-stats">Loading...</div>
+                    <div class="history-controls-left">
+                        <div class="history-stats" id="clicked-stats">Loading...</div>
+                        <div class="page-size-selector">
+                            <label for="clicked-page-size">Show:</label>
+                            <select id="clicked-page-size" onchange="changePageSize('clicked', this.value)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>per page</span>
+                        </div>
+                    </div>
                     <button class="btn-clear-history" onclick="clearHistory('clicked')">Clear Clicked History</button>
                 </div>
                 <ul class="history-list" id="clicked-list"></ul>
@@ -294,7 +359,19 @@
 
             <div id="all-content" class="history-content">
                 <div class="history-controls">
-                    <div class="history-stats" id="all-stats">Loading...</div>
+                    <div class="history-controls-left">
+                        <div class="history-stats" id="all-stats">Loading...</div>
+                        <div class="page-size-selector">
+                            <label for="all-page-size">Show:</label>
+                            <select id="all-page-size" onchange="changePageSize('all', this.value)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span>per page</span>
+                        </div>
+                    </div>
                     <button class="btn-clear-history" onclick="clearHistory(null)">Clear All History</button>
                 </div>
                 <ul class="history-list" id="all-list"></ul>
@@ -313,6 +390,7 @@
     <script>
         let currentTab = 'seen';
         let currentPage = { seen: 1, clicked: 1, all: 1 };
+        let pageSize = { seen: 10, clicked: 10, all: 10 }; // Default 10, resets on page reload
 
         // Tab switching
         document.querySelectorAll('.history-tab').forEach(tab => {
@@ -332,6 +410,13 @@
             });
         });
 
+        // Change page size
+        function changePageSize(type, newSize) {
+            pageSize[type] = parseInt(newSize);
+            currentPage[type] = 1; // Reset to first page when changing size
+            loadHistory(type, 1);
+        }
+
         // Load history
         async function loadHistory(type, page = 1) {
             const listId = type === 'all' ? 'all-list' : `${type}-list`;
@@ -345,7 +430,7 @@
             list.innerHTML = '<div class="loading">Loading history...</div>';
             
             try {
-                let url = `/api/v1/history/viewed?page=${page}`;
+                let url = `/api/v1/history/viewed?page=${page}&page_size=${pageSize[type]}`;
                 if (type !== 'all') {
                     url += `&view_type=${type}`;
                 }
