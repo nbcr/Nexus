@@ -345,6 +345,48 @@ function initHeader() {
     setVisitorIdCookie();
     checkAuthStatus();
     initHamburgerMenu();
+    initScrollHeader();
+}
+
+/**
+ * Initialize scroll-responsive header
+ * Shrinks header text when scrolling down on mobile
+ */
+function initScrollHeader() {
+    const header = document.querySelector('.main-header');
+    const headerTitle = document.querySelector('.main-header h1');
+    
+    if (!header || !headerTitle) return;
+    
+    let lastScrollTop = 0;
+    let isScrolled = false;
+    
+    function handleScroll() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Trigger shrink after scrolling down 50px
+        if (scrollTop > 50 && !isScrolled) {
+            header.classList.add('scrolled');
+            isScrolled = true;
+        } else if (scrollTop <= 50 && isScrolled) {
+            header.classList.remove('scrolled');
+            isScrolled = false;
+        }
+        
+        lastScrollTop = scrollTop;
+    }
+    
+    // Throttle scroll events for performance
+    let ticking = false;
+    window.addEventListener('scroll', function() {
+        if (!ticking) {
+            window.requestAnimationFrame(function() {
+                handleScroll();
+                ticking = false;
+            });
+            ticking = true;
+        }
+    });
 }
 
 /**

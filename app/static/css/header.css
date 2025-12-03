@@ -11,6 +11,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: padding 0.3s ease;
 }
 
 .main-header .container {
@@ -38,6 +39,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+    transition: font-size 0.3s ease;
 }
 
 .main-header nav {
@@ -56,6 +58,7 @@
     vertical-align: middle;
     object-fit: contain;
     border-radius: 50%;
+    transition: height 0.3s ease, width 0.3s ease;
 }
 
 .header-title-link {
@@ -689,6 +692,20 @@ body.dark-mode #hamburger-menu .bar {
         height: 40px;
         width: 40px;
         border-radius: 50%;
+    }
+    
+    /* Shrink header on scroll for mobile */
+    .main-header.scrolled {
+        padding: 8px 0;
+    }
+    
+    .main-header.scrolled h1 {
+        font-size: 16px;
+    }
+    
+    .main-header.scrolled .site-logo {
+        height: 32px;
+        width: 32px;
     }
     
     .header-auth-buttons {
