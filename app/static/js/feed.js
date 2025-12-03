@@ -394,11 +394,11 @@ class InfiniteFeed {
         const source = item.source_metadata?.source || 'News';
 
         // Check if this is a search query or news article
-        const isSearchQuery = item.category === 'Search Query' || item.content_type === 'trending_analysis' ||
+        const isSearchQuery = item.category === 'Search Query' ||
             (item.source_urls && item.source_urls[0] &&
                 (item.source_urls[0].includes('google.com/search') ||
                     item.source_urls[0].includes('duckduckgo.com')));
-        const isNewsArticle = !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update');
+        const isNewsArticle = !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
 
         article.innerHTML = `
             <div class="feed-item-content">
