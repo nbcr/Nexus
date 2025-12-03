@@ -28,10 +28,6 @@
             const shouldBeLight = savedPreference === 'false';
             if (shouldBeLight) {
                 document.documentElement.classList.add('light-mode');
-                document.body.style.backgroundColor = '#ffffff';
-            } else {
-                document.documentElement.classList.remove('light-mode');
-                document.body.style.backgroundColor = '#181818';
             }
         })();
     </script>
@@ -46,8 +42,6 @@
             --text-primary: #ffffff;
             --text-secondary: #cccccc;
             --text-muted: #999999;
-            background-color: #181818;
-            color: #ffffff;
         }
         /* Light mode (only when explicitly set) */
         html.light-mode {
@@ -57,17 +51,11 @@
             --text-primary: #333333;
             --text-secondary: #666666;
             --text-muted: #999999;
-            background-color: #ffffff;
         }
+        html.light-mode,
         html.light-mode body {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --bg-tertiary: #e0e0e0;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --text-muted: #999999;
-            background-color: #ffffff;
-            color: #333333;
+            background-color: #ffffff !important;
+            color: #333333 !important;
         }
     </style>
     
