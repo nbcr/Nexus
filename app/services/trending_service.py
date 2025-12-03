@@ -122,7 +122,7 @@ class TrendingService:
                 feed_name,
                 feed_config['url'],
                 feed_config.get('category_hint'),
-                timeout=15  # 15 second timeout per feed
+                timeout=8  # 8 second timeout per feed
             )
             tasks.append(task)
             feed_names.append(feed_name)
@@ -152,14 +152,19 @@ class TrendingService:
         feed_name: str,
         feed_url: str, 
         category_hint: Optional[str] = None,
-        timeout: int = 15
+        timeout: int = 8
     ) -> List[Dict]:
         """Fetch a single RSS feed with timeout"""
         try:
-            return await asyncio.wait_for(
-                self._fetch_single_rss_feed(feed_url, category_hint, feed_name),
-                timeout=timeout
-            )
+            # Run feedparser.parse in executor since it's blocking
+            loop = asyncio.get_event_loop()
+            feed_task = loop.run_in_executor(None, feedparser.parse, feed_url)
+            
+            # Apply timeout to the async task
+            feed = await asyncio.wait_for(feed_task, timeout=timeout)
+            
+            # Process feed entries
+            return await self._process_feed_entries(feed, feed_url, category_hint, feed_name)
         except asyncio.TimeoutError:
             print(f"⏱️ Timeout fetching {feed_name} after {timeout}s")
             raise TimeoutError(f"Feed {feed_name} timed out")
@@ -167,10 +172,9 @@ class TrendingService:
             print(f"❌ Error in {feed_name}: {e}")
             raise
 
-    async def _fetch_single_rss_feed(self, feed_url: str, category_hint: Optional[str] = None, source_name: str = "RSS") -> List[Dict]:
-        """Fetch trends from a single RSS feed"""
+    async def _process_feed_entries(self, feed, feed_url: str, category_hint: Optional[str] = None, source_name: str = "RSS") -> List[Dict]:
+        """Process feed entries and extract trend data"""
         try:
-            feed = feedparser.parse(feed_url)
             trends = []
             
             is_google_trends = 'trends.google.com' in feed_url
