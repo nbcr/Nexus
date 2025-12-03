@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NCNEQG70WC"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-NCNEQG70WC');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-NCNEQG70WC');
     </script>
-    
+
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1529513529221142"
-            crossorigin="anonymous"></script>
-    
+        crossorigin="anonymous"></script>
+
     <title>{% block title %}Nexus - The AI News Portal{% endblock %}</title>
     <link rel="icon" type="image/png" href="/static/favicon.png">
-    
+
     <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
-        (function() {
+        (function () {
             // Check localStorage for saved preference, default to dark mode
             const savedPreference = localStorage.getItem('darkMode');
             const shouldBeLight = savedPreference === 'false';
@@ -43,6 +44,7 @@
             --text-secondary: #cccccc;
             --text-muted: #999999;
         }
+
         /* Light mode (only when explicitly set) */
         html.light-mode {
             --bg-primary: #ffffff;
@@ -52,22 +54,23 @@
             --text-secondary: #666666;
             --text-muted: #999999;
         }
+
         html.light-mode,
         html.light-mode body {
             background-color: #ffffff !important;
             color: #333333 !important;
         }
     </style>
-    
+
     <!-- Base CSS -->
     <link rel="stylesheet" href="/static/css/base.css?v=202512020200">
     <link rel="stylesheet" href="/static/css/header.css?v=202512020200">
     <link rel="stylesheet" href="/static/css/components.css?v=202512020200">
-    
+
     <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
 </head>
-<body{% if body_class %} class="{{ body_class }}"{% endif %}>
+<body{% if body_class %} class="{{ body_class }}" {% endif %}>
     <!-- SHARED HEADER - Edit once, applies everywhere -->
     <header class="main-header">
         <div class="container">
@@ -76,27 +79,34 @@
             </a>
             <nav>
                 <span id="user-welcome" class="user-welcome"></span>
-                
+
                 <!-- Desktop auth buttons (outside hamburger menu) -->
                 <div class="header-auth-buttons">
-                    <a href="/login" class="header-btn" id="auth-btn"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
-                    <a href="/register" class="header-btn" id="register-btn"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                    <a href="/login" class="header-btn" id="auth-btn"><span class="menu-icon">🔐</span><span
+                            class="menu-label">Login</span></a>
+                    <a href="/register" class="header-btn" id="register-btn"><span class="menu-icon">📝</span><span
+                            class="menu-label">Register</span></a>
                 </div>
-                
+
                 <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
                     <span class="bar"></span>
                     <span class="bar"></span>
                     <span class="bar"></span>
                 </button>
                 <div class="nav-links" id="nav-links">
-                    <a href="/" class="menu-quick"><span class="menu-icon">🏠</span><span class="menu-label">Feed</span></a>
-                    <button id="dark-mode-toggle-menu"><span class="menu-icon">🌙</span><span class="menu-label">Dark Mode</span></button>
-                    <a href="/settings" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
-                    
+                    <a href="/" class="menu-quick"><span class="menu-icon">🏠</span><span
+                            class="menu-label">Feed</span></a>
+                    <button id="dark-mode-toggle-menu"><span class="menu-icon">🌙</span><span class="menu-label">Dark
+                            Mode</span></button>
+                    <a href="/settings" class="menu-quick"><span class="menu-icon">⚙️</span><span
+                            class="menu-label">Settings</span></a>
+
                     <!-- Mobile auth buttons (inside hamburger menu) -->
-                    <a href="/login" class="auth-btn-mobile" id="auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
-                    <a href="/register" class="auth-btn-mobile" id="register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
-                    
+                    <a href="/login" class="auth-btn-mobile" id="auth-btn-mobile"><span class="menu-icon">🔐</span><span
+                            class="menu-label">Login</span></a>
+                    <a href="/register" class="auth-btn-mobile" id="register-btn-mobile"><span
+                            class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+
                     <!-- Text size controls -->
                     <div class="text-size-controls">
                         <button id="text-size-decrease" class="text-size-btn" aria-label="Decrease text size">-</button>
@@ -110,15 +120,15 @@
             </nav>
         </div>
     </header>
-    
+
     <!-- Page content -->
     {% block content %}{% endblock %}
-    
+
     <!-- Shared scripts -->
     <script src="/static/js/header.js"></script>
-    
+
     <!-- Page-specific scripts -->
     {% block extra_js %}{% endblock %}
-</body>
-</html>
+    </body>
 
+</html>
