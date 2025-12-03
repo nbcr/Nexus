@@ -708,8 +708,10 @@ body.dark-mode #hamburger-menu .bar {
         height: 32px;
         width: 32px;
     }
+}
 
-    /* Hide desktop auth buttons on mobile - they appear in hamburger menu */
+/* Hide desktop auth buttons on small screens - they appear in hamburger menu */
+@media (width <=900px) {
     .header-auth-buttons {
         display: none !important;
     }
