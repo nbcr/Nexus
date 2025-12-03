@@ -23,28 +23,25 @@ async def update_database():
 
     try:
         # This will create any missing tables and update schema
+        from sqlalchemy import text
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
         print("✅ Database schema updated successfully!")
 
-        # Test the connection and schema
-        async with engine.connect() as conn:
-            # Check if user_sessions table exists and has correct columns
-            result = await conn.execute(
-                """
-                SELECT column_name, data_type 
-                FROM information_schema.columns 
-                WHERE table_name = 'user_interactions' 
-                AND column_name = 'session_id'
-            """
-            )
-            session_id_exists = result.fetchone()
+        # Remove deprecated topics and related content
+        async with engine.begin() as conn:
+            # Delete topics in deprecated categories
+            res1 = await conn.execute(text(
+                "DELETE FROM topics WHERE category IN ('Reference','Search Query','Trending')"
+            ))
+            print(f"🗑️ Removed topics in deprecated categories: {getattr(res1, 'rowcount', 'unknown')}" )
 
-            if session_id_exists:
-                print("✅ session_id column exists in user_interactions table")
-            else:
-                print("❌ session_id column missing from user_interactions table")
+            # Delete content items whose topic no longer exists (orphaned)
+            res2 = await conn.execute(text(
+                "DELETE FROM content_items WHERE topic_id NOT IN (SELECT id FROM topics)"
+            ))
+            print(f"🗑️ Removed orphaned content items: {getattr(res2, 'rowcount', 'unknown')}" )
 
     except Exception as e:
         print(f"❌ Error updating database: {e}")
