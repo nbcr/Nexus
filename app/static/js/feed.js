@@ -1025,10 +1025,13 @@ class InfiniteFeed {
         this.hoverTrackers.clear();
         
         this.currentPage = 1;
+        this.cursor = null; // Reset cursor for category changes
         this.viewedContentIds.clear();
         this.hasMore = true;
         this.container.innerHTML = '';
         this.endMessage.style.opacity = '0';
+        this.endMessage.style.display = 'none'; // Hide end message
+        this.loadingIndicator.style.display = 'block'; // Show loading indicator
         this.loadMore();
     }
     
