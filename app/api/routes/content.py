@@ -104,7 +104,7 @@ async def get_personalized_feed(
     logger.info(
         f"Feed request: page={page}, categories={category_list}, exclude_ids={exclude_ids}, cursor={cursor}"
     )
-    # Feed selection
+    # Feed selection - when no categories specified, show all feed (not personalized)
     if category_list and "all" in [c.lower() for c in category_list]:
         logger.info("Category 'All' selected: returning all items")
         result = await recommendation_service.get_all_feed(
@@ -126,10 +126,10 @@ async def get_personalized_feed(
             categories=category_list,
         )
     else:
-        result = await recommendation_service.get_personalized_feed(
+        # No category filter = show all content
+        logger.info("No categories selected: returning all items")
+        result = await recommendation_service.get_all_feed(
             db=db,
-            user_id=user_id,
-            session_token=session_token,
             page=page,
             page_size=page_size,
             exclude_ids=excluded_ids,
