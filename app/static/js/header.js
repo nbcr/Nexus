@@ -34,7 +34,7 @@ async function checkAuthStatus() {
             credentials: 'include',
             headers
         });
-        
+
         if (response.ok) {
             currentUser = await response.json();
             const welcomeEl = document.getElementById('user-welcome');
@@ -50,7 +50,7 @@ async function checkAuthStatus() {
                 if (label) label.textContent = 'Logout';
                 if (icon) icon.textContent = '🚪';
                 authBtn.href = '#';
-                authBtn.onclick = function(e) {
+                authBtn.onclick = function (e) {
                     e.preventDefault();
                     handleLogout();
                 };
@@ -62,7 +62,7 @@ async function checkAuthStatus() {
                 if (label) label.textContent = 'Logout';
                 if (icon) icon.textContent = '🚪';
                 authBtnMobile.href = '#';
-                authBtnMobile.onclick = function(e) {
+                authBtnMobile.onclick = function (e) {
                     e.preventDefault();
                     handleLogout();
                 };
@@ -135,7 +135,7 @@ async function handleLogout() {
         await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
 
         // Clear cookies
-        document.cookie.split(';').forEach(function(c) {
+        document.cookie.split(';').forEach(function (c) {
             document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
         });
 
@@ -174,10 +174,10 @@ function initDarkMode() {
     const toggleBtn = document.getElementById('dark-mode-toggle');
     const toggleLabel = document.getElementById('dark-mode-label');
     const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
-    
+
     // Use localStorage preference, default to dark mode
     const savedPreference = localStorage.getItem('darkMode');
-    
+
     // Check if light mode is explicitly selected
     if (savedPreference === 'false') {
         // Light mode - add light-mode class
@@ -223,7 +223,7 @@ function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
  * Remove inline color styles from feed item summaries in dark mode
  */
 function removeFeedItemSummaryColors() {
-    document.querySelectorAll('.feed-item-summary').forEach(function(el) {
+    document.querySelectorAll('.feed-item-summary').forEach(function (el) {
         if (el.style.color) {
             el.style.removeProperty('color');
         }
@@ -237,9 +237,9 @@ function toggleDarkMode() {
     // Check if light mode is currently active
     const isCurrentlyLight = document.documentElement.classList.contains('light-mode');
     const willBeLight = !isCurrentlyLight;
-    
+
     console.log('Toggle: Currently light?', isCurrentlyLight, '-> Will be light?', willBeLight);
-    
+
     // Toggle light-mode class (dark mode is default, no class needed)
     if (willBeLight) {
         // Switch to light mode (toggled on)
@@ -251,22 +251,22 @@ function toggleDarkMode() {
         document.body.classList.remove('light-mode');
         removeFeedItemSummaryColors();
     }
-    
+
     // Force repaint to ensure background color updates
     void document.documentElement.offsetHeight;
-    
+
     console.log('After toggle - html classes:', document.documentElement.className);
     console.log('After toggle - body classes:', document.body.className);
     console.log('Computed bg color:', getComputedStyle(document.documentElement).backgroundColor);
-    
+
     // Save preference (true = dark mode/default, false = light mode/toggled)
     localStorage.setItem('darkMode', willBeLight ? 'false' : 'true');
-    
+
     // Update toggle button icon and label
     const toggleBtn = document.getElementById('dark-mode-toggle');
     const toggleLabel = document.getElementById('dark-mode-label');
     const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
-    
+
     // isDark = !willBeLight (if not light, then dark)
     updateDarkModeUI(!willBeLight, toggleBtn, toggleLabel, toggleMenuBtn);
 }
@@ -277,11 +277,11 @@ function toggleDarkMode() {
 function initHamburgerMenu() {
     const hamburger = document.getElementById('hamburger-menu');
     const navLinks = document.getElementById('nav-links');
-    
+
     if (!hamburger || !navLinks) {
         return;
     }
-    
+
     // Ensure hamburger bars exist
     if (hamburger.children.length === 0) {
         for (let i = 0; i < 3; i++) {
@@ -290,33 +290,33 @@ function initHamburgerMenu() {
             hamburger.appendChild(bar);
         }
     }
-    
+
     // Toggle menu on hamburger click
-    hamburger.addEventListener('click', function(e) {
+    hamburger.addEventListener('click', function (e) {
         e.stopPropagation();
         const nowOpen = !navLinks.classList.contains('open');
         hamburger.classList.toggle('open', nowOpen);
         navLinks.classList.toggle('open', nowOpen);
     });
-    
+
     // Dark mode toggle in menu (don't close menu)
     const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
     console.log('Dark mode toggle button found:', darkToggleMenu);
     if (darkToggleMenu) {
-        darkToggleMenu.addEventListener('click', function(e) {
+        darkToggleMenu.addEventListener('click', function (e) {
             console.log('Dark mode button clicked!');
             e.stopPropagation();
             toggleDarkMode();
             // Don't close menu
         });
     }
-    
+
     // Close menu on link/button click, EXCEPT for text size and dark mode buttons
-    navLinks.querySelectorAll('a, button').forEach(function(el) {
-        el.addEventListener('click', function(e) {
+    navLinks.querySelectorAll('a, button').forEach(function (el) {
+        el.addEventListener('click', function (e) {
             // Don't close menu for text size buttons or dark mode toggle
-            if (el.id === 'text-size-decrease' || 
-                el.id === 'text-size-increase' || 
+            if (el.id === 'text-size-decrease' ||
+                el.id === 'text-size-increase' ||
                 el.id === 'dark-mode-toggle-menu' ||
                 el.classList.contains('text-size-btn')) {
                 return; // Don't close menu
@@ -326,9 +326,9 @@ function initHamburgerMenu() {
             hamburger.classList.remove('open');
         });
     });
-    
+
     // Close menu when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
             navLinks.classList.remove('open');
             hamburger.classList.remove('open');
@@ -355,15 +355,15 @@ function initHeader() {
 function initScrollHeader() {
     const header = document.querySelector('.main-header');
     const headerTitle = document.querySelector('.main-header h1');
-    
+
     if (!header || !headerTitle) return;
-    
+
     let lastScrollTop = 0;
     let isScrolled = false;
-    
+
     function handleScroll() {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
+
         // Trigger shrink after scrolling down 50px
         if (scrollTop > 50 && !isScrolled) {
             header.classList.add('scrolled');
@@ -372,15 +372,15 @@ function initScrollHeader() {
             header.classList.remove('scrolled');
             isScrolled = false;
         }
-        
+
         lastScrollTop = scrollTop;
     }
-    
+
     // Throttle scroll events for performance
     let ticking = false;
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function () {
         if (!ticking) {
-            window.requestAnimationFrame(function() {
+            window.requestAnimationFrame(function () {
                 handleScroll();
                 ticking = false;
             });
@@ -398,13 +398,13 @@ function initTextSize() {
     const minSize = 12;
     const maxSize = 24;
     let currentSize = savedSize ? parseInt(savedSize, 10) : baseSize;
-    
+
     function applyTextSize(size) {
         // Clamp size between min and max
         size = Math.max(minSize, Math.min(maxSize, size));
         currentSize = size;
         localStorage.setItem('textSize', size.toString());
-        
+
         // Create or update style tag for text sizing
         let styleTag = document.getElementById('dynamic-text-size');
         if (!styleTag) {
@@ -412,7 +412,7 @@ function initTextSize() {
             styleTag.id = 'dynamic-text-size';
             document.head.appendChild(styleTag);
         }
-        
+
         // Use CSS rules with higher specificity instead of inline styles
         styleTag.textContent = `
             /* Dynamic text sizing - affects all text except headings */
@@ -485,33 +485,33 @@ function initTextSize() {
             }
         `;
     }
-    
+
     // Restore saved size
     if (savedSize) {
         applyTextSize(parseInt(savedSize, 10));
     }
-    
+
     // Set up increase button
     const increaseBtn = document.getElementById('text-size-increase');
     if (increaseBtn) {
-        increaseBtn.addEventListener('click', function() {
+        increaseBtn.addEventListener('click', function () {
             applyTextSize(currentSize + 2);
         });
     }
-    
+
     // Set up decrease button
     const decreaseBtn = document.getElementById('text-size-decrease');
     if (decreaseBtn) {
-        decreaseBtn.addEventListener('click', function() {
+        decreaseBtn.addEventListener('click', function () {
             applyTextSize(currentSize - 2);
         });
     }
-    
+
     // Re-apply text size when new feed items are loaded
     // Watch for new feed items being added to the DOM
     const feedContainer = document.getElementById('feed-container');
     if (feedContainer) {
-        const observer = new MutationObserver(function() {
+        const observer = new MutationObserver(function () {
             if (savedSize) {
                 applyTextSize(currentSize);
             }
@@ -522,7 +522,7 @@ function initTextSize() {
 
 // Auto-initialize if DOM is already loaded
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         initHeader();
         initTextSize();
     });
