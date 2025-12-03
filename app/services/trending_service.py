@@ -857,19 +857,20 @@ class TrendingService:
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
                     
-                    # Check for duplicates in OTHER topics (not this one)
-                    existing = await deduplication_service.find_duplicate(db, title, url)
-                    if existing and existing.topic_id != existing_topic.id:
-                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - linking as related")
-                        await deduplication_service.link_as_related(db, existing.id, existing_topic.id)
-                        continue
-                    
                     # Prepare source_metadata with image if available
                     source_meta = {
                         "source": trend_data.get("source", "Trends"),
                     }
                     if trend_data.get("image_url"):
                         source_meta["picture_url"] = trend_data["image_url"]
+                    
+                    # Check for duplicates in OTHER topics (not this one)
+                    # Note: We still create the content item to preserve fresh image metadata
+                    existing = await deduplication_service.find_duplicate(db, title, url)
+                    if existing and existing.topic_id != existing_topic.id:
+                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related")
+                        # Store the related ID in source_metadata instead of skipping
+                        source_meta["related_content_ids"] = [existing.id]
                     
                     content_item = ContentItem(
                         topic_id=existing_topic.id,
@@ -959,19 +960,20 @@ class TrendingService:
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
                     
-                    # Check for duplicates in other topics
-                    existing = await deduplication_service.find_duplicate(db, title, url)
-                    if existing and existing.topic_id != topic.id:
-                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - linking as related")
-                        await deduplication_service.link_as_related(db, existing.id, topic.id)
-                        continue
-                    
                     # Prepare source_metadata with image if available
                     source_meta = {
                         "source": trend_data.get("source", "Trends"),
                     }
                     if trend_data.get("image_url"):
                         source_meta["picture_url"] = trend_data["image_url"]
+                    
+                    # Check for duplicates in other topics
+                    # Note: We still create the content item to preserve fresh image metadata
+                    existing = await deduplication_service.find_duplicate(db, title, url)
+                    if existing and existing.topic_id != topic.id:
+                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related")
+                        # Store the related ID in source_metadata instead of skipping
+                        source_meta["related_content_ids"] = [existing.id]
                     
                     content_item = ContentItem(
                         topic_id=topic.id,
