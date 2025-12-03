@@ -196,26 +196,25 @@ function initDarkMode() {
 
 /**
  * Update dark mode toggle UI elements
- * Since dark mode is default, show "Light Mode" option to switch to light
+ * Show moon icon in dark mode, sun icon in light mode
  */
 function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
     if (toggleBtn) {
-        toggleBtn.textContent = isDark ? '☀️' : '🌙';
+        toggleBtn.textContent = isDark ? '🌙' : '☀️';
     }
     if (toggleLabel) {
-        toggleLabel.textContent = isDark ? 'Light Mode: Off' : 'Light Mode: On';
+        toggleLabel.textContent = isDark ? 'Dark Mode' : 'Light Mode';
     }
     if (toggleMenuBtn) {
         const icon = toggleMenuBtn.querySelector('.menu-icon');
         if (icon) {
-            // Dark mode = show sun icon (option to go to light)
-            // Light mode = show moon icon (option to go back to dark)
-            icon.textContent = isDark ? '☀️' : '🌙';
+            // Dark mode = show moon icon
+            // Light mode = show sun icon
+            icon.textContent = isDark ? '🌙' : '☀️';
         }
         const label = toggleMenuBtn.querySelector('.menu-label');
         if (label) {
-            // Always show "Light Mode" as the button label since that's what it toggles
-            label.textContent = 'Light Mode';
+            label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
         }
     }
 }
