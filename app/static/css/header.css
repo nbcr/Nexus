@@ -709,16 +709,9 @@ body.dark-mode #hamburger-menu .bar {
         width: 32px;
     }
 
+    /* Hide desktop auth buttons on mobile - they appear in hamburger menu */
     .header-auth-buttons {
-        display: flex !important;
-    }
-
-    .header-btn .menu-label {
-        display: none;
-    }
-
-    .header-btn {
-        padding: 8px 12px;
+        display: none !important;
     }
 }
 
