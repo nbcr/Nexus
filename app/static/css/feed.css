@@ -923,11 +923,6 @@ footer {
     box-shadow: 0 6px 16px rgb(0 123 255 / 40%);
 }
 
-/* Hover title color */
-.feed-item-header:hover .feed-item-title {
-    color: #1440a6;
-}
-
 /* Light Mode Overrides */
 html.light-mode .feed-item-title {
     color: #1a1a1a;
