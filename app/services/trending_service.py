@@ -1,7 +1,8 @@
 import feedparser  # type: ignore
 import asyncio
+import aiohttp
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 from sqlalchemy import select  # type: ignore
@@ -10,10 +11,45 @@ from app.models import Topic, ContentItem
 from app.core.config import settings
 from app.services.deduplication import deduplication_service
 from app.services.article_scraper import article_scraper
+from app.services.article_scraper import article_scraper
+
+
+class FeedFailureTracker:
+    """Track feed failures and disable feeds that timeout too often"""
+    def __init__(self, max_failures: int = 5):
+        self.failures = {}  # feed_name -> failure_count
+        self.disabled_feeds = set()
+        self.max_failures = max_failures
+        self.last_reset = datetime.now()
+    
+    def record_failure(self, feed_name: str):
+        """Record a failure for a feed"""
+        self.failures[feed_name] = self.failures.get(feed_name, 0) + 1
+        if self.failures[feed_name] >= self.max_failures:
+            self.disabled_feeds.add(feed_name)
+            print(f"🚫 Disabled feed '{feed_name}' after {self.max_failures} failures")
+    
+    def record_success(self, feed_name: str):
+        """Record a success for a feed (reset failure count)"""
+        if feed_name in self.failures:
+            self.failures[feed_name] = 0
+    
+    def is_disabled(self, feed_name: str) -> bool:
+        """Check if a feed is disabled"""
+        return feed_name in self.disabled_feeds
+    
+    def reset_if_needed(self):
+        """Reset failure tracking once per day"""
+        if datetime.now() - self.last_reset > timedelta(days=1):
+            print("🔄 Resetting feed failure tracking")
+            self.failures.clear()
+            self.disabled_feeds.clear()
+            self.last_reset = datetime.now()
 
 
 class TrendingService:
     def __init__(self):
+            self.failure_tracker = FeedFailureTracker(max_failures=5)
         # Multiple RSS feeds for diverse content
         self.rss_feeds = {
             'google_trends': {
@@ -69,27 +105,67 @@ class TrendingService:
         return trends
 
     async def _fetch_all_rss_feeds(self) -> List[Dict]:
-        """Fetch from all configured RSS feeds"""
-        all_trends = []
+        """Fetch from all configured RSS feeds in parallel with timeout"""
+        self.failure_tracker.reset_if_needed()
+        
+        # Create tasks for all enabled feeds
+        tasks = []
+        feed_names = []
         
         for feed_name, feed_config in self.rss_feeds.items():
-            try:
-                print(f"Fetching from {feed_name}: {feed_config['url']}")
-                trends = await self._fetch_single_rss_feed(
-                    feed_config['url'],
-                    feed_config.get('category_hint'),
-                    feed_name
-                )
-                all_trends.extend(trends)
-                print(f"✅ {feed_name}: {len(trends)} items")
-                
-                # Small delay to be respectful
-                await asyncio.sleep(0.3)
-            except Exception as e:
-                print(f"⚠️ Error fetching {feed_name}: {e}")
+            if self.failure_tracker.is_disabled(feed_name):
+                print(f"⏭️ Skipping disabled feed: {feed_name}")
                 continue
+            
+            print(f"📡 Queuing {feed_name}: {feed_config['url']}")
+            task = self._fetch_single_rss_feed_with_timeout(
+                feed_name,
+                feed_config['url'],
+                feed_config.get('category_hint'),
+                timeout=15  # 15 second timeout per feed
+            )
+            tasks.append(task)
+            feed_names.append(feed_name)
+        
+        # Fetch all feeds in parallel
+        print(f"🚀 Fetching {len(tasks)} feeds in parallel...")
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results
+        all_trends = []
+        for feed_name, result in zip(feed_names, results):
+            if isinstance(result, Exception):
+                print(f"⚠️ Error fetching {feed_name}: {result}")
+                self.failure_tracker.record_failure(feed_name)
+            elif isinstance(result, list):
+                all_trends.extend(result)
+                print(f"✅ {feed_name}: {len(result)} items")
+                self.failure_tracker.record_success(feed_name)
+            else:
+                print(f"⚠️ Unexpected result from {feed_name}")
+                self.failure_tracker.record_failure(feed_name)
         
         return all_trends
+    
+    async def _fetch_single_rss_feed_with_timeout(
+        self, 
+        feed_name: str,
+        feed_url: str, 
+        category_hint: Optional[str] = None,
+        timeout: int = 15
+    ) -> List[Dict]:
+        """Fetch a single RSS feed with timeout"""
+        try:
+            return await asyncio.wait_for(
+                self._fetch_single_rss_feed(feed_url, category_hint, feed_name),
+                timeout=timeout
+            )
+        except asyncio.TimeoutError:
+            print(f"⏱️ Timeout fetching {feed_name} after {timeout}s")
+            raise TimeoutError(f"Feed {feed_name} timed out")
+        except Exception as e:
+            print(f"❌ Error in {feed_name}: {e}")
+            raise
 
     async def _fetch_single_rss_feed(self, feed_url: str, category_hint: Optional[str] = None, source_name: str = "RSS") -> List[Dict]:
         """Fetch trends from a single RSS feed"""
