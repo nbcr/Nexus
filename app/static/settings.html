@@ -169,8 +169,15 @@
         
         /* Apply variables to elements */
         html, body {
-            background-color: var(--bg-primary) !important;
-            color: var(--text-primary) !important;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        
+        /* Explicit light mode styles */
+        html.light-mode,
+        html.light-mode body {
+            background-color: #ffffff;
+            color: #333333;
         }
     </style>
 </head>
