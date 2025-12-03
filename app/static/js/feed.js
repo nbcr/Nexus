@@ -398,7 +398,7 @@ class InfiniteFeed {
 
         // Get image from source metadata; fallback will fetch article image_url lazily
         let imageUrl = item.source_metadata?.picture_url || null;
-        const toProxy = (url) => url ? `/api/v1/content/image-proxy?url=${encodeURIComponent(url)}` : null;
+        const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
         const source = item.source_metadata?.source || 'News';
 
         // Check if this is a search query or news article
@@ -413,7 +413,7 @@ class InfiniteFeed {
                 <div class="feed-item-header">
                     ${imageUrl ? `
                         <div class="feed-item-image">
-                            <img src="${imageUrl}" alt="${item.title}" loading="lazy">
+                            <img src="${imageUrl}" alt="${item.title}" loading="lazy" onerror="this.onerror=null; this.src='${item.source_metadata?.picture_url || ''}'">
                         </div>
                     ` : ''}
                     <div class="feed-item-header-content">
@@ -615,7 +615,12 @@ class InfiniteFeed {
                             const container = existing || document.createElement('div');
                             container.className = 'feed-item-image';
                             const imgEl = document.createElement('img');
-                            imgEl.src = fallbackUrl;
+                            // Try proxy first; fall back to direct URL on error
+                            const directUrl = art.picture_url || null;
+                            imgEl.src = fallbackUrl || directUrl;
+                            if (fallbackUrl && directUrl) {
+                                imgEl.onerror = () => { imgEl.src = directUrl; };
+                            }
                             imgEl.alt = item.title;
                             imgEl.loading = 'lazy';
                             container.innerHTML = '';
