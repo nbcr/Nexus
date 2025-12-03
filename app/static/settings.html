@@ -149,14 +149,16 @@
     <style>
         /* Blocking inline styles to prevent flash - applied immediately */
         /* Dark mode (default - no class needed) */
-        html,
-        html body {
+        html:not(.light-mode),
+        html:not(.light-mode) body {
             --bg-primary: #181818 !important;
             --bg-secondary: #222222 !important;
             --bg-tertiary: #2a2a2a !important;
             --text-primary: #ffffff !important;
             --text-secondary: #cccccc !important;
             --text-muted: #999999 !important;
+            background-color: #181818 !important;
+            color: #ffffff !important;
         }
         /* Light mode (only when explicitly set) */
         html.light-mode {

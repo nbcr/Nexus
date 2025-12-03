@@ -12,21 +12,29 @@
     <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
         (function() {
-            // Force light mode on every page load
-            document.documentElement.classList.add('light-mode');
+            // Only apply light mode if explicitly selected (dark mode is default)
+            const savedPreference = localStorage.getItem('darkMode');
+            
+            if (savedPreference === 'false') {
+                // User explicitly selected light mode
+                document.documentElement.classList.add('light-mode');
+            }
+            // No else needed - dark mode is default without any class
         })();
     </script>
     <style>
         /* Blocking inline styles to prevent flash - applied immediately */
         /* Dark mode (default - no class needed) */
-        html,
-        html body {
+        html:not(.light-mode),
+        html:not(.light-mode) body {
             --bg-primary: #181818 !important;
             --bg-secondary: #222222 !important;
             --bg-tertiary: #2a2a2a !important;
             --text-primary: #ffffff !important;
             --text-secondary: #cccccc !important;
             --text-muted: #999999 !important;
+            background-color: #181818 !important;
+            color: #ffffff !important;
         }
         /* Light mode (only when explicitly set) */
         html.light-mode {
