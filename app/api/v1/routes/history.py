@@ -107,7 +107,7 @@ async def get_viewed_history(
         None, description="Filter by view type: 'seen', 'clicked', 'read'"
     ),
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(10, ge=1, le=100),
     db: Session = Depends(get_db),
     session=Depends(get_current_session),
 ):
@@ -116,7 +116,7 @@ async def get_viewed_history(
 
     - **view_type**: Optional filter ('seen', 'clicked', 'read')
     - **page**: Page number (starts at 1)
-    - **page_size**: Items per page (max 100)
+    - **page_size**: Items per page (default 10, max 100)
     """
     from sqlalchemy import select, func
     from sqlalchemy.orm import joinedload
