@@ -637,6 +637,38 @@ class InfiniteFeed {
             })();
         }
 
+        // Proactively ensure thumbnail for new stories (refreshes outdated/missing images)
+        (async () => {
+            try {
+                const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (data && data.picture_url) {
+                    const header = article.querySelector('.feed-item-header');
+                    const existing = article.querySelector('.feed-item-image img');
+                    const proxyUrl = toProxy(data.picture_url);
+                    if (existing) {
+                        // Update if different
+                        if (existing.src !== proxyUrl && existing.src !== data.picture_url) {
+                            existing.src = proxyUrl || data.picture_url;
+                        }
+                    } else if (header) {
+                        const container = document.createElement('div');
+                        container.className = 'feed-item-image';
+                        const imgEl = document.createElement('img');
+                        imgEl.src = proxyUrl || data.picture_url;
+                        imgEl.alt = item.title;
+                        imgEl.loading = 'lazy';
+                        container.appendChild(imgEl);
+                        header.insertBefore(container, header.firstChild);
+                        this.extractDominantColor(imgEl, article);
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
+
         // Create hover tracker for this card
         if (window.HoverTracker && this.globalScrollTracker) {
             const tracker = new HoverTracker(article, item.content_id);
