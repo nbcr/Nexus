@@ -26,6 +26,10 @@ class CategoriesResponse(BaseModel):
     categories: List[str]
 
 
+class ThumbnailResponse(BaseModel):
+    picture_url: Optional[str]
+
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         return session
@@ -416,6 +420,48 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
     ]
 
     return article_data
+
+
+@router.get("/thumbnail/{content_id}", response_model=ThumbnailResponse)
+async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
+    """Ensure a thumbnail is available for a content item and return it.
+    If missing, scrape the article to fetch image_url and persist to source_metadata.picture_url."""
+    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
+    content = result.scalar_one_or_none()
+    if not content:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    # If already have a picture_url, just return it
+    pic = (content.source_metadata or {}).get("picture_url") if content.source_metadata else None
+    if pic:
+        return ThumbnailResponse(picture_url=pic)
+
+    # Try to scrape the article to get image_url
+    if not content.source_urls or len(content.source_urls) == 0:
+        return ThumbnailResponse(picture_url=None)
+
+    source_url = content.source_urls[0]
+    is_search_url = (
+        "duckduckgo.com" in source_url
+        or "google.com/search" in source_url
+        or "bing.com/search" in source_url
+    )
+    try:
+        if is_search_url:
+            data = await article_scraper.fetch_search_context(source_url)
+        else:
+            data = await article_scraper.fetch_article(source_url)
+        if data and data.get("image_url"):
+            if not content.source_metadata:
+                content.source_metadata = {}
+            content.source_metadata["picture_url"] = data["image_url"]
+            content.source_metadata["scraped_at"] = datetime.utcnow().isoformat()
+            await db.commit()
+            return ThumbnailResponse(picture_url=data["image_url"])
+    except Exception:
+        await db.rollback()
+
+    return ThumbnailResponse(picture_url=None)
 
 
 async def find_related_content(

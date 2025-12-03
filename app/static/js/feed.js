@@ -396,8 +396,8 @@ class InfiniteFeed {
         article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
         article.dataset.topicId = item.topic_id;
 
-        // Get image from source metadata
-        const imageUrl = item.source_metadata?.picture_url || null;
+        // Get image from source metadata; fallback will fetch article image_url lazily
+        let imageUrl = item.source_metadata?.picture_url || null;
         const source = item.source_metadata?.source || 'News';
 
         // Check if this is a search query or news article
@@ -412,8 +412,7 @@ class InfiniteFeed {
                 <div class="feed-item-header">
                     ${imageUrl ? `
                         <div class="feed-item-image">
-                            <img src="${imageUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous"
-                                 onerror="this.parentElement.style.display='none'">
+                            <img src="${imageUrl}" alt="${item.title}" loading="lazy">
                         </div>
                     ` : ''}
                     <div class="feed-item-header-content">
@@ -598,6 +597,37 @@ class InfiniteFeed {
             if (img) {
                 this.extractDominantColor(img, article);
             }
+        } else {
+            // Fallback: fetch cached thumbnail endpoint to get image_url and inject
+            (async () => {
+                try {
+                    const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
+                    if (!resp.ok) return;
+                    const art = await resp.json();
+                    const fallbackUrl = art.picture_url;
+                    if (fallbackUrl) {
+                        // Create header image container if missing and inject image
+                        const header = article.querySelector('.feed-item-header');
+                        if (header) {
+                            const existing = article.querySelector('.feed-item-image');
+                            const container = existing || document.createElement('div');
+                            container.className = 'feed-item-image';
+                            const imgEl = document.createElement('img');
+                            imgEl.src = fallbackUrl;
+                            imgEl.alt = item.title;
+                            imgEl.loading = 'lazy';
+                            container.innerHTML = '';
+                            container.appendChild(imgEl);
+                            if (!existing) {
+                                header.insertBefore(container, header.firstChild);
+                            }
+                            this.extractDominantColor(imgEl, article);
+                        }
+                    }
+                } catch (e) {
+                    // Ignore failures; card will remain without image
+                }
+            })();
         }
 
         // Create hover tracker for this card
