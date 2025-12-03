@@ -155,6 +155,26 @@
             categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
         }
 
+        // Add Clear Filters button
+        const clearBtn = document.createElement('button');
+        clearBtn.className = 'category-btn clear-btn';
+        clearBtn.textContent = 'Clear Filters';
+        clearBtn.addEventListener('click', () => {
+            const active = filterDiv.querySelectorAll('.category-btn.active');
+            active.forEach(b => b.classList.remove('active'));
+            // Show everything by clearing filters
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'filter_category_clear', { 'event_label': 'Clear Filters' });
+            }
+            if (feed && typeof feed.setCategories === 'function') {
+                feed.setCategories(null); // null = show everything
+            } else if (feed) {
+                feed.setCategory(null);
+            }
+        });
+        filterDiv.appendChild(clearBtn);
+
+        // Add per-category buttons
         categories.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'category-btn';
@@ -163,23 +183,29 @@
             filterDiv.appendChild(btn);
         });
 
-        // Setup click handlers
-        const categoryButtons = filterDiv.querySelectorAll('.category-btn');
+        // Setup click handlers (multi-select, toggle on second click)
+        const categoryButtons = filterDiv.querySelectorAll('.category-btn:not(.clear-btn)');
         categoryButtons.forEach(btn => {
             btn.addEventListener('click', function () {
-                categoryButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const category = this.dataset.category;
+                // Toggle active state
+                this.classList.toggle('active');
+                const active = Array.from(filterDiv.querySelectorAll('.category-btn.active:not(.clear-btn)'))
+                    .map(b => b.dataset.category);
 
                 // 📊 Google Analytics: Track category filter
                 if (typeof gtag !== 'undefined') {
-                    gtag('event', 'filter_category', {
-                        'category': category,
-                        'event_label': category
+                    gtag('event', 'filter_category_multi', {
+                        'categories': active.join(','),
+                        'event_label': active.join(',')
                     });
                 }
 
-                feed.setCategory(category || null);
+                // Show only selected categories, or everything if none selected
+                if (feed && typeof feed.setCategories === 'function') {
+                    feed.setCategories(active.length > 0 ? active : null);
+                } else if (feed) {
+                    feed.setCategory(active[0] || null);
+                }
             });
         });
     }

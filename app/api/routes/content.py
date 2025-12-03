@@ -64,6 +64,7 @@ async def get_personalized_feed(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=50),
     category: Optional[str] = Query(None),
+    categories: Optional[str] = Query(None),  # New: comma-separated list
     exclude_ids: Optional[str] = Query(None),
     cursor: Optional[str] = Query(None),
     nexus_session: Optional[str] = Cookie(default=None),
@@ -71,6 +72,7 @@ async def get_personalized_feed(
     """
     Get personalized content feed with cursor-based pagination.
     Shows newest content first and prevents duplicates.
+    Supports multi-category filtering via 'categories' param (comma-separated).
     """
     # Parse exclude_ids
     excluded_ids = []
@@ -81,6 +83,13 @@ async def get_personalized_feed(
             ]
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
+
+    # Parse categories (multi-select support)
+    category_list = None
+    if categories:
+        category_list = [cat.strip() for cat in categories.split(",") if cat.strip()]
+    elif category:
+        category_list = [category]
 
     # Get session token for anonymous users
     session_token = nexus_session or request.cookies.get("nexus_session")
@@ -93,10 +102,10 @@ async def get_personalized_feed(
 
     logger = logging.getLogger("uvicorn.error")
     logger.info(
-        f"Feed request: page={page}, category={category}, exclude_ids={exclude_ids}, cursor={cursor}"
+        f"Feed request: page={page}, categories={category_list}, exclude_ids={exclude_ids}, cursor={cursor}"
     )
     # Feed selection
-    if category and category.lower() == "all":
+    if category_list and "all" in [c.lower() for c in category_list]:
         logger.info("Category 'All' selected: returning all items")
         result = await recommendation_service.get_all_feed(
             db=db,
@@ -105,16 +114,16 @@ async def get_personalized_feed(
             exclude_ids=excluded_ids,
             cursor=cursor,
         )
-    elif category:
-        # Remove topic search query: treat any category as a simple filter handled by recommendation service
-        logger.info(f"Filtering feed by category: {category}")
+    elif category_list:
+        # Filter by multiple categories
+        logger.info(f"Filtering feed by categories: {category_list}")
         result = await recommendation_service.get_all_feed(
             db=db,
             page=page,
             page_size=page_size,
             exclude_ids=excluded_ids,
             cursor=cursor,
-            category=category,
+            categories=category_list,
         )
     else:
         result = await recommendation_service.get_personalized_feed(
