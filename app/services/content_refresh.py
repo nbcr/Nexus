@@ -36,7 +36,8 @@ class ContentRefreshService:
         async with AsyncSessionLocal() as db:
             if await self.should_refresh_content(db):
                 print("🔄 Refreshing trending content from Google Trends...")
-                count = await trending_service.save_trends_to_database(db)
+                topics = await trending_service.save_trends_to_database(db)
+                count = len(topics)  # Get count from list of topics
                 self.last_refresh = datetime.utcnow()
                 print(f"✅ Trending content refresh completed! Added {count} new items")
 
