@@ -781,7 +781,7 @@ class InfiniteFeed {
                 const continueReadingBtn = document.createElement('div');
                 continueReadingBtn.className = 'continue-reading-cta';
                 continueReadingBtn.innerHTML = `
-                    <p style="margin: 20px 0 10px; font-weight: bold; color: #666; text-align: center;">
+                    <p class="cta-text">
                         📚 Want the full story with context and analysis?
                     </p>
                     <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 

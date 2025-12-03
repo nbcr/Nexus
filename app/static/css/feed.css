@@ -902,10 +902,17 @@ footer {
 .continue-reading-cta {
     margin: 30px 0;
     padding: 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-tertiary, #2a2a2a);
     border-radius: 12px;
     text-align: center;
     border-left: 4px solid #1440a6;
+}
+
+.continue-reading-cta .cta-text {
+    margin: 20px 0 10px;
+    font-weight: bold;
+    color: var(--text-secondary, #ccc);
+    text-align: center;
 }
 
 .btn-continue-reading {
@@ -918,13 +925,22 @@ footer {
     font-weight: 600;
     font-size: 16px;
     transition: all 0.3s;
-    box-shadow: 0 4px 12px rgb(0 123 255 / 30%);
+    box-shadow: 0 4px 12px rgb(20 64 166 / 30%);
 }
 
 .btn-continue-reading:hover {
-    background: #1440a6;
+    background: #0d2f6e;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgb(0 123 255 / 40%);
+    box-shadow: 0 6px 16px rgb(20 64 166 / 40%);
+}
+
+/* Light Mode Overrides */
+html.light-mode .continue-reading-cta {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+html.light-mode .continue-reading-cta .cta-text {
+    color: #666;
 }
 
 /* Light Mode Overrides */
