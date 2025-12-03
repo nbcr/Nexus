@@ -55,14 +55,8 @@ class SchedulerService:
             replace_existing=True,
         )
 
-        # Run immediately on startup
-        self.scheduler.add_job(
-            self.refresh_content_job,
-            trigger="date",
-            run_date=datetime.now(),
-            id="initial_content_refresh",
-            name="Initial content refresh on startup",
-        )
+        # Don't run on startup - let cron handle initial population
+        # Running on startup blocks workers from handling requests
 
         self.scheduler.start()
         self.is_running = True
