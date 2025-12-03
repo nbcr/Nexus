@@ -64,7 +64,7 @@ body {
 
 /* HTML Base Styles */
 html {
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   transition: background-color var(--transition-base);
 }
 
@@ -74,7 +74,7 @@ body {
   font-size: var(--font-size-base);
   line-height: 1.6;
   color: var(--text-primary);
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
   transition: background-color var(--transition-base), color var(--transition-base);
 }
 
@@ -86,8 +86,6 @@ html.light-mode {
   --text-primary: #333;
   --text-secondary: #666;
   --text-muted: #999;
-
-  background-color: #fff;
 }
 
 html.light-mode body {
@@ -97,9 +95,6 @@ html.light-mode body {
   --text-primary: #333;
   --text-secondary: #666;
   --text-muted: #999;
-
-  background-color: #fff;
-  color: #333;
 }
 
 /* Container */
