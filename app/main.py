@@ -255,9 +255,9 @@ async def ads_txt():
 
 # Admin panel (still uses static HTML)
 @app.get("/admin.html", include_in_schema=False)
-async def serve_admin():
+async def serve_admin(request: Request):
     """Serve admin panel"""
-    return FileResponse("app/static/admin.html")
+    return templates.TemplateResponse("admin.html", {"request": request})
 
 
 # Direct link to content by slug
