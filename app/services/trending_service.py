@@ -14,16 +14,48 @@ from app.services.article_scraper import article_scraper
 
 class TrendingService:
     def __init__(self):
-        self.feed_url = "https://trends.google.com/trending/rss?geo=CA"
+        # Multiple RSS feeds for diverse content
+        self.rss_feeds = {
+            'google_trends': {
+                'url': 'https://trends.google.com/trending/rss?geo=CA',
+                'category_hint': None,  # Auto-categorize
+                'priority': 'high'
+            },
+            'cbc_top': {
+                'url': 'https://www.cbc.ca/cmlink/rss-topstories',
+                'category_hint': None,
+                'priority': 'high'
+            },
+            'global_news': {
+                'url': 'https://globalnews.ca/feed/',
+                'category_hint': None,
+                'priority': 'high'
+            },
+            'tsn': {
+                'url': 'https://www.tsn.ca/rss',
+                'category_hint': 'Sports',
+                'priority': 'medium'
+            },
+            'betakit': {
+                'url': 'https://betakit.com/feed/',
+                'category_hint': 'Technology',
+                'priority': 'medium'
+            },
+            'nhl': {
+                'url': 'https://www.nhl.com/news/rss',
+                'category_hint': 'Sports',
+                'priority': 'medium'
+            },
+        }
         self.reddit_enabled = True
-        print("✅ Reddit JSON API enabled (no auth required)")
+        print(f"✅ Configured {len(self.rss_feeds)} RSS feeds")
 
     async def fetch_canada_trends(self) -> List[Dict]:
-        """Fetch trending topics from Google Trends Canada RSS feed and Reddit"""
+        """Fetch trending topics from multiple RSS feeds and Reddit"""
         trends = []
 
-        # Get RSS feed trends (10-20 items)
-        rss_trends = await self._fetch_rss_trends()
+        # Fetch from all RSS feeds
+        rss_trends = await self._fetch_all_rss_feeds()
         trends.extend(rss_trends)
 
         # Get Reddit trending posts (many more items)
@@ -36,112 +68,153 @@ class TrendingService:
         )
         return trends
 
-    async def _fetch_rss_trends(self) -> List[Dict]:
-        """Fetch trends from RSS feed"""
+    async def _fetch_all_rss_feeds(self) -> List[Dict]:
+        """Fetch from all configured RSS feeds"""
+        all_trends = []
+        
+        for feed_name, feed_config in self.rss_feeds.items():
+            try:
+                print(f"Fetching from {feed_name}: {feed_config['url']}")
+                trends = await self._fetch_single_rss_feed(
+                    feed_config['url'],
+                    feed_config.get('category_hint'),
+                    feed_name
+                )
+                all_trends.extend(trends)
+                print(f"✅ {feed_name}: {len(trends)} items")
+                
+                # Small delay to be respectful
+                await asyncio.sleep(0.3)
+            except Exception as e:
+                print(f"⚠️ Error fetching {feed_name}: {e}")
+                continue
+        
+        return all_trends
+
+    async def _fetch_single_rss_feed(self, feed_url: str, category_hint: Optional[str] = None, source_name: str = "RSS") -> List[Dict]:
+        """Fetch trends from a single RSS feed"""
         try:
-            print(f"Fetching from Google Trends RSS: {self.feed_url}")
-            feed = feedparser.parse(self.feed_url)
-
+            feed = feedparser.parse(feed_url)
             trends = []
-            # Process all available entries
-            for entry in feed.entries:
-                print(f"Processing entry: {entry}")  # Debug log
-
-                # Extract data from the Google Trends specific fields
+            
+            is_google_trends = 'trends.google.com' in feed_url
+            
+            for entry in feed.entries[:20]:  # Limit to 20 items per feed
+                # Extract basic data (works for all RSS feeds)
                 title = getattr(entry, "title", "").strip()
-                description = (
-                    getattr(entry, "ht_news_item_snippet", "")
-                    or getattr(entry, "summary", "")
-                    or getattr(entry, "description", "")
-                )
-                url = getattr(entry, "ht_news_item_url", "") or getattr(
-                    entry, "link", ""
-                )
+                description = getattr(entry, "summary", "") or getattr(entry, "description", "")
+                url = getattr(entry, "link", "")
+                
+                # Skip if no title or URL
+                if not title or not url:
+                    continue
 
-                # Extract news items
+                # For Google Trends, extract special fields
                 news_items = []
-                try:
-                    # Debug print the entry structure
-                    print(f"Entry has ht_news_item? {hasattr(entry, 'ht_news_item')}")
-                    if hasattr(entry, "ht_news_item"):
-                        print(f"News item type: {type(entry.ht_news_item)}")
-                        print(f"News item content: {entry.ht_news_item}")
-
-                    # Look for individual news item fields
-                    news_item = {
-                        "title": getattr(entry, "ht_news_item_title", "").strip(),
-                        "snippet": getattr(entry, "ht_news_item_snippet", "").strip(),
-                        "url": getattr(entry, "ht_news_item_url", ""),
-                        "picture": getattr(entry, "ht_news_item_picture", ""),
-                        "source": getattr(entry, "ht_news_item_source", "News").strip(),
-                    }
-
-                    # If we have a direct news item with title and URL, add it
-                    if news_item["title"] and news_item["url"]:
-                        news_items.append(news_item)
-
-                    # Check for nested news items structure
-                    if hasattr(entry, "ht_news_item"):
-                        items = []
-                        if isinstance(entry.ht_news_item, list):
-                            items = entry.ht_news_item
-                        elif isinstance(entry.ht_news_item, dict):
-                            items = [entry.ht_news_item]
-                        elif hasattr(entry.ht_news_item, "ht_news_item_title"):
-                            # Single news item object
-                            items = [entry.ht_news_item]
-
-                        for item in items:
-                            news_item = {
-                                "title": getattr(
-                                    item, "ht_news_item_title", ""
-                                ).strip(),
-                                "snippet": getattr(
-                                    item, "ht_news_item_snippet", ""
-                                ).strip(),
-                                "url": getattr(item, "ht_news_item_url", ""),
-                                "picture": getattr(item, "ht_news_item_picture", ""),
-                                "source": getattr(
-                                    item, "ht_news_item_source", "News"
-                                ).strip(),
-                            }
-                            if news_item["title"] and news_item["url"]:
-                                news_items.append(news_item)
-                except Exception as e:
-                    print(
-                        f"Error processing news items for entry {entry.get('title', 'Unknown')}: {str(e)}"
-                    )
-
-                # Set the main image and source from the first news item if available
                 image_url = None
-                source = "News"
-
-                if news_items:
-                    first_news = news_items[0]
-                    image_url = first_news["picture"]
-                    source = first_news["source"]
+                source = source_name
+                
+                if is_google_trends:
+                    # Google Trends specific extraction
+                    news_items = self._extract_google_trends_items(entry)
+                    if news_items:
+                        first_news = news_items[0]
+                        image_url = first_news.get("picture")
+                        source = first_news.get("source", source_name)
+                    else:
+                        image_url = getattr(entry, "ht_picture", None)
+                        source = getattr(entry, "ht_picture_source", source_name)
+                    
+                    title = self._generate_summary_title(title, news_items)
                 else:
-                    # Fallback to entry-level ht: attributes if no news items
-                    image_url = getattr(entry, "ht_picture", None)
-                    source = getattr(entry, "ht_picture_source", "News")
+                    # Standard RSS feed - try to get image from media:content or enclosure
+                    if hasattr(entry, 'media_content') and entry.media_content:
+                        image_url = entry.media_content[0].get('url')
+                    elif hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
+                        image_url = entry.media_thumbnail[0].get('url')
+                    elif hasattr(entry, 'enclosures') and entry.enclosures:
+                        for enc in entry.enclosures:
+                            if 'image' in enc.get('type', ''):
+                                image_url = enc.get('href')
+                                break
+                    
+                    # Create a single news item for standard feeds
+                    news_items = [{
+                        "title": title,
+                        "snippet": description[:200] if description else "",
+                        "url": url,
+                        "picture": image_url,
+                        "source": source_name
+                    }]
 
-                # Generate a summary title based on news items
-                summary_title = self._generate_summary_title(title, news_items)
+                # Determine category - use hint if provided, otherwise auto-categorize
+                if category_hint:
+                    category = category_hint
+                else:
+                    category = self._extract_category(entry)
 
                 trend_data = {
-                    "title": summary_title,  # Use the generated summary title
-                    "original_query": title,  # Keep the original search term
-                    "description": description,
+                    "title": title,
+                    "original_query": title,
+                    "description": description[:500] if description else "",
                     "url": url,
                     "source": source,
                     "image_url": image_url,
                     "published": entry.get("published", ""),
-                    "trend_score": self._calculate_trend_score(entry),
-                    "category": self._extract_category(entry),
-                    "tags": self._extract_tags(entry),
+                    "trend_score": 0.6,  # Standard score for RSS items
+                    "category": category,
+                    "tags": self._extract_tags(entry) + [source_name.lower()],
                     "news_items": news_items,
                 }
                 trends.append(trend_data)
+
+            return trends
+
+        except Exception as e:
+            print(f"❌ Error fetching RSS from {feed_url}: {e}")
+            return []
+
+    def _extract_google_trends_items(self, entry) -> List[Dict]:
+        """Extract news items specifically from Google Trends RSS entries"""
+        news_items = []
+        try:
+            # Look for individual news item fields
+            news_item = {
+                "title": getattr(entry, "ht_news_item_title", "").strip(),
+                "snippet": getattr(entry, "ht_news_item_snippet", "").strip(),
+                "url": getattr(entry, "ht_news_item_url", ""),
+                "picture": getattr(entry, "ht_news_item_picture", ""),
+                "source": getattr(entry, "ht_news_item_source", "News").strip(),
+            }
+
+            # If we have a direct news item with title and URL, add it
+            if news_item["title"] and news_item["url"]:
+                news_items.append(news_item)
+
+            # Check for nested news items structure
+            if hasattr(entry, "ht_news_item"):
+                items = []
+                if isinstance(entry.ht_news_item, list):
+                    items = entry.ht_news_item
+                elif isinstance(entry.ht_news_item, dict):
+                    items = [entry.ht_news_item]
+                elif hasattr(entry.ht_news_item, "ht_news_item_title"):
+                    items = [entry.ht_news_item]
+
+                for item in items:
+                    news_item = {
+                        "title": getattr(item, "ht_news_item_title", "").strip(),
+                        "snippet": getattr(item, "ht_news_item_snippet", "").strip(),
+                        "url": getattr(item, "ht_news_item_url", ""),
+                        "picture": getattr(item, "ht_news_item_picture", ""),
+                        "source": getattr(item, "ht_news_item_source", "News").strip(),
+                    }
+                    if news_item["title"] and news_item["url"]:
+                        news_items.append(news_item)
+        except Exception as e:
+            print(f"Error extracting Google Trends items: {e}")
+        
+        return news_items
 
             print(f"✅ Successfully fetched {len(trends)} trends from RSS feed")
             return trends
