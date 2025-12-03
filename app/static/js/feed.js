@@ -412,13 +412,9 @@ class InfiniteFeed {
         article.innerHTML = `
             <div class="feed-item-content">
                 <div class="feed-item-header">
-                    <div class="feed-item-image">
-                        ${proxiedImageUrl ? `
-                            <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy">
-                        ` : `
-                            <div class="image-placeholder" aria-hidden="true"></div>
-                        `}
-                    </div>
+                    ${proxiedImageUrl ? `<div class="feed-item-image">
+                        <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy" style="object-fit:cover;width:100%;height:100%;max-height:180px;">
+                    </div>` : ''}
                     <div class="feed-item-header-content">
                         <div class="feed-item-meta">
                             <span class="feed-item-category">${item.category || 'Trending'}</span>
@@ -595,46 +591,8 @@ class InfiniteFeed {
 
         this.container.appendChild(article);
 
-        // Extract dominant color from image for hover effect
-        if (!imageUrl) {
-            // Fallback: fetch cached thumbnail endpoint to get image_url and inject
-            (async () => {
-                try {
-                    console.log('🖼️ Fetching thumbnail for', item.content_id);
-                    const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
-                    if (!resp.ok) return;
-                    const art = await resp.json();
-                    const fallbackUrl = toProxy(art.picture_url || null);
-                    if (fallbackUrl || art.picture_url) {
-                        // Create header image container if missing and inject image
-                        const header = article.querySelector('.feed-item-header');
-                        if (header) {
-                            const existing = article.querySelector('.feed-item-image');
-                            const container = existing || document.createElement('div');
-                            container.className = 'feed-item-image';
-                            const imgEl = document.createElement('img');
-                            // Try proxy first; fall back to direct URL on error
-                            const directUrl = art.picture_url || null;
-                            imgEl.src = fallbackUrl || directUrl;
-                            if (fallbackUrl && directUrl) {
-                                imgEl.onerror = () => { imgEl.src = directUrl; };
-                            }
-                            imgEl.alt = item.title;
-                            imgEl.loading = 'lazy';
-                            container.innerHTML = '';
-                            container.appendChild(imgEl);
-                            if (!existing) {
-                                header.insertBefore(container, header.firstChild);
-                            }
-                            this.extractDominantColor(imgEl, article);
-                        }
-                    }
-                } catch (e) {
-                    console.warn('Thumbnail fetch failed for', item.content_id, e);
-                }
-            })();
-        } else {
-            // Extract color for initially rendered image (proxy may still fail silently)
+        // Extract dominant color from image for hover effect (only if image exists)
+        if (imageUrl) {
             const img = article.querySelector('.feed-item-image img');
             if (img) this.extractDominantColor(img, article);
         }
