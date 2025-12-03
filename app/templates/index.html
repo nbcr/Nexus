@@ -5,11 +5,13 @@
 {% endblock %}
 
 {% block content %}
-<script type="text/javascript" data-cmp-ab="1" src="https://cdn.consentmanager.net/delivery/autoblocking/626e849982db2.js" data-cmp-host="b.delivery.consentmanager.net" data-cmp-cdn="cdn.consentmanager.net" data-cmp-codesrc="0"></script>
+<script type="text/javascript" data-cmp-ab="1"
+    src="https://cdn.consentmanager.net/delivery/autoblocking/626e849982db2.js"
+    data-cmp-host="b.delivery.consentmanager.net" data-cmp-cdn="cdn.consentmanager.net" data-cmp-codesrc="0"></script>
 
 <script>
     // Hamburger bars safeguard - ensure bars exist in case header loads after page load
-    (function() {
+    (function () {
         function ensureHamburgerBars() {
             const hamburger = document.getElementById('hamburger-menu');
             if (hamburger && hamburger.children.length === 0) {
@@ -20,14 +22,14 @@
                 }
             }
         }
-        
+
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 ensureHamburgerBars();
                 // Set up MutationObserver to watch for changes
                 const hamburger = document.getElementById('hamburger-menu');
                 if (hamburger) {
-                    const observer = new MutationObserver(function(mutations) {
+                    const observer = new MutationObserver(function (mutations) {
                         ensureHamburgerBars();
                     });
                     observer.observe(hamburger, { childList: true, subtree: true });
@@ -38,13 +40,13 @@
             // Set up MutationObserver immediately
             const hamburger = document.getElementById('hamburger-menu');
             if (hamburger) {
-                const observer = new MutationObserver(function(mutations) {
+                const observer = new MutationObserver(function (mutations) {
                     ensureHamburgerBars();
                 });
                 observer.observe(hamburger, { childList: true, subtree: true });
             }
         }
-        
+
         // Also try after delays to catch any scripts that remove them
         setTimeout(ensureHamburgerBars, 50);
         setTimeout(ensureHamburgerBars, 100);
@@ -52,8 +54,8 @@
         setTimeout(ensureHamburgerBars, 500);
         setTimeout(ensureHamburgerBars, 1000);
     })();
-    
-    document.addEventListener('DOMContentLoaded', function() {
+
+    document.addEventListener('DOMContentLoaded', function () {
         // Show admin link if user is admin
         try {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -63,8 +65,8 @@
                     adminLink.style.display = 'block';
                 }
             }
-        } catch (e) {}
-        
+        } catch (e) { }
+
         // Hamburger menu initialization is now handled by header.js
     });
 </script>
@@ -80,7 +82,7 @@
 
     <!-- Feed Container -->
     <div id="feed-container"></div>
-    
+
     <!-- Article Modal -->
     <div id="article-modal" class="article-modal">
         <div class="article-modal-content">
@@ -105,7 +107,8 @@
             </div>
             <div class="article-error" style="display: none;">
                 <p>We couldn't extract the full article content from this source.</p>
-                <p style="margin-top: 10px; font-size: 14px; color: #666;">Some websites restrict content scraping. Click below to read the article on the original site.</p>
+                <p style="margin-top: 10px; font-size: 14px; color: #666;">Some websites restrict content scraping.
+                    Click below to read the article on the original site.</p>
                 <a id="article-source-link" target="_blank" class="btn-source">Read on Source Site</a>
             </div>
         </div>
@@ -124,11 +127,11 @@
 <script src="/static/js/auth.js?v=202512010100"></script>
 <script>
     let feed;
-    
+
     async function setupCategoryButtons() {
         const filterDiv = document.getElementById('category-filter');
         if (!filterDiv) return;
-        
+
         let categories = [];
         try {
             const response = await fetch('/api/v1/content/categories');
@@ -139,19 +142,19 @@
             } else {
                 console.error('Failed to load categories, status:', response.status);
                 // fallback: use defaults if fetch fails
-                categories = ['Technology','Business','Entertainment','Sports','Health','Politics'];
+                categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
             }
         } catch (e) {
             console.error('Failed to load categories:', e);
             // fallback: use defaults if fetch fails
-            categories = ['Technology','Business','Entertainment','Sports','Health','Politics'];
+            categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
         }
-        
+
         if (categories.length === 0) {
             console.warn('No categories found, using defaults');
-            categories = ['Technology','Business','Entertainment','Sports','Health','Politics'];
+            categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
         }
-        
+
         categories.forEach(cat => {
             const btn = document.createElement('button');
             btn.className = 'category-btn';
@@ -163,11 +166,11 @@
         // Setup click handlers
         const categoryButtons = filterDiv.querySelectorAll('.category-btn');
         categoryButtons.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 categoryButtons.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 const category = this.dataset.category;
-                
+
                 // 📊 Google Analytics: Track category filter
                 if (typeof gtag !== 'undefined') {
                     gtag('event', 'filter_category', {
@@ -175,19 +178,19 @@
                         'event_label': category
                     });
                 }
-                
+
                 feed.setCategory(category || null);
             });
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         feed = new InfiniteFeed('feed-container', {
             pageSize: 20,
             isPersonalized: true
         });
         setupCategoryButtons();
-        
+
         // Header is auto-initialized by header.js, no need to call initHeader again
     });
 </script>
@@ -195,4 +198,3 @@
 <!-- WebSocket Feed Notifier -->
 <script src="/static/js/feed-notifier.js?v=202512010100"></script>
 {% endblock %}
-

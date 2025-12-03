@@ -11,7 +11,7 @@ let autoRefreshInterval = null;
 let selectedUserId = null;
 
 // Authentication check on page load
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     await checkAdminAccess();
     initializeTabs();
     initializeDateRange();
@@ -24,22 +24,22 @@ async function checkAdminAccess() {
         const response = await fetch('/api/v1/admin/verify', {
             credentials: 'include'
         });
-        
+
         if (!response.ok) {
             showAccessDenied();
             return;
         }
-        
+
         const data = await response.json();
         if (!data.is_admin) {
             showAccessDenied();
             return;
         }
-        
+
         currentUser = data.user;
         showAdminContent();
         document.getElementById('admin-welcome').textContent = `Admin: ${currentUser.username}`;
-        
+
     } catch (error) {
         console.error('Auth check failed:', error);
         showAccessDenied();
@@ -75,13 +75,13 @@ function switchTab(tabName) {
             btn.classList.add('active');
         }
     });
-    
+
     // Update content
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
     document.getElementById(`tab-${tabName}`).classList.add('active');
-    
+
     // Load tab-specific data
     if (tabName === 'tracking') {
         refreshTracking();
@@ -98,15 +98,15 @@ async function refreshTracking() {
         const response = await fetch('/api/v1/admin/tracking-log', {
             credentials: 'include'
         });
-        
+
         if (!response.ok) throw new Error('Failed to fetch tracking data');
-        
+
         const data = await response.json();
         trackingData = data.events || [];
-        
+
         updateTrackingStats();
         renderTrackingLog();
-        
+
     } catch (error) {
         console.error('Failed to refresh tracking:', error);
     }
@@ -117,7 +117,7 @@ function updateTrackingStats() {
     const high = trackingData.filter(e => e.interaction_type === 'interest_high').length;
     const medium = trackingData.filter(e => e.interaction_type === 'interest_medium').length;
     const low = trackingData.filter(e => e.interaction_type === 'interest_low').length;
-    
+
     document.getElementById('total-events').textContent = total;
     document.getElementById('high-interest').textContent = high;
     document.getElementById('medium-interest').textContent = medium;
@@ -126,22 +126,22 @@ function updateTrackingStats() {
 
 function renderTrackingLog() {
     const logContainer = document.getElementById('tracking-log');
-    
+
     if (trackingData.length === 0) {
         logContainer.innerHTML = '<div style="text-align: center; color: #808080; padding: 40px;">No tracking events yet. Events will appear here in real-time.</div>';
         return;
     }
-    
+
     // Sort by most recent first
-    const sorted = [...trackingData].sort((a, b) => 
+    const sorted = [...trackingData].sort((a, b) =>
         new Date(b.created_at) - new Date(a.created_at)
     );
-    
+
     logContainer.innerHTML = sorted.map(event => {
         const interestLevel = event.interaction_type.replace('interest_', '');
         const metadata = event.metadata || {};
         const timestamp = new Date(event.created_at).toLocaleString();
-        
+
         return `
             <div class="log-entry ${interestLevel}">
                 <div class="log-entry-main">
@@ -171,20 +171,20 @@ async function clearTracking() {
     if (!confirm('Are you sure you want to clear all tracking data? This cannot be undone.')) {
         return;
     }
-    
+
     try {
         const response = await fetch('/api/v1/admin/clear-tracking', {
             method: 'POST',
             credentials: 'include'
         });
-        
+
         if (!response.ok) throw new Error('Failed to clear tracking');
-        
+
         trackingData = [];
         updateTrackingStats();
         renderTrackingLog();
         alert('Tracking data cleared successfully');
-        
+
     } catch (error) {
         console.error('Failed to clear tracking:', error);
         alert('Failed to clear tracking data');
@@ -192,7 +192,7 @@ async function clearTracking() {
 }
 
 // Auto-refresh toggle
-document.getElementById('auto-refresh')?.addEventListener('change', function(e) {
+document.getElementById('auto-refresh')?.addEventListener('change', function (e) {
     if (e.target.checked) {
         startAutoRefresh();
     } else {
@@ -231,7 +231,7 @@ async function saveGlobalSettings() {
         interestScoreThreshold: parseInt(document.getElementById('interestScoreThreshold').value),
         scrollSlowdownThreshold: parseFloat(document.getElementById('scrollSlowdownThreshold').value)
     };
-    
+
     try {
         const response = await fetch('/api/v1/admin/settings/global', {
             method: 'POST',
@@ -239,11 +239,11 @@ async function saveGlobalSettings() {
             credentials: 'include',
             body: JSON.stringify(settings)
         });
-        
+
         if (!response.ok) throw new Error('Failed to save settings');
-        
+
         alert('Global settings saved successfully! Users will receive updated settings on next page load.');
-        
+
     } catch (error) {
         console.error('Failed to save settings:', error);
         alert('Failed to save settings');
@@ -252,7 +252,7 @@ async function saveGlobalSettings() {
 
 function resetToDefaults() {
     if (!confirm('Reset all settings to default values?')) return;
-    
+
     document.getElementById('minHoverDuration').value = 1500;
     document.getElementById('afkThreshold').value = 5000;
     document.getElementById('movementThreshold').value = 5;
@@ -270,7 +270,7 @@ function testSettings() {
         movementThreshold: parseInt(document.getElementById('movementThreshold').value),
         interestScoreThreshold: parseInt(document.getElementById('interestScoreThreshold').value)
     };
-    
+
     alert(`Current Settings:\n\n${JSON.stringify(settings, null, 2)}\n\nThese settings will be used for all users by default.`);
 }
 
@@ -280,12 +280,12 @@ async function refreshUsers() {
         const response = await fetch('/api/v1/admin/users', {
             credentials: 'include'
         });
-        
+
         if (!response.ok) throw new Error('Failed to fetch users');
-        
+
         const data = await response.json();
         renderUsers(data.users || []);
-        
+
     } catch (error) {
         console.error('Failed to refresh users:', error);
     }
@@ -293,12 +293,12 @@ async function refreshUsers() {
 
 function renderUsers(users) {
     const usersList = document.getElementById('users-list');
-    
+
     if (users.length === 0) {
         usersList.innerHTML = '<div style="text-align: center; color: #808080; padding: 40px;">No users found</div>';
         return;
     }
-    
+
     usersList.innerHTML = users.map(user => `
         <div class="user-card" onclick="openUserModal(${user.id})">
             <div class="user-card-header">
@@ -329,7 +329,7 @@ function renderUsers(users) {
 function filterUsers() {
     const searchTerm = document.getElementById('user-search').value.toLowerCase();
     const userCards = document.querySelectorAll('.user-card');
-    
+
     userCards.forEach(card => {
         const text = card.textContent.toLowerCase();
         card.style.display = text.includes(searchTerm) ? 'block' : 'none';
@@ -339,34 +339,34 @@ function filterUsers() {
 // User Modal Functions
 async function openUserModal(userId) {
     selectedUserId = userId;
-    
+
     try {
         const response = await fetch(`/api/v1/admin/users/${userId}`, {
             credentials: 'include'
         });
-        
+
         if (!response.ok) throw new Error('Failed to fetch user details');
-        
+
         const user = await response.json();
-        
+
         document.getElementById('modal-username').textContent = user.username;
         document.getElementById('user-debug-mode').checked = user.debug_mode || false;
         document.getElementById('user-use-custom').checked = user.custom_settings !== null;
-        
+
         // Show debug warning if enabled
         if (user.debug_mode) {
             document.getElementById('debug-warning').style.display = 'block';
         } else {
             document.getElementById('debug-warning').style.display = 'none';
         }
-        
+
         if (user.custom_settings) {
             showCustomSettings();
             document.getElementById('user-minHoverDuration').value = user.custom_settings.minHoverDuration || 1500;
             document.getElementById('user-afkThreshold').value = user.custom_settings.afkThreshold || 5000;
             document.getElementById('user-interestScoreThreshold').value = user.custom_settings.interestScoreThreshold || 50;
         }
-        
+
         // Render user stats
         const statsHtml = `
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
@@ -391,9 +391,9 @@ async function openUserModal(userId) {
             </div>
         `;
         document.getElementById('user-stats').innerHTML = statsHtml;
-        
+
         document.getElementById('user-settings-modal').classList.add('active');
-        
+
     } catch (error) {
         console.error('Failed to open user modal:', error);
         alert('Failed to load user details');
@@ -405,7 +405,7 @@ function closeUserModal() {
     selectedUserId = null;
 }
 
-document.getElementById('user-use-custom')?.addEventListener('change', function(e) {
+document.getElementById('user-use-custom')?.addEventListener('change', function (e) {
     if (e.target.checked) {
         showCustomSettings();
     } else {
@@ -413,7 +413,7 @@ document.getElementById('user-use-custom')?.addEventListener('change', function(
     }
 });
 
-document.getElementById('user-debug-mode')?.addEventListener('change', function(e) {
+document.getElementById('user-debug-mode')?.addEventListener('change', function (e) {
     if (e.target.checked) {
         document.getElementById('debug-warning').style.display = 'block';
     } else {
@@ -431,7 +431,7 @@ function hideCustomSettings() {
 
 async function saveUserSettings() {
     if (!selectedUserId) return;
-    
+
     const debugMode = document.getElementById('user-debug-mode').checked;
     const useCustom = document.getElementById('user-use-custom').checked;
     const settings = useCustom ? {
@@ -439,24 +439,24 @@ async function saveUserSettings() {
         afkThreshold: parseInt(document.getElementById('user-afkThreshold').value),
         interestScoreThreshold: parseInt(document.getElementById('user-interestScoreThreshold').value)
     } : null;
-    
+
     try {
         const response = await fetch(`/api/v1/admin/users/${selectedUserId}/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 debug_mode: debugMode,
-                custom_settings: settings 
+                custom_settings: settings
             })
         });
-        
+
         if (!response.ok) throw new Error('Failed to save user settings');
-        
+
         alert('User settings saved successfully!');
         closeUserModal();
         refreshUsers();
-        
+
     } catch (error) {
         console.error('Failed to save user settings:', error);
         alert('Failed to save user settings');
@@ -468,7 +468,7 @@ function initializeDateRange() {
     const today = new Date();
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
-    
+
     document.getElementById('end-date').valueAsDate = today;
     document.getElementById('start-date').valueAsDate = weekAgo;
 }
@@ -476,17 +476,17 @@ function initializeDateRange() {
 async function loadAnalytics() {
     const startDate = document.getElementById('start-date').value;
     const endDate = document.getElementById('end-date').value;
-    
+
     try {
         const response = await fetch(`/api/v1/admin/analytics?start=${startDate}&end=${endDate}`, {
             credentials: 'include'
         });
-        
+
         if (!response.ok) throw new Error('Failed to fetch analytics');
-        
+
         const data = await response.json();
         renderAnalytics(data);
-        
+
     } catch (error) {
         console.error('Failed to load analytics:', error);
     }
@@ -495,10 +495,10 @@ async function loadAnalytics() {
 function renderAnalytics(data) {
     // Render interest distribution
     renderInterestChart(data.interest_distribution);
-    
+
     // Render top content
     renderTopContent(data.top_content);
-    
+
     // Render hover patterns
     renderHoverPatterns(data.hover_patterns);
 }
@@ -506,7 +506,7 @@ function renderAnalytics(data) {
 function renderInterestChart(distribution) {
     const canvas = document.getElementById('interest-chart');
     const ctx = canvas.getContext('2d');
-    
+
     // Simple bar chart
     const labels = ['High', 'Medium', 'Low'];
     const values = [
@@ -515,22 +515,22 @@ function renderInterestChart(distribution) {
         distribution.low || 0
     ];
     const colors = ['#ff4444', '#ffaa00', '#00aaff'];
-    
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // Simple visualization (you can integrate Chart.js for better charts)
     const maxValue = Math.max(...values, 1);
     const barWidth = canvas.width / labels.length - 20;
-    
+
     values.forEach((value, i) => {
         const height = (value / maxValue) * (canvas.height - 40);
         const x = i * (barWidth + 20) + 10;
         const y = canvas.height - height - 20;
-        
+
         ctx.fillStyle = colors[i];
         ctx.fillRect(x, y, barWidth, height);
-        
+
         ctx.fillStyle = '#e0e0e0';
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
@@ -541,12 +541,12 @@ function renderInterestChart(distribution) {
 
 function renderTopContent(topContent) {
     const container = document.getElementById('top-content');
-    
+
     if (!topContent || topContent.length === 0) {
         container.innerHTML = '<div style="color: #808080; padding: 20px;">No data available</div>';
         return;
     }
-    
+
     container.innerHTML = topContent.map((item, index) => `
         <div style="padding: 12px; background: var(--bg-secondary); margin-bottom: 10px; border-radius: 6px; border-left: 3px solid var(--accent-primary);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -566,12 +566,12 @@ function renderTopContent(topContent) {
 
 function renderHoverPatterns(patterns) {
     const container = document.getElementById('hover-patterns');
-    
+
     if (!patterns) {
         container.innerHTML = '<div style="color: #808080; padding: 20px;">No data available</div>';
         return;
     }
-    
+
     container.innerHTML = `
         <div style="display: grid; gap: 15px;">
             <div class="user-stat">
@@ -602,24 +602,24 @@ function formatRelativeTime(dateString) {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     return date.toLocaleDateString();
 }
 
 async function loadInitialData() {
     await refreshTracking();
-    
+
     // Load global settings from server
     try {
         const response = await fetch('/api/v1/admin/settings/global', {
             credentials: 'include'
         });
-        
+
         if (response.ok) {
             const settings = await response.json();
             Object.keys(settings).forEach(key => {
@@ -638,7 +638,7 @@ async function loadInitialData() {
 function toggleDarkMode() {
     // Toggle light-mode class (dark mode is default, no class needed)
     const isCurrentlyLight = document.documentElement.classList.contains('light-mode');
-    
+
     if (isCurrentlyLight) {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
@@ -677,7 +677,7 @@ async function logout() {
     } catch (error) {
         console.error('Logout error:', error);
     }
-    
+
     window.location.href = '/';
 }
 
