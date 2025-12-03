@@ -76,6 +76,13 @@
             </a>
             <nav>
                 <span id="user-welcome" class="user-welcome"></span>
+                
+                <!-- Desktop auth buttons (outside hamburger menu) -->
+                <div class="header-auth-buttons">
+                    <a href="/login" class="header-btn" id="auth-btn"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
+                    <a href="/register" class="header-btn" id="register-btn"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
+                </div>
+                
                 <button class="hamburger" id="hamburger-menu" aria-label="Open menu">
                     <span class="bar"></span>
                     <span class="bar"></span>
@@ -86,7 +93,7 @@
                     <button id="dark-mode-toggle-menu"><span class="menu-icon">🌙</span><span class="menu-label">Dark Mode</span></button>
                     <a href="/settings" class="menu-quick"><span class="menu-icon">⚙️</span><span class="menu-label">Settings</span></a>
                     
-                    <!-- Mobile auth buttons -->
+                    <!-- Mobile auth buttons (inside hamburger menu) -->
                     <a href="/login" class="auth-btn-mobile" id="auth-btn-mobile"><span class="menu-icon">🔐</span><span class="menu-label">Login</span></a>
                     <a href="/register" class="auth-btn-mobile" id="register-btn-mobile"><span class="menu-icon">📝</span><span class="menu-label">Register</span></a>
                     

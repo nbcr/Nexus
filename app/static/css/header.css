@@ -82,6 +82,8 @@
 
 /* Auth buttons order */
 .header-auth-buttons {
+    display: flex;
+    gap: 12px;
     order: 2;
 }
 
@@ -419,6 +421,11 @@ body.dark-mode #hamburger-menu .bar {
    MOBILE: HAMBURGER MENU
    ====================================== */
 
+/* Hide nav-links by default (both mobile and desktop) */
+.nav-links {
+    display: none;
+}
+
 @media (width <= 900px) {
     .nav-links {
         display: none;
@@ -545,7 +552,7 @@ body.dark-mode #hamburger-menu .bar {
     
     /* Mobile: hide desktop auth buttons, show mobile auth buttons */
     .header-auth-buttons {
-        display: none;
+        display: none !important;
     }
     
     .nav-links.open .auth-btn-mobile,
@@ -556,14 +563,14 @@ body.dark-mode #hamburger-menu .bar {
 
 /* Desktop: hide mobile auth buttons, show desktop header buttons */
 @media (width >= 901px) {
-    .auth-btn-mobile,
-    .register-btn-mobile {
-        display: none !important;
+    /* Show desktop auth buttons */
+    .header-auth-buttons {
+        display: flex !important;
     }
     
-    /* Ensure mobile auth buttons stay hidden even when menu is open on desktop */
-    .nav-links.open .auth-btn-mobile,
-    .nav-links.open .register-btn-mobile {
+    /* Hide mobile auth buttons */
+    .auth-btn-mobile,
+    .register-btn-mobile {
         display: none !important;
     }
     
