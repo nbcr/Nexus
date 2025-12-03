@@ -889,8 +889,8 @@
 footer {
     text-align: center;
     padding: 40px 20px;
-    color: #666;
-    background: #f8f9fa;
+    color: #999;
+    background: #000;
     margin-top: 60px;
 }
 
@@ -1044,7 +1044,7 @@ html.light-mode .feed-controls h2 {
 }
 
 html.light-mode footer {
-    background: #f8f9fa;
+    background: #fff;
     color: #666;
 }
 
