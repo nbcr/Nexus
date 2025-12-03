@@ -856,6 +856,13 @@ class TrendingService:
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
+                    
+                    # Check for duplicates before creating
+                    existing = await deduplication_service.find_duplicate(db, title, url)
+                    if existing:
+                        print(f"  ⚠️ Duplicate content found: '{title}' - skipping")
+                        continue
+                    
                     content_item = ContentItem(
                         topic_id=existing_topic.id,
                         title=title,
@@ -942,6 +949,13 @@ class TrendingService:
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
+                    
+                    # Check for duplicates before creating
+                    existing = await deduplication_service.find_duplicate(db, title, url)
+                    if existing:
+                        print(f"  ⚠️ Duplicate content found: '{title}' - skipping")
+                        continue
+                    
                     content_item = ContentItem(
                         topic_id=topic.id,
                         title=title,
