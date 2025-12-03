@@ -335,12 +335,13 @@ class InfiniteFeed {
             });
 
             if (excludeIds) params.append('exclude_ids', excludeIds);
-            // Only filter if categories/category is set (null = show everything)
-            if (this.categories && Array.isArray(this.categories) && this.categories.length > 0) {
+            // Only filter if categories/category is set (null or empty = show everything)
+            if (this.categories !== null && Array.isArray(this.categories) && this.categories.length > 0) {
                 params.append('categories', this.categories.join(','));
             } else if (this.category) {
                 params.append('category', this.category);
             }
+            // If both are null/undefined, don't add any category filter = show all
             if (this.cursor) params.append('cursor', this.cursor);
 
             console.log('Fetching:', `${endpoint}?${params}`);
