@@ -101,12 +101,10 @@ class ContentRecommendationService:
                 pass
 
         # Order by:
-        # 1. RSS/News content first (content_type = 'news_update')
-        # 2. Most recently CREATED (not updated) - shows truly new content
-        # 3. Trend score as tiebreaker
-        # This ensures new RSS articles always appear first, sorted by when they were created
+        # 1. Most recently CREATED (not updated) - shows truly new content first
+        # 2. Trend score as tiebreaker
+        # This ensures newest content always appears first regardless of type
         query = query.order_by(
-            desc(ContentItem.content_type == "news_update"),  # RSS news first
             desc(ContentItem.created_at),  # Show newest content first
             desc(Topic.trend_score),
         ).limit(
