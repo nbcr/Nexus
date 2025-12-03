@@ -45,22 +45,15 @@
         
         /* Apply variables to elements */
         html, body {
-            background-color: var(--bg-primary) !important;
-            color: var(--text-primary) !important;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
         }
-        /* Light mode (only when explicitly set) */
-        html.light-mode {
-            --bg-primary: #ffffff !important;
-            --bg-secondary: #f5f5f5 !important;
-            --bg-tertiary: #e0e0e0 !important;
-            --text-primary: #333333 !important;
-            --text-secondary: #666666 !important;
-            --text-muted: #999999 !important;
-        }
+        
+        /* Explicit light mode styles */
         html.light-mode,
         html.light-mode body {
-            background-color: #ffffff !important;
-            color: #333333 !important;
+            background-color: #ffffff;
+            color: #333333;
         }
     </style>
     
