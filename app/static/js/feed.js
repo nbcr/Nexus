@@ -19,6 +19,7 @@ class InfiniteFeed {
         this.currentPage = 1;
         this.pageSize = options.pageSize || 20;
         this.category = options.category || null;
+        this.categories = null;
         this.isLoading = false;
         this.hasMore = true;
         this.viewedContentIds = new Set();
@@ -334,7 +335,12 @@ class InfiniteFeed {
             });
 
             if (excludeIds) params.append('exclude_ids', excludeIds);
-            if (this.category) params.append('category', this.category);
+            // Only filter if categories/category is set (null = show everything)
+            if (this.categories && Array.isArray(this.categories) && this.categories.length > 0) {
+                params.append('categories', this.categories.join(','));
+            } else if (this.category) {
+                params.append('category', this.category);
+            }
             if (this.cursor) params.append('cursor', this.cursor);
 
             console.log('Fetching:', `${endpoint}?${params}`);
@@ -1034,6 +1040,14 @@ class InfiniteFeed {
 
     setCategory(category) {
         this.category = category;
+        this.categories = null;
+        this.reset();
+    }
+
+    setCategories(categories) {
+        // null = show everything; array = filter by those categories
+        this.categories = (categories === null || (Array.isArray(categories) && categories.length > 0)) ? categories : null;
+        this.category = null;
         this.reset();
     }
 

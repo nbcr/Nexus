@@ -223,8 +223,9 @@ class ContentRecommendationService:
         exclude_ids: List[int] = None,
         cursor: Optional[str] = None,
         category: Optional[str] = None,
+        categories: Optional[List[str]] = None,  # New: multi-category support
     ) -> Dict:
-        """Return all published content with cursor pagination; optional category filter."""
+        """Return all published content with cursor pagination; optional category filter(s)."""
         exclude_ids = exclude_ids or []
 
         query = (
@@ -237,7 +238,13 @@ class ContentRecommendationService:
             )
         )
 
-        if category:
+        # Handle multi-category filtering
+        if categories:
+            if "Reference" in categories:
+                categories = [c for c in categories if c != "Reference"]
+            if categories:
+                query = query.where(Topic.category.in_(categories))
+        elif category:
             if category == "Reference":
                 # Explicitly return empty for Reference category
                 return {"items": [], "next_cursor": None, "has_more": False}
