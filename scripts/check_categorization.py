@@ -144,15 +144,15 @@ async def check_recent_categorization(hours: int = 24, limit: int = 20):
     print(f"\n🔍 Checking categorization for content from last {hours} hours...\n")
     
     async with AsyncSessionLocal() as db:
-        result = await db.execute(text("""
+        result = await db.execute(text(f"""
             SELECT ci.id, ci.title, t.category, t.description, ci.created_at
             FROM content_items ci
             JOIN topics t ON ci.topic_id = t.id
             WHERE ci.is_published = true
-            AND ci.created_at > NOW() - INTERVAL :hours HOUR
+            AND ci.created_at > NOW() - INTERVAL '{hours} HOURS'
             ORDER BY ci.created_at DESC
-            LIMIT :limit
-        """), {"hours": hours, "limit": limit})
+            LIMIT {limit}
+        """))
         
         items = result.fetchall()
         
