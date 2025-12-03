@@ -18,7 +18,63 @@ from app.models import ContentItem, Topic, UserInteraction, UserInterestProfile,
 
 
 class ContentRecommendationService:
-    """Service for generating personalized content recommendations"""
+    async def _get_related_content(
+            self,
+            db: AsyncSession,
+            base_content: ContentItem,
+            base_topic: Topic,
+            limit: int = 3,
+        ) -> List[Dict]:
+            """Find related content items by category and overlapping tags."""
+            # Build base filters: same category and recent items, exclude self
+            filters = [
+                ContentItem.id != base_content.id,
+                ContentItem.is_published == True,
+                Topic.category == base_topic.category,
+            ]
+
+            query = (
+                select(ContentItem, Topic)
+                .join(Topic, ContentItem.topic_id == Topic.id)
+                .where(*filters)
+                .order_by(desc(ContentItem.created_at))
+                .limit(20)
+            )
+
+            result = await db.execute(query)
+            candidates = result.all()
+
+            # Score by tag overlap and title similarity
+            def score(c: ContentItem, t: Topic) -> float:
+                s = 0.0
+                base_tags = set((base_topic.tags or []) + ([] if not base_content.source_metadata else list(base_content.source_metadata.get('tags', []))))
+                cand_tags = set((t.tags or []) + ([] if not c.source_metadata else list(c.source_metadata.get('tags', []))))
+                overlap = base_tags.intersection(cand_tags)
+                if overlap:
+                    s += 0.6 * min(len(overlap) / max(len(base_tags) or 1, 1), 1.0)
+                # Simple title keyword overlap
+                base_words = set((base_content.title or base_topic.title or '').lower().split())
+                cand_words = set((c.title or t.title or '').lower().split())
+                word_overlap = base_words.intersection(cand_words)
+                if word_overlap:
+                    s += 0.4 * min(len(word_overlap) / max(len(base_words) or 1, 1), 1.0)
+                return s
+
+            scored = sorted(candidates, key=lambda ct: score(ct[0], ct[1]), reverse=True)
+            related = []
+            for content, topic in scored[:limit]:
+                related.append(
+                    {
+                        "content_id": content.id,
+                        "title": content.title or topic.title,
+                        "source_urls": content.source_urls,
+                        "category": content.category or topic.category,
+                        "created_at": content.created_at.isoformat(),
+                    }
+                )
+
+                return related
+            """Service for generating personalized content recommendations"""
 
     async def get_personalized_feed(
         self,
@@ -62,29 +118,8 @@ class ContentRecommendationService:
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
                 ContentItem.is_published == True,
+                Topic.category != "Reference",
                 ContentItem.id.notin_(all_excluded) if all_excluded else True,
-                # Show items with meaningful content
-                or_(
-                    ContentItem.content_type == "trending_analysis",
-                    or_(
-                        # Has picture in source_metadata
-                        and_(
-                            ContentItem.source_metadata.isnot(None),
-                            cast(
-                                ContentItem.source_metadata["picture_url"], String
-                            ).isnot(None),
-                            func.length(
-                                cast(ContentItem.source_metadata["picture_url"], String)
-                            )
-                            > 10,
-                        ),
-                        # OR has meaningful scraped content
-                        and_(
-                            ContentItem.content_text.isnot(None),
-                            func.length(ContentItem.content_text) > 200,
-                        ),
-                    ),
-                ),
             )
         )
 
@@ -106,10 +141,7 @@ class ContentRecommendationService:
         # This ensures newest content always appears first regardless of type
         query = query.order_by(
             desc(ContentItem.created_at),  # Show newest content first
-            desc(Topic.trend_score),
-        ).limit(
-            page_size + 1
-        )  # Fetch one extra to check if there's more
+        ).limit(page_size + 1)  # Fetch one extra to check if there's more
 
         result = await db.execute(query)
         items = result.all()
@@ -125,6 +157,8 @@ class ContentRecommendationService:
             relevance_score = self._calculate_relevance(
                 topic, content, user_categories, user_interests
             )
+
+            related_items = await self._get_related_content(db, content, topic, limit=3)
 
             feed_items.append(
                 {
@@ -151,6 +185,7 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
                     "tags": topic.tags,
+                    "related_items": related_items,
                 }
             )
 
@@ -170,20 +205,88 @@ class ContentRecommendationService:
         exclude_ids: List[int] = None,
         cursor: Optional[str] = None,
     ) -> Dict:
-        """
-        Get trending content feed with cursor-based pagination.
+        """Deprecated: Use get_all_feed instead."""
+        return await self.get_all_feed(
+            db=db,
+            page=page,
+            page_size=page_size,
+            exclude_ids=exclude_ids or [],
+            cursor=cursor,
+            category=category,
+        )
 
-        Args:
-            db: Database session
-            page: Page number (1-indexed, used as fallback)
-            page_size: Number of items per page
-            category: Optional category filter
-            exclude_ids: List of content IDs to exclude
-            cursor: ISO timestamp cursor for pagination
+    async def get_all_feed(
+        self,
+        db: AsyncSession,
+        page: int = 1,
+        page_size: int = 20,
+        exclude_ids: List[int] = None,
+        cursor: Optional[str] = None,
+        category: Optional[str] = None,
+    ) -> Dict:
+        """Return all published content with cursor pagination; optional category filter."""
+        exclude_ids = exclude_ids or []
 
-        Returns:
-            Dict with items, next_cursor, and has_more flag
-        """
+        query = (
+            select(ContentItem, Topic)
+            .join(Topic, ContentItem.topic_id == Topic.id)
+            .where(
+                ContentItem.is_published == True,
+                Topic.category != "Reference",
+                ContentItem.id.notin_(exclude_ids) if exclude_ids else True,
+            )
+        )
+
+        if category:
+            if category == "Reference":
+                # Explicitly return empty for Reference category
+                return {"items": [], "next_cursor": None, "has_more": False}
+            query = query.where(Topic.category == category)
+
+        if cursor:
+            try:
+                cursor_time = datetime.fromisoformat(cursor)
+                query = query.where(ContentItem.created_at < cursor_time)
+            except (ValueError, TypeError):
+                pass
+
+        query = query.order_by(desc(ContentItem.created_at)).limit(page_size + 1)
+
+        result = await db.execute(query)
+        rows = result.all()
+
+        has_more = len(rows) > page_size
+        if has_more:
+            rows = rows[:page_size]
+
+        items = []
+        for content, topic in rows:
+            related_items = await self._get_related_content(db, content, topic, limit=3)
+            items.append(
+                {
+                    "content_id": content.id,
+                    "slug": content.slug,
+                    "topic_id": topic.id,
+                    "title": content.title or topic.title,
+                    "description": content.description or topic.description,
+                    "category": content.category or topic.category,
+                    "content_type": content.content_type,
+                    "content_text": content.content_text,
+                    "source_urls": content.source_urls,
+                    "source_metadata": getattr(content, "source_metadata", {}),
+                    "trend_score": topic.trend_score,
+                    "created_at": content.created_at.isoformat(),
+                    "updated_at": content.updated_at.isoformat(),
+                    "tags": topic.tags,
+                    "related_items": related_items,
+                }
+            )
+
+        next_cursor = None
+        if items and has_more:
+            next_cursor = items[-1]["created_at"]
+
+        return {"items": items, "next_cursor": next_cursor, "has_more": has_more}
         exclude_ids = exclude_ids or []
 
         query = (
