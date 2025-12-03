@@ -44,10 +44,21 @@ async def update_existing_topics():
                         # Use the first news item's title
                         first_news = news_items[0]
                         if first_news.title and first_news.title != topic.title:
-                            old_title = topic.title
-                            topic.title = first_news.title
-                            updated_count += 1
-                            print(f"  ✓ Updated: '{old_title}' → '{topic.title}'")
+                            # Check if another topic already has this title
+                            result = await db.execute(
+                                select(Topic).where(Topic.title == first_news.title)
+                            )
+                            existing = result.scalar_one_or_none()
+
+                            if existing and existing.id != topic.id:
+                                print(
+                                    f"  ⊘ Skipped: '{topic.title}' (would duplicate '{first_news.title}')"
+                                )
+                            else:
+                                old_title = topic.title
+                                topic.title = first_news.title
+                                updated_count += 1
+                                print(f"  ✓ Updated: '{old_title}' → '{topic.title}'")
                         else:
                             print(f"  ⊘ Skipped: '{topic.title}' (already good)")
                     else:
