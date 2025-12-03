@@ -503,7 +503,7 @@ class InfiniteFeed {
                                         </div>`;
                                         article.dataset.snippetLoaded = 'rate-limited';
                                     } else if (data.snippet) {
-                                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Full article content available</p>' : ''}`;
+                                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`;
                                         article.dataset.snippetLoaded = 'true';
                                     } else {
                                         summaryEl.innerHTML = '<em>No preview available from this source</em>';
@@ -863,11 +863,11 @@ class InfiniteFeed {
                 continueReadingBtn.className = 'continue-reading-cta';
                 continueReadingBtn.innerHTML = `
                     <p class="cta-text">
-                        📚 Want the full story with context and analysis?
+                        📚 Want the facts with context and analysis?
                     </p>
                     <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
                        class="btn-continue-reading">
-                        Read Full Facts on ${article.domain || 'Source Site'} →
+                        Read Facts on ${article.domain || 'Source Site'} →
                     </a>
                 `;
                 body.appendChild(continueReadingBtn);
