@@ -31,12 +31,31 @@ We maintain a curated list of high-quality RSS feeds organized by category:
 - **Science**: Science Daily, Scientific American, Space.com
 - **World News**: BBC, Al Jazeera, CBC World
 
+#### Automatic Feed Discovery (NEW!)
+The system automatically searches for new RSS feeds based on your interests:
+
+**Discovery Strategies:**
+1. **Common RSS Patterns**: Searches FeedBurner, Reddit, Medium for feeds
+2. **Google News RSS**: Creates custom Google News feeds for your topics
+3. **Keyword-Based Search**: Uses your top keywords to find relevant feeds
+4. **Category Matching**: Searches feeds in your preferred categories
+
+**Feed Quality Scoring:**
+Every discovered feed is scored (0-1) based on:
+- **Update Frequency**: How recent the latest posts are (20% weight)
+- **Content Quality**: Length and substance of articles (15% weight)
+- **Feed Size**: Number of available entries (10% weight)
+- **Metadata**: Completeness of feed information (10% weight)
+
+Feeds with scores > 0.7 are considered high-quality and recommended to users.
+
 #### Smart Matching
 The system matches users to feeds based on:
 1. **Category Alignment**: Prioritizes feeds in user's top 3-5 categories
 2. **Relevance Scoring**: Assigns scores (0-1) based on match quality
 3. **Explicit Interests**: Uses user profile interests if available
 4. **Usage Patterns**: Adapts to changing preferences over time
+5. **Automatic Discovery**: Finds new feeds as your interests evolve
 
 ### 3. **Content Aggregation**
 
@@ -156,6 +175,55 @@ Returns topic keywords for search/exploration based on user history.
 }
 ```
 
+### Search RSS Feeds by Keyword
+```
+GET /api/content/rss/search?keyword=<term>&max_results=5
+```
+Search for RSS feeds matching a keyword using multiple discovery strategies.
+
+**Response:**
+```json
+{
+  "keyword": "artificial intelligence",
+  "feeds": [
+    {
+      "url": "https://medium.com/feed/tag/artificial-intelligence",
+      "title": "Artificial Intelligence on Medium",
+      "description": "Latest stories tagged with...",
+      "quality_score": 0.95,
+      "total_entries": 10,
+      "last_updated": "Wed, 03 Dec 2025 02:14:25 GMT",
+      "language": "en"
+    }
+  ],
+  "count": 1
+}
+```
+
+### Auto-Discover Feeds
+```
+GET /api/content/rss/auto-discover?max_feeds=10
+```
+Automatically discover new RSS feeds based on user's reading preferences.
+Searches for feeds matching user's top keywords and categories.
+
+**Response:**
+```json
+{
+  "discovered_feeds": [
+    {
+      "url": "https://news.google.com/rss/search?q=technology&hl=en-CA",
+      "title": "\"technology\" - Google News",
+      "quality_score": 1.0,
+      "total_entries": 100,
+      "last_updated": "Wed, 03 Dec 2025 02:23:35 GMT"
+    }
+  ],
+  "count": 5,
+  "message": "Discovered 5 new feeds based on your preferences"
+}
+```
+
 ## Privacy & Data
 
 - **Anonymous Tracking**: Works for both logged-in users and anonymous visitors via session tokens
@@ -165,14 +233,15 @@ Returns topic keywords for search/exploration based on user history.
 
 ## Future Enhancements
 
-1. **NewsAPI Integration**: Search RSS feeds by keyword using NewsAPI service
-2. **Feedly API**: Access Feedly's massive feed database for discovery
-3. **Machine Learning**: Train ML models on user behavior for better predictions
-4. **Collaborative Filtering**: "Users like you also read..." recommendations
-5. **Topic Modeling**: Use NLP to discover hidden topics in user preferences
-6. **Real-time Updates**: WebSocket-based live content updates
-7. **Content Embeddings**: Use semantic similarity for better matching
-8. **A/B Testing**: Test different recommendation algorithms
+1. **Advanced ML Models**: Train ML models on user behavior for better predictions
+2. **Collaborative Filtering**: "Users like you also read..." recommendations
+3. **Topic Modeling**: Use NLP to discover hidden topics in user preferences
+4. **Real-time Updates**: WebSocket-based live content updates
+5. **Content Embeddings**: Use semantic similarity for better matching
+6. **A/B Testing**: Test different recommendation algorithms
+7. **Feed Quality Monitoring**: Continuous monitoring and removal of low-quality feeds
+8. **User Feedback Loop**: Allow users to rate discovered feeds
+9. **Multi-language Support**: Discover feeds in user's preferred language
 
 ## Technical Stack
 
