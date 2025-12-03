@@ -10,6 +10,7 @@ from app.models import Topic, ContentItem
 from app.core.config import settings
 from app.services.pytrends_service import pytrends_service
 from app.services.deduplication import deduplication_service
+from app.services.article_scraper import article_scraper
 
 
 class TrendingService:
@@ -876,6 +877,20 @@ class TrendingService:
                         )
                         continue
 
+                    # Try to scrape article and extract facts
+                    content_text = ai_summary
+                    if url:
+                        try:
+                            print(f"  📰 Scraping article for facts: {url}")
+                            article_data = await article_scraper.fetch_article(url)
+                            if article_data and article_data.get("content"):
+                                content_text = article_data["content"]
+                                print(f"  ✅ Extracted article content ({len(content_text)} chars)")
+                            else:
+                                print(f"  ⚠️ Could not extract content, using summary")
+                        except Exception as e:
+                            print(f"  ⚠️ Scraping failed: {e}, using summary")
+
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
@@ -884,7 +899,7 @@ class TrendingService:
                         title=title,
                         slug=slug,
                         content_type="trending_analysis",
-                        content_text=ai_summary,
+                        content_text=content_text,
                         ai_model_used="google_trends_analyzer_v1",
                         source_urls=[url],
                         is_published=True,
@@ -948,6 +963,20 @@ class TrendingService:
                         )
                         continue
 
+                    # Try to scrape article and extract facts
+                    content_text = ai_summary
+                    if url:
+                        try:
+                            print(f"  📰 Scraping article for facts: {url}")
+                            article_data = await article_scraper.fetch_article(url)
+                            if article_data and article_data.get("content"):
+                                content_text = article_data["content"]
+                                print(f"  ✅ Extracted article content ({len(content_text)} chars)")
+                            else:
+                                print(f"  ⚠️ Could not extract content, using summary")
+                        except Exception as e:
+                            print(f"  ⚠️ Scraping failed: {e}, using summary")
+
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
@@ -956,7 +985,7 @@ class TrendingService:
                         title=title,
                         slug=slug,
                         content_type="trending_analysis",
-                        content_text=ai_summary,
+                        content_text=content_text,
                         ai_model_used="google_trends_analyzer_v1",
                         source_urls=[url],
                         is_published=True,
