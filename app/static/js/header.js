@@ -302,8 +302,10 @@ function initHamburgerMenu() {
     
     // Dark mode toggle in menu (don't close menu)
     const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
+    console.log('Dark mode toggle button found:', darkToggleMenu);
     if (darkToggleMenu) {
         darkToggleMenu.addEventListener('click', function(e) {
+            console.log('Dark mode button clicked!');
             e.stopPropagation();
             toggleDarkMode();
             // Don't close menu
