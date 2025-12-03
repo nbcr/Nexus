@@ -864,6 +864,13 @@ class TrendingService:
                         await deduplication_service.link_as_related(db, existing.id, existing_topic.id)
                         continue
                     
+                    # Prepare source_metadata with image if available
+                    source_meta = {
+                        "source": trend_data.get("source", "Trends"),
+                    }
+                    if trend_data.get("image_url"):
+                        source_meta["picture_url"] = trend_data["image_url"]
+                    
                     content_item = ContentItem(
                         topic_id=existing_topic.id,
                         title=title,
@@ -872,6 +879,7 @@ class TrendingService:
                         content_text=content_text,
                         ai_model_used="google_trends_analyzer_v1",
                         source_urls=[url],
+                        source_metadata=source_meta,
                         is_published=True,
                     )
                     db.add(content_item)
@@ -958,6 +966,13 @@ class TrendingService:
                         await deduplication_service.link_as_related(db, existing.id, topic.id)
                         continue
                     
+                    # Prepare source_metadata with image if available
+                    source_meta = {
+                        "source": trend_data.get("source", "Trends"),
+                    }
+                    if trend_data.get("image_url"):
+                        source_meta["picture_url"] = trend_data["image_url"]
+                    
                     content_item = ContentItem(
                         topic_id=topic.id,
                         title=title,
@@ -966,6 +981,7 @@ class TrendingService:
                         content_text=content_text,
                         ai_model_used="google_trends_analyzer_v1",
                         source_urls=[url],
+                        source_metadata=source_meta,
                         is_published=True,
                     )
                     db.add(content_item)
