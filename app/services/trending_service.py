@@ -401,6 +401,26 @@ class TrendingService:
             "premiere",
             "trailer",
             "box office",
+            "artist",
+            "musician",
+            "song",
+            "songwriter",
+            "rapper",
+            "rock",
+            "pop",
+            "country",
+            "hip hop",
+            "jazz",
+            "recording",
+            "tour",
+            "live show",
+            "performance",
+            "billboard",
+            "chart",
+            "snl",
+            "saturday night live",
+            "late night",
+            "talk show",
         ],
         "Technology": [
             "tech",
@@ -645,12 +665,13 @@ class TrendingService:
 
     def _categorize_text(self, text: str) -> str:
         """Categorize text based on keywords. Returns best matching category or 'General'.
-        Sports keywords get higher priority (2x weight) to handle sports business stories correctly."""
+        Sports and Entertainment keywords get higher priority (1.5x weight) to handle edge cases correctly."""
         text_lower = text.lower()
         scores = {cat: 0 for cat in self.CATEGORY_KEYWORDS}
 
         for cat, keywords in self.CATEGORY_KEYWORDS.items():
-            weight = 2 if cat == "Sports" else 1  # Sports keywords get double weight
+            # Sports and Entertainment get priority weighting
+            weight = 1.5 if cat in ("Sports", "Entertainment") else 1
             for kw in keywords:
                 if kw in text_lower:
                     scores[cat] += weight
