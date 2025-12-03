@@ -432,7 +432,7 @@ class InfiniteFeed {
                         <div class="feed-item-actions">
                             ${isNewsArticle ? `
                                 <button class="btn-read-more" data-content-id="${item.content_id}">
-                                    Read Full Article
+                                    Read Facts
                                 </button>
                             ` : isSearchQuery ? `
                                 <button class="btn-read-more" data-content-id="${item.content_id}">
@@ -786,7 +786,7 @@ class InfiniteFeed {
                     </p>
                     <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
                        class="btn-continue-reading">
-                        Read Full Article on ${article.domain || 'Source Site'} →
+                        Read Full Facts on ${article.domain || 'Source Site'} →
                     </a>
                 `;
                 body.appendChild(continueReadingBtn);
