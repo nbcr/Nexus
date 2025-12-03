@@ -493,7 +493,12 @@ class TrendingService:
             print(f"Number of news items to add: {len(news_items)}")
 
             # Create new content items for news updates
-            for news_item in news_items:
+            # Add microsecond increments to ensure unique timestamps for ordering
+            from datetime import datetime, timedelta
+
+            base_time = datetime.utcnow()
+
+            for idx, news_item in enumerate(news_items):
                 title = news_item.get("title", "")
                 url = news_item.get("url", "")
 
@@ -512,6 +517,8 @@ class TrendingService:
                 from app.utils.slug import generate_slug, generate_slug_from_url
 
                 slug = generate_slug(title) if title else generate_slug_from_url(url)
+                # Set unique timestamp by adding microseconds - newer items get later timestamps
+                created_time = base_time + timedelta(microseconds=idx * 1000)
                 content_item = ContentItem(
                     topic_id=topic_id,
                     title=title,
@@ -525,6 +532,7 @@ class TrendingService:
                     ai_model_used="google_trends_news_v1",
                     source_urls=[url],
                     is_published=True,
+                    created_at=created_time,  # Set explicit timestamp
                     source_metadata={
                         "source": news_item.get("source", "News"),
                         "picture_url": news_item.get("picture", None),
