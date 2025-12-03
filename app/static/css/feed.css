@@ -1090,5 +1090,124 @@ body.dark-mode footer {
     color: #1440a6;
 }
 
+/* Light Mode Overrides */
+html.light-mode .feed-item-title {
+    color: #1a1a1a;
+}
+
+html.light-mode .feed-item-description,
+html.light-mode .feed-item-summary {
+    color: #222;
+}
+
+html.light-mode .feed-item-source {
+    color: #666;
+}
+
+html.light-mode .tag {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+html.light-mode .btn-source {
+    background: #f8f9fa;
+    color: #333;
+    border-color: #dee2e6;
+}
+
+html.light-mode .article-modal-content {
+    background: #fff;
+    box-shadow: 0 8px 32px rgb(0 0 0 / 30%);
+}
+
+html.light-mode .article-modal-close {
+    color: #666;
+}
+
+html.light-mode .article-modal-close:hover {
+    background: #f0f0f0;
+    color: #000;
+}
+
+html.light-mode .article-modal-header h1 {
+    color: #1a1a1a;
+}
+
+html.light-mode .article-meta {
+    border-bottom-color: #e0e0e0;
+    color: #555;
+}
+
+html.light-mode .article-meta span:not(:empty)::before {
+    background: #555;
+}
+
+html.light-mode .article-body {
+    color: #1a1a1a;
+}
+
+html.light-mode .article-loading .spinner {
+    border-color: #f3f3f3;
+    border-top-color: #1440a6;
+}
+
+html.light-mode .article-error p {
+    color: #555;
+}
+
+html.light-mode .article-related {
+    border-top-color: #e0e0e0;
+}
+
+html.light-mode .article-related h3 {
+    color: #1a1a1a;
+}
+
+html.light-mode .related-item {
+    background: #f8f9fa;
+    border-color: #e0e0e0;
+}
+
+html.light-mode .related-item:hover {
+    border-color: #1440a6;
+    box-shadow: 0 2px 8px rgb(0 86 179 / 10%);
+}
+
+html.light-mode .related-item-source {
+    color: #666;
+}
+
+html.light-mode .related-item-title {
+    color: #1a1a1a;
+}
+
+html.light-mode .related-item-description {
+    color: #555;
+}
+
+html.light-mode .modal-content {
+    background: #fff;
+}
+
+html.light-mode .modal-content h1 {
+    color: #1a1a1a;
+}
+
+html.light-mode .modal-meta {
+    color: #666;
+}
+
+html.light-mode .modal-body {
+    color: #1a1a1a;
+}
+
+html.light-mode .feed-controls h2 {
+    color: #1a1a1a;
+}
+
+html.light-mode footer {
+    background: #f8f9fa;
+    color: #666;
+}
 
 /* Removed duplicate Continue Reading + dark mode block */
