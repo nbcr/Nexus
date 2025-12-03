@@ -252,10 +252,9 @@ class InfiniteFeed {
         const options = {
             root: null,
             rootMargin: '0px',
-            ${ proxiedImageUrl ? `<div class="feed-item-image">
-                        <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy" style="object-fit:contain;width:100%;max-height:180px;display:block;margin:0 auto;">
-                    </div>` : ''
-    }
+            threshold: 0.1
+        };
+        
         this.cardObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             const contentId = parseInt(entry.target.dataset.contentId);
@@ -406,16 +405,16 @@ defaultRenderContent(item) {
 
     if (proxiedImageUrl) {
         imageHtml = `<div class="feed-item-image">
-            <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy" style="object-fit:cover;width:100%;height:100%;max-height:180px;">
+            <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy">
         </div>`;
     } else if (imageUrl) {
         imageHtml = `<div class="feed-item-image">
-            <img src="${imageUrl}" alt="${item.title}" loading="lazy" style="object-fit:cover;width:100%;height:100%;max-height:180px;">
+            <img src="${imageUrl}" alt="${item.title}" loading="lazy">
         </div>`;
     } else {
         // Will try to fetch thumbnail below, else show placeholder
         imageHtml = `<div class="feed-item-image">
-            <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="object-fit:contain;width:100%;height:100%;max-height:180px;filter:grayscale(1);opacity:0.5;">
+            <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="filter:grayscale(1);opacity:0.5;">
         </div>`;
     }
 
