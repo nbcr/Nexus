@@ -62,6 +62,12 @@ body {
   box-sizing: border-box;
 }
 
+/* HTML Base Styles */
+html {
+  background: var(--bg-primary);
+  transition: background-color var(--transition-base);
+}
+
 /* Body Base Styles */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
