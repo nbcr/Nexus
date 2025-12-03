@@ -25,17 +25,29 @@
     </script>
     <style>
         /* Blocking inline styles to prevent flash - applied immediately */
-        /* Dark mode (default - no class needed) */
-        html:not(.light-mode),
-        html:not(.light-mode) body {
-            --bg-primary: #181818 !important;
-            --bg-secondary: #222222 !important;
-            --bg-tertiary: #2a2a2a !important;
-            --text-primary: #ffffff !important;
-            --text-secondary: #cccccc !important;
-            --text-muted: #999999 !important;
-            background-color: #181818 !important;
-            color: #ffffff !important;
+        /* Set variables based on mode */
+        html {
+            --bg-primary: #181818;
+            --bg-secondary: #222222;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #999999;
+        }
+        
+        html.light-mode {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e0e0e0;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+        }
+        
+        /* Apply variables to elements */
+        html, body {
+            background-color: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
         }
         /* Light mode (only when explicitly set) */
         html.light-mode {
