@@ -14,6 +14,7 @@ from app.schemas import (
 from app.services.content_recommendation import recommendation_service
 from app.services.article_scraper import article_scraper
 from app.services.deduplication import deduplication_service
+from app.services.rss_discovery import rss_discovery_service
 
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -558,3 +559,101 @@ async def get_content_by_topic(topic_id: int, db: AsyncSession = Depends(get_db)
     )
     content_items = result.scalars().all()
     return content_items
+
+
+@router.get("/preferences/analyze")
+async def analyze_user_preferences(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    nexus_session: Optional[str] = Cookie(default=None),
+):
+    """
+    Analyze user's reading preferences based on their interaction history.
+    Returns categories, keywords, and reading patterns.
+    """
+    user_id = getattr(request.state, "user_id", None)
+    session_token = nexus_session
+
+    try:
+        preferences = await rss_discovery_service.analyze_user_preferences(
+            db, user_id, session_token
+        )
+        return preferences
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to analyze preferences: {str(e)}"
+        )
+
+
+@router.get("/rss/discover")
+async def discover_rss_feeds(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    nexus_session: Optional[str] = Cookie(default=None),
+):
+    """
+    Discover RSS feeds tailored to user's preferences.
+    Returns a list of recommended RSS feeds with relevance scores.
+    """
+    user_id = getattr(request.state, "user_id", None)
+    session_token = nexus_session
+
+    try:
+        feeds = await rss_discovery_service.discover_feeds_for_user(
+            db, user_id, session_token
+        )
+        return {"feeds": feeds, "count": len(feeds)}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to discover feeds: {str(e)}"
+        )
+
+
+@router.get("/rss/content")
+async def get_rss_content(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    nexus_session: Optional[str] = Cookie(default=None),
+    max_items: int = Query(20, ge=1, le=100),
+):
+    """
+    Get personalized content from RSS feeds based on user's preferences.
+    Returns aggregated content from multiple relevant RSS feeds.
+    """
+    user_id = getattr(request.state, "user_id", None)
+    session_token = nexus_session
+
+    try:
+        items = await rss_discovery_service.get_personalized_rss_content(
+            db, user_id, session_token, max_items_per_feed=max_items // 4
+        )
+        return {"items": items[:max_items], "count": len(items[:max_items])}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch RSS content: {str(e)}"
+        )
+
+
+@router.get("/suggestions/topics")
+async def suggest_topics(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    nexus_session: Optional[str] = Cookie(default=None),
+):
+    """
+    Suggest topic keywords for content discovery based on user's reading history.
+    Useful for search and exploration features.
+    """
+    user_id = getattr(request.state, "user_id", None)
+    session_token = nexus_session
+
+    try:
+        suggestions = await rss_discovery_service.suggest_topics_from_preferences(
+            db, user_id, session_token
+        )
+        return {"suggestions": suggestions}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate suggestions: {str(e)}"
+        )
+
