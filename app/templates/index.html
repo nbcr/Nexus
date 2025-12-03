@@ -72,12 +72,10 @@
 </script>
 
 <main>
-    <!-- Category Filter -->
+    <!-- Category Filter (removed topic buttons per request) -->
     <div class="feed-controls">
         <h2>Your Personalized Feed</h2>
-        <div class="category-filter" id="category-filter">
-            <!-- Category buttons will be generated dynamically -->
-        </div>
+        <div class="category-filter" id="category-filter" style="display:none;"></div>
     </div>
 
     <!-- Feed Container -->
@@ -128,68 +126,14 @@
 <script>
     let feed;
 
-    async function setupCategoryButtons() {
-        const filterDiv = document.getElementById('category-filter');
-        if (!filterDiv) return;
-
-        let categories = [];
-        try {
-            const response = await fetch('/api/v1/content/categories');
-            if (response.ok) {
-                const data = await response.json();
-                categories = data.categories || [];
-                console.log('Loaded categories:', categories);
-            } else {
-                console.error('Failed to load categories, status:', response.status);
-                // fallback: use defaults if fetch fails
-                categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
-            }
-        } catch (e) {
-            console.error('Failed to load categories:', e);
-            // fallback: use defaults if fetch fails
-            categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
-        }
-
-        if (categories.length === 0) {
-            console.warn('No categories found, using defaults');
-            categories = ['Technology', 'Business', 'Entertainment', 'Sports', 'Health', 'Politics'];
-        }
-
-        categories.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'category-btn';
-            btn.dataset.category = cat;
-            btn.textContent = cat;
-            filterDiv.appendChild(btn);
-        });
-
-        // Setup click handlers
-        const categoryButtons = filterDiv.querySelectorAll('.category-btn');
-        categoryButtons.forEach(btn => {
-            btn.addEventListener('click', function () {
-                categoryButtons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const category = this.dataset.category;
-
-                // 📊 Google Analytics: Track category filter
-                if (typeof gtag !== 'undefined') {
-                    gtag('event', 'filter_category', {
-                        'category': category,
-                        'event_label': category
-                    });
-                }
-
-                feed.setCategory(category || null);
-            });
-        });
-    }
+    async function setupCategoryButtons() { /* topic buttons disabled */ }
 
     document.addEventListener('DOMContentLoaded', function () {
         feed = new InfiniteFeed('feed-container', {
             pageSize: 20,
             isPersonalized: true
         });
-        setupCategoryButtons();
+        // topic buttons disabled
 
         // Header is auto-initialized by header.js, no need to call initHeader again
     });
