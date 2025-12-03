@@ -12,7 +12,7 @@ class ContentRefreshService:
         self.last_refresh = None
 
     async def should_refresh_content(self, db: AsyncSession) -> bool:
-        """Check if we should refresh content (every 4 hours for trends)"""
+        """Check if we should refresh content (every 15 minutes for trends)"""
         from app.models import ContentItem
 
         if not self.last_refresh:
@@ -27,8 +27,8 @@ class ContentRefreshService:
 
             self.last_refresh = latest_content.created_at
 
-        # Refresh if last refresh was more than 4 hours ago
-        refresh_time = datetime.utcnow() - timedelta(hours=4)
+        # Refresh if last refresh was more than 15 minutes ago
+        refresh_time = datetime.utcnow() - timedelta(minutes=15)
         return self.last_refresh < refresh_time
 
     async def refresh_content_if_needed(self):
