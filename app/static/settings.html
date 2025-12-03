@@ -412,15 +412,15 @@
             const toggleDarkModeBtn = document.getElementById('toggle-dark-mode-btn');
             if (toggleDarkModeBtn) {
                 toggleDarkModeBtn.addEventListener('click', function() {
-                    document.body.classList.toggle('dark-mode');
-                    const isDark = document.body.classList.contains('dark-mode');
-                    localStorage.setItem('darkMode', isDark);
-                    this.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+                    document.documentElement.classList.toggle('light-mode');
+                    const isLight = document.documentElement.classList.contains('light-mode');
+                    localStorage.setItem('darkMode', !isLight);
+                    this.textContent = isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode';
                 });
                 
                 // Update button text on load
-                const isDark = document.body.classList.contains('dark-mode');
-                toggleDarkModeBtn.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+                const isLight = document.documentElement.classList.contains('light-mode');
+                toggleDarkModeBtn.textContent = isLight ? 'Switch to Dark Mode' : 'Switch to Light Mode';
             }
             
             // Load account info
