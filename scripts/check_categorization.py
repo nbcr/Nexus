@@ -15,8 +15,10 @@ Run: python scripts/check_categorization.py
 import asyncio
 import os
 import sys
+import json
 from datetime import datetime, timedelta
 from sqlalchemy import text
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -32,6 +34,77 @@ GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
 TOGETHER_API_URL = "https://api.together.xyz/v1/chat/completions"
 
+# Rate limiting
+RATE_LIMIT_FILE = Path("/tmp/nexus_ai_requests.json")
+DAILY_LIMIT = 14000  # Stay under 14,400 Groq limit
+HOURLY_LIMIT = 600  # ~14,400 / 24
+
+def load_request_counts():
+    """Load request counts from file"""
+    if not RATE_LIMIT_FILE.exists():
+        return {"daily": {}, "hourly": {}}
+    
+    try:
+        with open(RATE_LIMIT_FILE, 'r') as f:
+            data = json.load(f)
+            # Clean old data
+            today = datetime.now().strftime("%Y-%m-%d")
+            current_hour = datetime.now().strftime("%Y-%m-%d-%H")
+            
+            # Keep only today's daily count
+            if today not in data.get("daily", {}):
+                data["daily"] = {today: 0}
+            else:
+                data["daily"] = {today: data["daily"][today]}
+            
+            # Keep only current hour
+            if current_hour not in data.get("hourly", {}):
+                data["hourly"] = {current_hour: 0}
+            else:
+                data["hourly"] = {current_hour: data["hourly"][current_hour]}
+            
+            return data
+    except:
+        return {"daily": {}, "hourly": {}}
+
+
+def save_request_counts(counts):
+    """Save request counts to file"""
+    with open(RATE_LIMIT_FILE, 'w') as f:
+        json.dump(counts, f)
+
+
+def check_rate_limit():
+    """Check if we're within rate limits"""
+    counts = load_request_counts()
+    today = datetime.now().strftime("%Y-%m-%d")
+    current_hour = datetime.now().strftime("%Y-%m-%d-%H")
+    
+    daily_count = counts["daily"].get(today, 0)
+    hourly_count = counts["hourly"].get(current_hour, 0)
+    
+    if daily_count >= DAILY_LIMIT:
+        print(f"⚠️ Daily limit reached: {daily_count}/{DAILY_LIMIT}")
+        return False
+    
+    if hourly_count >= HOURLY_LIMIT:
+        print(f"⚠️ Hourly limit reached: {hourly_count}/{HOURLY_LIMIT}")
+        return False
+    
+    return True
+
+
+def increment_request_count():
+    """Increment request counters"""
+    counts = load_request_counts()
+    today = datetime.now().strftime("%Y-%m-%d")
+    current_hour = datetime.now().strftime("%Y-%m-%d-%H")
+    
+    counts["daily"][today] = counts["daily"].get(today, 0) + 1
+    counts["hourly"][current_hour] = counts["hourly"].get(current_hour, 0) + 1
+    
+    save_request_counts(counts)
+
 
 async def check_with_groq(title: str, description: str) -> dict:
     """Check categorization using Groq API (free tier)"""
@@ -39,6 +112,10 @@ async def check_with_groq(title: str, description: str) -> dict:
     
     if not GROQ_API_KEY:
         return {"error": "GROQ_API_KEY not set"}
+    
+    # Check rate limit before making request
+    if not check_rate_limit():
+        return {"error": "Rate limit reached"}
     
     categories = [
         "Sports", "Entertainment", "Technology", "Business", "Politics",
@@ -77,6 +154,9 @@ Reply with ONLY the category name, nothing else."""
                 
                 data = await resp.json()
                 suggested = data["choices"][0]["message"]["content"].strip()
+                
+                # Increment counter after successful request
+                increment_request_count()
                 
                 return {
                     "suggested_category": suggested,
@@ -142,6 +222,14 @@ Reply with ONLY the category name."""
 async def check_recent_categorization(hours: int = 24, limit: int = 20):
     """Check recent content categorization quality"""
     print(f"\n🔍 Checking categorization for content from last {hours} hours...\n")
+    
+    # Show current rate limit status
+    counts = load_request_counts()
+    today = datetime.now().strftime("%Y-%m-%d")
+    current_hour = datetime.now().strftime("%Y-%m-%d-%H")
+    daily_count = counts["daily"].get(today, 0)
+    hourly_count = counts["hourly"].get(current_hour, 0)
+    print(f"📊 Rate limit status: {daily_count}/{DAILY_LIMIT} daily, {hourly_count}/{HOURLY_LIMIT} hourly\n")
     
     async with AsyncSessionLocal() as db:
         result = await db.execute(text(f"""
