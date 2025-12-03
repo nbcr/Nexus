@@ -69,7 +69,7 @@ The system fetches and aggregates content from multiple sources:
 ### 4. **Personalized Feed Generation**
 
 The main feed combines:
-- **Trending Content**: From Google Trends, Reddit, PyTrends
+- **Trending Content**: From Google Trends RSS, Reddit
 - **RSS Feed Content**: From personalized feed discovery
 - **Category-Based Content**: Filtered by user preferences
 - **Recency Bonus**: Prioritizes fresh content (< 24 hours old)

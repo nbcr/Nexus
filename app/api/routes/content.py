@@ -534,12 +534,6 @@ async def find_related_content(
             if content_source != item_source:
                 score += 3
 
-        # Bonus for different types (news article + pytrends query)
-        has_pytrends = "pytrends" in (item.tags or [])
-        content_has_pytrends = "pytrends" in (content.tags or [])
-        if has_pytrends != content_has_pytrends:
-            score += 5
-
         if score > 0:
             scored_matches.append((score, item))
 

@@ -549,12 +549,6 @@ async def find_related_content(
         if source != content_source:
             score += 3
 
-        # Prefer items with pytrends tag if current item is news, and vice versa
-        has_pytrends = "pytrends" in (item.tags or [])
-        content_has_pytrends = "pytrends" in (content.tags or [])
-        if has_pytrends != content_has_pytrends:
-            score += 5
-
         scored_matches.append((score, item))
 
     # Sort by score descending and take top results
