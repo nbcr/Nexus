@@ -196,25 +196,31 @@ function initDarkMode() {
 
 /**
  * Update dark mode toggle UI elements
- * Show moon icon in dark mode, sun icon in light mode
+ * Button should show what it will DO, not current state
+ * In dark mode: show "☀️ Light Mode" (clicking will enable light mode)
+ * In light mode: show "🌙 Dark Mode" (clicking will enable dark mode)
  */
 function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
     if (toggleBtn) {
-        toggleBtn.textContent = isDark ? '🌙' : '☀️';
+        // Show sun when in dark mode (clicking enables light)
+        // Show moon when in light mode (clicking enables dark)
+        toggleBtn.textContent = isDark ? '☀️' : '🌙';
     }
     if (toggleLabel) {
-        toggleLabel.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+        // Label shows what will happen when clicked
+        toggleLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
     }
     if (toggleMenuBtn) {
         const icon = toggleMenuBtn.querySelector('.menu-icon');
         if (icon) {
-            // Dark mode = show moon icon
-            // Light mode = show sun icon
-            icon.textContent = isDark ? '🌙' : '☀️';
+            // Show sun in dark mode (will switch to light)
+            // Show moon in light mode (will switch to dark)
+            icon.textContent = isDark ? '☀️' : '🌙';
         }
         const label = toggleMenuBtn.querySelector('.menu-label');
         if (label) {
-            label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            // Label shows what will happen when clicked
+            label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
         }
     }
 }

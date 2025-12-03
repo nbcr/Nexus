@@ -643,12 +643,14 @@ function toggleDarkMode() {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
         localStorage.setItem('adminDarkMode', 'true');
-        document.getElementById('dark-mode-toggle').textContent = '🌙';
+        // Show sun icon (will switch to light mode when clicked)
+        document.getElementById('dark-mode-toggle').textContent = '☀️';
     } else {
         // Switch to light mode
         document.documentElement.classList.add('light-mode');
         localStorage.setItem('adminDarkMode', 'false');
-        document.getElementById('dark-mode-toggle').textContent = '☀️';
+        // Show moon icon (will switch to dark mode when clicked)
+        document.getElementById('dark-mode-toggle').textContent = '🌙';
     }
 }
 
@@ -656,6 +658,11 @@ function toggleDarkMode() {
 const savedAdminDarkMode = localStorage.getItem('adminDarkMode');
 if (savedAdminDarkMode === 'false') {
     document.documentElement.classList.add('light-mode');
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+    // In light mode, show moon icon (will switch to dark when clicked)
+    if (toggleBtn) toggleBtn.textContent = '🌙';
+} else {
+    // In dark mode, show sun icon (will switch to light when clicked)
     const toggleBtn = document.getElementById('dark-mode-toggle');
     if (toggleBtn) toggleBtn.textContent = '☀️';
 }
