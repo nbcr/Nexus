@@ -548,11 +548,7 @@ body.dark-mode #hamburger-menu .bar {
         order: 999;
     }
 
-    /* Mobile: hide desktop auth buttons, show mobile auth buttons */
-    .header-auth-buttons {
-        display: none !important;
-    }
-
+    /* Mobile: show mobile auth buttons in hamburger menu */
     .nav-links.open .auth-btn-mobile,
     .nav-links.open .register-btn-mobile {
         display: flex;
