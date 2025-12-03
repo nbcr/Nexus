@@ -817,3 +817,78 @@ Both dark and light modes now load instantly with no flash on page refresh.
 
 ---
 
+
+# 2025-12-02: AI-Powered RSS Feed Discovery & Content Personalization
+
+## RSS Discovery Service Implementation:
+- **Purpose**: Automatically discover and fetch relevant RSS feeds based on user reading preferences
+- **Location**: `app/services/rss_discovery.py`
+- **Dependencies**: Added `aiohttp==3.9.1` to requirements.txt for async HTTP requests
+
+## How It Works:
+1. **User Preference Analysis**:
+   - Tracks user interactions over last 30 days (clicks, views, reading duration)
+   - Identifies top 5 categories user reads most
+   - Extracts common keywords from content user engages with
+   - Analyzes content type preferences (news vs trending analysis)
+   - Works for both authenticated users and anonymous sessions
+
+2. **RSS Feed Discovery**:
+   - Curated database of 30+ high-quality RSS feeds across 8 categories:
+     - Technology: TechCrunch, The Verge, Wired, Ars Technica, CNET
+     - Business: Bloomberg, CNBC, Forbes, Reuters
+     - Sports: ESPN, Sportsnet, CBC Sports
+     - Entertainment: Variety, Hollywood Reporter, Rolling Stone
+     - Politics: Politico, CBC Politics, Globe and Mail
+     - Health: Health.com, CBC Health, NPR Health
+     - Science: Science Daily, Scientific American, Space.com
+     - World News: BBC, Al Jazeera, CBC World
+   - Matches users to feeds based on category alignment and explicit interests
+   - Assigns relevance scores (0-1) for ranking
+
+3. **Content Aggregation**:
+   - Fetches content from top 10 relevant feeds in parallel (async)
+   - Parses RSS feeds using feedparser library
+   - Extracts title, description, URL, author, tags, publish date
+   - Sorts by relevance score
+   - Returns aggregated content ready for display
+
+## New API Endpoints:
+```
+GET /api/v1/content/preferences/analyze
+GET /api/v1/content/rss/discover
+GET /api/v1/content/rss/content?max_items=20
+GET /api/v1/content/suggestions/topics
+```
+
+## Enhanced News Categorization (Same Update):
+- **Expanded Categories**: From 6 to 13 distinct categories
+  - Added: Science, World News, Crime, Weather, Education, Lifestyle, General
+- **Improved Keywords**: 15-30 keywords per category (previously 10)
+- **Smart Categorization**: News items automatically categorized by content analysis
+- **Reusable Helper**: Created `_categorize_text()` method for consistent categorization
+
+## Files Modified:
+- `app/services/rss_discovery.py`: New service for RSS discovery
+- `app/api/routes/content.py`: Added 4 new endpoints with imports
+- `app/services/trending_service.py`: Enhanced categorization system
+- `requirements.txt`: Added aiohttp dependency
+- `AI_RECOMMENDATION_SYSTEM.md`: Comprehensive documentation
+
+## Testing:
+```bash
+# Test preferences analysis
+curl -s 'http://localhost:8000/api/v1/content/preferences/analyze' | python3 -m json.tool
+
+# Test RSS feed discovery
+curl -s 'http://localhost:8000/api/v1/content/rss/discover' | python3 -m json.tool | head -40
+
+# Test topic suggestions
+curl -s 'http://localhost:8000/api/v1/content/suggestions/topics' | python3 -m json.tool
+```
+
+## Status: ✅ Complete
+AI recommendation system is live and learning from user behavior to discover relevant RSS feeds.
+
+---
+
