@@ -239,15 +239,26 @@ function toggleDarkMode() {
     const isCurrentlyLight = document.documentElement.classList.contains('light-mode');
     const willBeLight = !isCurrentlyLight;
     
+    console.log('Toggle: Currently light?', isCurrentlyLight, '-> Will be light?', willBeLight);
+    
     // Toggle light-mode class (dark mode is default, no class needed)
     if (willBeLight) {
         // Switch to light mode (toggled on)
         document.documentElement.classList.add('light-mode');
+        document.body.classList.add('light-mode');
     } else {
         // Switch back to dark mode (default)
         document.documentElement.classList.remove('light-mode');
+        document.body.classList.remove('light-mode');
         removeFeedItemSummaryColors();
     }
+    
+    // Force repaint to ensure background color updates
+    void document.documentElement.offsetHeight;
+    
+    console.log('After toggle - html classes:', document.documentElement.className);
+    console.log('After toggle - body classes:', document.body.className);
+    console.log('Computed bg color:', getComputedStyle(document.documentElement).backgroundColor);
     
     // Save preference (true = dark mode/default, false = light mode/toggled)
     localStorage.setItem('darkMode', willBeLight ? 'false' : 'true');
