@@ -252,164 +252,165 @@ class InfiniteFeed {
         const options = {
             root: null,
             rootMargin: '0px',
-                    ${proxiedImageUrl ? `<div class="feed-item-image">
+            ${ proxiedImageUrl ? `<div class="feed-item-image">
                         <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy" style="object-fit:contain;width:100%;max-height:180px;display:block;margin:0 auto;">
-                    </div>` : ''}
+                    </div>` : ''
+    }
         this.cardObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const contentId = parseInt(entry.target.dataset.contentId);
+        entries.forEach(entry => {
+            const contentId = parseInt(entry.target.dataset.contentId);
 
-                if (entry.isIntersecting) {
-                    // Card became visible
-                    this.startViewTimer(contentId);
-                } else {
-                    // Card left viewport
-                    this.stopViewTimer(contentId);
+            if (entry.isIntersecting) {
+                // Card became visible
+                this.startViewTimer(contentId);
+            } else {
+                // Card left viewport
+                this.stopViewTimer(contentId);
 
-                    // Report interest if hover tracker exists
-                    const tracker = this.hoverTrackers.get(contentId);
-                    if (tracker) {
-                        tracker.forceReport();
-                    }
+                // Report interest if hover tracker exists
+                const tracker = this.hoverTrackers.get(contentId);
+                if (tracker) {
+                    tracker.forceReport();
                 }
-            });
-        }, options);
-    }
-
-    startViewTimer(contentId) {
-        if (!this.viewStartTimes.has(contentId)) {
-            this.viewStartTimes.set(contentId, Date.now());
-            console.log(`⏱️ Started timer for content ${contentId}`);
-        }
-    }
-
-    stopViewTimer(contentId) {
-        if (this.viewStartTimes.has(contentId)) {
-            const startTime = this.viewStartTimes.get(contentId);
-            const duration = Math.floor((Date.now() - startTime) / 1000); // Convert to seconds
-
-            // Add to accumulated duration
-            const currentDuration = this.viewDurations.get(contentId) || 0;
-            this.viewDurations.set(contentId, currentDuration + duration);
-
-            this.viewStartTimes.delete(contentId);
-
-            console.log(`⏹️ Stopped timer for content ${contentId}. Duration: ${duration}s, Total: ${currentDuration + duration}s`);
-
-            // Send duration to server if it's significant (more than 2 seconds)
-            if (currentDuration + duration >= 2) {
-                this.sendDuration(contentId, currentDuration + duration);
             }
+        });
+    }, options);
+    }
+
+startViewTimer(contentId) {
+    if (!this.viewStartTimes.has(contentId)) {
+        this.viewStartTimes.set(contentId, Date.now());
+        console.log(`⏱️ Started timer for content ${contentId}`);
+    }
+}
+
+stopViewTimer(contentId) {
+    if (this.viewStartTimes.has(contentId)) {
+        const startTime = this.viewStartTimes.get(contentId);
+        const duration = Math.floor((Date.now() - startTime) / 1000); // Convert to seconds
+
+        // Add to accumulated duration
+        const currentDuration = this.viewDurations.get(contentId) || 0;
+        this.viewDurations.set(contentId, currentDuration + duration);
+
+        this.viewStartTimes.delete(contentId);
+
+        console.log(`⏹️ Stopped timer for content ${contentId}. Duration: ${duration}s, Total: ${currentDuration + duration}s`);
+
+        // Send duration to server if it's significant (more than 2 seconds)
+        if (currentDuration + duration >= 2) {
+            this.sendDuration(contentId, currentDuration + duration);
         }
     }
+}
 
     async sendDuration(contentId, durationSeconds) {
-        // Duration tracking disabled - endpoint not implemented yet
+    // Duration tracking disabled - endpoint not implemented yet
+    return;
+}
+
+sendAllDurations() {
+    // Stop all active timers and send durations
+    this.viewStartTimes.forEach((startTime, contentId) => {
+        this.stopViewTimer(contentId);
+    });
+}
+
+    async loadMore() {
+    if (this.isLoading || !this.hasMore) {
+        console.log('Skipping loadMore - isLoading:', this.isLoading, 'hasMore:', this.hasMore);
         return;
     }
 
-    sendAllDurations() {
-        // Stop all active timers and send durations
-        this.viewStartTimes.forEach((startTime, contentId) => {
-            this.stopViewTimer(contentId);
-        });
-    }
+    console.log('Starting loadMore with cursor:', this.cursor);
+    this.isLoading = true;
+    this.showLoading();
 
-    async loadMore() {
-        if (this.isLoading || !this.hasMore) {
-            console.log('Skipping loadMore - isLoading:', this.isLoading, 'hasMore:', this.hasMore);
-            return;
+    try {
+        const excludeIds = Array.from(this.viewedContentIds).join(',');
+        const endpoint = this.isPersonalized ? '/api/v1/content/feed' : '/api/v1/content/trending-feed';
+
+        const params = new URLSearchParams({
+            page: this.currentPage,
+            page_size: this.pageSize
+        });
+
+        if (excludeIds) params.append('exclude_ids', excludeIds);
+        // Only filter if categories/category is set (null or empty = show everything)
+        if (this.categories !== null && Array.isArray(this.categories) && this.categories.length > 0) {
+            params.append('categories', this.categories.join(','));
+        } else if (this.category) {
+            params.append('category', this.category);
+        }
+        // If both are null/undefined, don't add any category filter = show all
+        if (this.cursor) params.append('cursor', this.cursor);
+
+        console.log('Fetching:', `${endpoint}?${params}`);
+        const response = await fetch(`${endpoint}?${params}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        console.log('Starting loadMore with cursor:', this.cursor);
-        this.isLoading = true;
-        this.showLoading();
+        const data = await response.json();
+        console.log('Received data:', { itemCount: data.items?.length, cursor: data.next_cursor, hasMore: data.has_more });
 
-        try {
-            const excludeIds = Array.from(this.viewedContentIds).join(',');
-            const endpoint = this.isPersonalized ? '/api/v1/content/feed' : '/api/v1/content/trending-feed';
+        // Add new content items
+        if (data.items && data.items.length > 0) {
+            data.items.forEach((item, index) => {
+                this.viewedContentIds.add(item.content_id);
+                this.renderContentItem(item);
 
-            const params = new URLSearchParams({
-                page: this.currentPage,
-                page_size: this.pageSize
+                // Insert AdSense ad every 3 articles (after 3rd, 6th, 9th, etc.)
+                if ((index + 1) % 3 === 0) {
+                    this.insertAdUnit();
+                }
             });
 
-            if (excludeIds) params.append('exclude_ids', excludeIds);
-            // Only filter if categories/category is set (null or empty = show everything)
-            if (this.categories !== null && Array.isArray(this.categories) && this.categories.length > 0) {
-                params.append('categories', this.categories.join(','));
-            } else if (this.category) {
-                params.append('category', this.category);
-            }
-            // If both are null/undefined, don't add any category filter = show all
-            if (this.cursor) params.append('cursor', this.cursor);
-
-            console.log('Fetching:', `${endpoint}?${params}`);
-            const response = await fetch(`${endpoint}?${params}`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('Received data:', { itemCount: data.items?.length, cursor: data.next_cursor, hasMore: data.has_more });
-
-            // Add new content items
-            if (data.items && data.items.length > 0) {
-                data.items.forEach((item, index) => {
-                    this.viewedContentIds.add(item.content_id);
-                    this.renderContentItem(item);
-
-                    // Insert AdSense ad every 3 articles (after 3rd, 6th, 9th, etc.)
-                    if ((index + 1) % 3 === 0) {
-                        this.insertAdUnit();
-                    }
-                });
-
-                this.currentPage++;
-                this.cursor = data.next_cursor; // Update cursor for next fetch
-                this.hasMore = data.has_more;
-                console.log('Updated - currentPage:', this.currentPage, 'cursor:', this.cursor, 'hasMore:', this.hasMore);
-            } else {
-                this.hasMore = false;
-                console.log('No items returned, hasMore set to false');
-            }
-
-            // Update UI
-            if (!this.hasMore) {
-                this.showEndMessage();
-            }
-
-        } catch (error) {
-            console.error('Error loading feed:', error);
-            this.showError(error.message);
-        } finally {
-            this.isLoading = false;
-            this.hideLoading();
+            this.currentPage++;
+            this.cursor = data.next_cursor; // Update cursor for next fetch
+            this.hasMore = data.has_more;
+            console.log('Updated - currentPage:', this.currentPage, 'cursor:', this.cursor, 'hasMore:', this.hasMore);
+        } else {
+            this.hasMore = false;
+            console.log('No items returned, hasMore set to false');
         }
+
+        // Update UI
+        if (!this.hasMore) {
+            this.showEndMessage();
+        }
+
+    } catch (error) {
+        console.error('Error loading feed:', error);
+        this.showError(error.message);
+    } finally {
+        this.isLoading = false;
+        this.hideLoading();
     }
+}
 
-    defaultRenderContent(item) {
-        const article = document.createElement('article');
-        article.className = 'feed-item';
-        article.dataset.contentId = item.content_id;
-        article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
-        article.dataset.topicId = item.topic_id;
+defaultRenderContent(item) {
+    const article = document.createElement('article');
+    article.className = 'feed-item';
+    article.dataset.contentId = item.content_id;
+    article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
+    article.dataset.topicId = item.topic_id;
 
-        // Get image from feed-provided thumbnail or source metadata; prefer proxy to avoid CORS/mixed-content
-        let imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
-        const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
-        const proxiedImageUrl = toProxy(imageUrl) || imageUrl;
-        const source = item.source_metadata?.source || 'News';
+    // Get image from feed-provided thumbnail or source metadata; prefer proxy to avoid CORS/mixed-content
+    let imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
+    const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
+    const proxiedImageUrl = toProxy(imageUrl) || imageUrl;
+    const source = item.source_metadata?.source || 'News';
 
-        // Check if this is a search query or news article
-        const isSearchQuery = item.category === 'Search Query' ||
-            (item.source_urls && item.source_urls[0] &&
-                (item.source_urls[0].includes('google.com/search') ||
-                    item.source_urls[0].includes('duckduckgo.com')));
-        const isNewsArticle = !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
+    // Check if this is a search query or news article
+    const isSearchQuery = item.category === 'Search Query' ||
+        (item.source_urls && item.source_urls[0] &&
+            (item.source_urls[0].includes('google.com/search') ||
+                item.source_urls[0].includes('duckduckgo.com')));
+    const isNewsArticle = !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
 
-        article.innerHTML = `
+    article.innerHTML = `
             <div class="feed-item-content">
                 <div class="feed-item-header">
                     ${proxiedImageUrl ? `<div class="feed-item-image">
@@ -475,57 +476,57 @@ class InfiniteFeed {
             </div>
         `;
 
-        // Add click handler for card header to expand/collapse
-        const header = article.querySelector('.feed-item-header');
-        if (header) {
-            header.addEventListener('click', async (e) => {
-                // Don't toggle if clicking on image or buttons
-                if (!e.target.closest('.feed-item-image')) {
-                    const wasExpanded = article.classList.contains('expanded');
-                    article.classList.toggle('expanded');
+    // Add click handler for card header to expand/collapse
+    const header = article.querySelector('.feed-item-header');
+    if (header) {
+        header.addEventListener('click', async (e) => {
+            // Don't toggle if clicking on image or buttons
+            if (!e.target.closest('.feed-item-image')) {
+                const wasExpanded = article.classList.contains('expanded');
+                article.classList.toggle('expanded');
 
-                    // If expanding for the first time and no snippet, fetch it
-                    if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
-                        const summaryEl = article.querySelector('.feed-item-summary');
-                        if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
-                            summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
-                            try {
-                                const response = await fetch(`/api/v1/content/snippet/${item.content_id}`);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    if (data.rate_limited) {
-                                        summaryEl.innerHTML = `<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 10px 0;">
+                // If expanding for the first time and no snippet, fetch it
+                if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
+                    const summaryEl = article.querySelector('.feed-item-summary');
+                    if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
+                        summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
+                        try {
+                            const response = await fetch(`/api/v1/content/snippet/${item.content_id}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.rate_limited) {
+                                    summaryEl.innerHTML = `<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 10px 0;">
                                             <p style="margin: 0; color: #856404; font-size: 16px;">😅 ${data.message}</p>
                                         </div>`;
-                                        article.dataset.snippetLoaded = 'rate-limited';
-                                    } else if (data.snippet) {
-                                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`;
-                                        article.dataset.snippetLoaded = 'true';
-                                    } else {
-                                        summaryEl.innerHTML = '<em>No preview available from this source</em>';
-                                    }
+                                    article.dataset.snippetLoaded = 'rate-limited';
+                                } else if (data.snippet) {
+                                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`;
+                                    article.dataset.snippetLoaded = 'true';
                                 } else {
-                                    summaryEl.innerHTML = '<em>Unable to load preview</em>';
+                                    summaryEl.innerHTML = '<em>No preview available from this source</em>';
                                 }
-                            } catch (error) {
-                                console.error('Error loading snippet:', error);
-                                summaryEl.innerHTML = '<em>Error loading preview</em>';
+                            } else {
+                                summaryEl.innerHTML = '<em>Unable to load preview</em>';
                             }
+                        } catch (error) {
+                            console.error('Error loading snippet:', error);
+                            summaryEl.innerHTML = '<em>Error loading preview</em>';
                         }
                     }
+                }
 
-                    // Fetch and display related content if expanding for the first time
-                    if (!wasExpanded && !article.dataset.relatedLoaded) {
-                        const contentInner = article.querySelector('.content-inner');
-                        if (contentInner) {
-                            try {
-                                const response = await fetch(`/api/v1/content/related/${item.content_id}`);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    if (data.related_items && data.related_items.length > 0) {
-                                        const relatedSection = document.createElement('div');
-                                        relatedSection.className = 'related-stories-section';
-                                        relatedSection.innerHTML = `
+                // Fetch and display related content if expanding for the first time
+                if (!wasExpanded && !article.dataset.relatedLoaded) {
+                    const contentInner = article.querySelector('.content-inner');
+                    if (contentInner) {
+                        try {
+                            const response = await fetch(`/api/v1/content/related/${item.content_id}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.related_items && data.related_items.length > 0) {
+                                    const relatedSection = document.createElement('div');
+                                    relatedSection.className = 'related-stories-section';
+                                    relatedSection.innerHTML = `
                                             <h4 class="related-stories-title">📰 Same Story From Other Sources:</h4>
                                             <div class="related-stories-list">
                                                 ${data.related_items.map(related => `
@@ -541,119 +542,119 @@ class InfiniteFeed {
                                                 `).join('')}
                                             </div>
                                         `;
-                                        contentInner.appendChild(relatedSection);
-                                    }
-                                    article.dataset.relatedLoaded = 'true';
-                                } else {
-                                    article.dataset.relatedLoaded = 'error';
+                                    contentInner.appendChild(relatedSection);
                                 }
-                            } catch (error) {
-                                console.error('Error loading related content:', error);
+                                article.dataset.relatedLoaded = 'true';
+                            } else {
                                 article.dataset.relatedLoaded = 'error';
                             }
+                        } catch (error) {
+                            console.error('Error loading related content:', error);
+                            article.dataset.relatedLoaded = 'error';
                         }
                     }
                 }
-            });
-        }
-
-        // Add click handler for read more button
-        const readMoreBtn = article.querySelector('.btn-read-more');
-        if (readMoreBtn) {
-            readMoreBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation(); // Prevent card toggle
-
-                // Track click in history
-                if (window.historyTracker) {
-                    const slug = article.dataset.contentSlug;
-                    window.historyTracker.recordClick(item.content_id, slug);
-                }
-
-                this.onContentClick(item);
-                this.trackView(item.content_id);
-            });
-        }
-
-        // Prevent source link from toggling card
-        const sourceBtn = article.querySelector('.btn-source');
-        if (sourceBtn) {
-            sourceBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-
-                // Track click in history
-                if (window.historyTracker) {
-                    const slug = article.dataset.contentSlug;
-                    window.historyTracker.recordClick(item.content_id, slug);
-                }
-            });
-        }
-
-        this.container.appendChild(article);
-
-        // Extract dominant color from image for hover effect (only if image exists)
-        if (imageUrl) {
-            const img = article.querySelector('.feed-item-image img');
-            if (img) this.extractDominantColor(img, article);
-        }
-
-        // Proactively ensure thumbnail for new stories (refreshes outdated/missing images)
-        (async () => {
-            try {
-                const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
-                if (!resp.ok) return;
-                const data = await resp.json();
-                if (data && data.picture_url) {
-                    const header = article.querySelector('.feed-item-header');
-                    const existingImg = article.querySelector('.feed-item-image img');
-                    const proxyUrl = toProxy(data.picture_url);
-                    const finalUrl = proxyUrl || data.picture_url;
-                    if (existingImg) {
-                        if (existingImg.src !== finalUrl) {
-                            existingImg.src = finalUrl;
-                            if (proxyUrl) existingImg.onerror = () => { existingImg.src = data.picture_url; };
-                        }
-                    } else if (header) {
-                        const container = article.querySelector('.feed-item-image') || document.createElement('div');
-                        container.className = 'feed-item-image';
-                        const imgEl = document.createElement('img');
-                        imgEl.src = finalUrl;
-                        if (proxyUrl) imgEl.onerror = () => { imgEl.src = data.picture_url; };
-                        imgEl.alt = item.title;
-                        imgEl.loading = 'lazy';
-                        if (!container.parentElement) header.insertBefore(container, header.firstChild);
-                        container.innerHTML = '';
-                        container.appendChild(imgEl);
-                        this.extractDominantColor(imgEl, article);
-                    }
-                }
-            } catch (e) {
-                // ignore
             }
-        })();
-
-        // Create hover tracker for this card
-        if (window.HoverTracker && this.globalScrollTracker) {
-            const tracker = new HoverTracker(article, item.content_id);
-            this.hoverTrackers.set(item.content_id, tracker);
-            this.globalScrollTracker.registerTracker(tracker);
-        }
-
-        // Observe this card for visibility tracking (view duration)
-        if (this.cardObserver) {
-            this.cardObserver.observe(article);
-        }
-
-        // Observe this card for history tracking (seen when in viewport)
-        if (window.historyTracker) {
-            window.historyTracker.observeCard(article);
-        }
+        });
     }
 
-    insertAdUnit() {
-        const adContainer = document.createElement('div');
-        adContainer.className = 'feed-ad-unit';
-        adContainer.innerHTML = `
+    // Add click handler for read more button
+    const readMoreBtn = article.querySelector('.btn-read-more');
+    if (readMoreBtn) {
+        readMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent card toggle
+
+            // Track click in history
+            if (window.historyTracker) {
+                const slug = article.dataset.contentSlug;
+                window.historyTracker.recordClick(item.content_id, slug);
+            }
+
+            this.onContentClick(item);
+            this.trackView(item.content_id);
+        });
+    }
+
+    // Prevent source link from toggling card
+    const sourceBtn = article.querySelector('.btn-source');
+    if (sourceBtn) {
+        sourceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            // Track click in history
+            if (window.historyTracker) {
+                const slug = article.dataset.contentSlug;
+                window.historyTracker.recordClick(item.content_id, slug);
+            }
+        });
+    }
+
+    this.container.appendChild(article);
+
+    // Extract dominant color from image for hover effect (only if image exists)
+    if (imageUrl) {
+        const img = article.querySelector('.feed-item-image img');
+        if (img) this.extractDominantColor(img, article);
+    }
+
+    // Proactively ensure thumbnail for new stories (refreshes outdated/missing images)
+    (async () => {
+        try {
+            const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (data && data.picture_url) {
+                const header = article.querySelector('.feed-item-header');
+                const existingImg = article.querySelector('.feed-item-image img');
+                const proxyUrl = toProxy(data.picture_url);
+                const finalUrl = proxyUrl || data.picture_url;
+                if (existingImg) {
+                    if (existingImg.src !== finalUrl) {
+                        existingImg.src = finalUrl;
+                        if (proxyUrl) existingImg.onerror = () => { existingImg.src = data.picture_url; };
+                    }
+                } else if (header) {
+                    const container = article.querySelector('.feed-item-image') || document.createElement('div');
+                    container.className = 'feed-item-image';
+                    const imgEl = document.createElement('img');
+                    imgEl.src = finalUrl;
+                    if (proxyUrl) imgEl.onerror = () => { imgEl.src = data.picture_url; };
+                    imgEl.alt = item.title;
+                    imgEl.loading = 'lazy';
+                    if (!container.parentElement) header.insertBefore(container, header.firstChild);
+                    container.innerHTML = '';
+                    container.appendChild(imgEl);
+                    this.extractDominantColor(imgEl, article);
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+    })();
+
+    // Create hover tracker for this card
+    if (window.HoverTracker && this.globalScrollTracker) {
+        const tracker = new HoverTracker(article, item.content_id);
+        this.hoverTrackers.set(item.content_id, tracker);
+        this.globalScrollTracker.registerTracker(tracker);
+    }
+
+    // Observe this card for visibility tracking (view duration)
+    if (this.cardObserver) {
+        this.cardObserver.observe(article);
+    }
+
+    // Observe this card for history tracking (seen when in viewport)
+    if (window.historyTracker) {
+        window.historyTracker.observeCard(article);
+    }
+}
+
+insertAdUnit() {
+    const adContainer = document.createElement('div');
+    adContainer.className = 'feed-ad-unit';
+    adContainer.innerHTML = `
             <ins class="adsbygoogle"
                  style="display:block"
                  data-ad-format="fluid"
@@ -661,144 +662,144 @@ class InfiniteFeed {
                  data-ad-client="ca-pub-1529513529221142"
                  data-ad-slot="1234567890"></ins>
         `;
-        this.container.appendChild(adContainer);
+    this.container.appendChild(adContainer);
 
-        // Initialize the ad
-        try {
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
-            console.error('AdSense error:', e);
-        }
+    // Initialize the ad
+    try {
+        (adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+        console.error('AdSense error:', e);
     }
+}
 
     async defaultContentClick(item) {
-        // Check if this is a search query item
-        const isSearchQuery = item.category === 'Search Query' || item.content_type === 'trending_analysis' ||
-            (item.source_urls && item.source_urls[0] &&
-                (item.source_urls[0].includes('google.com/search') ||
-                    item.source_urls[0].includes('duckduckgo.com')));
+    // Check if this is a search query item
+    const isSearchQuery = item.category === 'Search Query' || item.content_type === 'trending_analysis' ||
+        (item.source_urls && item.source_urls[0] &&
+            (item.source_urls[0].includes('google.com/search') ||
+                item.source_urls[0].includes('duckduckgo.com')));
 
-        console.log('🔍 Content click:', {
-            content_id: item.content_id,
-            title: item.title,
-            category: item.category,
-            content_type: item.content_type,
-            tags: item.tags,
-            source_url: item.source_urls?.[0],
-            isSearchQuery
-        });
+    console.log('🔍 Content click:', {
+        content_id: item.content_id,
+        title: item.title,
+        category: item.category,
+        content_type: item.content_type,
+        tags: item.tags,
+        source_url: item.source_urls?.[0],
+        isSearchQuery
+    });
 
-        // For both search queries and news articles, open modal to show content
-        console.log('📰 Opening modal for:', isSearchQuery ? 'search context' : 'article');
-        this.openArticleModal(item, isSearchQuery);
-    }
+    // For both search queries and news articles, open modal to show content
+    console.log('📰 Opening modal for:', isSearchQuery ? 'search context' : 'article');
+    this.openArticleModal(item, isSearchQuery);
+}
 
     async openArticleModal(item, isSearchQuery = false) {
-        const modal = document.getElementById('article-modal');
-        const loading = modal.querySelector('.article-loading');
-        const error = modal.querySelector('.article-error');
-        const title = document.getElementById('article-title');
-        const author = document.getElementById('article-author');
-        const date = document.getElementById('article-date');
-        const domain = document.getElementById('article-domain');
-        const image = document.getElementById('article-image');
-        const body = document.getElementById('article-body');
-        const sourceLink = document.getElementById('article-source-link');
-        const relatedSection = document.getElementById('article-related');
-        const relatedItems = document.getElementById('article-related-items');
+    const modal = document.getElementById('article-modal');
+    const loading = modal.querySelector('.article-loading');
+    const error = modal.querySelector('.article-error');
+    const title = document.getElementById('article-title');
+    const author = document.getElementById('article-author');
+    const date = document.getElementById('article-date');
+    const domain = document.getElementById('article-domain');
+    const image = document.getElementById('article-image');
+    const body = document.getElementById('article-body');
+    const sourceLink = document.getElementById('article-source-link');
+    const relatedSection = document.getElementById('article-related');
+    const relatedItems = document.getElementById('article-related-items');
 
-        // Track article open start time
-        const articleOpenTime = Date.now();
-        let readTracked = false;
+    // Track article open start time
+    const articleOpenTime = Date.now();
+    let readTracked = false;
 
-        // 📊 Google Analytics: Track article opened (fire immediately)
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'article_open', {
-                'article_title': item.title,
-                'article_category': item.category || 'Unknown',
-                'article_id': item.content_id
-            });
+    // 📊 Google Analytics: Track article opened (fire immediately)
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'article_open', {
+            'article_title': item.title,
+            'article_category': item.category || 'Unknown',
+            'article_id': item.content_id
+        });
+    }
+
+    // 📊 Track "article_read" after 10 seconds (regardless of content load success)
+    setTimeout(() => {
+        if (modal.classList.contains('active') && !readTracked) {
+            readTracked = true;
+            const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
+
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'article_read', {
+                    'article_title': item.title,
+                    'article_category': item.category || 'Unknown',
+                    'article_id': item.content_id,
+                    'engagement_time_seconds': timeSpent
+                });
+            }
+        }
+    }, 10000); // 10 seconds
+
+    // Show modal and loading state
+    modal.classList.add('active');
+    loading.style.display = 'block';
+    loading.querySelector('p').textContent = isSearchQuery ? 'Loading search context...' : 'Loading article...';
+    error.style.display = 'none';
+    body.innerHTML = '';
+    image.style.display = 'none';
+    relatedSection.style.display = 'none';
+    relatedItems.innerHTML = '';
+
+    // Set source link for error fallback
+    if (item.source_urls && item.source_urls.length > 0) {
+        sourceLink.href = item.source_urls[0];
+    }
+
+    try {
+        // Fetch article content
+        const response = await fetch(`/api/v1/content/article/${item.content_id}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch article');
         }
 
-        // 📊 Track "article_read" after 10 seconds (regardless of content load success)
-        setTimeout(() => {
-            if (modal.classList.contains('active') && !readTracked) {
-                readTracked = true;
-                const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
+        const article = await response.json();
 
-                if (typeof gtag !== 'undefined') {
-                    gtag('event', 'article_read', {
-                        'article_title': item.title,
-                        'article_category': item.category || 'Unknown',
-                        'article_id': item.content_id,
-                        'engagement_time_seconds': timeSpent
-                    });
-                }
-            }
-        }, 10000); // 10 seconds
+        // Check if this is a fallback response (content extraction failed)
+        const isFallback = article.content && article.content.includes('Unable to extract full article content');
 
-        // Show modal and loading state
-        modal.classList.add('active');
-        loading.style.display = 'block';
-        loading.querySelector('p').textContent = isSearchQuery ? 'Loading search context...' : 'Loading article...';
-        error.style.display = 'none';
-        body.innerHTML = '';
-        image.style.display = 'none';
-        relatedSection.style.display = 'none';
-        relatedItems.innerHTML = '';
-
-        // Set source link for error fallback
-        if (item.source_urls && item.source_urls.length > 0) {
-            sourceLink.href = item.source_urls[0];
-        }
-
-        try {
-            // Fetch article content
-            const response = await fetch(`/api/v1/content/article/${item.content_id}`);
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch article');
-            }
-
-            const article = await response.json();
-
-            // Check if this is a fallback response (content extraction failed)
-            const isFallback = article.content && article.content.includes('Unable to extract full article content');
-
-            if (isFallback) {
-                // Show error view with source link
-                loading.style.display = 'none';
-                error.style.display = 'block';
-                title.textContent = article.title || item.title;
-                return;
-            }
-
-            // Hide loading
+        if (isFallback) {
+            // Show error view with source link
             loading.style.display = 'none';
-
-            // Populate modal
+            error.style.display = 'block';
             title.textContent = article.title || item.title;
-            author.textContent = article.author || '';
-            date.textContent = article.published_date || '';
-            domain.textContent = article.domain || '';
+            return;
+        }
 
-            if (article.image_url) {
-                image.src = article.image_url;
-                image.style.display = 'block';
-            }
+        // Hide loading
+        loading.style.display = 'none';
 
-            // Display content as facts (already formatted with bullet points)
-            const paragraphs = article.content.split('\n\n');
+        // Populate modal
+        title.textContent = article.title || item.title;
+        author.textContent = article.author || '';
+        date.textContent = article.published_date || '';
+        domain.textContent = article.domain || '';
 
-            // Add "Key Facts" header
-            body.innerHTML = '<h3 style="margin-bottom: 16px; color: #007bff;">📋 Key Facts:</h3>';
-            body.innerHTML += paragraphs.map(p => `<p>${p}</p>`).join('');
+        if (article.image_url) {
+            image.src = article.image_url;
+            image.style.display = 'block';
+        }
 
-            // Add in-article ad after facts
-            const inArticleAd = document.createElement('div');
-            inArticleAd.className = 'article-ad-unit';
-            inArticleAd.style.margin = '20px 0';
-            inArticleAd.innerHTML = `
+        // Display content as facts (already formatted with bullet points)
+        const paragraphs = article.content.split('\n\n');
+
+        // Add "Key Facts" header
+        body.innerHTML = '<h3 style="margin-bottom: 16px; color: #007bff;">📋 Key Facts:</h3>';
+        body.innerHTML += paragraphs.map(p => `<p>${p}</p>`).join('');
+
+        // Add in-article ad after facts
+        const inArticleAd = document.createElement('div');
+        inArticleAd.className = 'article-ad-unit';
+        inArticleAd.style.margin = '20px 0';
+        inArticleAd.innerHTML = `
                 <ins class="adsbygoogle"
                      style="display:block; text-align:center;"
                      data-ad-layout="in-article"
@@ -806,20 +807,20 @@ class InfiniteFeed {
                      data-ad-client="ca-pub-1529513529221142"
                      data-ad-slot="9876543210"></ins>
             `;
-            body.appendChild(inArticleAd);
+        body.appendChild(inArticleAd);
 
-            // Initialize ad
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-            } catch (e) {
-                console.error('In-article ad error:', e);
-            }
+        // Initialize ad
+        try {
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+            console.error('In-article ad error:', e);
+        }
 
-            // Add "Continue Reading" button if this is an excerpt
-            if (article.is_excerpt || article.full_article_available) {
-                const continueReadingBtn = document.createElement('div');
-                continueReadingBtn.className = 'continue-reading-cta';
-                continueReadingBtn.innerHTML = `
+        // Add "Continue Reading" button if this is an excerpt
+        if (article.is_excerpt || article.full_article_available) {
+            const continueReadingBtn = document.createElement('div');
+            continueReadingBtn.className = 'continue-reading-cta';
+            continueReadingBtn.innerHTML = `
                     <p class="cta-text">
                         📚 Want the facts with context and analysis?
                     </p>
@@ -828,50 +829,50 @@ class InfiniteFeed {
                         Read Facts on ${article.domain || 'Source Site'} →
                     </a>
                 `;
-                body.appendChild(continueReadingBtn);
-            }
-
-            // Display related items if available
-            if (article.related_items && article.related_items.length > 0) {
-                this.renderRelatedItems(article.related_items, relatedItems);
-                relatedSection.style.display = 'block';
-            }
-
-            // 📊 Track scroll depth for "article_read_complete" (only if content loaded successfully)
-            const articleBody = document.querySelector('.article-modal-content');
-            if (articleBody) {
-                let scrollTracked = false;
-                articleBody.addEventListener('scroll', () => {
-                    if (scrollTracked) return;
-
-                    const scrollPercentage = (articleBody.scrollTop + articleBody.clientHeight) / articleBody.scrollHeight;
-
-                    if (scrollPercentage > 0.8) { // 80% scroll depth
-                        scrollTracked = true;
-                        const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
-
-                        if (typeof gtag !== 'undefined') {
-                            gtag('event', 'article_read_complete', {
-                                'article_title': article.title || item.title,
-                                'article_category': item.category || 'Unknown',
-                                'article_id': item.content_id,
-                                'engagement_time_seconds': timeSpent,
-                                'scroll_depth': Math.round(scrollPercentage * 100)
-                            });
-                        }
-                    }
-                });
-            }
-
-        } catch (err) {
-            console.error('Error fetching article:', err);
-            loading.style.display = 'none';
-            error.style.display = 'block';
+            body.appendChild(continueReadingBtn);
         }
-    }
 
-    renderRelatedItems(items, container) {
-        container.innerHTML = items.map(item => `
+        // Display related items if available
+        if (article.related_items && article.related_items.length > 0) {
+            this.renderRelatedItems(article.related_items, relatedItems);
+            relatedSection.style.display = 'block';
+        }
+
+        // 📊 Track scroll depth for "article_read_complete" (only if content loaded successfully)
+        const articleBody = document.querySelector('.article-modal-content');
+        if (articleBody) {
+            let scrollTracked = false;
+            articleBody.addEventListener('scroll', () => {
+                if (scrollTracked) return;
+
+                const scrollPercentage = (articleBody.scrollTop + articleBody.clientHeight) / articleBody.scrollHeight;
+
+                if (scrollPercentage > 0.8) { // 80% scroll depth
+                    scrollTracked = true;
+                    const timeSpent = Math.round((Date.now() - articleOpenTime) / 1000);
+
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'article_read_complete', {
+                            'article_title': article.title || item.title,
+                            'article_category': item.category || 'Unknown',
+                            'article_id': item.content_id,
+                            'engagement_time_seconds': timeSpent,
+                            'scroll_depth': Math.round(scrollPercentage * 100)
+                        });
+                    }
+                }
+            });
+        }
+
+    } catch (err) {
+        console.error('Error fetching article:', err);
+        loading.style.display = 'none';
+        error.style.display = 'block';
+    }
+}
+
+renderRelatedItems(items, container) {
+    container.innerHTML = items.map(item => `
             <div class="related-item" data-content-id="${item.content_id}">
                 <div class="related-item-content">
                     <div class="related-item-meta">
@@ -890,214 +891,214 @@ class InfiniteFeed {
                 </div>
             </div>
         `).join('');
-    }
+}
 
-    getSourceButtonTextForUrl(url, tags) {
-        const urlLower = url.toLowerCase();
+getSourceButtonTextForUrl(url, tags) {
+    const urlLower = url.toLowerCase();
 
-        // Check if it's a search-related item
-        if (tags.includes('query') || tags.includes('search')) {
-            if (urlLower.includes('google.com/search') || urlLower.includes('duckduckgo.com')) {
-                return 'Search';
-            }
-        }
-
-        // Check URL patterns
-        if (urlLower.includes('google.com/search') || urlLower.includes('duckduckgo.com') || urlLower.includes('/search?q=')) {
+    // Check if it's a search-related item
+    if (tags.includes('query') || tags.includes('search')) {
+        if (urlLower.includes('google.com/search') || urlLower.includes('duckduckgo.com')) {
             return 'Search';
         }
-
-        if (urlLower.includes('trends.google.com')) {
-            return 'View Trends';
-        }
-
-        return 'View Source';
     }
 
-    extractDominantColor(img, card) {
-        // Wait for image to load before extracting color
-        if (!img.complete) {
-            img.addEventListener('load', () => this.extractDominantColor(img, card));
-            return;
-        }
-
-        try {
-            // Create canvas to extract color
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            // Use small canvas for performance
-            canvas.width = 50;
-            canvas.height = 50;
-
-            // Draw scaled-down image
-            ctx.drawImage(img, 0, 0, 50, 50);
-
-            // Get image data
-            const imageData = ctx.getImageData(0, 0, 50, 50);
-            const data = imageData.data;
-
-            // Calculate average color (simple approach)
-            let r = 0, g = 0, b = 0;
-            let count = 0;
-
-            // Sample pixels (skip some for performance)
-            for (let i = 0; i < data.length; i += 16) {
-                r += data[i];
-                g += data[i + 1];
-                b += data[i + 2];
-                count++;
-            }
-
-            r = Math.floor(r / count);
-            g = Math.floor(g / count);
-            b = Math.floor(b / count);
-
-            // Set the color as a CSS variable on the card
-            card.style.setProperty('--card-color', `rgb(${r}, ${g}, ${b})`);
-            console.debug(`Extracted color for card: rgb(${r}, ${g}, ${b})`);
-
-        } catch (error) {
-            // If color extraction fails (CORS or other issues), use a default subtle color
-            console.debug('Could not extract color from image:', error.message);
-            // Set a default subtle blue tint as fallback
-            card.style.setProperty('--card-color', 'rgb(100, 149, 237)');
-        }
+    // Check URL patterns
+    if (urlLower.includes('google.com/search') || urlLower.includes('duckduckgo.com') || urlLower.includes('/search?q=')) {
+        return 'Search';
     }
+
+    if (urlLower.includes('trends.google.com')) {
+        return 'View Trends';
+    }
+
+    return 'View Source';
+}
+
+extractDominantColor(img, card) {
+    // Wait for image to load before extracting color
+    if (!img.complete) {
+        img.addEventListener('load', () => this.extractDominantColor(img, card));
+        return;
+    }
+
+    try {
+        // Create canvas to extract color
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Use small canvas for performance
+        canvas.width = 50;
+        canvas.height = 50;
+
+        // Draw scaled-down image
+        ctx.drawImage(img, 0, 0, 50, 50);
+
+        // Get image data
+        const imageData = ctx.getImageData(0, 0, 50, 50);
+        const data = imageData.data;
+
+        // Calculate average color (simple approach)
+        let r = 0, g = 0, b = 0;
+        let count = 0;
+
+        // Sample pixels (skip some for performance)
+        for (let i = 0; i < data.length; i += 16) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count++;
+        }
+
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+
+        // Set the color as a CSS variable on the card
+        card.style.setProperty('--card-color', `rgb(${r}, ${g}, ${b})`);
+        console.debug(`Extracted color for card: rgb(${r}, ${g}, ${b})`);
+
+    } catch (error) {
+        // If color extraction fails (CORS or other issues), use a default subtle color
+        console.debug('Could not extract color from image:', error.message);
+        // Set a default subtle blue tint as fallback
+        card.style.setProperty('--card-color', 'rgb(100, 149, 237)');
+    }
+}
 
     async trackView(contentId) {
-        try {
-            await fetch(`/api/v1/session/track-view/${contentId}`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } catch (error) {
-            console.error('Failed to track view:', error);
-        }
+    try {
+        await fetch(`/api/v1/session/track-view/${contentId}`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Failed to track view:', error);
     }
+}
 
-    truncateText(text, maxLength) {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength) + '...';
-    }
+truncateText(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
 
-    getSourceButtonText(item) {
-        // Determine button text based on the source URL and tags
-        if (!item.source_urls || item.source_urls.length === 0) {
-            return 'View Source';
-        }
-
-        const url = item.source_urls[0].toLowerCase();
-        const tags = item.tags || [];
-
-        // Check if it's a search-related item
-        if (tags.includes('query') || tags.includes('search')) {
-            if (url.includes('google.com/search') || url.includes('duckduckgo.com')) {
-                return 'Search';
-            }
-        }
-
-        // Check URL patterns
-        if (url.includes('google.com/search') || url.includes('duckduckgo.com') || url.includes('/search?q=')) {
-            return 'Search';
-        }
-
-        if (url.includes('trends.google.com')) {
-            return 'View Trends';
-        }
-
-        // Default to View Source for news articles and other content
+getSourceButtonText(item) {
+    // Determine button text based on the source URL and tags
+    if (!item.source_urls || item.source_urls.length === 0) {
         return 'View Source';
     }
 
-    formatTime(isoString) {
-        const date = new Date(isoString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
+    const url = item.source_urls[0].toLowerCase();
+    const tags = item.tags || [];
 
-        if (diffMins < 60) return `${diffMins}m ago`;
-        if (diffHours < 24) return `${diffHours}h ago`;
-        if (diffDays < 7) return `${diffDays}d ago`;
-
-        return date.toLocaleDateString();
+    // Check if it's a search-related item
+    if (tags.includes('query') || tags.includes('search')) {
+        if (url.includes('google.com/search') || url.includes('duckduckgo.com')) {
+            return 'Search';
+        }
     }
 
-    showLoading() {
-        const spinner = this.loadingIndicator.querySelector('.spinner');
-        const text = this.loadingIndicator.querySelector('p');
-        if (spinner) spinner.style.display = 'block';
-        if (text) text.style.display = 'block';
+    // Check URL patterns
+    if (url.includes('google.com/search') || url.includes('duckduckgo.com') || url.includes('/search?q=')) {
+        return 'Search';
     }
 
-    hideLoading() {
-        const spinner = this.loadingIndicator.querySelector('.spinner');
-        const text = this.loadingIndicator.querySelector('p');
-        if (spinner) spinner.style.display = 'none';
-        if (text) text.style.display = 'none';
+    if (url.includes('trends.google.com')) {
+        return 'View Trends';
     }
 
-    showEndMessage() {
-        this.endMessage.style.display = 'block';
-        this.hideLoading();
-    }
+    // Default to View Source for news articles and other content
+    return 'View Source';
+}
 
-    showError(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'feed-error';
-        errorDiv.innerHTML = `
+formatTime(isoString) {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString();
+}
+
+showLoading() {
+    const spinner = this.loadingIndicator.querySelector('.spinner');
+    const text = this.loadingIndicator.querySelector('p');
+    if (spinner) spinner.style.display = 'block';
+    if (text) text.style.display = 'block';
+}
+
+hideLoading() {
+    const spinner = this.loadingIndicator.querySelector('.spinner');
+    const text = this.loadingIndicator.querySelector('p');
+    if (spinner) spinner.style.display = 'none';
+    if (text) text.style.display = 'none';
+}
+
+showEndMessage() {
+    this.endMessage.style.display = 'block';
+    this.hideLoading();
+}
+
+showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'feed-error';
+    errorDiv.innerHTML = `
             <p>Error loading content: ${message}</p>
             <button onclick="location.reload()">Retry</button>
         `;
-        this.container.appendChild(errorDiv);
+    this.container.appendChild(errorDiv);
+}
+
+// Public methods
+reset() {
+    // Clean up all hover trackers
+    this.hoverTrackers.forEach(tracker => tracker.destroy());
+    this.hoverTrackers.clear();
+
+    this.currentPage = 1;
+    this.cursor = null; // Reset cursor for category changes
+    this.viewedContentIds.clear();
+    this.hasMore = true;
+    this.container.innerHTML = '';
+    this.endMessage.style.opacity = '0';
+    this.endMessage.style.display = 'none'; // Hide end message
+    this.loadingIndicator.style.display = 'block'; // Show loading indicator
+    this.loadMore();
+}
+
+setCategory(category) {
+    this.category = category;
+    this.categories = null;
+    this.reset();
+}
+
+setCategories(categories) {
+    // null = show everything; array = filter by those categories
+    this.categories = (categories === null || (Array.isArray(categories) && categories.length > 0)) ? categories : null;
+    this.category = null;
+    this.reset();
+}
+
+destroy() {
+    // Clean up all hover trackers
+    this.hoverTrackers.forEach(tracker => tracker.destroy());
+    this.hoverTrackers.clear();
+
+    // Destroy global scroll tracker
+    if (this.globalScrollTracker) {
+        this.globalScrollTracker.destroy();
+        this.globalScrollTracker = null;
     }
 
-    // Public methods
-    reset() {
-        // Clean up all hover trackers
-        this.hoverTrackers.forEach(tracker => tracker.destroy());
-        this.hoverTrackers.clear();
-
-        this.currentPage = 1;
-        this.cursor = null; // Reset cursor for category changes
-        this.viewedContentIds.clear();
-        this.hasMore = true;
-        this.container.innerHTML = '';
-        this.endMessage.style.opacity = '0';
-        this.endMessage.style.display = 'none'; // Hide end message
-        this.loadingIndicator.style.display = 'block'; // Show loading indicator
-        this.loadMore();
-    }
-
-    setCategory(category) {
-        this.category = category;
-        this.categories = null;
-        this.reset();
-    }
-
-    setCategories(categories) {
-        // null = show everything; array = filter by those categories
-        this.categories = (categories === null || (Array.isArray(categories) && categories.length > 0)) ? categories : null;
-        this.category = null;
-        this.reset();
-    }
-
-    destroy() {
-        // Clean up all hover trackers
-        this.hoverTrackers.forEach(tracker => tracker.destroy());
-        this.hoverTrackers.clear();
-
-        // Destroy global scroll tracker
-        if (this.globalScrollTracker) {
-            this.globalScrollTracker.destroy();
-            this.globalScrollTracker = null;
-        }
-
-        // Send all pending durations
-        this.sendAllDurations();
-    }
+    // Send all pending durations
+    this.sendAllDurations();
+}
 }
 
 // Export for use in other scripts
