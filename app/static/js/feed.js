@@ -396,9 +396,10 @@ class InfiniteFeed {
         article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
         article.dataset.topicId = item.topic_id;
 
-        // Get image from source metadata; fallback will fetch article image_url lazily
+        // Get image from source metadata; always prefer proxy to avoid CORS/mixed-content
         let imageUrl = item.source_metadata?.picture_url || null;
         const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
+        const proxiedImageUrl = toProxy(imageUrl) || imageUrl;
         const source = item.source_metadata?.source || 'News';
 
         // Check if this is a search query or news article
@@ -411,11 +412,13 @@ class InfiniteFeed {
         article.innerHTML = `
             <div class="feed-item-content">
                 <div class="feed-item-header">
-                    ${imageUrl ? `
-                        <div class="feed-item-image">
-                            <img src="${imageUrl}" alt="${item.title}" loading="lazy" onerror="this.onerror=null; this.src='${item.source_metadata?.picture_url || ''}'">
-                        </div>
-                    ` : ''}
+                    <div class="feed-item-image">
+                        ${proxiedImageUrl ? `
+                            <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy">
+                        ` : `
+                            <div class="image-placeholder" aria-hidden="true"></div>
+                        `}
+                    </div>
                     <div class="feed-item-header-content">
                         <div class="feed-item-meta">
                             <span class="feed-item-category">${item.category || 'Trending'}</span>
@@ -593,12 +596,7 @@ class InfiniteFeed {
         this.container.appendChild(article);
 
         // Extract dominant color from image for hover effect
-        if (imageUrl) {
-            const img = article.querySelector('.feed-item-image img');
-            if (img) {
-                this.extractDominantColor(img, article);
-            }
-        } else {
+        if (!imageUrl) {
             // Fallback: fetch cached thumbnail endpoint to get image_url and inject
             (async () => {
                 try {
@@ -607,7 +605,7 @@ class InfiniteFeed {
                     if (!resp.ok) return;
                     const art = await resp.json();
                     const fallbackUrl = toProxy(art.picture_url || null);
-                    if (fallbackUrl) {
+                    if (fallbackUrl || art.picture_url) {
                         // Create header image container if missing and inject image
                         const header = article.querySelector('.feed-item-header');
                         if (header) {
@@ -635,6 +633,10 @@ class InfiniteFeed {
                     console.warn('Thumbnail fetch failed for', item.content_id, e);
                 }
             })();
+        } else {
+            // Extract color for initially rendered image (proxy may still fail silently)
+            const img = article.querySelector('.feed-item-image img');
+            if (img) this.extractDominantColor(img, article);
         }
 
         // Proactively ensure thumbnail for new stories (refreshes outdated/missing images)
@@ -645,22 +647,25 @@ class InfiniteFeed {
                 const data = await resp.json();
                 if (data && data.picture_url) {
                     const header = article.querySelector('.feed-item-header');
-                    const existing = article.querySelector('.feed-item-image img');
+                    const existingImg = article.querySelector('.feed-item-image img');
                     const proxyUrl = toProxy(data.picture_url);
-                    if (existing) {
-                        // Update if different
-                        if (existing.src !== proxyUrl && existing.src !== data.picture_url) {
-                            existing.src = proxyUrl || data.picture_url;
+                    const finalUrl = proxyUrl || data.picture_url;
+                    if (existingImg) {
+                        if (existingImg.src !== finalUrl) {
+                            existingImg.src = finalUrl;
+                            if (proxyUrl) existingImg.onerror = () => { existingImg.src = data.picture_url; };
                         }
                     } else if (header) {
-                        const container = document.createElement('div');
+                        const container = article.querySelector('.feed-item-image') || document.createElement('div');
                         container.className = 'feed-item-image';
                         const imgEl = document.createElement('img');
-                        imgEl.src = proxyUrl || data.picture_url;
+                        imgEl.src = finalUrl;
+                        if (proxyUrl) imgEl.onerror = () => { imgEl.src = data.picture_url; };
                         imgEl.alt = item.title;
                         imgEl.loading = 'lazy';
+                        if (!container.parentElement) header.insertBefore(container, header.firstChild);
+                        container.innerHTML = '';
                         container.appendChild(imgEl);
-                        header.insertBefore(container, header.firstChild);
                         this.extractDominantColor(imgEl, article);
                     }
                 }
