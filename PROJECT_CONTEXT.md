@@ -892,3 +892,38 @@ AI recommendation system is live and learning from user behavior to discover rel
 
 ---
 
+
+---
+
+# 2025-12-02: Topics Not Updating - Circular Import & Deduplication Service Fix
+
+## Problem Identified:
+- Topics hadn't been updated since November 15 (17 days ago)
+- `/api/v1/topics/` endpoint was returning old data from mid-November
+- Background scheduler was running but trends were not being saved to database
+
+## Root Causes Found:
+1. **Circular Import in `app/__init__.py`**: The file was importing `start_periodic_refresh` from `content_refresh.py`, which in turn was importing from `__init__.py`, creating an infinite import loop. This prevented the app from starting properly and the scheduler from initializing.
+
+2. **Deduplication Service SQL Error**: The `find_duplicate()` method in `app/services/deduplication.py` was using `.contains([url])` operator on a PostgreSQL JSON array field, which was failing with SQLAlchemy errors. This caused every trend save attempt to fail silently, resulting in "Added 0 new items" logs.
+
+## Fixes Applied:
+1. **Removed Circular Import**: Cleaned up `app/__init__.py` by removing the unused import and `start_background_tasks()` function. The scheduler service is already properly initialized in `main.py` via the `startup_event`.
+
+2. **Fixed Deduplication Query**: Changed from `.contains([url])` to `cast(ContentItem.source_urls, Text).like(f'%{url}%')` to avoid JSON operator issues. Added try-catch error handling around the URL duplicate check to prevent silent failures.
+
+## Files Modified:
+- `app/__init__.py`: Removed circular import
+- `app/services/deduplication.py`: Fixed URL duplicate detection query
+
+## Verification:
+- ✅ Service restarted successfully after both fixes
+- ✅ Scheduler triggered on startup and fetched 10 new trends from RSS feed
+- ✅ All 10 trends were successfully saved to database
+- ✅ New topics created with timestamp 2025-12-02 21:43:00
+- ✅ Topics now updating automatically every 4 hours via scheduler
+- ✅ `/api/v1/topics/` endpoint now returns current trending topics
+
+## Status:
+Topics are now updating correctly! The background scheduler runs every 15 minutes and checks if content refresh is needed (every 4 hours). Fresh Canadian trending topics from Google Trends RSS feed are now being saved to the database successfully.
+
