@@ -578,8 +578,14 @@ class TrendingService:
 
                 if existing_topic:
                     print(f"Updating existing topic: {existing_topic.title}")
-                    # Update existing topic with new information
-                    existing_topic.title = trend_data["title"]
+
+                    # Use first news item title if available, otherwise keep search term
+                    news_items = trend_data.get("news_items", [])
+                    if news_items and news_items[0].get("title"):
+                        existing_topic.title = news_items[0]["title"]
+                    else:
+                        existing_topic.title = trend_data["title"]
+
                     existing_topic.description = trend_data.get("description", "")
                     existing_topic.category = trend_data.get("category", "Trending")
                     existing_topic.trend_score = trend_data.get("trend_score", 0.7)
@@ -623,9 +629,15 @@ class TrendingService:
                         f"🔄 Updated trend: {trend_data['title']} (Source: {trend_data['source']}"
                     )
                 else:
-                    # Create new topic
+                    # Create new topic - use first news item title if available
+                    news_items = trend_data.get("news_items", [])
+                    if news_items and news_items[0].get("title"):
+                        topic_title = news_items[0]["title"]
+                    else:
+                        topic_title = trend_data["title"]
+
                     topic = Topic(
-                        title=trend_data["title"],
+                        title=topic_title,
                         normalized_title=normalized_title,
                         description=trend_data.get("description", ""),
                         category=trend_data.get("category", "Trending"),
