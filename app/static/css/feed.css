@@ -1,3 +1,4 @@
+/* stylelint-disable comment-empty-line-before */
 /* Infinite Scroll Feed Styles */
 
 #feed-container {
@@ -59,6 +60,7 @@
 
 @keyframes interest-pulse {
 
+    /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
         opacity: 0.3;
