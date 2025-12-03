@@ -17,6 +17,7 @@ from app.services.deduplication import deduplication_service
 from app.services.rss_discovery import rss_discovery_service
 
 from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -28,6 +29,9 @@ class CategoriesResponse(BaseModel):
 
 class ThumbnailResponse(BaseModel):
     picture_url: Optional[str]
+
+class ProxyRequest(BaseModel):
+    url: str
 
 
 async def get_db():
@@ -462,6 +466,20 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
         await db.rollback()
 
     return ThumbnailResponse(picture_url=None)
+
+
+@router.get("/image-proxy")
+async def image_proxy(url: str):
+    """Proxy remote images to avoid mixed-content/CORS issues."""
+    import httpx
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            content_type = resp.headers.get("content-type", "image/jpeg")
+            return StreamingResponse(iter([resp.content]), media_type=content_type)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Unable to fetch image")
 
 
 async def find_related_content(

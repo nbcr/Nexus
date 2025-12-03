@@ -398,6 +398,7 @@ class InfiniteFeed {
 
         // Get image from source metadata; fallback will fetch article image_url lazily
         let imageUrl = item.source_metadata?.picture_url || null;
+        const toProxy = (url) => url ? `/api/v1/content/image-proxy?url=${encodeURIComponent(url)}` : null;
         const source = item.source_metadata?.source || 'News';
 
         // Check if this is a search query or news article
@@ -601,10 +602,11 @@ class InfiniteFeed {
             // Fallback: fetch cached thumbnail endpoint to get image_url and inject
             (async () => {
                 try {
+                    console.log('🖼️ Fetching thumbnail for', item.content_id);
                     const resp = await fetch(`/api/v1/content/thumbnail/${item.content_id}`);
                     if (!resp.ok) return;
                     const art = await resp.json();
-                    const fallbackUrl = art.picture_url;
+                    const fallbackUrl = toProxy(art.picture_url || null);
                     if (fallbackUrl) {
                         // Create header image container if missing and inject image
                         const header = article.querySelector('.feed-item-header');
@@ -625,7 +627,7 @@ class InfiniteFeed {
                         }
                     }
                 } catch (e) {
-                    // Ignore failures; card will remain without image
+                    console.warn('Thumbnail fetch failed for', item.content_id, e);
                 }
             })();
         }
