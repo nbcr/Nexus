@@ -396,8 +396,8 @@ class InfiniteFeed {
         article.dataset.contentSlug = item.slug || `content-${item.content_id}`;  // Add slug for history tracking
         article.dataset.topicId = item.topic_id;
 
-        // Get image from source metadata; always prefer proxy to avoid CORS/mixed-content
-        let imageUrl = item.source_metadata?.picture_url || null;
+        // Get image from feed-provided thumbnail or source metadata; prefer proxy to avoid CORS/mixed-content
+        let imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
         const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
         const proxiedImageUrl = toProxy(imageUrl) || imageUrl;
         const source = item.source_metadata?.source || 'News';
