@@ -58,7 +58,9 @@
 }
 
 @keyframes interest-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.3;
     }
 
@@ -396,7 +398,8 @@
 .feed-loading {
     text-align: center;
     padding: 40px 20px;
-    min-height: 100px; /* Ensure it has height even when hidden */
+    min-height: 100px;
+    /* Ensure it has height even when hidden */
 }
 
 .spinner {
@@ -410,8 +413,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .feed-loading p {
@@ -472,46 +480,46 @@
 /* Category buttons styles moved to components.css */
 
 /* Responsive Design */
-@media (width <= 768px) {
+@media (width <=768px) {
     #feed-container {
         padding: 12px;
     }
-    
+
     .feed-item {
         margin-bottom: 16px;
         border-radius: 8px;
     }
-    
+
     .feed-item-image {
         max-width: 100%;
         height: 180px;
     }
-    
+
     .feed-item-body {
         padding: 16px;
     }
-    
+
     .feed-item-title {
         font-size: 20px;
     }
-    
+
     .feed-item-description,
     .feed-item-summary {
         font-size: 14px;
     }
-    
+
     .feed-item-actions {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .btn-read-more,
     .btn-source {
         width: 100%;
         text-align: center;
         justify-content: center;
     }
-    
+
     .feed-item-time {
         margin-left: 0;
         text-align: center;
@@ -742,22 +750,22 @@
     margin-bottom: 20px;
 }
 
-@media (width <= 768px) {
+@media (width <=768px) {
     .article-modal {
         padding: 0;
     }
-    
+
     .article-modal-content {
         margin: 0;
         border-radius: 0;
         padding: 60px 20px 20px;
         min-height: 100vh;
     }
-    
+
     .article-modal-header h1 {
         font-size: 24px;
     }
-    
+
     .article-body {
         font-size: 16px;
     }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,7 @@
             margin: 0;
             background: #f5f5f5;
         }
-        
+
         .history-container {
             max-width: 1200px;
             margin: 20px auto;
@@ -70,7 +71,7 @@
         }
 
         .history-item:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
         }
 
@@ -236,13 +237,13 @@
             color: #333;
         }
     </style>
-    
+
     <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
-        (function() {
+        (function () {
             // Only apply light mode if explicitly selected (dark mode is default)
             const savedPreference = localStorage.getItem('darkMode');
-            
+
             if (savedPreference === 'false') {
                 // User explicitly selected light mode
                 document.documentElement.classList.add('light-mode');
@@ -261,7 +262,7 @@
             --text-secondary: #cccccc;
             --text-muted: #999999;
         }
-        
+
         html.light-mode {
             --bg-primary: #ffffff;
             --bg-secondary: #f5f5f5;
@@ -270,20 +271,21 @@
             --text-secondary: #666666;
             --text-muted: #999999;
         }
-        
+
         /* Apply variables to elements */
-        html, body {
+        html,
+        body {
             background-color: var(--bg-primary);
             color: var(--text-primary);
         }
-        
+
         /* Explicit dark mode styles (default) */
         html:not(.light-mode),
         html:not(.light-mode) body {
             background-color: #181818;
             color: #ffffff;
         }
-        
+
         /* Explicit light mode styles */
         html.light-mode,
         html.light-mode body {
@@ -292,6 +294,7 @@
         }
     </style>
 </head>
+
 <body>
     <header class="main-header">
         <div class="container">
@@ -397,15 +400,15 @@
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
                 document.querySelectorAll('.history-content').forEach(c => c.classList.remove('active'));
-                
+
                 tab.classList.add('active');
                 const type = tab.dataset.type;
                 currentTab = type || 'all';
-                
-                const contentId = type === 'seen' ? 'seen-content' : 
-                                  type === 'clicked' ? 'clicked-content' : 'all-content';
+
+                const contentId = type === 'seen' ? 'seen-content' :
+                    type === 'clicked' ? 'clicked-content' : 'all-content';
                 document.getElementById(contentId).classList.add('active');
-                
+
                 loadHistory(currentTab, currentPage[currentTab]);
             });
         });
@@ -422,30 +425,30 @@
             const listId = type === 'all' ? 'all-list' : `${type}-list`;
             const statsId = type === 'all' ? 'all-stats' : `${type}-stats`;
             const paginationId = type === 'all' ? 'all-pagination' : `${type}-pagination`;
-            
+
             const list = document.getElementById(listId);
             const stats = document.getElementById(statsId);
             const pagination = document.getElementById(paginationId);
-            
+
             list.innerHTML = '<div class="loading">Loading history...</div>';
-            
+
             try {
                 let url = `/api/v1/history/viewed?page=${page}&page_size=${pageSize[type]}`;
                 if (type !== 'all') {
                     url += `&view_type=${type}`;
                 }
-                
+
                 const response = await fetch(url, { credentials: 'include' });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to load history');
                 }
-                
+
                 const data = await response.json();
-                
+
                 // Update stats
                 stats.textContent = `Total: ${data.total} items`;
-                
+
                 // Render items
                 if (data.items.length === 0) {
                     list.innerHTML = `
@@ -474,10 +477,10 @@
                         </li>
                     `).join('');
                 }
-                
+
                 // Render pagination
                 renderPagination(pagination, data, type, page);
-                
+
             } catch (error) {
                 console.error('Error loading history:', error);
                 list.innerHTML = '<div class="empty-state"><p>Error loading history. Please try again.</p></div>';
@@ -489,9 +492,9 @@
                 container.innerHTML = '';
                 return;
             }
-            
+
             const totalPages = Math.ceil(data.total / data.page_size);
-            
+
             container.innerHTML = `
                 <button onclick="changePage('${type}', ${page - 1})" ${page === 1 ? 'disabled' : ''}>
                     ← Previous
@@ -513,18 +516,18 @@
             if (!confirm(`Are you sure you want to clear ${typeName} history? This cannot be undone.`)) {
                 return;
             }
-            
+
             try {
                 let url = '/api/v1/history/clear';
                 if (type) {
                     url += `?view_type=${type}`;
                 }
-                
+
                 const response = await fetch(url, {
                     method: 'DELETE',
                     credentials: 'include'
                 });
-                
+
                 if (response.ok) {
                     alert('History cleared successfully!');
                     loadHistory(currentTab, 1);
@@ -542,16 +545,16 @@
             const date = new Date(isoString);
             const now = new Date();
             const diff = now - date;
-            
+
             const minutes = Math.floor(diff / 60000);
             const hours = Math.floor(diff / 3600000);
             const days = Math.floor(diff / 86400000);
-            
+
             if (minutes < 1) return 'just now';
             if (minutes < 60) return `${minutes}m ago`;
             if (hours < 24) return `${hours}h ago`;
             if (days < 7) return `${days}d ago`;
-            
+
             return date.toLocaleDateString();
         }
 
@@ -559,4 +562,5 @@
         loadHistory('seen', 1);
     </script>
 </body>
+
 </html>
