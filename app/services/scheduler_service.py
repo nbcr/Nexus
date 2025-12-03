@@ -46,22 +46,13 @@ class SchedulerService:
             logger.warning("⚠️  Scheduler already running")
             return
 
-        # Schedule content refresh every 15 minutes
-        self.scheduler.add_job(
-            self.refresh_content_job,
-            trigger=IntervalTrigger(minutes=15),
-            id="content_refresh",
-            name="Refresh RSS feed content",
-            replace_existing=True,
-        )
-
-        # Don't run on startup - let cron handle initial population
-        # Running on startup blocks workers from handling requests
-
+        # Content refresh is handled by cron (every 15 minutes)
+        # No need to schedule it here to avoid duplication
+        
         self.scheduler.start()
         self.is_running = True
         logger.info(
-            "✅ Background scheduler started - content will refresh every 15 minutes"
+            "✅ Background scheduler started (content refresh handled by cron)"
         )
 
     def stop(self):
