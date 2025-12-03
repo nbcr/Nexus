@@ -26,7 +26,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 - Backend: FastAPI, async SQLAlchemy, PostgreSQL
 - Frontend: Vanilla JS (`feed.js`), HTML/CSS
 - API endpoints: Defined in `app/api/routes/content.py` (main, not v1)
-- Business logic: `app/services/` (e.g., `article_scraper.py`, `pytrends_service.py`, `content_recommendation.py`)
+- Business logic: `app/services/` (e.g., `article_scraper.py`, `content_recommendation.py`)
 - Models: `app/models/` (e.g., `content.py`, `user.py`)
 - Database setup/migrations: root scripts and `scripts/`, migrations in `alembic/versions/`
 - Frontend assets: `app/static/` (e.g., `index.html`, `feed.js`)
@@ -59,7 +59,6 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 
 ## Integration Points
 
-- PyTrends: `app/services/pytrends_service.py`
 - Article scraping: `app/services/article_scraper.py` (BeautifulSoup)
 - Content recommendation: `app/services/content_recommendation.py`
 

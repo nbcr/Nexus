@@ -56,18 +56,16 @@ class ContentRecommendationService:
         # Combine with exclude_ids
         all_excluded = set(exclude_ids + viewed_content_ids)
 
-        # Build query - Show all PyTrends items (will scrape on click), filter others by content
+        # Build query - Show items with meaningful content
         query = (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
                 ContentItem.is_published == True,
                 ContentItem.id.notin_(all_excluded) if all_excluded else True,
-                # Show PyTrends items OR items with meaningful content
+                # Show items with meaningful content
                 or_(
-                    # Show all PyTrends items (will be scraped on-demand when clicked)
                     ContentItem.content_type == "trending_analysis",
-                    # For non-PyTrends: show if has picture or substantial content
                     or_(
                         # Has picture in source_metadata
                         and_(
@@ -130,7 +128,7 @@ class ContentRecommendationService:
                 topic, content, user_categories, user_interests
             )
 
-            # Fetch related PyTrends queries for this topic
+            # Fetch related queries for this topic
             related_queries = await self._get_related_queries(db, topic.title)
 
             feed_items.append(
@@ -200,11 +198,9 @@ class ContentRecommendationService:
             .where(
                 ContentItem.is_published == True,
                 ContentItem.id.notin_(exclude_ids) if exclude_ids else True,
-                # Show PyTrends items OR items with meaningful content
+                # Show items with meaningful content
                 or_(
-                    # Show all PyTrends items (will be scraped on-demand when clicked)
                     ContentItem.content_type == "trending_analysis",
-                    # For non-PyTrends: show if has picture or substantial content
                     or_(
                         # Has picture in source_metadata
                         and_(
@@ -252,7 +248,7 @@ class ContentRecommendationService:
 
         feed_items = []
         for content, topic in items:
-            # Fetch related PyTrends queries for this topic
+            # Fetch related queries for this topic
             related_queries = await self._get_related_queries(db, topic.title)
 
             feed_items.append(
@@ -362,7 +358,7 @@ class ContentRecommendationService:
         self, db: AsyncSession, parent_keyword: str
     ) -> List[Dict]:
         """
-        Get related PyTrends queries for a given keyword.
+        Get related search queries for a given keyword.
 
         Args:
             db: Database session
@@ -371,7 +367,7 @@ class ContentRecommendationService:
         Returns:
             List of related query dictionaries with title and url
         """
-        # Fetch all Search Query category topics (these are PyTrends queries)
+        # Fetch all Search Query category topics
         query = (
             select(Topic)
             .where(Topic.category == "Search Query")
@@ -392,7 +388,6 @@ class ContentRecommendationService:
 
         for topic in all_queries:
             # Check if any tag matches key terms from the parent keyword
-            # PyTrends stores the parent keyword in tags
             if topic.tags:
                 for tag in topic.tags:
                     tag_lower = str(tag).lower()
