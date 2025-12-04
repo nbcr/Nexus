@@ -927,3 +927,13 @@ AI recommendation system is live and learning from user behavior to discover rel
 ## Status:
 Topics are now updating correctly! The background scheduler runs every 15 minutes and checks if content refresh is needed (every 4 hours). Fresh Canadian trending topics from Google Trends RSS feed are now being saved to the database successfully.
 
+
+# 2025-12-04: Crash Sentinel for nexus.service
+- Updated `/etc/systemd/system/nexus.service` to refuse start if `/home/nexus/nexus/run/clean_shutdown.flag` is missing or not `OK`, and send an alert to `webmaster@comdat.ca` before exiting.
+- Added `ExecStartPost` to mark the flag `DIRTY` while running and `ExecStopPost` to write `OK` on clean stop; a crash leaves the flag dirty/missing so the next start is blocked.
+- Added `StartLimitIntervalSec=300` and `StartLimitBurst=3`, and ensured `/home/nexus/nexus/run` is created for the sentinel flag.
+
+# 2025-12-04: Brevo SMTP via msmtp
+- Updated `.env` SMTP settings to use Brevo relay (`smtp-relay.brevo.com:587`, user `9c3760001@smtp-brevo.com`).
+- Regenerated `/etc/msmtprc` to auth with provided Brevo SMTP credentials and send from `nexus@comdat.ca` for system emails (e.g., crash sentinel).
+- Verified outbound mail: `msmtp` test to `webmaster@comdat.ca` succeeded (Brevo responded 235 auth OK and queued message).
