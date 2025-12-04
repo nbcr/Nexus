@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     SENDER_EMAIL: str = "nexus@comdat.ca"
     ADMIN_EMAIL: str = "webmaster@comdat.ca"
     BREVO_API_KEY: str = ""
+    BREVO_WEBHOOK_TOKEN: str = ""
 
     # Use the new configuration style for Pydantic V2
     model_config = SettingsConfigDict(

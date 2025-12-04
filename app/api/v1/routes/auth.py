@@ -33,7 +33,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
 from app.db import AsyncSessionLocal
-from app.schemas import Token, UserCreate, UserResponse, UserLogin
+from app.schemas import Token, UserCreate, UserResponse, UserLogin, RegisterResponse
 from app.services.user_service import (
     create_user,
     authenticate_user,
@@ -43,6 +43,7 @@ from app.services.user_service import (
 from app.services.session_service import migrate_session_to_user
 from app.services.email_service import email_service
 from app.core.auth import create_access_token, verify_token
+from app.core.config import settings
 from app.models import User
 
 # Router Configuration
@@ -135,7 +136,7 @@ async def get_current_user(
 
 @router.post(
     "/register",
-    response_model=UserResponse,
+    response_model=RegisterResponse,
     status_code=status.HTTP_201_CREATED,
     responses={
         201: {"description": "User created successfully"},
@@ -191,14 +192,35 @@ async def register(
             # Log the error but don't fail registration
             print(f"Failed to migrate session data: {str(e)}")
 
-    # Send registration welcome email asynchronously
+    email_status = "ok"
+    email_error: Optional[str] = None
     try:
-        await email_service.send_registration_email_async(user_data.email, user.username)
+        success = await email_service.send_registration_email_async(
+            user_data.email, user.username
+        )
+        if not success:
+            email_status = "error"
+            email_error = "Registration email failed to send."
     except Exception as e:
-        # Log the error but don't fail registration if email fails
-        print(f"Failed to send welcome email: {str(e)}")
+        email_status = "error"
+        email_error = str(e)
 
-    return user
+    access_token_expires = timedelta(minutes=30)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    if email_status != "ok" and not settings.debug:
+        # Redact details in production
+        email_error = "Email delivery encountered a problem."
+
+    return RegisterResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+        email_status=email_status,
+        email_error=email_error,
+    )
 
 
 @router.post(

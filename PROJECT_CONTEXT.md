@@ -937,3 +937,12 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
 - Updated `.env` SMTP settings to use Brevo relay (`smtp-relay.brevo.com:587`, user `9c3760001@smtp-brevo.com`).
 - Regenerated `/etc/msmtprc` to auth with provided Brevo SMTP credentials and send from `nexus@comdat.ca` for system emails (e.g., crash sentinel).
 - Verified outbound mail: `msmtp` test to `webmaster@comdat.ca` succeeded (Brevo responded 235 auth OK and queued message).
+
+# 2025-12-04: Brevo Webhook Endpoint
+- Added `POST /api/v1/webhooks/brevo` FastAPI endpoint with token verification (`BREVO_WEBHOOK_TOKEN` via headers `X-Brevo-Signature`/`X-Brevo-Webhook-Token` or `token` query param); logs received events.
+- Registered new router in `app/main.py` and added `BREVO_WEBHOOK_TOKEN` to config/.env (reusing existing webhook secret value).
+- Purpose: allow Brevo to push event webhooks (bounces/opens) securely into Nexus.
+
+# 2025-12-04: Registration email error surfacing
+- Registration endpoint now returns `RegisterResponse` with access token and email send status; errors captured and redacted unless `debug` is true.
+- Frontend register page shows summarized email errors and stops redirect when email send fails; otherwise sets token and redirects.

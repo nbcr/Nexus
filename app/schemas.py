@@ -205,6 +205,14 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class RegisterResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+    email_status: str = "ok"
+    email_error: Optional[str] = None
+
+
 # Session Schemas
 class SessionResponse(BaseModel):
     session_token: str
