@@ -946,3 +946,20 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
 # 2025-12-04: Registration email error surfacing
 - Registration endpoint now returns `RegisterResponse` with access token and email send status; errors captured and redacted unless `debug` is true.
 - Frontend register page shows summarized email errors and stops redirect when email send fails; otherwise sets token and redirects.
+
+# 2025-12-04: Brevo webhook authentication and email validation
+- Fixed webhook 401 errors: nginx wasn't forwarding Authorization header, and Brevo sends "Authorization: bearer <token>" not custom headers.
+- Updated nginx config (`/api/v1/` location) to forward Authorization and X-Brevo-* headers.
+- Updated webhook handler (`app/api/routes/webhooks.py`) to extract bearer token from Authorization header; stores events via BackgroundTasks.
+- Created `BrevoEmailEvent` model (email, event_type, event_data, received_at, checked_at) and Alembic migration.
+- Added `GET /api/v1/auth/check-email-status` endpoint to query Brevo events for an email.
+- Updated registration endpoint to check Brevo events before sending; returns "Email not working. Try a different one." if hard_bounce/invalid_email/blocked found.
+- Frontend (`register.html`) already handles `email_status`/`email_error` from backend.
+
+# 2025-12-04: Dead code cleanup
+- Removed 18 dead files (~2400 lines): 
+  - Route duplicates: `app/api/routes/{auth,trending}.py`, `app/api/v1/routes/{content,session,topics,trending,users}.py`
+  - Model/database duplicates: `app/models.py`, `app/database.py`
+  - Test/debug scripts: `debug_routes.py`, `autogen_agent.py`, `simple_migrate.py`, `test_*.py`, `check_*.py`, `cleanup_null_titles.py`, `debug_ddg_html.py`, `lorem.txt`, `migrate_db.py`
+- Updated `app/api/__init__.py` to remove unused `api_router` export (routes imported individually in `main.py`).
+- System tested and verified working after cleanup; all changes committed and pushed.
