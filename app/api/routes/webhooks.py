@@ -87,37 +87,4 @@ async def brevo_webhook(request: Request) -> dict[str, Any]:
 
     logger.info("Brevo webhook received events=%d sample=%s", len(events), sample)
 
-    # Store email events in database asynchronously
-    import asyncio
-    asyncio.create_task(_store_brevo_events(events))
-
     return {"status": "ok", "received": len(events)}
-
-
-async def _store_brevo_events(events):
-    """Store email events in database (async task)."""
-    from app.database import AsyncSessionLocal
-    
-    async with AsyncSessionLocal() as db:
-        try:
-            for event in events:
-                email = event.get("email")
-                event_type = event.get("event")
-                
-                # Only track events that indicate email problems
-                if email and event_type in ("invalid_email", "bounce", "complaint", "unsubscribe", "hard_bounce"):
-                    event_str = json.dumps(event, default=str)
-                    brevo_event = BrevoEmailEvent(
-                        email=email,
-                        event_type=event_type,
-                        event_data=event_str[:1000]  # Truncate to 1000 chars
-                    )
-                    db.add(brevo_event)
-                    logger.info("Stored email event: %s for %s", event_type, email)
-            
-            await db.commit()
-        except Exception as e:
-            logger.error("Failed to store brevo events: %s", e)
-            await db.rollback()
-        finally:
-            await db.close()
