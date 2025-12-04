@@ -107,8 +107,7 @@
 .feed-item-image {
     width: 100%;
     max-width: 360px;
-    max-height: 200px;
-    overflow: hidden;
+    overflow: visible;
     background: transparent;
     border-radius: 12px;
     margin: 16px auto;
@@ -120,7 +119,6 @@
 .feed-item-image img {
     width: 100%;
     height: auto;
-    max-height: 200px;
     object-fit: contain;
     border-radius: 12px;
     display: block;
@@ -500,7 +498,6 @@
 
     .feed-item-image {
         max-width: 100%;
-        height: 180px;
     }
 
     .feed-item-body {
