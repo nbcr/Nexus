@@ -640,9 +640,20 @@ class InfiniteFeed {
             })();
         }
 
-        // Extract dominant color from image for hover effect (only if image exists)
+        // YouTube-style: extract dominant color from thumbnail for card background
         const img = article.querySelector('.feed-item-image img');
-        if (img) this.extractDominantColor(img, article);
+        if (img) {
+            img.crossOrigin = 'anonymous'; // Enable CORS for color extraction
+            img.addEventListener('load', () => {
+                this.extractDominantColor(img, article);
+            });
+            if (img.complete) {
+                this.extractDominantColor(img, article);
+            }
+        } else {
+            // If no image, set default color
+            article.style.setProperty('--card-color', 'rgb(100, 149, 237)');
+        }
 
         // Create hover tracker for this card
         if (window.HoverTracker && this.globalScrollTracker) {
