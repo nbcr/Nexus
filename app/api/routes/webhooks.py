@@ -4,7 +4,7 @@ import os
 import secrets
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status, BackgroundTasks
 
 from app.core.config import settings
 from app.models.user import BrevoEmailEvent
@@ -68,7 +68,7 @@ def _require_valid_token(token: str | None, request: Request) -> None:
 
 
 @router.post("/brevo", status_code=status.HTTP_200_OK)
-async def brevo_webhook(request: Request) -> dict[str, Any]:
+async def brevo_webhook(request: Request, background_tasks: BackgroundTasks) -> dict[str, Any]:
     """Receive Brevo webhook events and store them for registration validation."""
 
     token = _get_token_from_request(request)
@@ -86,5 +86,35 @@ async def brevo_webhook(request: Request) -> dict[str, Any]:
         sample = "<unserializable payload>"
 
     logger.info("Brevo webhook received events=%d sample=%s", len(events), sample)
+    
+    # Store events in background
+    background_tasks.add_task(_store_brevo_events, events)
 
     return {"status": "ok", "received": len(events)}
+
+
+async def _store_brevo_events(events):
+    """Store email events in database asynchronously."""
+    from app.database import AsyncSessionLocal
+    
+    async with AsyncSessionLocal() as db:
+        try:
+            for event in events:
+                email = event.get("email")
+                event_type = event.get("event")
+                
+                # Only track events that indicate email problems
+                if email and event_type in ("invalid_email", "bounce", "complaint", "unsubscribe", "hard_bounce"):
+                    event_str = json.dumps(event, default=str)
+                    brevo_event = BrevoEmailEvent(
+                        email=email,
+                        event_type=event_type,
+                        event_data=event_str[:1000]  # Truncate to 1000 chars
+                    )
+                    db.add(brevo_event)
+                    logger.info("Stored email event: %s for %s", event_type, email)
+            
+            await db.commit()
+        except Exception as e:
+            logger.error("Failed to store brevo events: %s", e)
+            await db.rollback()
