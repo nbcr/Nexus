@@ -41,6 +41,7 @@ from app.services.user_service import (
     get_user_by_email,
 )
 from app.services.session_service import migrate_session_to_user
+from app.services.email_service import email_service
 from app.core.auth import create_access_token, verify_token
 from app.models import User
 
@@ -189,6 +190,13 @@ async def register(
         except Exception as e:
             # Log the error but don't fail registration
             print(f"Failed to migrate session data: {str(e)}")
+
+    # Send registration welcome email asynchronously
+    try:
+        await email_service.send_registration_email_async(user_data.email, user.username)
+    except Exception as e:
+        # Log the error but don't fail registration if email fails
+        print(f"Failed to send welcome email: {str(e)}")
 
     return user
 
