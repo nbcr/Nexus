@@ -22,14 +22,20 @@
         </div>
         <div class="form-row-inline form-row-align">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" required minlength="8" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" title="Password must be at least 8 characters and contain uppercase, lowercase, number, and special character">
+            <input type="password" id="password" name="password" required minlength="8"
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                title="Password must be at least 8 characters and contain uppercase, lowercase, number, and special character">
         </div>
-        <div id="password-requirements" class="password-requirements" style="margin-top: 8px; margin-bottom: 16px; font-size: 12px; color: #666; max-width: 500px; margin-left: auto; margin-right: auto; padding-left: 136px;">
+        <div id="password-requirements" class="password-requirements"
+            style="margin-top: 8px; margin-bottom: 16px; font-size: 12px; color: #666; max-width: 500px; margin-left: auto; margin-right: auto; padding-left: 136px;">
             <div class="req-item" data-requirement="length"><span class="req-icon">❌</span> At least 8 characters</div>
-            <div class="req-item" data-requirement="lowercase"><span class="req-icon">❌</span> One lowercase letter (a-z)</div>
-            <div class="req-item" data-requirement="uppercase"><span class="req-icon">❌</span> One uppercase letter (A-Z)</div>
+            <div class="req-item" data-requirement="lowercase"><span class="req-icon">❌</span> One lowercase letter
+                (a-z)</div>
+            <div class="req-item" data-requirement="uppercase"><span class="req-icon">❌</span> One uppercase letter
+                (A-Z)</div>
             <div class="req-item" data-requirement="number"><span class="req-icon">❌</span> One number (0-9)</div>
-            <div class="req-item" data-requirement="special"><span class="req-icon">❌</span> One special character (@$!%*?&)</div>
+            <div class="req-item" data-requirement="special"><span class="req-icon">❌</span> One special character
+                (@$!%*?&)</div>
         </div>
         <div id="register-error" class="register-error"></div>
         <div class="login-btn-row">
@@ -42,186 +48,205 @@
 
 {% block extra_js %}
 <script>
-// Save form data to sessionStorage
-function saveRegisterFormData() {
-    const username = document.getElementById('username')?.value || '';
-    const email = document.getElementById('email')?.value || '';
-    sessionStorage.setItem('register_username', username);
-    sessionStorage.setItem('register_email', email);
-}
-
-// Save register form data and redirect to login page
-function saveRegisterDataAndRedirect() {
-    const username = document.getElementById('username')?.value || '';
-    const password = document.getElementById('password')?.value || '';
-    if (username) {
-        sessionStorage.setItem('login_username', username);
+    // Save form data to sessionStorage
+    function saveRegisterFormData() {
+        const username = document.getElementById('username')?.value || '';
+        const email = document.getElementById('email')?.value || '';
+        sessionStorage.setItem('register_username', username);
+        sessionStorage.setItem('register_email', email);
     }
-    if (password) {
-        sessionStorage.setItem('login_password', password);
-    }
-    window.location.href = '/login';
-}
 
-// Restore form data from sessionStorage
-function restoreRegisterFormData() {
-    const usernameInput = document.getElementById('username');
-    const emailInput = document.getElementById('email');
-    
-    if (usernameInput && !usernameInput.value) {
-        const savedUsername = sessionStorage.getItem('register_username');
-        if (savedUsername) {
-            usernameInput.value = savedUsername;
+    // Save register form data and redirect to login page
+    function saveRegisterDataAndRedirect() {
+        const username = document.getElementById('username')?.value || '';
+        const password = document.getElementById('password')?.value || '';
+        if (username) {
+            sessionStorage.setItem('login_username', username);
         }
-    }
-    
-    if (emailInput && !emailInput.value) {
-        const savedEmail = sessionStorage.getItem('register_email');
-        if (savedEmail) {
-            emailInput.value = savedEmail;
+        if (password) {
+            sessionStorage.setItem('login_password', password);
         }
+        window.location.href = '/login';
     }
-}
 
-// Password requirements checker
-function checkPasswordRequirements(password) {
-    const requirements = {
-        length: password.length >= 8,
-        lowercase: /[a-z]/.test(password),
-        uppercase: /[A-Z]/.test(password),
-        number: /\d/.test(password),
-        special: /[@$!%*?&]/.test(password)
-    };
-    
-    // Update UI for each requirement
-    Object.keys(requirements).forEach(req => {
-        const reqItem = document.querySelector(`.req-item[data-requirement="${req}"]`);
-        if (reqItem) {
-            const icon = reqItem.querySelector('.req-icon');
-            if (requirements[req]) {
-                icon.textContent = '✅';
-                reqItem.style.color = '#4caf50';
-            } else {
-                icon.textContent = '❌';
-                reqItem.style.color = '#666';
+    // Restore form data from sessionStorage
+    function restoreRegisterFormData() {
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+
+        if (usernameInput && !usernameInput.value) {
+            const savedUsername = sessionStorage.getItem('register_username');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
             }
         }
-    });
-    
-    return requirements;
-}
 
-// Flash animations
-function flashRed(element) {
-    element.classList.add('flash-error');
-    setTimeout(() => element.classList.remove('flash-error'), 600);
-}
-
-function flashGreen(element) {
-    element.classList.add('flash-success');
-    setTimeout(() => element.classList.remove('flash-success'), 600);
-}
-
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', function() {
-    restoreRegisterFormData();
-    
-    // Save form data as user types
-    const usernameInput = document.getElementById('username');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    
-    if (usernameInput) {
-        usernameInput.addEventListener('input', saveRegisterFormData);
-        usernameInput.addEventListener('blur', saveRegisterFormData);
+        if (emailInput && !emailInput.value) {
+            const savedEmail = sessionStorage.getItem('register_email');
+            if (savedEmail) {
+                emailInput.value = savedEmail;
+            }
+        }
     }
-    if (emailInput) {
-        emailInput.addEventListener('input', saveRegisterFormData);
-        emailInput.addEventListener('blur', saveRegisterFormData);
-    }
-    
-    // Real-time password validation
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function() {
-            checkPasswordRequirements(this.value);
+
+    // Password requirements checker
+    function checkPasswordRequirements(password) {
+        const requirements = {
+            length: password.length >= 8,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            number: /\d/.test(password),
+            special: /[@$!%*?&]/.test(password)
+        };
+
+        // Update UI for each requirement
+        Object.keys(requirements).forEach(req => {
+            const reqItem = document.querySelector(`.req-item[data-requirement="${req}"]`);
+            if (reqItem) {
+                const icon = reqItem.querySelector('.req-icon');
+                if (requirements[req]) {
+                    icon.textContent = '✅';
+                    reqItem.style.color = '#4caf50';
+                } else {
+                    icon.textContent = '❌';
+                    reqItem.style.color = '#666';
+                }
+            }
         });
-        passwordInput.addEventListener('keyup', function() {
-            checkPasswordRequirements(this.value);
-        });
+
+        return requirements;
     }
-    
-    const registerForm = document.getElementById('register-form');
-    if (!registerForm) {
-        console.error('Register form not found');
-        return;
+
+    // Flash animations
+    function flashRed(element) {
+        element.classList.add('flash-error');
+        setTimeout(() => element.classList.remove('flash-error'), 600);
     }
-    
-    registerForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const username = usernameInput.value;
-        const email = emailInput.value;
-        const password = passwordInput.value;
-        const errorDiv = document.getElementById('register-error');
-        
-        // Clear previous error
-        errorDiv.style.display = 'none';
-        errorDiv.textContent = '';
-        usernameInput.classList.remove('flash-error', 'flash-success');
-        emailInput.classList.remove('flash-error', 'flash-success');
-        passwordInput.classList.remove('flash-error', 'flash-success');
-        
-        // Validate password requirements
-        const reqs = checkPasswordRequirements(password);
-        if (!Object.values(reqs).every(v => v)) {
-            flashRed(passwordInput);
-            errorDiv.textContent = 'Please meet all password requirements';
-            errorDiv.style.display = 'block';
+
+    function flashGreen(element) {
+        element.classList.add('flash-success');
+        setTimeout(() => element.classList.remove('flash-success'), 600);
+    }
+
+    // Wait for DOM to be ready
+    document.addEventListener('DOMContentLoaded', function () {
+        restoreRegisterFormData();
+
+        function summarizeErrorMessage(msg) {
+            if (!msg) return 'Email delivery failed. Please try again.';
+            const clean = String(msg).replace(/\s+/g, ' ').trim();
+            return clean.length > 220 ? clean.slice(0, 220) + '…' : clean;
+        }
+
+        // Save form data as user types
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        if (usernameInput) {
+            usernameInput.addEventListener('input', saveRegisterFormData);
+            usernameInput.addEventListener('blur', saveRegisterFormData);
+        }
+        if (emailInput) {
+            emailInput.addEventListener('input', saveRegisterFormData);
+            emailInput.addEventListener('blur', saveRegisterFormData);
+        }
+
+        // Real-time password validation
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                checkPasswordRequirements(this.value);
+            });
+            passwordInput.addEventListener('keyup', function () {
+                checkPasswordRequirements(this.value);
+            });
+        }
+
+        const registerForm = document.getElementById('register-form');
+        if (!registerForm) {
+            console.error('Register form not found');
             return;
         }
-        
-        try {
-            const res = await fetch('/api/v1/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
-            
-            if (res.ok) {
-                // Flash green for success
-                flashGreen(usernameInput);
-                flashGreen(emailInput);
-                flashGreen(passwordInput);
-                
-                const data = await res.json();
-                localStorage.setItem('access_token', data.access_token);
-                document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
-                
-                // Clear session storage
-                sessionStorage.removeItem('register_username');
-                sessionStorage.removeItem('register_email');
-                
-                window.location.href = '/';
-            } else {
+
+        registerForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = usernameInput.value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            const errorDiv = document.getElementById('register-error');
+
+            // Clear previous error
+            errorDiv.style.display = 'none';
+            errorDiv.textContent = '';
+            usernameInput.classList.remove('flash-error', 'flash-success');
+            emailInput.classList.remove('flash-error', 'flash-success');
+            passwordInput.classList.remove('flash-error', 'flash-success');
+
+            // Validate password requirements
+            const reqs = checkPasswordRequirements(password);
+            if (!Object.values(reqs).every(v => v)) {
+                flashRed(passwordInput);
+                errorDiv.textContent = 'Please meet all password requirements';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const emailStatus = data.email_status || 'ok';
+                    const emailError = data.email_error;
+
+                    if (emailStatus !== 'ok') {
+                        flashRed(usernameInput);
+                        flashRed(emailInput);
+                        flashRed(passwordInput);
+                        errorDiv.textContent = summarizeErrorMessage(emailError);
+                        errorDiv.style.display = 'block';
+                        return;
+                    }
+
+                    // Flash green for success
+                    flashGreen(usernameInput);
+                    flashGreen(emailInput);
+                    flashGreen(passwordInput);
+
+                    if (data.access_token) {
+                        localStorage.setItem('access_token', data.access_token);
+                        document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
+                    }
+
+                    // Clear session storage
+                    sessionStorage.removeItem('register_username');
+                    sessionStorage.removeItem('register_email');
+
+                    window.location.href = '/';
+                } else {
+                    // Flash red for error
+                    flashRed(usernameInput);
+                    flashRed(emailInput);
+                    flashRed(passwordInput);
+
+                    const error = await res.json();
+                    errorDiv.textContent = error.detail || 'Registration failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
                 // Flash red for error
                 flashRed(usernameInput);
                 flashRed(emailInput);
                 flashRed(passwordInput);
-                
-                const error = await res.json();
-                errorDiv.textContent = error.detail || 'Registration failed';
+
+                errorDiv.textContent = 'Network error. Please try again.';
                 errorDiv.style.display = 'block';
             }
-        } catch (error) {
-            // Flash red for error
-            flashRed(usernameInput);
-            flashRed(emailInput);
-            flashRed(passwordInput);
-            
-            errorDiv.textContent = 'Network error. Please try again.';
-            errorDiv.style.display = 'block';
-        }
+        });
     });
-});
 </script>
 {% endblock %}
-

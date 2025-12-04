@@ -73,7 +73,15 @@ from fastapi.middleware.cors import CORSMiddleware  # type: ignore
 from fastapi.staticfiles import StaticFiles  # type: ignore
 import os
 
-from app.api.routes import topics, content, users, auth, session, trending
+from app.api.routes import (
+    topics,
+    content,
+    users,
+    auth,
+    session,
+    trending,
+    webhooks,
+)
 from app.api.v1.routes import admin, settings as v1_settings, websocket, history
 from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
@@ -149,6 +157,9 @@ app.include_router(
     content.router, prefix=f"{settings.API_V1_STR}/content", tags=["content"]
 )
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
+app.include_router(
+    webhooks.router, prefix=f"{settings.API_V1_STR}/webhooks", tags=["webhooks"]
+)
 
 # Include admin and settings routes from v1
 app.include_router(
