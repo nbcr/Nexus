@@ -194,16 +194,30 @@ async def register(
 
     email_status = "ok"
     email_error: Optional[str] = None
-    try:
-        success = await email_service.send_registration_email_async(
-            user_data.email, user.username
-        )
-        if not success:
-            email_status = "error"
-            email_error = "Registration email failed to send."
-    except Exception as e:
+    
+    # Check for Brevo email validation issues
+    from sqlalchemy import select
+    from app.models.user import BrevoEmailEvent
+    stmt = select(BrevoEmailEvent).where(
+        BrevoEmailEvent.email == user_data.email
+    ).order_by(BrevoEmailEvent.received_at.desc()).limit(1)
+    brevo_result = await db.execute(stmt)
+    brevo_event = brevo_result.scalars().first()
+    
+    if brevo_event:
         email_status = "error"
-        email_error = str(e)
+        email_error = "Email not working. Try a different one."
+    else:
+        try:
+            success = await email_service.send_registration_email_async(
+                user_data.email, user.username
+            )
+            if not success:
+                email_status = "error"
+                email_error = "Registration email failed to send."
+        except Exception as e:
+            email_status = "error"
+            email_error = str(e)
 
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
