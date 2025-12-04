@@ -6,6 +6,7 @@ from datetime import timedelta
 from app.db import AsyncSessionLocal
 from app.schemas import Token, UserCreate, UserResponse, UserLogin
 from app.services.user_service import create_user, authenticate_user
+from app.services.email_service import email_service
 from app.core.auth import create_access_token, verify_token
 from app.models import User
 
@@ -41,9 +42,6 @@ async def get_current_user(
     return user
 
 
-from app.services.email_service import send_registration_email
-
-
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     import logging
@@ -74,9 +72,9 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
             from app.services.session_service import migrate_session_to_user
 
             await migrate_session_to_user(db, visitor_id, user.id)
-        # Send registration email
+        # Send registration email asynchronously
         try:
-            send_registration_email(
+            await email_service.send_registration_email_async(
                 to_email=user_data.email, username=user_data.username
             )
         except Exception as e:

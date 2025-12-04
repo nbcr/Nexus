@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas import UserCreate
 from app.services.user_service import create_user, get_user_by_email
-from app.services.email_service import send_registration_email
+from app.services.email_service import email_service
 from app.db import get_db
 
 router = APIRouter()
@@ -22,7 +22,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     db_user = await create_user(db, user)
     # Send registration email
     try:
-        send_registration_email(to_email=user.email, username=user.username)
+        email_service.send_registration_email(to_email=user.email, username=user.username)
     except Exception as e:
         # Log error, but don't block registration
         print(f"Email send failed: {e}")
