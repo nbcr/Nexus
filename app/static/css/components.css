@@ -421,7 +421,9 @@ body.dark-mode .history-item {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .article-loading {
@@ -444,20 +446,20 @@ body.dark-mode .history-item {
    MOBILE RESPONSIVE
    ====================================== */
 
-@media (width <= 768px) {
+@media (width <=768px) {
+
     .modal-content,
     .article-modal-content {
         padding: var(--spacing-lg, 24px);
         max-height: 95vh;
     }
-    
+
     .category-filter {
         gap: var(--spacing-xs, 4px);
     }
-    
+
     .category-btn {
         padding: 6px 12px;
         font-size: var(--font-size-sm, 12px);
     }
 }
-

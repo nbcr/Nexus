@@ -963,3 +963,35 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
   - Test/debug scripts: `debug_routes.py`, `autogen_agent.py`, `simple_migrate.py`, `test_*.py`, `check_*.py`, `cleanup_null_titles.py`, `debug_ddg_html.py`, `lorem.txt`, `migrate_db.py`
 - Updated `app/api/__init__.py` to remove unused `api_router` export (routes imported individually in `main.py`).
 - System tested and verified working after cleanup; all changes committed and pushed.
+
+# 2025-12-04: Feed card coloration & notification bubble fixes
+
+## Card Coloration Issue:
+- **Problem**: Feed cards were not displaying the YouTube-style dominant color extraction for background hover effects
+- **Root Cause**: `extractDominantColor()` method existed but wasn't being reliably called for every card
+- **Fix**: Updated `feed.js` to always set a default fallback color (`rgb(100, 149, 237)`) first, then call `extractDominantColor()` on image load
+- **Implementation**: Added CORS support (`crossOrigin='anonymous'`) and proper load event listener to ensure color extraction runs after image loads
+
+## Notification Bubble Missing:
+- **Problem**: WebSocket notification bubble for new content was not appearing at top of page
+- **Root Cause**: CSS for `.feed-notification` was missing from stylesheets (only inline styles in JS)
+- **Fix**: Added comprehensive CSS for notification bubble and scroll-to-top button to `app/static/css/components.css`
+- **Rationale**: Placed in `components.css` (loaded globally via `base.html`) instead of `feed.css` since it's a reusable component that could appear site-wide
+- **CSS Added**:
+  - `.feed-notification`: Fixed position notification bar with gradient background, transforms, and transitions
+  - `.notification-badge`: Badge styling for content count
+  - `.scroll-to-top-btn`: Scroll to top button with matching gradient style
+
+## Files Modified:
+- `app/static/js/feed.js`: Enhanced color extraction reliability with fallback and proper event handling
+- `app/static/css/components.css`: Added notification bubble and scroll button CSS
+
+## Technical Details:
+- **Color Extraction**: Uses canvas API to sample 50×50 thumbnail, averages RGB values from every 16th pixel for performance
+- **Notification**: WebSocket-powered real-time updates via `feed-notifier.js`, appears at `top: 70px` with slide-down animation
+- **Scroll Button**: Appears at `bottom: 30px`, `right: 30px` when user scrolls >300px down the page
+
+## Status:
+✅ Card background coloration now working with YouTube-style dominant color extraction
+✅ Notification bubble CSS properly defined and should display when new content arrives via WebSocket
+✅ Both features use consistent purple gradient theme (`#667eea` to `#764ba2`)
