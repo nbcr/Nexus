@@ -77,7 +77,6 @@ from app.api.routes import (
     topics,
     content,
     users,
-    auth,
     session,
     trending,
     webhooks,
