@@ -8,11 +8,7 @@ when making breaking changes.
 Current versions:
 - v1: Initial API version
 
-Usage:
-    from app.api.v1 import api_router
-    app.include_router(api_router, prefix="/api/v1")
+Note: Routes are currently imported individually in main.py rather than using the api_router.
 """
 
-from app.api.v1 import api_router
-
-__all__ = ["api_router"]
+__all__ = []
