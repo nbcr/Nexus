@@ -5,6 +5,8 @@ import subprocess
 import os
 import time
 import fcntl
+import logging
+import builtins
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -17,6 +19,27 @@ VENV_PATH = os.path.join(PROJECT_PATH, "venv")
 VENV_PYTHON = os.path.join(VENV_PATH, "bin", "python")
 VENV_PIP = os.path.join(VENV_PATH, "bin", "pip")
 LOCK_FILE = "/tmp/nexus_webhook.lock"
+
+logger = logging.getLogger("github_webhook")
+if not logger.handlers:
+    logs_dir = os.path.join(PROJECT_PATH, "logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    handler = logging.FileHandler(os.path.join(logs_dir, "github_webhook.log"))
+    formatter = logging.Formatter(
+        fmt="%(asctime)s %(levelname)s %(name)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+_print = builtins.print
+
+
+def print(*args, **kwargs):  # type: ignore
+    msg = " ".join(str(a) for a in args)
+    logger.info(msg)
+    return _print(*args, **kwargs)
 
 print(f"Webhook secret loaded: {WEBHOOK_SECRET is not None}")
 print(f"Virtual environment Python: {VENV_PYTHON}")
