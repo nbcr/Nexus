@@ -128,3 +128,31 @@ async def logout(response: Response):
     response.delete_cookie(key="access_token", path="/")
     response.delete_cookie(key="refresh_token", path="/")
     return {"detail": "Logged out"}
+
+
+@router.get("/check-email-status/{email}")
+async def check_email_status(email: str, db: AsyncSession = Depends(get_db)):
+    """Check if an email has failed Brevo validation."""
+    from sqlalchemy import select
+    from app.models.user import BrevoEmailEvent
+    
+    # Check for any failed email events in the last hour
+    stmt = select(BrevoEmailEvent).where(
+        BrevoEmailEvent.email == email
+    ).order_by(BrevoEmailEvent.received_at.desc()).limit(1)
+    
+    result = await db.execute(stmt)
+    event = result.scalars().first()
+    
+    if event:
+        return {
+            "has_error": True,
+            "message": "Email not working. Try a different one.",
+            "event_type": event.event_type
+        }
+    
+    return {
+        "has_error": False,
+        "message": None,
+        "event_type": None
+    }

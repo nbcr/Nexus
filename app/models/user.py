@@ -71,3 +71,16 @@ class ContentViewHistory(Base):
 
     user = relationship("User", back_populates="view_history")
     content_item = relationship("ContentItem", back_populates="view_history")
+
+
+class BrevoEmailEvent(Base):
+    """Track Brevo email events (bounces, complaints, invalid emails, etc.)."""
+
+    __tablename__ = "brevo_email_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(100), index=True, nullable=False)
+    event_type = Column(String(50), nullable=False)  # 'invalid_email', 'bounce', 'complaint', 'unsubscribe', etc.
+    event_data = Column(String(1000), nullable=True)  # Store full event JSON for debugging
+    received_at = Column(DateTime, default=func.now(), nullable=False)
+    checked_at = Column(DateTime, nullable=True)  # When the registration page last checked
