@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SENDER_EMAIL: str = "nexus@comdat.ca"
     ADMIN_EMAIL: str = "webmaster@comdat.ca"
+    BREVO_API_KEY: str = ""
 
     # Use the new configuration style for Pydantic V2
     model_config = SettingsConfigDict(
