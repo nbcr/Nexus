@@ -35,6 +35,14 @@ class Settings(BaseSettings):
         "https://api.test.comdat.ca",
     ]
 
+    # Email Configuration
+    SMTP_SERVER: str = "localhost"
+    SMTP_PORT: int = 25
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SENDER_EMAIL: str = "nexus@comdat.ca"
+    ADMIN_EMAIL: str = "webmaster@comdat.ca"
+
     # Use the new configuration style for Pydantic V2
     model_config = SettingsConfigDict(
         env_file=DOTENV_PATH,
