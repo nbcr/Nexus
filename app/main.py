@@ -78,7 +78,6 @@ from app.api.routes import (
     content,
     users,
     session,
-    trending,
     webhooks,
 )
 from app.api.v1.routes import admin, settings as v1_settings, websocket, history
