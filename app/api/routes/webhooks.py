@@ -37,7 +37,7 @@ def _get_token_from_request(request: Request) -> str | None:
     )
 
 
-def _require_valid_token(token: str | None) -> None:
+def _require_valid_token(token: str | None, request: Request) -> None:
     expected = settings.BREVO_WEBHOOK_TOKEN
     if not expected:
         raise HTTPException(
@@ -46,6 +46,14 @@ def _require_valid_token(token: str | None) -> None:
         )
 
     if not token or not secrets.compare_digest(token, expected):
+        client_ip = request.client.host if request.client else "unknown"
+        logger.warning(
+            "Brevo webhook invalid token from %s headers=%s", client_ip, {
+                k: v
+                for k, v in request.headers.items()
+                if k.lower() in {"x-brevo-signature", "x-brevo-webhook-token", "x-webhook-token"}
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid webhook token",
@@ -57,7 +65,7 @@ async def brevo_webhook(request: Request) -> dict[str, Any]:
     """Receive Brevo webhook events and log them for processing."""
 
     token = _get_token_from_request(request)
-    _require_valid_token(token)
+    _require_valid_token(token, request)
 
     try:
         payload = await request.json()
