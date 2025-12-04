@@ -28,7 +28,13 @@ router = APIRouter()
 
 
 def _get_token_from_request(request: Request) -> str | None:
-    """Extract webhook token from common Brevo header or query param."""
+    """Extract webhook token from Authorization bearer header or custom headers."""
+    # Brevo sends token in Authorization header as "bearer <token>"
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header[7:]  # Strip "bearer " prefix
+    
+    # Fallback to custom headers for other webhook sources
     return (
         request.headers.get("X-Brevo-Signature")
         or request.headers.get("X-Brevo-Webhook-Token")
