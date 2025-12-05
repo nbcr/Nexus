@@ -306,7 +306,7 @@ body {
 }
 
 .stat-value.high {
-    color: #f44;
+    color: #c00;
 }
 
 .stat-value.medium {
@@ -360,7 +360,7 @@ body {
 }
 
 .log-entry.high {
-    border-left-color: #f44;
+    border-left-color: #c00;
 }
 
 .log-entry.medium {
@@ -404,7 +404,7 @@ body {
 
 .log-entry-badge.high {
     background: rgb(255 68 68 / 20%);
-    color: #a11;
+    color: #900;
 }
 
 .log-entry-badge.medium {
@@ -507,7 +507,7 @@ body {
 
 .user-card-badge.admin {
     background: rgb(255 68 68 / 20%);
-    color: #a11;
+    color: #900;
 }
 
 .user-card-badge.user {

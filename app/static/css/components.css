@@ -47,7 +47,7 @@
 /* Button Variants */
 .btn-primary {
     background: var(--accent, #0078d7);
-    color: #ffffff;
+    color: #fff;
 }
 
 .btn-primary:hover {
@@ -351,7 +351,7 @@ body.dark-mode .history-item {
     left: 50%;
     transform: translateX(-50%) translateY(-120%);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    color: #fff;
     padding: 12px 24px;
     border-radius: 50px;
     box-shadow: 0 4px 15px rgb(0 0 0 / 30%);
@@ -387,7 +387,7 @@ body.dark-mode .history-item {
     height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    color: #fff;
     border: none;
     font-size: 24px;
     cursor: pointer;
@@ -403,7 +403,7 @@ body.dark-mode .history-item {
 
 .scroll-to-top-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 40%);
 }
 
 /* ======================================
@@ -447,7 +447,6 @@ body.dark-mode .history-item {
    ====================================== */
 
 @media (width <=768px) {
-
     .modal-content,
     .article-modal-content {
         padding: var(--spacing-lg, 24px);
