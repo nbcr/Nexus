@@ -27,13 +27,18 @@ class AsyncRSSParser:
             max_connections: Maximum concurrent connections
             timeout: Request timeout in seconds
         """
+        self.max_connections = max_connections
         self.timeout = aiohttp.ClientTimeout(total=timeout)
-        self.connector = aiohttp.TCPConnector(limit=max_connections, ttl_dns_cache=300)
+        self.connector = None
         self._session: Optional[aiohttp.ClientSession] = None
 
     def get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session with connection pooling"""
         if self._session is None or self._session.closed:
+            if self.connector is None:
+                self.connector = aiohttp.TCPConnector(
+                    limit=self.max_connections, ttl_dns_cache=300
+                )
             self._session = aiohttp.ClientSession(
                 connector=self.connector, timeout=self.timeout
             )
