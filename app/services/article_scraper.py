@@ -226,7 +226,7 @@ class ArticleScraperService:
             score += 1.5
 
         # 2. Contains quotes (direct information)
-        if '"' in sentence or '"' in sentence or "'" in sentence or "'" in sentence:
+        if any(q in sentence for q in ['"', '"', "'", "'"]):
             score += 2.5
 
         # 3. Contains key action words
