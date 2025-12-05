@@ -12,7 +12,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.services.trending_service import trending_service
+from app.services.trending import trending_service
 from app.database import AsyncSessionLocal
 
 

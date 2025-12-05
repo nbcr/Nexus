@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
 
 from app.db import AsyncSessionLocal
-from app.services.trending_service import trending_service
+from app.services.trending import trending_service
 
 # Lock file to prevent concurrent refreshes
 LOCK_FILE = Path("/tmp/nexus_content_refresh.lock")
@@ -40,12 +40,12 @@ class ContentRefreshService:
         """Refresh trending content if it's stale"""
         # Try to acquire lock (non-blocking)
         try:
-            lock_fd = open(LOCK_FILE, 'w')
+            lock_fd = open(LOCK_FILE, "w")
             fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
             print("⏭️  Content refresh already running (locked by another process)")
             return 0
-        
+
         try:
             async with AsyncSessionLocal() as db:
                 if await self.should_refresh_content(db):
@@ -53,7 +53,9 @@ class ContentRefreshService:
                     topics = await trending_service.save_trends_to_database(db)
                     count = len(topics)  # Get count from list of topics
                     self.last_refresh = datetime.utcnow()
-                    print(f"✅ Trending content refresh completed! Added {count} new items")
+                    print(
+                        f"✅ Trending content refresh completed! Added {count} new items"
+                    )
 
                     # Notify connected clients about new content
                     try:
