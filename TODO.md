@@ -226,77 +226,62 @@ Based on this analysis, here's what I recommend we do **right now**:
 
 ---
 
-Key Security Tests for Websites
-1. Input Validation & Injection Testing
-Test for SQL injection, command injection, and NoSQL injection vulnerabilities.
+#### Key Security Tests for Website
 
-Use tools like sqlmap or built-in VS Code extensions for scanning.
+1. Input Validation & Injection Testing [in-progress]
+- [x] SonarLint analysis enabled for SQL/injection detection
+- [ ] Run manual SQL injection tests
+- [ ] Test command injection vectors
+- [ ] Validate user inputs with strict whitelisting
 
-Validate all user inputs with strict whitelisting.
+2. Authentication & Session Management [MOSTLY COMPLETE]
+- [ ] Check for weak or missing multi-factor authentication (MFA)
+- [x] Session handling reviewed: cookies use HttpOnly, Secure flags
+- [x] Logout endpoint verified to invalidate sessions
 
-2. Authentication & Session Management
-Check for weak or missing multi-factor authentication (MFA).
+3. Cross-Site Scripting (XSS) [in-progress]
+- [x] SonarLint scanning enabled for XSS detection
+- [ ] Test reflected XSS in input fields
+- [ ] Test stored XSS in feed/comments
 
-Test session handling: ensure cookies are HttpOnly, Secure, and have proper expiration.
+4. Access Control [in-progress]
+- [ ] Try accessing restricted pages without auth
+- [ ] Test horizontal privilege escalation
+- [ ] Test vertical privilege escalation (user → admin)
 
-Verify logout actually invalidates sessions.
+5. Security Misconfigurations [MOSTLY COMPLETE]
+- [x] Server headers checked and CSP configured
+- [x] HTTPS enforced, X-Frame-Options replaced with CSP
+- [ ] Scan for open ports and directory listings
 
-3. Cross-Site Scripting (XSS)
-Run automated scans for reflected, stored, and DOM-based XSS.
+6. Sensitive Data Exposure [MOSTLY COMPLETE]
+- [x] Passwords encrypted with bcrypt_sha256
+- [x] JWT tokens encrypted in transit (HTTPS)
+- [ ] Verify cryptography strength (no MD5/SHA1)
 
-Test input fields, query parameters, and headers.
+7. Dependency & Library Audits [in-progress]
+- [ ] Run: pip-audit on requirements.txt
+- [ ] Run: npm audit on package.json
+- [x] SonarLint installed for continuous monitoring
 
-Ensure proper output encoding and use frameworks with built-in XSS protection.
+8. Cross-Site Request Forgery (CSRF) [in-progress]
+- [ ] Test CSRF tokens on forms
+- [ ] Verify tokens unique per session
 
-4. Access Control
-Try accessing restricted pages without proper roles.
+9. Logging & Monitoring [in-progress]
+- [x] Security events logged (failed logins, etc.)
+- [ ] Verify logs don't expose sensitive data
 
-Test for horizontal privilege escalation (user accessing another user’s data).
+10. Penetration Testing & Vulnerability Scanning [in-progress]
+- [ ] Run OWASP ZAP dynamic testing
+- [ ] Use Burp Suite for comprehensive scanning
 
-Test for vertical privilege escalation (regular user accessing admin features).
+## INSTALLED SECURITY EXTENSIONS
+- [x] SonarLint (SonarSource) - Code quality & security analysis
+- [ ] Aqua Trivy - Dependency scanning (failed to install)
 
-5. Security Misconfigurations
-Scan for open ports, default credentials, and directory listings.
-
-Check server headers (e.g., disable X-Powered-By).
-
-Ensure HTTPS is enforced with strong TLS settings.
-
-6. Sensitive Data Exposure
-Verify that sensitive data (passwords, tokens, PII) is encrypted at rest and in transit.
-
-Test for weak cryptography (e.g., MD5, SHA1).
-
-Ensure proper key management practices.
-
-7. Dependency & Library Audits
-Run npm audit or pip-audit depending on your stack.
-
-Check for outdated frameworks/plugins.
-
-Use tools like Dependabot or Snyk for continuous monitoring.
-
-8. Cross-Site Request Forgery (CSRF)
-Test forms and state-changing requests for CSRF protection.
-
-Ensure CSRF tokens are unique per session and validated server-side.
-
-9. Logging & Monitoring
-Verify that security events (failed logins, privilege changes) are logged.
-
-Test alerting mechanisms for suspicious activity.
-
-Ensure logs don’t expose sensitive data.
-
-10. Penetration Testing & Vulnerability Scanning
-Use OWASP ZAP or Burp Suite for dynamic testing.
-
-Run regular scans with tools like Nessus or Qualys.
-
-Perform manual penetration testing for business logic flaws.
-
-
----
+## IMMEDIATE ACTIONS
+Run: `pip-audit` and `npm audit` for dependency vulnerabilities
 
 - Mark tasks as [in-progress] or [completed] as you work.
 - Add new tasks as needed.
