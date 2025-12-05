@@ -1,16 +1,26 @@
 /**
- * Advanced Hover Interest Tracker
+ * DEPRECATED: Hover Tracker Module
  * 
- * Intelligently tracks user interest in cards by analyzing:
- * - Hover duration with movement detection
- * - Mouse velocity changes (slowdowns indicate interest)
- * - Micro-movements vs genuine repositioning
- * - AFK detection through inactivity patterns
- * - Click/tap events as explicit interest signals
- * - Scroll velocity to detect engagement
+ * This file has been split into two separate modules for better maintainability:
+ * - HoverTracker.js - Advanced hover interest tracking for individual cards
+ * - GlobalScrollTracker.js - Global scroll velocity coordination
+ * 
+ * The code below is kept for reference only. Use HoverTracker.js and GlobalScrollTracker.js instead.
+ * 
+ * See app/static/js/HoverTracker.js and app/static/js/GlobalScrollTracker.js
+ * Updated: December 4, 2024
  */
 
-class HoverTracker {
+console.warn('⚠️ hover-tracker.js is deprecated. Please use HoverTracker.js and GlobalScrollTracker.js instead.');
+
+// Import the new modules (they are already loaded in index.html)
+// window.HoverTracker comes from HoverTracker.js
+// window.GlobalScrollTracker comes from GlobalScrollTracker.js
+
+// Original implementation reference below (kept for historical reference only)
+// ==================================================================================
+
+class HoverTrackerDeprecated {
     constructor(element, contentId, options = {}) {
         this.element = element;
         this.contentId = contentId;
@@ -518,6 +528,7 @@ class GlobalScrollTracker {
     }
 }
 
-// Export
-window.HoverTracker = HoverTracker;
-window.GlobalScrollTracker = GlobalScrollTracker;
+// DEPRECATED EXPORTS - Do not use. Use HoverTracker.js and GlobalScrollTracker.js instead.
+// For backward compatibility only:
+// window.HoverTracker and window.GlobalScrollTracker are now exported from their respective modules
+
