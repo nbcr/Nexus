@@ -1,22 +1,27 @@
 /**
- * Nexus Admin Panel JavaScript
+ * DEPRECATED: Nexus Admin Panel JavaScript
+ * 
+ * This file has been split into separate modules for better maintainability:
+ * - AdminAuth.js - Authentication and access control
+ * - AdminTabs.js - Tab navigation
+ * - AdminTracking.js - Tracking and statistics
+ * - AdminUsers.js - User management
+ * - AdminSettings.js - Global settings, analytics, preferences
+ * 
+ * The code below is kept for reference only. Use the modular files instead.
  * 
  * Security: This script requires admin authentication
  * No links or references to this page exist in the main application
+ * 
+ * Updated: December 4, 2024
  */
+
+console.warn('⚠️ admin.js is deprecated. Please use AdminAuth.js, AdminTabs.js, AdminTracking.js, AdminUsers.js, and AdminSettings.js instead.');
 
 let currentUser = null;
 let trackingData = [];
 let autoRefreshInterval = null;
 let selectedUserId = null;
-
-// Authentication check on page load
-document.addEventListener('DOMContentLoaded', async function () {
-    await checkAdminAccess();
-    initializeTabs();
-    initializeDateRange();
-    await loadInitialData();
-});
 
 // Check if user has admin access
 async function checkAdminAccess() {

@@ -387,8 +387,12 @@
         <p>&copy; 2025 Nexus. Powered by Google Trends.</p>
     </footer>
 
-    <!-- Shared Header Functions -->
-    <script src="/static/js/header.js?v=202512020100"></script>
+    <!-- Shared Header Modules (loaded in order) -->
+    <script src="/static/js/HeaderAuth.js?v=202512040100"></script>
+    <script src="/static/js/HeaderDarkMode.js?v=202512040100"></script>
+    <script src="/static/js/HeaderMenu.js?v=202512040100"></script>
+    <script src="/static/js/HeaderPreferences.js?v=202512040100"></script>
+    <script src="/static/js/HeaderSession.js?v=202512040100"></script>
 
     <script>
         let currentTab = 'seen';
