@@ -28,6 +28,17 @@ class FeedRenderer {
 
         const isSearchQuery = FeedUtils.isSearchQuery(item);
         const isNewsArticle = FeedUtils.isNewsArticle(item);
+        
+        let readMoreButton = '';
+        if (isNewsArticle) {
+            readMoreButton = `<button class="btn-read-more" data-content-id="${item.content_id}">
+                                Read Facts
+                            </button>`;
+        } else if (isSearchQuery) {
+            readMoreButton = `<button class="btn-read-more" data-content-id="${item.content_id}">
+                                Show Search Context
+                            </button>`;
+        }
 
         article.innerHTML = `
         <div class="feed-item-content">
@@ -36,7 +47,7 @@ class FeedRenderer {
                 <div class="feed-item-header-content">
                     <div class="feed-item-meta">
                         <span class="feed-item-category">${item.category || 'Trending'}</span>
-                        ${item.relevance_score && window.nexusDebugMode ? `
+                        ${item.relevance_score && globalThis.nexusDebugMode ? `
                             <span class="feed-item-relevance" title="Relevance to your interests">
                                 ${Math.round(item.relevance_score * 100)}% match
                             </span>
@@ -52,15 +63,7 @@ class FeedRenderer {
                 <div class="content-inner">
                     ${summaryHtml}
                     <div class="feed-item-actions">
-                        ${isNewsArticle ? `
-                            <button class="btn-read-more" data-content-id="${item.content_id}">
-                                Read Facts
-                            </button>
-                        ` : isSearchQuery ? `
-                            <button class="btn-read-more" data-content-id="${item.content_id}">
-                                Show Search Context
-                            </button>
-                        ` : ''}
+                        ${readMoreButton}
                         ${item.source_urls && item.source_urls.length > 0 ? `
                             <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
                                class="btn-source">
@@ -142,9 +145,9 @@ class FeedRenderer {
                 e.preventDefault();
                 e.stopPropagation();
 
-                if (window.historyTracker) {
+                if (globalThis.historyTracker) {
                     const slug = article.dataset.contentSlug;
-                    window.historyTracker.recordClick(item.content_id, slug);
+                    globalThis.historyTracker.recordClick(item.content_id, slug);
                 }
 
                 onContentClick(item);
@@ -158,9 +161,9 @@ class FeedRenderer {
             sourceBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
 
-                if (window.historyTracker) {
+                if (globalThis.historyTracker) {
                     const slug = article.dataset.contentSlug;
-                    window.historyTracker.recordClick(item.content_id, slug);
+                    globalThis.historyTracker.recordClick(item.content_id, slug);
                 }
             });
         }
@@ -179,9 +182,14 @@ class FeedRenderer {
                     article.dataset.snippetLoaded = 'rate-limited';
                 } else if (data.snippet) {
                     const sanitizedSnippet = FeedUtils.cleanSnippet(data.snippet);
-                    summaryEl.innerHTML = sanitizedSnippet
-                        ? `<p style="line-height: 1.8;">${sanitizedSnippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`
-                        : '<em>No preview available from this source</em>';
+                    if (sanitizedSnippet) {
+                        const factsAvailable = data.full_content_available 
+                            ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' 
+                            : '';
+                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${sanitizedSnippet}</p>${factsAvailable}`;
+                    } else {
+                        summaryEl.innerHTML = '<em>No preview available from this source</em>';
+                    }
                     article.dataset.snippetLoaded = 'true';
                 } else {
                     summaryEl.innerHTML = '<em>No preview available from this source</em>';
@@ -233,7 +241,7 @@ class FeedRenderer {
             (async () => {
                 try {
                     const data = await this.api.fetchThumbnail(item.content_id);
-                    if (data && data.picture_url) {
+                    if (data?.picture_url) {
                         const header = article.querySelector('.feed-item-header');
                         let img = article.querySelector('.feed-item-image img');
                         const proxyUrl = FeedUtils.buildProxyUrl(data.picture_url);
@@ -255,7 +263,7 @@ class FeedRenderer {
                         }
                     }
                 } catch (e) {
-                    // ignore
+                    console.error('Error fetching thumbnail:', e);
                 }
             })();
         }
@@ -291,7 +299,8 @@ class FeedRenderer {
 
         // Initialize the ad
         try {
-            (adsbygoogle = window.adsbygoogle || []).push({});
+            const adsbygoogle = globalThis.adsbygoogle || [];
+            adsbygoogle.push({});
         } catch (e) {
             console.error('AdSense error:', e);
         }
@@ -350,4 +359,4 @@ class FeedRenderer {
     }
 }
 
-window.FeedRenderer = FeedRenderer;
+globalThis.FeedRenderer = FeedRenderer;
