@@ -47,7 +47,7 @@
 /* Button Variants */
 .btn-primary {
     background: var(--accent, #0078d7);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
@@ -351,10 +351,10 @@ body.dark-mode .history-item {
     left: 50%;
     transform: translateX(-50%) translateY(-120%);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    color: #ffffff;
     padding: 12px 24px;
     border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgb(0 0 0 / 30%);
     z-index: 9999;
     cursor: pointer;
     transition: transform 0.3s ease, opacity 0.3s ease;
@@ -371,7 +371,7 @@ body.dark-mode .history-item {
 }
 
 .notification-badge {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgb(255 255 255 / 30%);
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 12px;
@@ -387,11 +387,11 @@ body.dark-mode .history-item {
     height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    color: #ffffff;
     border: none;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgb(0 0 0 / 30%);
     z-index: 9998;
     opacity: 0;
     transform: scale(0);

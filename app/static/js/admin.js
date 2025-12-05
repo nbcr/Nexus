@@ -683,11 +683,11 @@ async function logout() {
         console.error('Logout error:', error);
     }
 
-    window.location.href = '/';
+    globalThis.location.href = '/';
 }
 
 // Prevent accidental page close with unsaved changes
-window.addEventListener('beforeunload', (e) => {
+globalThis.addEventListener('beforeunload', (e) => {
     if (autoRefreshInterval) {
         stopAutoRefresh();
     }
