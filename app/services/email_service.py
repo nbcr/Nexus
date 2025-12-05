@@ -61,11 +61,16 @@ class EmailService:
                 with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                     server.send_message(msg)
 
-            logger.info(f"✅ Email sent to {recipient}")
+            safe_recipient = recipient.replace("\n", "").replace("\r", "")
+            logger.info(f"✅ Email sent to {safe_recipient}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to send email via SMTP to {recipient}: {str(e)}")
+            safe_recipient = recipient.replace("\n", "").replace("\r", "")
+            safe_error = str(e).replace("\n", "").replace("\r", "")
+            logger.error(
+                f"❌ Failed to send email via SMTP to {safe_recipient}: {safe_error}"
+            )
             return False
 
     def _send_via_brevo(
@@ -96,11 +101,16 @@ class EmailService:
             response = requests.post(url, headers=headers, json=data, timeout=10)
             response.raise_for_status()
 
-            logger.info(f"✅ Email sent to {recipient} via Brevo")
+            safe_recipient = recipient.replace("\n", "").replace("\r", "")
+            logger.info(f"✅ Email sent to {safe_recipient} via Brevo")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Failed to send email via Brevo to {recipient}: {str(e)}")
+            safe_recipient = recipient.replace("\n", "").replace("\r", "")
+            safe_error = str(e).replace("\n", "").replace("\r", "")
+            logger.error(
+                f"❌ Failed to send email via Brevo to {safe_recipient}: {safe_error}"
+            )
             return False
 
     def send_email(
@@ -213,9 +223,7 @@ The Nexus Team
 
         return self.send_email(to_email, subject, body_html, body_text, username)
 
-    async def send_registration_email_async(
-        self, to_email: str, username: str
-    ) -> bool:
+    async def send_registration_email_async(self, to_email: str, username: str) -> bool:
         """Send registration email asynchronously."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
@@ -225,4 +233,3 @@ The Nexus Team
 
 # Global instance
 email_service = EmailService()
-

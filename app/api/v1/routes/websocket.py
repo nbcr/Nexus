@@ -88,7 +88,8 @@ async def websocket_feed_updates(websocket: WebSocket):
     if not token:
         token = websocket.query_params.get("token")
     # Debug: print received token
-    logger.info(f"WebSocket received token: {token}")
+    safe_token = str(token).replace("\n", "").replace("\r", "") if token else None
+    logger.info(f"WebSocket received token: {safe_token}")
     # Validate token
     from app.core.auth import verify_token, jwt, SECRET_KEY, ALGORITHM
 
@@ -97,8 +98,10 @@ async def websocket_feed_updates(websocket: WebSocket):
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         except Exception as e:
-            logger.error(f"WebSocket token decode error: {e}")
-    logger.info(f"WebSocket decoded payload: {payload}")
+            safe_error = str(e).replace("\n", "").replace("\r", "")
+            logger.error(f"WebSocket token decode error: {safe_error}")
+    safe_payload = str(payload).replace("\n", "").replace("\r", "") if payload else None
+    logger.info(f"WebSocket decoded payload: {safe_payload}")
     username = payload.get("sub") if payload else None
     if not username:
         # Accept anonymous connection, track by visitor_id
@@ -107,7 +110,10 @@ async def websocket_feed_updates(websocket: WebSocket):
         for part in cookie_header.split(";"):
             if "visitor_id=" in part:
                 visitor_id = part.split("visitor_id=")[-1].strip()
-        logger.info(f"WebSocket accepted for anonymous visitor_id: {visitor_id}")
+        safe_visitor_id = (
+            str(visitor_id).replace("\n", "").replace("\r", "") if visitor_id else None
+        )
+        logger.info(f"WebSocket accepted for anonymous visitor_id: {safe_visitor_id}")
         await manager.connect(websocket)
         try:
             await websocket.send_json(
@@ -127,7 +133,8 @@ async def websocket_feed_updates(websocket: WebSocket):
             logger.error(f"WebSocket error: {e}")
             manager.disconnect(websocket)
         return
-    logger.info(f"WebSocket accepted for user: {username}")
+    safe_username = username.replace("\n", "").replace("\r", "")
+    logger.info(f"WebSocket accepted for user: {safe_username}")
     await manager.connect(websocket)
     try:
         # Send initial connection confirmation
