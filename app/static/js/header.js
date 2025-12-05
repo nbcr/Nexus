@@ -1,3 +1,23 @@
+/**
+ * DEPRECATED: Header Navigation and Authentication
+ * 
+ * This file has been split into separate modules for better maintainability:
+ * - HeaderAuth.js - Authentication and login/logout
+ * - HeaderDarkMode.js - Dark mode toggle and initialization
+ * - HeaderMenu.js - Hamburger menu and navigation
+ * - HeaderSession.js - Visitor tracking and header initialization
+ * - HeaderPreferences.js - Text size controls and scroll effects
+ * 
+ * The code below is kept for reference only. Use the modular files instead.
+ * 
+ * Shared Header and Navigation Functions
+ * Used across all pages for consistent authentication and dark mode behavior
+ * 
+ * Updated: December 4, 2024
+ */
+
+console.warn('⚠️ header.js is deprecated. Please use HeaderAuth.js, HeaderDarkMode.js, HeaderMenu.js, HeaderSession.js, and HeaderPreferences.js instead.');
+
 // Set persistent visitor_id cookie if not present
 function setVisitorIdCookie() {
     let visitorId = null;
