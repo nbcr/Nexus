@@ -96,49 +96,16 @@ class TrendingPersistence:
         ai_summary: str,
     ) -> ContentItem:
         """Helper to create a content item for a topic"""
-        title = trend_data.get("title", "").strip()
-        url = trend_data.get("url", "")
-
-        if not title:
-            news_items = trend_data.get("news_items", [])
-            if news_items and news_items[0].get("title"):
-                title = news_items[0]["title"].strip()
-            elif topic.title:
-                title = topic.title
-            else:
-                title = "Trending Update"
+        title = self._determine_title(topic, trend_data)
 
         if not title or title in ("Trending Update", "Trending Topic"):
             print(f"  ⚠️ Skipping content item for topic {topic.id} - no valid title")
             return None
 
-        content_text = ai_summary
-        if url:
-            try:
-                print(f"  📰 Scraping article for facts: {url}")
-                article_data = await article_scraper.fetch_article(url)
-                if article_data and article_data.get("content"):
-                    content_text = article_data["content"]
-                    print(f"  ✅ Extracted article content ({len(content_text)} chars)")
-                else:
-                    print("  ⚠️ Could not extract content, using summary")
-            except Exception as e:
-                print(f"  ⚠️ Scraping failed: {e}, using summary")
-
+        url = trend_data.get("url", "")
+        content_text = await self._get_content_text(url, ai_summary)
         slug = generate_slug(title) if title else generate_slug_from_url(url)
-
-        source_meta = {
-            "source": trend_data.get("source", "Trends"),
-        }
-        if trend_data.get("image_url"):
-            source_meta["picture_url"] = trend_data["image_url"]
-
-        existing = await deduplication_service.find_duplicate(db, title, url)
-        if existing and existing.topic_id != topic.id:
-            print(
-                f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related"
-            )
-            source_meta["related_content_ids"] = [existing.id]
+        source_meta = self._build_source_metadata(db, trend_data, title, url)
 
         content_item = ContentItem(
             topic_id=topic.id,
@@ -152,6 +119,56 @@ class TrendingPersistence:
             is_published=True,
         )
         return content_item
+
+    def _determine_title(self, topic, trend_data: Dict) -> str:
+        """Determine the best title for content item"""
+        title = trend_data.get("title", "").strip()
+
+        if not title:
+            news_items = trend_data.get("news_items", [])
+            if news_items and news_items[0].get("title"):
+                title = news_items[0]["title"].strip()
+            elif topic.title:
+                title = topic.title
+            else:
+                title = "Trending Update"
+
+        return title
+
+    async def _get_content_text(self, url: str, ai_summary: str) -> str:
+        """Get content text, either by scraping or using summary"""
+        content_text = ai_summary
+        if url:
+            try:
+                print(f"  📰 Scraping article for facts: {url}")
+                article_data = await article_scraper.fetch_article(url)
+                if article_data and article_data.get("content"):
+                    content_text = article_data["content"]
+                    print(f"  ✅ Extracted article content ({len(content_text)} chars)")
+                else:
+                    print("  ⚠️ Could not extract content, using summary")
+            except Exception as e:
+                print(f"  ⚠️ Scraping failed: {e}, using summary")
+        return content_text
+
+    async def _build_source_metadata(
+        self, db: AsyncSession, trend_data: Dict, title: str, url: str
+    ) -> Dict:
+        """Build source metadata including duplicate detection"""
+        source_meta = {
+            "source": trend_data.get("source", "Trends"),
+        }
+        if trend_data.get("image_url"):
+            source_meta["picture_url"] = trend_data["image_url"]
+
+        existing = await deduplication_service.find_duplicate(db, title, url)
+        if existing and existing.topic_id != trend_data.get("topic_id"):
+            print(
+                f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related"
+            )
+            source_meta["related_content_ids"] = [existing.id]
+
+        return source_meta
 
     async def save_trends_to_database(
         self, db: AsyncSession, trends: List[Dict], google_trends_tag: str
