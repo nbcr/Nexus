@@ -9,9 +9,10 @@ class FeedApi {
     }
 
     getAccessToken() {
-        const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+        const regex = /(?:^|; )access_token=([^;]*)/;
+        const match = regex.exec(document.cookie);
         if (match) return match[0];
-        if (window.localStorage) {
+        if (globalThis.localStorage) {
             return localStorage.getItem('access_token');
         }
         return null;

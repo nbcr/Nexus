@@ -99,4 +99,4 @@ class FeedTracking {
     }
 }
 
-window.FeedTracking = FeedTracking;
+globalThis.FeedTracking = FeedTracking;
