@@ -165,9 +165,7 @@ class TrendingService:
             )
 
             # Process feed entries
-            return await self._process_feed_entries(
-                feed, feed_url, category_hint, feed_name
-            )
+            return self._process_feed_entries(feed, feed_url, category_hint, feed_name)
         except asyncio.TimeoutError:
             print(f"⏱️ Timeout fetching {feed_name} after {timeout}s")
             raise TimeoutError(f"Feed {feed_name} timed out")
@@ -175,7 +173,7 @@ class TrendingService:
             print(f"❌ Error in {feed_name}: {e}")
             raise
 
-    async def _process_feed_entries(
+    def _process_feed_entries(
         self,
         feed,
         feed_url: str,
@@ -373,7 +371,7 @@ class TrendingService:
                                 image_url = post["preview"]["images"][0]["source"][
                                     "url"
                                 ].replace("&amp;", "&")
-                            except:
+                            except (KeyError, IndexError, TypeError):
                                 pass
 
                         # Extract description from selftext or use title
@@ -910,9 +908,7 @@ class TrendingService:
             print(f"Error generating summary title: {e}")
             return original_title.title()
 
-    async def generate_ai_summary(
-        self, trend_title: str, trend_description: str = ""
-    ) -> str:
+    def generate_ai_summary(self, trend_title: str, trend_description: str = "") -> str:
         """Generate AI summary for trending topics"""
         if trend_description:
             return trend_description
@@ -1042,7 +1038,7 @@ class TrendingService:
                     await db.flush()  # Ensure updates are saved
 
                     # Create new content item for updated news
-                    ai_summary = await self.generate_ai_summary(
+                    ai_summary = self.generate_ai_summary(
                         trend_data["title"], trend_data.get("description", "")
                     )
 
@@ -1080,7 +1076,7 @@ class TrendingService:
                                     f"  ✅ Extracted article content ({len(content_text)} chars)"
                                 )
                             else:
-                                print(f"  ⚠️ Could not extract content, using summary")
+                                print("  ⚠️ Could not extract content, using summary")
                         except Exception as e:
                             print(f"  ⚠️ Scraping failed: {e}, using summary")
 
@@ -1151,7 +1147,7 @@ class TrendingService:
                     db.add(topic)
                     await db.flush()
 
-                    ai_summary = await self.generate_ai_summary(
+                    ai_summary = self.generate_ai_summary(
                         trend_data["title"], trend_data.get("description", "")
                     )
 
@@ -1189,7 +1185,7 @@ class TrendingService:
                                     f"  ✅ Extracted article content ({len(content_text)} chars)"
                                 )
                             else:
-                                print(f"  ⚠️ Could not extract content, using summary")
+                                print("  ⚠️ Could not extract content, using summary")
                         except Exception as e:
                             print(f"  ⚠️ Scraping failed: {e}, using summary")
 
