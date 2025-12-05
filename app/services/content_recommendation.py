@@ -298,14 +298,17 @@ class ContentRecommendationService:
 
     def _build_base_feed_query(self, exclude_ids: List[int]):
         """Build base query for feed with exclusions"""
+        where_clauses = [
+            ContentItem.is_published == True,
+            Topic.category != "Reference",
+        ]
+        if exclude_ids:
+            where_clauses.append(ContentItem.id.notin_(exclude_ids))
+
         return (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
-            .where(
-                ContentItem.is_published == True,
-                Topic.category != "Reference",
-                ContentItem.id.notin_(exclude_ids) if exclude_ids else True,
-            )
+            .where(*where_clauses)
         )
 
     def _apply_category_filters(
