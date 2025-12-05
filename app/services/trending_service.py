@@ -1,4 +1,3 @@
-import feedparser  # type: ignore
 import asyncio
 import aiohttp
 import requests
@@ -11,33 +10,34 @@ from app.models import Topic, ContentItem
 from app.core.config import settings
 from app.services.deduplication import deduplication_service
 from app.services.article_scraper import article_scraper
-from app.services.article_scraper import article_scraper
+from app.utils.async_rss_parser import async_rss_parser
 
 
 class FeedFailureTracker:
     """Track feed failures and disable feeds that timeout too often"""
+
     def __init__(self, max_failures: int = 5):
         self.failures = {}  # feed_name -> failure_count
         self.disabled_feeds = set()
         self.max_failures = max_failures
         self.last_reset = datetime.now()
-    
+
     def record_failure(self, feed_name: str):
         """Record a failure for a feed"""
         self.failures[feed_name] = self.failures.get(feed_name, 0) + 1
         if self.failures[feed_name] >= self.max_failures:
             self.disabled_feeds.add(feed_name)
             print(f"🚫 Disabled feed '{feed_name}' after {self.max_failures} failures")
-    
+
     def record_success(self, feed_name: str):
         """Record a success for a feed (reset failure count)"""
         if feed_name in self.failures:
             self.failures[feed_name] = 0
-    
+
     def is_disabled(self, feed_name: str) -> bool:
         """Check if a feed is disabled"""
         return feed_name in self.disabled_feeds
-    
+
     def reset_if_needed(self):
         """Reset failure tracking once per day"""
         if datetime.now() - self.last_reset > timedelta(days=1):
@@ -52,35 +52,35 @@ class TrendingService:
         self.failure_tracker = FeedFailureTracker(max_failures=5)
         # Multiple RSS feeds for diverse content
         self.rss_feeds = {
-            'google_trends': {
-                'url': 'https://trends.google.com/trending/rss?geo=CA',
-                'category_hint': None,  # Auto-categorize
-                'priority': 'high'
+            "google_trends": {
+                "url": "https://trends.google.com/trending/rss?geo=CA",
+                "category_hint": None,  # Auto-categorize
+                "priority": "high",
             },
-            'cbc_top': {
-                'url': 'https://www.cbc.ca/cmlink/rss-topstories',
-                'category_hint': None,
-                'priority': 'high'
+            "cbc_top": {
+                "url": "https://www.cbc.ca/cmlink/rss-topstories",
+                "category_hint": None,
+                "priority": "high",
             },
-            'global_news': {
-                'url': 'https://globalnews.ca/feed/',
-                'category_hint': None,
-                'priority': 'high'
+            "global_news": {
+                "url": "https://globalnews.ca/feed/",
+                "category_hint": None,
+                "priority": "high",
             },
-            'tsn': {
-                'url': 'https://www.tsn.ca/rss',
-                'category_hint': 'Sports',
-                'priority': 'medium'
+            "tsn": {
+                "url": "https://www.tsn.ca/rss",
+                "category_hint": "Sports",
+                "priority": "medium",
             },
-            'betakit': {
-                'url': 'https://betakit.com/feed/',
-                'category_hint': 'Technology',
-                'priority': 'medium'
+            "betakit": {
+                "url": "https://betakit.com/feed/",
+                "category_hint": "Technology",
+                "priority": "medium",
             },
-            'nhl': {
-                'url': 'https://www.nhl.com/news/rss',
-                'category_hint': 'Sports',
-                'priority': 'medium'
+            "nhl": {
+                "url": "https://www.nhl.com/news/rss",
+                "category_hint": "Sports",
+                "priority": "medium",
             },
         }
         self.reddit_enabled = True
@@ -107,30 +107,30 @@ class TrendingService:
     async def _fetch_all_rss_feeds(self) -> List[Dict]:
         """Fetch from all configured RSS feeds in parallel with timeout"""
         self.failure_tracker.reset_if_needed()
-        
+
         # Create tasks for all enabled feeds
         tasks = []
         feed_names = []
-        
+
         for feed_name, feed_config in self.rss_feeds.items():
             if self.failure_tracker.is_disabled(feed_name):
                 print(f"⏭️ Skipping disabled feed: {feed_name}")
                 continue
-            
+
             print(f"📡 Queuing {feed_name}: {feed_config['url']}")
             task = self._fetch_single_rss_feed_with_timeout(
                 feed_name,
-                feed_config['url'],
-                feed_config.get('category_hint'),
-                timeout=8  # 8 second timeout per feed
+                feed_config["url"],
+                feed_config.get("category_hint"),
+                timeout=8,  # 8 second timeout per feed
             )
             tasks.append(task)
             feed_names.append(feed_name)
-        
+
         # Fetch all feeds in parallel
         print(f"🚀 Fetching {len(tasks)} feeds in parallel...")
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Process results
         all_trends = []
         for feed_name, result in zip(feed_names, results):
@@ -144,27 +144,27 @@ class TrendingService:
             else:
                 print(f"⚠️ Unexpected result from {feed_name}")
                 self.failure_tracker.record_failure(feed_name)
-        
+
         return all_trends
-    
+
     async def _fetch_single_rss_feed_with_timeout(
-        self, 
+        self,
         feed_name: str,
-        feed_url: str, 
+        feed_url: str,
         category_hint: Optional[str] = None,
-        timeout: int = 8
+        timeout: int = 8,
     ) -> List[Dict]:
-        """Fetch a single RSS feed with timeout"""
+        """Fetch a single RSS feed with timeout using async parser"""
         try:
-            # Run feedparser.parse in executor since it's blocking
-            loop = asyncio.get_event_loop()
-            feed_task = loop.run_in_executor(None, feedparser.parse, feed_url)
-            
-            # Apply timeout to the async task
-            feed = await asyncio.wait_for(feed_task, timeout=timeout)
-            
+            # Use async RSS parser (no blocking operations)
+            feed = await asyncio.wait_for(
+                async_rss_parser.parse_feed(feed_url), timeout=timeout
+            )
+
             # Process feed entries
-            return await self._process_feed_entries(feed, feed_url, category_hint, feed_name)
+            return await self._process_feed_entries(
+                feed, feed_url, category_hint, feed_name
+            )
         except asyncio.TimeoutError:
             print(f"⏱️ Timeout fetching {feed_name} after {timeout}s")
             raise TimeoutError(f"Feed {feed_name} timed out")
@@ -172,19 +172,27 @@ class TrendingService:
             print(f"❌ Error in {feed_name}: {e}")
             raise
 
-    async def _process_feed_entries(self, feed, feed_url: str, category_hint: Optional[str] = None, source_name: str = "RSS") -> List[Dict]:
+    async def _process_feed_entries(
+        self,
+        feed,
+        feed_url: str,
+        category_hint: Optional[str] = None,
+        source_name: str = "RSS",
+    ) -> List[Dict]:
         """Process feed entries and extract trend data"""
         try:
             trends = []
-            
-            is_google_trends = 'trends.google.com' in feed_url
-            
+
+            is_google_trends = "trends.google.com" in feed_url
+
             for entry in feed.entries[:20]:  # Limit to 20 items per feed
                 # Extract basic data (works for all RSS feeds)
                 title = getattr(entry, "title", "").strip()
-                description = getattr(entry, "summary", "") or getattr(entry, "description", "")
+                description = getattr(entry, "summary", "") or getattr(
+                    entry, "description", ""
+                )
                 url = getattr(entry, "link", "")
-                
+
                 # Skip if no title or URL
                 if not title or not url:
                     continue
@@ -193,7 +201,7 @@ class TrendingService:
                 news_items = []
                 image_url = None
                 source = source_name
-                
+
                 if is_google_trends:
                     # Google Trends specific extraction
                     news_items = self._extract_google_trends_items(entry)
@@ -204,28 +212,30 @@ class TrendingService:
                     else:
                         image_url = getattr(entry, "ht_picture", None)
                         source = getattr(entry, "ht_picture_source", source_name)
-                    
+
                     title = self._generate_summary_title(title, news_items)
                 else:
                     # Standard RSS feed - try to get image from media:content or enclosure
-                    if hasattr(entry, 'media_content') and entry.media_content:
-                        image_url = entry.media_content[0].get('url')
-                    elif hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
-                        image_url = entry.media_thumbnail[0].get('url')
-                    elif hasattr(entry, 'enclosures') and entry.enclosures:
+                    if hasattr(entry, "media_content") and entry.media_content:
+                        image_url = entry.media_content[0].get("url")
+                    elif hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+                        image_url = entry.media_thumbnail[0].get("url")
+                    elif hasattr(entry, "enclosures") and entry.enclosures:
                         for enc in entry.enclosures:
-                            if 'image' in enc.get('type', ''):
-                                image_url = enc.get('href')
+                            if "image" in enc.get("type", ""):
+                                image_url = enc.get("href")
                                 break
-                    
+
                     # Create a single news item for standard feeds
-                    news_items = [{
-                        "title": title,
-                        "snippet": description[:200] if description else "",
-                        "url": url,
-                        "picture": image_url,
-                        "source": source_name
-                    }]
+                    news_items = [
+                        {
+                            "title": title,
+                            "snippet": description[:200] if description else "",
+                            "url": url,
+                            "picture": image_url,
+                            "source": source_name,
+                        }
+                    ]
 
                 # Determine category - use hint if provided, otherwise auto-categorize
                 if category_hint:
@@ -293,7 +303,7 @@ class TrendingService:
                         news_items.append(news_item)
         except Exception as e:
             print(f"Error extracting Google Trends items: {e}")
-        
+
         return news_items
 
     async def _fetch_reddit_trends(self) -> List[Dict]:
@@ -811,7 +821,8 @@ class TrendingService:
 
     def _categorize_text(self, text: str) -> str:
         """Categorize text based on keywords. Returns best matching category or 'General'.
-        Sports and Entertainment keywords get higher priority (1.5x weight) to handle edge cases correctly."""
+        Sports and Entertainment keywords get higher priority (1.5x weight) to handle edge cases correctly.
+        """
         text_lower = text.lower()
         scores = {cat: 0 for cat in self.CATEGORY_KEYWORDS}
 
@@ -1063,7 +1074,9 @@ class TrendingService:
                             article_data = await article_scraper.fetch_article(url)
                             if article_data and article_data.get("content"):
                                 content_text = article_data["content"]
-                                print(f"  ✅ Extracted article content ({len(content_text)} chars)")
+                                print(
+                                    f"  ✅ Extracted article content ({len(content_text)} chars)"
+                                )
                             else:
                                 print(f"  ⚠️ Could not extract content, using summary")
                         except Exception as e:
@@ -1072,22 +1085,26 @@ class TrendingService:
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
-                    
+
                     # Prepare source_metadata with image if available
                     source_meta = {
                         "source": trend_data.get("source", "Trends"),
                     }
                     if trend_data.get("image_url"):
                         source_meta["picture_url"] = trend_data["image_url"]
-                    
+
                     # Check for duplicates in OTHER topics (not this one)
                     # Note: We still create the content item to preserve fresh image metadata
-                    existing = await deduplication_service.find_duplicate(db, title, url)
+                    existing = await deduplication_service.find_duplicate(
+                        db, title, url
+                    )
                     if existing and existing.topic_id != existing_topic.id:
-                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related")
+                        print(
+                            f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related"
+                        )
                         # Store the related ID in source_metadata instead of skipping
                         source_meta["related_content_ids"] = [existing.id]
-                    
+
                     content_item = ContentItem(
                         topic_id=existing_topic.id,
                         title=title,
@@ -1166,7 +1183,9 @@ class TrendingService:
                             article_data = await article_scraper.fetch_article(url)
                             if article_data and article_data.get("content"):
                                 content_text = article_data["content"]
-                                print(f"  ✅ Extracted article content ({len(content_text)} chars)")
+                                print(
+                                    f"  ✅ Extracted article content ({len(content_text)} chars)"
+                                )
                             else:
                                 print(f"  ⚠️ Could not extract content, using summary")
                         except Exception as e:
@@ -1175,22 +1194,26 @@ class TrendingService:
                     slug = (
                         generate_slug(title) if title else generate_slug_from_url(url)
                     )
-                    
+
                     # Prepare source_metadata with image if available
                     source_meta = {
                         "source": trend_data.get("source", "Trends"),
                     }
                     if trend_data.get("image_url"):
                         source_meta["picture_url"] = trend_data["image_url"]
-                    
+
                     # Check for duplicates in other topics
                     # Note: We still create the content item to preserve fresh image metadata
-                    existing = await deduplication_service.find_duplicate(db, title, url)
+                    existing = await deduplication_service.find_duplicate(
+                        db, title, url
+                    )
                     if existing and existing.topic_id != topic.id:
-                        print(f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related")
+                        print(
+                            f"  ⚠️ Duplicate in different topic found: '{title}' - will link as related"
+                        )
                         # Store the related ID in source_metadata instead of skipping
                         source_meta["related_content_ids"] = [existing.id]
-                    
+
                     content_item = ContentItem(
                         topic_id=topic.id,
                         title=title,

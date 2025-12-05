@@ -7,7 +7,6 @@ Uses multiple sources to find feeds matching user's reading patterns.
 
 import asyncio
 import aiohttp
-import feedparser
 import re
 from typing import List, Dict, Optional, Set, Tuple
 from datetime import datetime, timedelta
@@ -18,6 +17,7 @@ from urllib.parse import urljoin, urlparse
 
 from app.models import UserInteraction, ContentItem, Topic, UserInterestProfile
 from app.core.config import settings
+from app.utils.async_rss_parser import async_rss_parser
 
 
 class RSSDiscoveryService:
@@ -78,7 +78,7 @@ class RSSDiscoveryService:
     ) -> Dict[str, any]:
         """
         Analyze user's reading patterns to determine their preferences.
-        
+
         Returns:
             Dict with:
             - top_categories: List of categories user reads most
@@ -164,7 +164,7 @@ class RSSDiscoveryService:
     ) -> List[Dict]:
         """
         Discover RSS feeds tailored to user's preferences.
-        
+
         Returns:
             List of feed dictionaries with:
             - url: Feed URL
@@ -223,27 +223,21 @@ class RSSDiscoveryService:
         self, feed_url: str, max_items: int = 10
     ) -> List[Dict]:
         """
-        Fetch and parse content from an RSS feed.
-        
+        Fetch and parse content from an RSS feed using async parser.
+
         Args:
             feed_url: URL of the RSS feed
             max_items: Maximum number of items to return
-            
+
         Returns:
             List of parsed feed items with title, description, url, published date
         """
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(feed_url, timeout=10) as response:
-                    if response.status != 200:
-                        return []
-                    content = await response.text()
-
-            # Parse the RSS feed
-            feed = feedparser.parse(content)
+            # Use async RSS parser with connection pooling
+            feed = await async_rss_parser.parse_feed(feed_url)
 
             items = []
-            for entry in feed.entries[:max_items]:
+            for entry in feed.get("entries", [])[:max_items]:
                 items.append(
                     {
                         "title": entry.get("title", ""),
@@ -252,11 +246,7 @@ class RSSDiscoveryService:
                         "url": entry.get("link", ""),
                         "published": entry.get("published", ""),
                         "author": entry.get("author", ""),
-                        "tags": [
-                            tag.get("term", "")
-                            for tag in entry.get("tags", [])
-                            if hasattr(tag, "get")
-                        ],
+                        "tags": entry.get("tags", []),
                     }
                 )
 
@@ -275,7 +265,7 @@ class RSSDiscoveryService:
     ) -> List[Dict]:
         """
         Get personalized content from RSS feeds based on user preferences.
-        
+
         Returns:
             List of content items from various RSS feeds, sorted by relevance
         """
@@ -312,7 +302,7 @@ class RSSDiscoveryService:
     ) -> List[str]:
         """
         Suggest topic keywords for RSS feed search based on user preferences.
-        
+
         Returns:
             List of search keywords/topics
         """
@@ -342,21 +332,21 @@ class RSSDiscoveryService:
     ) -> List[Dict]:
         """
         Search for RSS feeds matching a keyword using multiple strategies.
-        
+
         Strategies:
         1. Search common RSS patterns on popular sites
         2. Check RSS discovery services
         3. Look for feeds in news aggregator sites
-        
+
         Args:
             keyword: Topic to search for
             max_results: Maximum number of feeds to return
-            
+
         Returns:
             List of discovered feeds with metadata
         """
         discovered_feeds = []
-        
+
         # Strategy 1: Try common RSS feed URL patterns
         keyword_clean = keyword.lower().replace(" ", "-")
         patterns = [
@@ -364,60 +354,56 @@ class RSSDiscoveryService:
             f"https://www.reddit.com/r/{keyword_clean}/.rss",
             f"https://medium.com/feed/tag/{keyword_clean}",
         ]
-        
+
         for url in patterns:
             feed_info = await self._validate_feed(url)
             if feed_info:
                 discovered_feeds.append(feed_info)
                 if len(discovered_feeds) >= max_results:
                     return discovered_feeds
-        
+
         # Strategy 2: Search Google News RSS for the keyword
         google_news_url = f"https://news.google.com/rss/search?q={keyword.replace(' ', '+')}&hl=en-CA&gl=CA&ceid=CA:en"
         feed_info = await self._validate_feed(google_news_url)
         if feed_info:
             discovered_feeds.append(feed_info)
-        
+
         return discovered_feeds[:max_results]
 
     async def _validate_feed(self, url: str) -> Optional[Dict]:
         """
         Validate an RSS feed URL and extract metadata.
-        
+
         Returns:
             Dict with feed info if valid, None otherwise
         """
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=10) as response:
-                    if response.status != 200:
-                        return None
-                    content = await response.text()
-            
-            # Parse the feed
-            feed = feedparser.parse(content)
-            
+            # Use async RSS parser with connection pooling
+            feed = await async_rss_parser.parse_feed(url)
+
             # Check if it's a valid feed with entries
-            if not feed.entries or len(feed.entries) == 0:
+            entries = feed.get("entries", [])
+            if not entries or len(entries) == 0:
                 return None
-            
+
             # Extract feed metadata
-            title = feed.feed.get("title", "Unknown Feed")
-            description = feed.feed.get("subtitle", "") or feed.feed.get("description", "")
-            
+            feed_info = feed.get("feed", {})
+            title = feed_info.get("title", "Unknown Feed")
+            description = feed_info.get("description", "")
+
             # Calculate feed quality score
             quality_score = await self._calculate_feed_quality(feed, url)
-            
+
             return {
                 "url": url,
                 "title": title,
                 "description": description,
                 "quality_score": quality_score,
-                "total_entries": len(feed.entries),
-                "last_updated": feed.feed.get("updated", ""),
-                "language": feed.feed.get("language", "en"),
+                "total_entries": len(entries),
+                "last_updated": feed_info.get("updated", ""),
+                "language": feed_info.get("language", "en"),
             }
-        
+
         except Exception as e:
             print(f"Failed to validate feed {url}: {e}")
             return None
@@ -425,7 +411,7 @@ class RSSDiscoveryService:
     async def _calculate_feed_quality(self, feed, url: str) -> float:
         """
         Calculate quality score for an RSS feed (0-1).
-        
+
         Factors:
         - Update frequency (recent posts)
         - Content length (substantial articles)
@@ -433,13 +419,16 @@ class RSSDiscoveryService:
         - Feed metadata completeness
         """
         score = 0.5  # Base score
-        
+
+        entries = feed.get("entries", [])
+        feed_info = feed.get("feed", {})
+
         # Check update recency
-        if feed.entries:
+        if entries:
             try:
-                latest_entry = feed.entries[0]
-                if hasattr(latest_entry, "published_parsed") and latest_entry.published_parsed:
-                    pub_date = datetime(*latest_entry.published_parsed[:6])
+                latest_entry = entries[0]
+                if latest_entry.get("published_parsed"):
+                    pub_date = datetime(*latest_entry["published_parsed"][:6])
                     days_old = (datetime.utcnow() - pub_date).days
                     if days_old < 1:
                         score += 0.2
@@ -449,31 +438,31 @@ class RSSDiscoveryService:
                         score += 0.1
             except:
                 pass
-        
+
         # Check content quality
-        if feed.entries:
+        if entries:
             avg_length = sum(
                 len(entry.get("summary", "") or entry.get("description", ""))
-                for entry in feed.entries[:5]
-            ) / min(5, len(feed.entries))
-            
+                for entry in entries[:5]
+            ) / min(5, len(entries))
+
             if avg_length > 500:
                 score += 0.15
             elif avg_length > 200:
                 score += 0.1
-        
+
         # Check number of entries
-        if len(feed.entries) > 20:
+        if len(entries) > 20:
             score += 0.1
-        elif len(feed.entries) > 10:
+        elif len(entries) > 10:
             score += 0.05
-        
+
         # Check feed metadata
-        if feed.feed.get("title"):
+        if feed_info.get("title"):
             score += 0.05
-        if feed.feed.get("description") or feed.feed.get("subtitle"):
+        if feed_info.get("description"):
             score += 0.05
-        
+
         return min(score, 1.0)
 
     async def auto_discover_feeds_for_user(
@@ -486,36 +475,38 @@ class RSSDiscoveryService:
         """
         Automatically discover new RSS feeds based on user's preferences.
         Searches for feeds matching user's top keywords and categories.
-        
+
         Returns:
             List of newly discovered feeds with quality scores
         """
         # Get user preferences
         preferences = await self.analyze_user_preferences(db, user_id, session_token)
-        
+
         # Get search terms from keywords and categories
         search_terms = []
         search_terms.extend(preferences["keywords"][:5])  # Top 5 keywords
-        search_terms.extend([cat.lower() for cat in preferences["top_categories"][:3]])  # Top 3 categories
-        
+        search_terms.extend(
+            [cat.lower() for cat in preferences["top_categories"][:3]]
+        )  # Top 3 categories
+
         # Remove duplicates
         search_terms = list(set(search_terms))
-        
+
         # Search for feeds
         all_discovered = []
         tasks = []
-        
+
         for term in search_terms[:5]:  # Search top 5 terms
             tasks.append(self.search_feeds_by_keyword(term, max_results=3))
-        
+
         # Execute searches in parallel
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Combine results
         for result in results:
             if isinstance(result, list):
                 all_discovered.extend(result)
-        
+
         # Remove duplicates by URL
         seen_urls = set()
         unique_feeds = []
@@ -523,17 +514,17 @@ class RSSDiscoveryService:
             if feed["url"] not in seen_urls:
                 seen_urls.add(feed["url"])
                 unique_feeds.append(feed)
-        
+
         # Sort by quality score
         unique_feeds.sort(key=lambda x: x["quality_score"], reverse=True)
-        
+
         # Filter out feeds we already have in curated list
         existing_urls = set()
         for feeds in self.CURATED_FEEDS.values():
             existing_urls.update(feeds)
-        
+
         new_feeds = [f for f in unique_feeds if f["url"] not in existing_urls]
-        
+
         return new_feeds[:max_feeds]
 
 

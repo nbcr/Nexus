@@ -3,8 +3,9 @@ import multiprocessing
 # Bind to localhost (Nginx will proxy)
 bind = "127.0.0.1:8000"
 
-# Worker configuration - limited to 3 to prevent OOM
-workers = 3
+# Worker configuration - reduced to 2 since app uses async for I/O-bound RSS fetching
+# Each UvicornWorker handles many concurrent requests efficiently via async/await
+workers = 2
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # Logging
