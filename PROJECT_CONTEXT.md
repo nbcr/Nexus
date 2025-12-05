@@ -43,7 +43,7 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 ### Deployment Pattern
 
 ```powershell
-echo "" | plink -batch admin@ec2-54-167-58-129.compute-1.amazonaws.com "sudo -u nexus git -C /home/nexus/nexus pull && sudo systemctl restart nexus && echo 'Deployed'"
+echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo -u nexus git -C /home/nexus/nexus pull && sudo systemctl restart nexus && echo 'Deployed'"
 ```
 
 ### Architecture
