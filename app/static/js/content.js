@@ -8,7 +8,7 @@ class ContentManager {
     async loadTopics() {
         try {
             Utils.hideError();
-            const headers = window.auth ? window.auth.getAuthHeaders() : {};
+            const headers = globalThis.auth ? globalThis.auth.getAuthHeaders() : {};
             this.topics = await Utils.apiCall('/api/v1/topics/', { headers });
             
             this.renderTopics();
