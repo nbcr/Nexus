@@ -12,6 +12,9 @@ from datetime import datetime
 from email.utils import parsedate_to_datetime
 import asyncio
 
+# Constants
+TEXT_KEY = "#text"
+
 
 class AsyncRSSParser:
     """Async RSS/Atom feed parser with connection pooling"""
@@ -28,7 +31,7 @@ class AsyncRSSParser:
         self.connector = aiohttp.TCPConnector(limit=max_connections, ttl_dns_cache=300)
         self._session: Optional[aiohttp.ClientSession] = None
 
-    async def get_session(self) -> aiohttp.ClientSession:
+    def get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session with connection pooling"""
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession(
@@ -52,7 +55,7 @@ class AsyncRSSParser:
             Dict with 'feed' metadata and 'entries' list
         """
         try:
-            session = await self.get_session()
+            session = self.get_session()
             async with session.get(feed_url) as response:
                 if response.status != 200:
                     return {"feed": {}, "entries": []}
@@ -147,12 +150,12 @@ class AsyncRSSParser:
             ),
             "link": self._extract_atom_link(entry.get("link", [])),
             "description": (
-                entry.get("summary", {}).get("#text", "")
+                entry.get("summary", {}).get(TEXT_KEY, "")
                 if isinstance(entry.get("summary"), dict)
                 else entry.get("summary", "")
             ),
             "summary": (
-                entry.get("summary", {}).get("#text", "")
+                entry.get("summary", {}).get(TEXT_KEY, "")
                 if isinstance(entry.get("summary"), dict)
                 else entry.get("summary", "")
             ),
@@ -171,11 +174,11 @@ class AsyncRSSParser:
 
         if isinstance(category, list):
             tags.extend(
-                [c.get("#text", c) if isinstance(c, dict) else c for c in category]
+                [c.get(TEXT_KEY, c) if isinstance(c, dict) else c for c in category]
             )
         elif category:
             tags.append(
-                category.get("#text", category)
+                category.get(TEXT_KEY, category)
                 if isinstance(category, dict)
                 else category
             )
@@ -227,7 +230,7 @@ class AsyncRSSParser:
 
         if isinstance(author, dict):
             return (
-                author.get("name", {}).get("#text", "")
+                author.get("name", {}).get(TEXT_KEY, "")
                 if isinstance(author.get("name"), dict)
                 else author.get("name", "")
             )
@@ -245,14 +248,14 @@ class AsyncRSSParser:
             # Try RFC 2822 format (RSS)
             dt = parsedate_to_datetime(date_str)
             return dt.timetuple()[:9]
-        except:
+        except (ValueError, TypeError, AttributeError):
             pass
 
         try:
             # Try ISO 8601 format (Atom)
             dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
             return dt.timetuple()[:9]
-        except:
+        except (ValueError, TypeError, AttributeError):
             pass
 
         return None
