@@ -982,9 +982,20 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
   - `.notification-badge`: Badge styling for content count
   - `.scroll-to-top-btn`: Scroll to top button with matching gradient style
 
+## CSS Organization Cleanup:
+- **Problem**: Duplicate component styles across `feed.css` and `components.css` causing maintenance issues
+- **Changes**:
+  - Removed duplicate `.spinner` from `feed.css` (already in `components.css`)
+  - Removed unused legacy modal styles from `feed.css`: `.content-modal`, `.modal-overlay`, `.modal-content`, `.modal-close`, `.modal-image`, `.modal-meta`, `.modal-body`
+  - Removed associated light-mode overrides for removed styles
+  - Kept feed-specific `.article-modal*` classes in `feed.css` (actively used)
+  - Kept feed-specific button styles `.btn-read-more` and `.btn-source` in `feed.css`
+- **Result**: Clear separation between global reusable components (`components.css`) and page-specific styles (`feed.css`)
+
 ## Files Modified:
 - `app/static/js/feed.js`: Enhanced color extraction reliability with fallback and proper event handling
 - `app/static/css/components.css`: Added notification bubble and scroll button CSS
+- `app/static/css/feed.css`: Removed duplicate and legacy styles (~70 lines)
 
 ## Technical Details:
 - **Color Extraction**: Uses canvas API to sample 50×50 thumbnail, averages RGB values from every 16th pixel for performance
@@ -995,3 +1006,4 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
 ✅ Card background coloration now working with YouTube-style dominant color extraction
 ✅ Notification bubble CSS properly defined and should display when new content arrives via WebSocket
 ✅ Both features use consistent purple gradient theme (`#667eea` to `#764ba2`)
+✅ CSS files properly organized with no duplicates or conflicts
