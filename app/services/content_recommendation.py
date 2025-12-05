@@ -250,7 +250,6 @@ class ContentRecommendationService:
     async def get_trending_feed(
         self,
         db: AsyncSession,
-        page: int = 1,
         page_size: int = 20,
         category: Optional[str] = None,
         exclude_ids: List[int] = None,
