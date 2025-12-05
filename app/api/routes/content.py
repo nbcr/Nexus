@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie  #
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db import AsyncSessionLocal
 from app.models import ContentItem, Topic
@@ -21,6 +21,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
+
+# Constants
+LOGGER_NAME = "uvicorn.error"
+CONTENT_NOT_FOUND = "Content not found"
 
 
 class CategoriesResponse(BaseModel):
@@ -45,7 +49,7 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
     """Return all unique categories from ContentItem and Topic tables."""
     import logging
 
-    logger = logging.getLogger("uvicorn.error")
+    logger = logging.getLogger(LOGGER_NAME)
     try:
         from sqlalchemy import select, distinct
 
@@ -103,13 +107,9 @@ async def get_personalized_feed(
     # Get session token for anonymous users
     session_token = nexus_session or request.cookies.get("nexus_session")
 
-    # For now, we'll just use session-based recommendations
-    # User authentication can be added later
-    user_id = None
-
     import logging
 
-    logger = logging.getLogger("uvicorn.error")
+    logger = logging.getLogger(LOGGER_NAME)
 
     # Sanitize user input for logging to prevent log injection
     safe_category_list = (
@@ -225,7 +225,7 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
     content = result.scalar_one_or_none()
 
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # Check if we already have scraped content stored
     if (
@@ -354,7 +354,7 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
     content = result.scalar_one_or_none()
 
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # Get the source URL
     if not content.source_urls or len(content.source_urls) == 0:
@@ -398,7 +398,9 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
             if not content.source_metadata:
                 content.source_metadata = {}
             content.source_metadata["picture_url"] = article_data["image_url"]
-            content.source_metadata["scraped_at"] = datetime.utcnow().isoformat()
+            content.source_metadata["scraped_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
 
         await db.commit()
         print(f"✅ Saved scraped content for item {content_id}")
@@ -445,7 +447,7 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
     content = result.scalar_one_or_none()
     if not content:
-        raise HTTPException(status_code=404, detail="Content not found")
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # If already have a picture_url, just return it
     pic = (
@@ -475,7 +477,9 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
             if not content.source_metadata:
                 content.source_metadata = {}
             content.source_metadata["picture_url"] = data["image_url"]
-            content.source_metadata["scraped_at"] = datetime.utcnow().isoformat()
+            content.source_metadata["scraped_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
             await db.commit()
             return ThumbnailResponse(picture_url=data["image_url"])
     except Exception:
