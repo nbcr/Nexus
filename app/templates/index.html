@@ -130,7 +130,14 @@
 {% block extra_js %}
 <script src="/static/js/hover-tracker.js?v=202512010100"></script>
 <script src="/static/js/history-tracker.js?v=202512010100"></script>
-<script src="/static/js/feed.js?v=202512030100"></script>
+<!-- Feed System Modules (loaded in order) -->
+<script src="/static/js/FeedUtils.js?v=202512040100"></script>
+<script src="/static/js/FeedApi.js?v=202512040100"></script>
+<script src="/static/js/FeedTracking.js?v=202512040100"></script>
+<script src="/static/js/FeedObservers.js?v=202512040100"></script>
+<script src="/static/js/FeedRenderer.js?v=202512040100"></script>
+<script src="/static/js/FeedArticleModal.js?v=202512040100"></script>
+<script src="/static/js/InfiniteFeed.js?v=202512040100"></script>
 <script src="/static/js/auth.js?v=202512010100"></script>
 <script>
     let feed;
