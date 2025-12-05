@@ -557,7 +557,6 @@ body.dark-mode #hamburger-menu .bar {
 
 /* Desktop: hide mobile auth buttons, show desktop header buttons */
 @media (width >=901px) {
-
     /* Show desktop auth buttons */
     .main-header .header-auth-buttons {
         display: flex;
@@ -707,6 +706,7 @@ body.dark-mode #hamburger-menu .bar {
 }
 
 /* Hide desktop auth buttons on small screens - they appear in hamburger menu */
+
 /* Keep !important to override any inline styles */
 @media (width <=900px) {
     .header-auth-buttons {

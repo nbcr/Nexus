@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from typing import Optional, Dict
 import re
 from urllib.parse import urlparse
+from fastapi import HTTPException
 
 
 class ArticleScraperService:
@@ -24,6 +25,62 @@ class ArticleScraperService:
         self.MAX_EXCERPT_WORDS = 300  # Safe limit for copyright and AdSense compliance
         self.MAX_EXCERPT_CHARS = 2000  # Fallback character limit
 
+    def _validate_url(self, url: str) -> None:
+        """Validate URL to prevent SSRF attacks."""
+        try:
+            parsed = urlparse(url)
+
+            # Only allow http and https schemes
+            if parsed.scheme not in ("http", "https"):
+                raise ValueError("Invalid URL scheme")
+
+            # Block private/internal IP ranges
+            hostname = parsed.hostname
+            if not hostname:
+                raise ValueError("Invalid URL")
+
+            # Block localhost and private IP ranges
+            blocked_hosts = [
+                "localhost",
+                "127.0.0.1",
+                "0.0.0.0",
+                "10.",
+                "172.16.",
+                "172.17.",
+                "172.18.",
+                "172.19.",
+                "172.20.",
+                "172.21.",
+                "172.22.",
+                "172.23.",
+                "172.24.",
+                "172.25.",
+                "172.26.",
+                "172.27.",
+                "172.28.",
+                "172.29.",
+                "172.30.",
+                "172.31.",
+                "192.168.",
+                "169.254.",
+            ]
+
+            hostname_lower = hostname.lower()
+            if any(
+                hostname_lower == blocked or hostname_lower.startswith(blocked)
+                for blocked in blocked_hosts
+            ):
+                raise ValueError("Access to internal resources is forbidden")
+
+            # Additional check for IPv6 localhost
+            if hostname_lower in ("::1", "::ffff:127.0.0.1"):
+                raise ValueError("Access to internal resources is forbidden")
+
+        except ValueError as e:
+            raise
+        except Exception:
+            raise ValueError("Invalid URL format")
+
     async def fetch_article(self, url: str) -> Optional[Dict]:
         """
         Fetch and parse article content from a URL.
@@ -37,6 +94,9 @@ class ArticleScraperService:
         """
         try:
             print(f"📰 Fetching article from: {url}")
+
+            # Validate URL to prevent SSRF
+            self._validate_url(url)
 
             # Fetch the page
             response = requests.get(url, headers=self.headers, timeout=self.timeout)
@@ -371,6 +431,10 @@ class ArticleScraperService:
         """
         try:
             print(f"🌐 Scraping HTML from: {url}")
+
+            # Validate URL to prevent SSRF
+            self._validate_url(url)
+
             response = requests.get(url, headers=self.headers, timeout=self.timeout)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")

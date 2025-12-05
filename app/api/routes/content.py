@@ -30,6 +30,7 @@ class CategoriesResponse(BaseModel):
 class ThumbnailResponse(BaseModel):
     picture_url: Optional[str]
 
+
 class ProxyRequest(BaseModel):
     url: str
 
@@ -109,8 +110,18 @@ async def get_personalized_feed(
     import logging
 
     logger = logging.getLogger("uvicorn.error")
+
+    # Sanitize user input for logging to prevent log injection
+    safe_category_list = (
+        str(category_list).replace("\n", "").replace("\r", "")
+        if category_list
+        else None
+    )
+    safe_exclude_ids = str(exclude_ids).replace("\n", "").replace("\r", "")
+    safe_cursor = str(cursor).replace("\n", "").replace("\r", "") if cursor else None
+
     logger.info(
-        f"Feed request: page={page}, categories={category_list}, exclude_ids={exclude_ids}, cursor={cursor}"
+        f"Feed request: page={page}, categories={safe_category_list}, exclude_ids={safe_exclude_ids}, cursor={safe_cursor}"
     )
     # Feed selection - when no categories specified, show all feed (not personalized)
     if category_list and "all" in [c.lower() for c in category_list]:
@@ -124,7 +135,7 @@ async def get_personalized_feed(
         )
     elif category_list:
         # Filter by multiple categories
-        logger.info(f"Filtering feed by categories: {category_list}")
+        logger.info(f"Filtering feed by categories: {safe_category_list}")
         result = await recommendation_service.get_all_feed(
             db=db,
             page=page,
@@ -429,14 +440,19 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
 @router.get("/thumbnail/{content_id}", response_model=ThumbnailResponse)
 async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     """Ensure a thumbnail is available for a content item and return it.
-    If missing, scrape the article to fetch image_url and persist to source_metadata.picture_url."""
+    If missing, scrape the article to fetch image_url and persist to source_metadata.picture_url.
+    """
     result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
     content = result.scalar_one_or_none()
     if not content:
         raise HTTPException(status_code=404, detail="Content not found")
 
     # If already have a picture_url, just return it
-    pic = (content.source_metadata or {}).get("picture_url") if content.source_metadata else None
+    pic = (
+        (content.source_metadata or {}).get("picture_url")
+        if content.source_metadata
+        else None
+    )
     if pic:
         return ThumbnailResponse(picture_url=pic)
 
@@ -473,16 +489,82 @@ async def image_proxy(url: str):
     """Proxy remote images to avoid mixed-content/CORS issues."""
     import httpx
     import logging
+    from urllib.parse import urlparse
+
     logger = logging.getLogger("uvicorn.error")
+
+    # Validate URL to prevent SSRF attacks
+    try:
+        parsed = urlparse(url)
+
+        # Only allow http and https schemes
+        if parsed.scheme not in ("http", "https"):
+            raise HTTPException(status_code=400, detail="Invalid URL scheme")
+
+        # Block private/internal IP ranges
+        hostname = parsed.hostname
+        if not hostname:
+            raise HTTPException(status_code=400, detail="Invalid URL")
+
+        # Block localhost and private IP ranges
+        blocked_hosts = [
+            "localhost",
+            "127.0.0.1",
+            "0.0.0.0",
+            "10.",
+            "172.16.",
+            "172.17.",
+            "172.18.",
+            "172.19.",
+            "172.20.",
+            "172.21.",
+            "172.22.",
+            "172.23.",
+            "172.24.",
+            "172.25.",
+            "172.26.",
+            "172.27.",
+            "172.28.",
+            "172.29.",
+            "172.30.",
+            "172.31.",
+            "192.168.",
+            "169.254.",
+        ]
+
+        hostname_lower = hostname.lower()
+        if any(
+            hostname_lower == blocked or hostname_lower.startswith(blocked)
+            for blocked in blocked_hosts
+        ):
+            raise HTTPException(
+                status_code=403, detail="Access to internal resources is forbidden"
+            )
+
+        # Additional check for IPv6 localhost
+        if hostname_lower in ("::1", "::ffff:127.0.0.1"):
+            raise HTTPException(
+                status_code=403, detail="Access to internal resources is forbidden"
+            )
+
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid URL format")
+
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
-            logger.info(f"Image proxy fetch: {url}")
+            safe_url = url.replace("\n", "").replace("\r", "")
+            logger.info(f"Image proxy fetch: {safe_url}")
             resp = await client.get(url)
             resp.raise_for_status()
             content_type = resp.headers.get("content-type", "image/jpeg")
             return StreamingResponse(iter([resp.content]), media_type=content_type)
+    except HTTPException:
+        raise
     except Exception:
-        logger.warning(f"Image proxy failed for URL: {url}")
+        safe_url = url.replace("\n", "").replace("\r", "")
+        logger.warning(f"Image proxy failed for URL: {safe_url}")
         raise HTTPException(status_code=404, detail="Unable to fetch image")
 
 
@@ -756,5 +838,3 @@ async def auto_discover_feeds(
         raise HTTPException(
             status_code=500, detail=f"Failed to auto-discover feeds: {str(e)}"
         )
-
-
