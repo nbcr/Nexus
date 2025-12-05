@@ -404,7 +404,7 @@ body {
 
 .log-entry-badge.high {
     background: rgb(255 68 68 / 20%);
-    color: #c22;
+    color: #a11;
 }
 
 .log-entry-badge.medium {
@@ -507,7 +507,7 @@ body {
 
 .user-card-badge.admin {
     background: rgb(255 68 68 / 20%);
-    color: #c22;
+    color: #a11;
 }
 
 .user-card-badge.user {
