@@ -96,7 +96,7 @@ class RSSDiscoveryService:
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
                 UserInteraction.created_at
-                >= datetime.utcnow() - timedelta(days=30)  # Last 30 days
+                >= datetime.now(timezone.utc) - timedelta(days=30)  # Last 30 days
             )
         )
 
@@ -392,7 +392,7 @@ class RSSDiscoveryService:
             description = feed_info.get("description", "")
 
             # Calculate feed quality score
-            quality_score = await self._calculate_feed_quality(feed, url)
+            quality_score = self._calculate_feed_quality(feed)
 
             return {
                 "url": url,
@@ -408,7 +408,7 @@ class RSSDiscoveryService:
             print(f"Failed to validate feed {url}: {e}")
             return None
 
-    async def _calculate_feed_quality(self, feed, url: str) -> float:
+    def _calculate_feed_quality(self, feed) -> float:
         """
         Calculate quality score for an RSS feed (0-1).
 
@@ -429,14 +429,14 @@ class RSSDiscoveryService:
                 latest_entry = entries[0]
                 if latest_entry.get("published_parsed"):
                     pub_date = datetime(*latest_entry["published_parsed"][:6])
-                    days_old = (datetime.utcnow() - pub_date).days
+                    days_old = (datetime.now(timezone.utc) - pub_date).days
                     if days_old < 1:
                         score += 0.2
                     elif days_old < 7:
                         score += 0.15
                     elif days_old < 30:
                         score += 0.1
-            except:
+            except (ValueError, TypeError, AttributeError):
                 pass
 
         # Check content quality

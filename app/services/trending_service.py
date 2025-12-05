@@ -48,6 +48,9 @@ class FeedFailureTracker:
 
 
 class TrendingService:
+    # Constants
+    GOOGLE_TRENDS_TAG = "google trends"
+
     def __init__(self):
         self.failure_tracker = FeedFailureTracker(max_failures=5)
         # Multiple RSS feeds for diverse content
@@ -251,7 +254,7 @@ class TrendingService:
                     "source": source,
                     "image_url": image_url,
                     "published": entry.get("published", ""),
-                    "trend_score": 0.6,  # Standard score for RSS items
+                    "trend_score": self._calculate_trend_score(),
                     "category": category,
                     "tags": self._extract_tags(entry) + [source_name.lower()],
                     "news_items": news_items,
@@ -439,7 +442,7 @@ class TrendingService:
 
         return news_item
 
-    def _calculate_trend_score(self, entry) -> float:
+    def _calculate_trend_score(self) -> float:
         """Calculate trend score based on position in feed"""
         return 0.7
 
@@ -824,7 +827,7 @@ class TrendingService:
         Sports and Entertainment keywords get higher priority (1.5x weight) to handle edge cases correctly.
         """
         text_lower = text.lower()
-        scores = {cat: 0 for cat in self.CATEGORY_KEYWORDS}
+        scores = dict.fromkeys(self.CATEGORY_KEYWORDS, 0)
 
         for cat, keywords in self.CATEGORY_KEYWORDS.items():
             # Sports and Entertainment get priority weighting
@@ -854,7 +857,7 @@ class TrendingService:
 
     def _extract_tags(self, entry) -> List[str]:
         """Extract tags from entry"""
-        tags = ["trending", "canada", "google trends"]
+        tags = ["trending", "canada", self.GOOGLE_TRENDS_TAG]
         if hasattr(entry, "tags"):
             for tag in entry.tags:
                 if hasattr(tag, "term"):
@@ -876,7 +879,6 @@ class TrendingService:
 
             # Extract key information
             title = main_news.get("title", "").strip()
-            snippet = main_news.get("snippet", "").strip()
             source = main_news.get("source", "").strip()
 
             # If we have a good news title, use it as base
@@ -928,7 +930,7 @@ class TrendingService:
             # Add microsecond increments to ensure unique timestamps for ordering
             from datetime import datetime, timedelta
 
-            base_time = datetime.utcnow()
+            base_time = datetime.now(timezone.utc)
 
             for idx, news_item in enumerate(news_items):
                 title = news_item.get("title", "").strip()
@@ -936,7 +938,7 @@ class TrendingService:
 
                 # Skip items with no title or URL
                 if not title and not url:
-                    print(f"  ⊘ Skipping news item with no title or URL")
+                    print("  ⊘ Skipping news item with no title or URL")
                     continue
 
                 # Use URL as fallback title if no title provided
@@ -1035,7 +1037,7 @@ class TrendingService:
                     existing_topic.category = trend_data.get("category", "Trending")
                     existing_topic.trend_score = trend_data.get("trend_score", 0.7)
                     existing_topic.tags = trend_data.get(
-                        "tags", ["trending", "canada", "google trends"]
+                        "tags", ["trending", "canada", self.GOOGLE_TRENDS_TAG]
                     )
                     await db.flush()  # Ensure updates are saved
 
@@ -1143,7 +1145,7 @@ class TrendingService:
                         category=trend_data.get("category", "Trending"),
                         trend_score=trend_data.get("trend_score", 0.7),
                         tags=trend_data.get(
-                            "tags", ["trending", "canada", "google trends"]
+                            "tags", ["trending", "canada", self.GOOGLE_TRENDS_TAG]
                         ),
                     )
                     db.add(topic)
