@@ -156,5 +156,8 @@ async function handleLogout() {
     }
 }
 
-// Export
+// Export namespace and global functions
 window.HeaderAuth = { checkAuthStatus, handleAuth, handleLogout };
+window.checkAuthStatus = checkAuthStatus;
+window.handleAuth = handleAuth;
+window.handleLogout = handleLogout;

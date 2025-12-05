@@ -178,5 +178,7 @@ function initScrollHeader() {
     });
 }
 
-// Export
+// Export namespace and global functions
 window.HeaderPreferences = { initTextSize, initScrollHeader };
+window.initTextSize = initTextSize;
+window.initScrollHeader = initScrollHeader;

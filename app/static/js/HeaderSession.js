@@ -40,5 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initHeader();
 });
 
-// Export
+// Export namespace and global functions
 window.HeaderSession = { setVisitorIdCookie, initHeader };
+window.initHeader = initHeader;
+window.setVisitorIdCookie = setVisitorIdCookie;

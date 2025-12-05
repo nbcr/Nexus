@@ -226,10 +226,10 @@ function hideCustomSettings() {
     document.getElementById('user-custom-settings').style.display = 'none';
 }
 
-// Export
-window.AdminUsers = {
-    refreshUsers,
-    renderUsers,
+// Export namespace and global functions for onclick handlers
+window.AdminUsers = { 
+    refreshUsers, 
+    renderUsers, 
     filterUsers,
     openUserModal,
     closeUserModal,
@@ -238,3 +238,8 @@ window.AdminUsers = {
     hideCustomSettings,
     formatRelativeTime
 };
+window.refreshUsers = refreshUsers;
+window.filterUsers = filterUsers;
+window.openUserModal = openUserModal;
+window.closeUserModal = closeUserModal;
+window.saveUserSettings = saveUserSettings;

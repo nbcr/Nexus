@@ -250,7 +250,7 @@ if (savedAdminDarkMode === 'false') {
     if (toggleBtn) toggleBtn.textContent = '☀️';
 }
 
-// Export
+// Export namespace and global functions for onclick handlers
 window.AdminSettings = {
     saveGlobalSettings,
     resetToDefaults,
@@ -263,3 +263,8 @@ window.AdminSettings = {
     renderHoverPatterns,
     toggleDarkMode
 };
+window.saveGlobalSettings = saveGlobalSettings;
+window.resetToDefaults = resetToDefaults;
+window.testSettings = testSettings;
+window.loadAnalytics = loadAnalytics;
+window.toggleDarkMode = toggleDarkMode;
