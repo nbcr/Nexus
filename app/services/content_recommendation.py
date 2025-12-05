@@ -13,11 +13,25 @@ from typing import List, Dict, Optional, Set
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, desc, cast, String
 from collections import defaultdict
+import re
 
 from app.models import ContentItem, Topic, UserInteraction, UserInterestProfile, User
 
 
 class ContentRecommendationService:
+    @staticmethod
+    def _strip_images_from_html(html_text: Optional[str]) -> str:
+        """Remove img tags and their content from HTML, return plain text."""
+        if not html_text:
+            return ""
+        # Remove img tags
+        text = re.sub(r"<img[^>]*>", "", html_text)
+        # Remove picture tags
+        text = re.sub(r"<picture[^>]*>.*?</picture>", "", text, flags=re.DOTALL)
+        # Remove figure tags
+        text = re.sub(r"<figure[^>]*>.*?</figure>", "", text, flags=re.DOTALL)
+        return text.strip()
+
     async def _get_related_content(
         self,
         db: AsyncSession,
@@ -219,11 +233,11 @@ class ContentRecommendationService:
                     "title": (
                         content.title if content.title else topic.title
                     ),  # Use content title if available
-                    "description": (
+                    "description": self._strip_images_from_html(
                         content.description
                         if content.description
                         else topic.description
-                    ),  # Use content description if available
+                    ),  # Use content description if available, cleaned of images
                     "category": (
                         content.category if content.category else topic.category
                     ),  # Use content category if available
