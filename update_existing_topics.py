@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import AsyncSessionLocal
 from app.models import Topic, ContentItem
-from app.services.trending_service import trending_service
+from app.services.trending import trending_service
 
 
 async def update_existing_topics():
