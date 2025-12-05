@@ -438,7 +438,12 @@ class InfiniteFeed {
                             </span>
                         ` : ''}
                         <span class="feed-item-source">${source}</span>
-                    </div>
+        const source = item.source_metadata?.source || 'News';
+        const rawSummary = item.content_text || item.description || '';
+        const cleanSummary = this.cleanSnippet(rawSummary);
+        const summaryHtml = cleanSummary
+            ? `<p class="feed-item-summary">${this.truncateText(cleanSummary, 400)}</p>`
+            : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>';
                     <h2 class="feed-item-title">${item.title}</h2>
                     ${item.description ? `<p class="feed-item-description">${item.description}</p>` : ''}
                     <span class="expand-indicator">▼</span>
@@ -466,9 +471,7 @@ class InfiniteFeed {
                             </a>
                         ` : ''}
                         <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
-                    </div>
-                    ${item.tags && item.tags.length > 0 ? `
-                        <div class="feed-item-tags">
+                    ${summaryHtml}
                             ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
                     ` : ''}
@@ -533,6 +536,12 @@ class InfiniteFeed {
                         const contentInner = article.querySelector('.content-inner');
                         if (contentInner) {
                             try {
+                                        const sanitizedSnippet = this.cleanSnippet(data.snippet);
+                                        if (sanitizedSnippet) {
+                                            summaryEl.innerHTML = `<p style="line-height: 1.8;">${sanitizedSnippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`;
+                                        } else {
+                                            summaryEl.innerHTML = '<em>No preview available from this source</em>';
+                                        }
                                 const response = await fetch(`/api/v1/content/related/${item.content_id}`);
                                 if (response.ok) {
                                     const data = await response.json();
@@ -691,6 +700,14 @@ class InfiniteFeed {
             (adsbygoogle = window.adsbygoogle || []).push({});
         } catch (e) {
             console.error('AdSense error:', e);
+    cleanSnippet(html) {
+        if (!html) return '';
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        temp.querySelectorAll('img, picture, figure').forEach(el => el.remove());
+        const text = temp.textContent || temp.innerText || '';
+        return text.trim();
+    }
         }
     }
 
