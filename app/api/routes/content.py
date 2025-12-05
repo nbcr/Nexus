@@ -516,7 +516,7 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
 @router.get("/proxy/image")
 async def image_proxy(url: str):
     """Proxy remote images to avoid mixed-content/CORS issues."""
-    import httpx
+    import httpx  # pyright: ignore[reportMissingImports]
     import logging
     from urllib.parse import urlparse
 
