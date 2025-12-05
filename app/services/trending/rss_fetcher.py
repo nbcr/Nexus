@@ -4,7 +4,7 @@ import asyncio
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 
-from app.utils.async_rss_parser import async_rss_parser
+from app.utils.async_rss_parser import get_async_rss_parser
 
 
 class FeedFailureTracker:
@@ -130,7 +130,7 @@ class RSSFetcher:
         """Fetch a single RSS feed with timeout using async parser"""
         try:
             feed = await asyncio.wait_for(
-                async_rss_parser.parse_feed(feed_url), timeout=timeout
+                get_async_rss_parser().parse_feed(feed_url), timeout=timeout
             )
             return self._process_feed_entries(feed, feed_url, category_hint, feed_name)
         except asyncio.TimeoutError:
