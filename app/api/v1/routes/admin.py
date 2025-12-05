@@ -156,7 +156,7 @@ async def save_global_settings(
 ) -> Dict[str, str]:
     """Save global hover tracking settings"""
 
-    # TODO: Store in database (create settings table)
+    # FIXME: Store in database (create settings table)
     # For now, just validate and return success
 
     return {"status": "saved", "message": "Global settings updated successfully"}
@@ -192,7 +192,7 @@ async def get_all_users(
                 "last_login": user.last_login.isoformat() if user.last_login else None,
                 "interaction_count": interaction_count,
                 "debug_mode": getattr(user, "debug_mode", False),
-                "custom_settings": None,  # TODO: Load from settings table
+                "custom_settings": None,  # FIXME: Load from settings table
             }
         )
 
@@ -245,7 +245,7 @@ async def get_user_details(
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "last_login": user.last_login.isoformat() if user.last_login else None,
         "debug_mode": getattr(user, "debug_mode", False),
-        "custom_settings": None,  # TODO: Load from settings table
+        "custom_settings": None,  # FIXME: Load from settings table
         "stats": {
             "total_interactions": total_interactions,
             "high_interest": high_interest,
@@ -273,7 +273,7 @@ async def save_user_settings(
     # Update debug mode
     user.debug_mode = settings.debug_mode
 
-    # TODO: Store custom_settings in user_settings table
+    # FIXME: Store custom_settings in user_settings table
 
     await db.commit()
 
@@ -355,7 +355,7 @@ async def get_analytics(
                 "content_id": row[0],
                 "title": row[1],
                 "view_count": row[2],
-                "avg_score": 0,  # TODO: Calculate from metadata when available
+                "avg_score": 0,  # FIXME: Calculate from metadata when available
             }
         )
 
@@ -382,8 +382,8 @@ async def get_analytics(
         "top_content": top_content,
         "hover_patterns": {
             "avg_duration": round(float(avg_duration), 1) if avg_duration else 0,
-            "avg_slowdowns": 0,  # TODO: Calculate from metadata
-            "movement_rate": 0,  # TODO: Calculate from metadata
-            "afk_rate": 0,  # TODO: Calculate from metadata
+            "avg_slowdowns": 0,  # FIXME: Calculate from metadata
+            "movement_rate": 0,  # FIXME: Calculate from metadata
+            "afk_rate": 0,  # FIXME: Calculate from metadata
         },
     }

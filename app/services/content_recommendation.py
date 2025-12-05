@@ -26,7 +26,14 @@ class ContentRecommendationService:
         limit: int = 3,
     ) -> List[Dict]:
         """Find related content items by category and overlapping tags."""
-        # Build base filters: same category and recent items, exclude self
+        candidates = await self._fetch_related_candidates(db, base_content, base_topic)
+        scored = self._score_and_sort_candidates(candidates, base_content, base_topic)
+        return self._format_related_items(scored, limit)
+
+    async def _fetch_related_candidates(
+        self, db: AsyncSession, base_content: ContentItem, base_topic: Topic
+    ) -> List[tuple]:
+        """Fetch candidate related content items"""
         filters = [
             ContentItem.id != base_content.id,
             ContentItem.is_published == True,
@@ -42,41 +49,67 @@ class ContentRecommendationService:
         )
 
         result = await db.execute(query)
-        candidates = result.all()
+        return result.all()
 
-        # Score by tag overlap and title similarity
+    def _score_and_sort_candidates(
+        self, candidates: List[tuple], base_content: ContentItem, base_topic: Topic
+    ) -> List[tuple]:
+        """Score candidates by tag overlap and title similarity"""
+
         def score(c: ContentItem, t: Topic) -> float:
-            s = 0.0
-            base_tags = set(
-                (base_topic.tags or [])
-                + (
-                    []
-                    if not base_content.source_metadata
-                    else list(base_content.source_metadata.get("tags", []))
-                )
+            tag_score = self._calculate_tag_overlap_score(
+                base_content, base_topic, c, t
             )
-            cand_tags = set(
-                (t.tags or [])
-                + (
-                    []
-                    if not c.source_metadata
-                    else list(c.source_metadata.get("tags", []))
-                )
+            title_score = self._calculate_title_overlap_score(
+                base_content, base_topic, c, t
             )
-            overlap = base_tags.intersection(cand_tags)
-            if overlap:
-                s += 0.6 * min(len(overlap) / max(len(base_tags) or 1, 1), 1.0)
-            # Simple title keyword overlap
-            base_words = set(
-                (base_content.title or base_topic.title or "").lower().split()
-            )
-            cand_words = set((c.title or t.title or "").lower().split())
-            word_overlap = base_words.intersection(cand_words)
-            if word_overlap:
-                s += 0.4 * min(len(word_overlap) / max(len(base_words) or 1, 1), 1.0)
-            return s
+            return tag_score + title_score
 
-        scored = sorted(candidates, key=lambda ct: score(ct[0], ct[1]), reverse=True)
+        return sorted(candidates, key=lambda ct: score(ct[0], ct[1]), reverse=True)
+
+    def _calculate_tag_overlap_score(
+        self,
+        base_content: ContentItem,
+        base_topic: Topic,
+        cand_content: ContentItem,
+        cand_topic: Topic,
+    ) -> float:
+        """Calculate score based on tag overlap"""
+        base_tags = self._extract_tags(base_content, base_topic)
+        cand_tags = self._extract_tags(cand_content, cand_topic)
+        overlap = base_tags.intersection(cand_tags)
+
+        if not overlap:
+            return 0.0
+
+        return 0.6 * min(len(overlap) / max(len(base_tags) or 1, 1), 1.0)
+
+    def _calculate_title_overlap_score(
+        self,
+        base_content: ContentItem,
+        base_topic: Topic,
+        cand_content: ContentItem,
+        cand_topic: Topic,
+    ) -> float:
+        """Calculate score based on title keyword overlap"""
+        base_words = set((base_content.title or base_topic.title or "").lower().split())
+        cand_words = set((cand_content.title or cand_topic.title or "").lower().split())
+        word_overlap = base_words.intersection(cand_words)
+
+        if not word_overlap:
+            return 0.0
+
+        return 0.4 * min(len(word_overlap) / max(len(base_words) or 1, 1), 1.0)
+
+    def _extract_tags(self, content: ContentItem, topic: Topic) -> set:
+        """Extract all tags from content and topic"""
+        tags = set(topic.tags or [])
+        if content.source_metadata:
+            tags.update(content.source_metadata.get("tags", []))
+        return tags
+
+    def _format_related_items(self, scored: List[tuple], limit: int) -> List[Dict]:
+        """Format scored candidates into related item dictionaries"""
         related = []
         for content, topic in scored[:limit]:
             related.append(
@@ -139,7 +172,7 @@ class ContentRecommendationService:
             )
         )
 
-        # TODO: Future filtering by user_categories can be added here
+        # FIXME: Future filtering by user_categories can be added here
         # For now, show everything so we can learn user preferences
 
         # Apply cursor-based filtering (show items older than cursor)
@@ -226,7 +259,6 @@ class ContentRecommendationService:
         """Deprecated: Use get_all_feed instead."""
         return await self.get_all_feed(
             db=db,
-            page=page,
             page_size=page_size,
             exclude_ids=exclude_ids or [],
             cursor=cursor,
@@ -240,12 +272,34 @@ class ContentRecommendationService:
         exclude_ids: List[int] = None,
         cursor: Optional[str] = None,
         category: Optional[str] = None,
-        categories: Optional[List[str]] = None,  # New: multi-category support
+        categories: Optional[List[str]] = None,
     ) -> Dict:
         """Return all published content with cursor pagination; optional category filter(s)."""
         exclude_ids = exclude_ids or []
 
-        query = (
+        query = self._build_base_feed_query(exclude_ids)
+        query = self._apply_category_filters(query, category, categories)
+        query = self._apply_cursor_filter(query, cursor)
+        query = query.order_by(desc(ContentItem.created_at)).limit(page_size + 1)
+
+        result = await db.execute(query)
+        rows = result.all()
+
+        has_more = len(rows) > page_size
+        if has_more:
+            rows = rows[:page_size]
+
+        items = await self._build_feed_items(db, rows)
+
+        next_cursor = None
+        if items and has_more:
+            next_cursor = items[-1]["created_at"]
+
+        return {"items": items, "next_cursor": next_cursor, "has_more": has_more}
+
+    def _build_base_feed_query(self, exclude_ids: List[int]):
+        """Build base query for feed with exclusions"""
+        return (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
             .where(
@@ -255,37 +309,37 @@ class ContentRecommendationService:
             )
         )
 
-        # Handle multi-category filtering
+    def _apply_category_filters(
+        self, query, category: Optional[str], categories: Optional[List[str]]
+    ):
+        """Apply category filters to feed query"""
         if categories:
-            if "Reference" in categories:
-                categories = [c for c in categories if c != "Reference"]
-            if categories:
-                query = query.where(Topic.category.in_(categories))
+            filtered_categories = [c for c in categories if c != "Reference"]
+            if filtered_categories:
+                query = query.where(Topic.category.in_(filtered_categories))
         elif category:
             if category == "Reference":
-                # Explicitly return empty for Reference category
-                return {"items": [], "next_cursor": None, "has_more": False}
+                return None  # Signal empty result
             query = query.where(Topic.category == category)
+        return query
 
-        if cursor:
-            try:
-                cursor_time = datetime.fromisoformat(cursor)
-                query = query.where(ContentItem.created_at < cursor_time)
-            except (ValueError, TypeError):
-                pass
+    def _apply_cursor_filter(self, query, cursor: Optional[str]):
+        """Apply cursor-based pagination filter"""
+        if not query or not cursor:
+            return query
 
-        query = query.order_by(desc(ContentItem.created_at)).limit(page_size + 1)
+        try:
+            cursor_time = datetime.fromisoformat(cursor)
+            query = query.where(ContentItem.created_at < cursor_time)
+        except (ValueError, TypeError):
+            pass
 
-        result = await db.execute(query)
-        rows = result.all()
+        return query
 
-        # Remove all blocking thumbnail scraping from feed response for speed.
-        # (A background job should handle thumbnail prefetching instead.)
-
-        has_more = len(rows) > page_size
-        if has_more:
-            rows = rows[:page_size]
-
+    async def _build_feed_items(
+        self, db: AsyncSession, rows: List[tuple]
+    ) -> List[Dict]:
+        """Build feed item dictionaries from query results"""
         items = []
         for content, topic in rows:
             related_items = await self._get_related_content(db, content, topic, limit=3)
@@ -311,12 +365,7 @@ class ContentRecommendationService:
                     "related_items": related_items,
                 }
             )
-
-        next_cursor = None
-        if items and has_more:
-            next_cursor = items[-1]["created_at"]
-
-        return {"items": items, "next_cursor": next_cursor, "has_more": has_more}
+        return items
 
     async def _get_user_categories(
         self, db: AsyncSession, user_id: Optional[int], session_token: Optional[str]
@@ -338,7 +387,8 @@ class ContentRecommendationService:
 
         if user_id:
             query = query.where(UserInteraction.user_id == user_id)
-        elif session_token:
+        else:
+            # Use session_token (already checked to be not None in parent condition)
             query = query.join(
                 UserSession, UserInteraction.session_id == UserSession.id
             ).where(UserSession.session_token == session_token)

@@ -21,7 +21,7 @@ class ContentManager {
     async loadContent() {
         try {
             Utils.hideError();
-            const headers = window.auth ? window.auth.getAuthHeaders() : {};
+            const headers = globalThis.auth ? globalThis.auth.getAuthHeaders() : {};
             this.content = await Utils.apiCall('/api/v1/content/', { headers });
             
             this.renderContent();

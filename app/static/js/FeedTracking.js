@@ -12,13 +12,13 @@ class FeedTracking {
     }
 
     initGlobalScrollTracker() {
-        if (window.HoverTracker && window.GlobalScrollTracker && !this.globalScrollTracker) {
+        if (globalThis.HoverTracker && globalThis.GlobalScrollTracker && !this.globalScrollTracker) {
             this.globalScrollTracker = new GlobalScrollTracker();
         }
     }
 
     createHoverTracker(card, contentId) {
-        if (window.HoverTracker && this.globalScrollTracker) {
+        if (globalThis.HoverTracker && this.globalScrollTracker) {
             const tracker = new HoverTracker(card, contentId);
             this.hoverTrackers.set(contentId, tracker);
             this.globalScrollTracker.register(tracker);

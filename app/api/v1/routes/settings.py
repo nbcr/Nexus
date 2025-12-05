@@ -27,7 +27,7 @@ async def get_hover_tracker_settings(
     if current_user:
         debug_mode = getattr(current_user, "debug_mode", False)
 
-    # TODO: Check if user has custom settings in database
+    # FIXME: Check if user has custom settings in database
     # For now, return global defaults
 
     settings = {
