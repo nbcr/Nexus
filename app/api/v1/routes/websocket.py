@@ -61,17 +61,8 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@router.websocket("/feed-updates")
-async def websocket_feed_updates(websocket: WebSocket):
-    """
-    WebSocket endpoint for real-time feed updates
-    Clients connect to receive notifications about:
-    - New content available
-    - Content refresh suggestions
-    """
-    import logging
-
-    logger = logging.getLogger("uvicorn.error")
+def _extract_token_from_websocket(websocket: WebSocket) -> str | None:
+    """Extract JWT token from WebSocket headers, cookies, or query params."""
     token = None
     # Try header first (for JS clients)
     if "authorization" in websocket.headers:
@@ -87,11 +78,22 @@ async def websocket_feed_updates(websocket: WebSocket):
     # Try query param
     if not token:
         token = websocket.query_params.get("token")
-    # Debug: print received token
-    safe_token = str(token).replace("\n", "").replace("\r", "") if token else None
-    logger.info(f"WebSocket received token: {safe_token}")
-    # Validate token
-    from app.core.auth import verify_token, jwt, SECRET_KEY, ALGORITHM
+    return token
+
+
+def _extract_visitor_id_from_cookies(websocket: WebSocket) -> str | None:
+    """Extract visitor_id from WebSocket cookies."""
+    cookie_header = websocket.headers.get("cookie", "")
+    visitor_id = None
+    for part in cookie_header.split(";"):
+        if "visitor_id=" in part:
+            visitor_id = part.split("visitor_id=")[-1].strip()
+    return visitor_id
+
+
+def _decode_jwt_token(token: str, logger) -> dict | None:
+    """Decode and validate JWT token, return payload or None."""
+    from app.core.auth import jwt, SECRET_KEY, ALGORITHM
 
     payload = None
     if token:
@@ -100,62 +102,68 @@ async def websocket_feed_updates(websocket: WebSocket):
         except Exception as e:
             safe_error = str(e).replace("\n", "").replace("\r", "")
             logger.error(f"WebSocket token decode error: {safe_error}")
-    safe_payload = str(payload).replace("\n", "").replace("\r", "") if payload else None
-    logger.info(f"WebSocket decoded payload: {safe_payload}")
-    username = payload.get("sub") if payload else None
-    if not username:
-        # Accept anonymous connection, track by visitor_id
-        cookie_header = websocket.headers.get("cookie", "")
-        visitor_id = None
-        for part in cookie_header.split(";"):
-            if "visitor_id=" in part:
-                visitor_id = part.split("visitor_id=")[-1].strip()
-        safe_visitor_id = (
-            str(visitor_id).replace("\n", "").replace("\r", "") if visitor_id else None
-        )
-        logger.info(f"WebSocket accepted for anonymous visitor_id: {safe_visitor_id}")
-        await manager.connect(websocket)
-        try:
-            await websocket.send_json(
-                {
-                    "type": "connected",
-                    "message": f"Connected to Nexus feed updates as anonymous visitor {visitor_id}",
-                    "timestamp": datetime.now().isoformat(),
-                }
-            )
-            while True:
-                data = await websocket.receive_text()
-                if data == "ping":
-                    await websocket.send_json({"type": "pong"})
-        except WebSocketDisconnect:
-            manager.disconnect(websocket)
-        except Exception as e:
-            logger.error(f"WebSocket error: {e}")
-            manager.disconnect(websocket)
-        return
-    safe_username = username.replace("\n", "").replace("\r", "")
-    logger.info(f"WebSocket accepted for user: {safe_username}")
-    await manager.connect(websocket)
+    return payload
+
+
+async def _handle_websocket_connection(websocket: WebSocket, identifier: str):
+    """Handle WebSocket keepalive loop and message processing."""
     try:
-        # Send initial connection confirmation
         await websocket.send_json(
             {
                 "type": "connected",
-                "message": f"Connected to Nexus feed updates as {username}",
+                "message": f"Connected to Nexus feed updates as {identifier}",
                 "timestamp": datetime.now().isoformat(),
             }
         )
-        # Keep connection alive and handle incoming messages
         while True:
             data = await websocket.receive_text()
-            # Handle ping/pong for keepalive
             if data == "ping":
                 await websocket.send_json({"type": "pong"})
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
+        import logging
+
+        logger = logging.getLogger("uvicorn.error")
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
+
+
+@router.websocket("/feed-updates")
+async def websocket_feed_updates(websocket: WebSocket):
+    """WebSocket endpoint for real-time feed updates."""
+    import logging
+
+    logger = logging.getLogger("uvicorn.error")
+
+    # Extract and validate token
+    token = _extract_token_from_websocket(websocket)
+    safe_token = str(token).replace("\n", "").replace("\r", "") if token else None
+    logger.info(f"WebSocket received token: {safe_token}")
+
+    # Decode token to get user identity
+    payload = _decode_jwt_token(token, logger)
+    safe_payload = str(payload).replace("\n", "").replace("\r", "") if payload else None
+    logger.info(f"WebSocket decoded payload: {safe_payload}")
+
+    username = payload.get("sub") if payload else None
+
+    # Handle anonymous connection
+    if not username:
+        visitor_id = _extract_visitor_id_from_cookies(websocket)
+        safe_visitor_id = (
+            str(visitor_id).replace("\n", "").replace("\r", "") if visitor_id else None
+        )
+        logger.info(f"WebSocket accepted for anonymous visitor_id: {safe_visitor_id}")
+        await manager.connect(websocket)
+        await _handle_websocket_connection(websocket, f"anonymous visitor {visitor_id}")
+        return
+
+    # Handle authenticated connection
+    safe_username = username.replace("\n", "").replace("\r", "")
+    logger.info(f"WebSocket accepted for user: {safe_username}")
+    await manager.connect(websocket)
+    await _handle_websocket_connection(websocket, username)
 
 
 async def notify_new_content(count: int = 1, category: str = None):
