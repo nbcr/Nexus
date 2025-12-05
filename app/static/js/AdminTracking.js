@@ -152,7 +152,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // Export namespace and global functions for onclick handlers
-window.AdminTracking = {
+globalThis.AdminTracking = {
     refreshTracking,
     updateTrackingStats,
     renderTrackingLog,
@@ -160,5 +160,5 @@ window.AdminTracking = {
     startAutoRefresh,
     stopAutoRefresh
 };
-window.refreshTracking = refreshTracking;
-window.clearTracking = clearTracking;
+globalThis.refreshTracking = refreshTracking;
+globalThis.clearTracking = clearTracking;

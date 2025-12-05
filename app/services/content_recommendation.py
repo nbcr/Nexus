@@ -236,7 +236,6 @@ class ContentRecommendationService:
     async def get_all_feed(
         self,
         db: AsyncSession,
-        page: int = 1,
         page_size: int = 20,
         exclude_ids: List[int] = None,
         cursor: Optional[str] = None,
