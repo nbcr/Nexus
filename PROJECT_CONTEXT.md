@@ -11,6 +11,11 @@ Always append new changes, fixes, or updates to the bottom of the file (below th
 
 ---
 
+# 2025-12-04: Feed Card Image & Snippet Cleanup
+- Fixed `feed.js` corruption and restored card rendering logic.
+- Images now sit above titles (header flex column) and snippets strip inline images via `cleanSnippet` to avoid tiny thumbnails in preview area.
+- Snippet fetch uses sanitized content; thumbnail fetch/related loading blocks cleaned up.
+
 ## Project Context: Nexus - AI News Portal
 
 I'm working on a FastAPI-based news aggregation platform called Nexus deployed on AWS EC2. Here's the essential context:

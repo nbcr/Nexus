@@ -399,8 +399,8 @@ class InfiniteFeed {
 
         // Robust image fallback logic
         const toProxy = (url) => url ? `/api/v1/content/proxy/image?url=${encodeURIComponent(url)}` : null;
-        let imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
-        let proxiedImageUrl = imageUrl ? toProxy(imageUrl) : null;
+        const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
+        const proxiedImageUrl = imageUrl ? toProxy(imageUrl) : null;
         let imageHtml = '';
 
         if (proxiedImageUrl) {
@@ -412,13 +412,17 @@ class InfiniteFeed {
             <img src="${imageUrl}" alt="${item.title}" loading="lazy">
         </div>`;
         } else {
-            // Will try to fetch thumbnail below, else show placeholder
             imageHtml = `<div class="feed-item-image">
             <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="filter:grayscale(1);opacity:0.5;">
         </div>`;
         }
 
         const source = item.source_metadata?.source || 'News';
+        const rawSummary = item.content_text || item.description || '';
+        const cleanSummary = this.cleanSnippet(rawSummary);
+        const summaryHtml = cleanSummary
+            ? `<p class="feed-item-summary">${this.truncateText(cleanSummary, 400)}</p>`
+            : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>';
         const isSearchQuery = item.category === 'Search Query' ||
             (item.source_urls && item.source_urls[0] &&
                 (item.source_urls[0].includes('google.com/search') ||
@@ -438,12 +442,7 @@ class InfiniteFeed {
                             </span>
                         ` : ''}
                         <span class="feed-item-source">${source}</span>
-        const source = item.source_metadata?.source || 'News';
-        const rawSummary = item.content_text || item.description || '';
-        const cleanSummary = this.cleanSnippet(rawSummary);
-        const summaryHtml = cleanSummary
-            ? `<p class="feed-item-summary">${this.truncateText(cleanSummary, 400)}</p>`
-            : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>';
+                    </div>
                     <h2 class="feed-item-title">${item.title}</h2>
                     ${item.description ? `<p class="feed-item-description">${item.description}</p>` : ''}
                     <span class="expand-indicator">▼</span>
@@ -451,9 +450,7 @@ class InfiniteFeed {
             </div>
             <div class="feed-item-expanded-content">
                 <div class="content-inner">
-                    ${(item.content_text || item.description) ? `
-                        <p class="feed-item-summary">${this.truncateText(item.content_text || item.description, 400)}</p>
-                    ` : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>'}
+                    ${summaryHtml}
                     <div class="feed-item-actions">
                         ${isNewsArticle ? `
                             <button class="btn-read-more" data-content-id="${item.content_id}">
@@ -471,7 +468,9 @@ class InfiniteFeed {
                             </a>
                         ` : ''}
                         <span class="feed-item-time">${this.formatTime(item.created_at)}</span>
-                    ${summaryHtml}
+                    </div>
+                    ${item.tags && item.tags.length > 0 ? `
+                        <div class="feed-item-tags">
                             ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                         </div>
                     ` : ''}
@@ -492,63 +491,57 @@ class InfiniteFeed {
         </div>
     `;
 
-        // Add click handler for card header to expand/collapse
         const header = article.querySelector('.feed-item-header');
         if (header) {
             header.addEventListener('click', async (e) => {
-                // Don't toggle if clicking on image or buttons
-                if (!e.target.closest('.feed-item-image')) {
-                    const wasExpanded = article.classList.contains('expanded');
-                    article.classList.toggle('expanded');
+                if (e.target.closest('.feed-item-image') || e.target.closest('.btn-read-more') || e.target.closest('.btn-source')) return;
 
-                    // If expanding for the first time and no snippet, fetch it
-                    if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
-                        const summaryEl = article.querySelector('.feed-item-summary');
-                        if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
-                            summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
-                            try {
-                                const response = await fetch(`/api/v1/content/snippet/${item.content_id}`);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    if (data.rate_limited) {
-                                        summaryEl.innerHTML = `<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 10px 0;">
-                                            <p style="margin: 0; color: #856404; font-size: 16px;">😅 ${data.message}</p>
-                                        </div>`;
-                                        article.dataset.snippetLoaded = 'rate-limited';
-                                    } else if (data.snippet) {
-                                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`;
-                                        article.dataset.snippetLoaded = 'true';
-                                    } else {
-                                        summaryEl.innerHTML = '<em>No preview available from this source</em>';
-                                    }
+                const wasExpanded = article.classList.contains('expanded');
+                article.classList.toggle('expanded');
+
+                if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
+                    const summaryEl = article.querySelector('.feed-item-summary');
+                    if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
+                        summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
+                        try {
+                            const response = await fetch(`/api/v1/content/snippet/${item.content_id}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.rate_limited) {
+                                    summaryEl.innerHTML = `<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 10px 0;">
+                                        <p style="margin: 0; color: #856404; font-size: 16px;">😅 ${data.message}</p>
+                                    </div>`;
+                                    article.dataset.snippetLoaded = 'rate-limited';
+                                } else if (data.snippet) {
+                                    const sanitizedSnippet = this.cleanSnippet(data.snippet);
+                                    summaryEl.innerHTML = sanitizedSnippet
+                                        ? `<p style="line-height: 1.8;">${sanitizedSnippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`
+                                        : '<em>No preview available from this source</em>';
+                                    article.dataset.snippetLoaded = 'true';
                                 } else {
-                                    summaryEl.innerHTML = '<em>Unable to load preview</em>';
+                                    summaryEl.innerHTML = '<em>No preview available from this source</em>';
                                 }
-                            } catch (error) {
-                                console.error('Error loading snippet:', error);
-                                summaryEl.innerHTML = '<em>Error loading preview</em>';
+                            } else {
+                                summaryEl.innerHTML = '<em>Unable to load preview</em>';
                             }
+                        } catch (error) {
+                            console.error('Error loading snippet:', error);
+                            summaryEl.innerHTML = '<em>Error loading preview</em>';
                         }
                     }
+                }
 
-                    // Fetch and display related content if expanding for the first time
-                    if (!wasExpanded && !article.dataset.relatedLoaded) {
-                        const contentInner = article.querySelector('.content-inner');
-                        if (contentInner) {
-                            try {
-                                        const sanitizedSnippet = this.cleanSnippet(data.snippet);
-                                        if (sanitizedSnippet) {
-                                            summaryEl.innerHTML = `<p style="line-height: 1.8;">${sanitizedSnippet}</p>${data.full_content_available ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' : ''}`;
-                                        } else {
-                                            summaryEl.innerHTML = '<em>No preview available from this source</em>';
-                                        }
-                                const response = await fetch(`/api/v1/content/related/${item.content_id}`);
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    if (data.related_items && data.related_items.length > 0) {
-                                        const relatedSection = document.createElement('div');
-                                        relatedSection.className = 'related-stories-section';
-                                        relatedSection.innerHTML = `
+                if (!wasExpanded && !article.dataset.relatedLoaded) {
+                    const contentInner = article.querySelector('.content-inner');
+                    if (contentInner) {
+                        try {
+                            const response = await fetch(`/api/v1/content/related/${item.content_id}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.related_items && data.related_items.length > 0) {
+                                    const relatedSection = document.createElement('div');
+                                    relatedSection.className = 'related-stories-section';
+                                    relatedSection.innerHTML = `
                                             <h4 class="related-stories-title">📰 Same Story From Other Sources:</h4>
                                             <div class="related-stories-list">
                                                 ${data.related_items.map(related => `
@@ -564,16 +557,15 @@ class InfiniteFeed {
                                                 `).join('')}
                                             </div>
                                         `;
-                                        contentInner.appendChild(relatedSection);
-                                    }
-                                    article.dataset.relatedLoaded = 'true';
-                                } else {
-                                    article.dataset.relatedLoaded = 'error';
+                                    contentInner.appendChild(relatedSection);
                                 }
-                            } catch (error) {
-                                console.error('Error loading related content:', error);
+                                article.dataset.relatedLoaded = 'true';
+                            } else {
                                 article.dataset.relatedLoaded = 'error';
                             }
+                        } catch (error) {
+                            console.error('Error loading related content:', error);
+                            article.dataset.relatedLoaded = 'error';
                         }
                     }
                 }
@@ -700,6 +692,9 @@ class InfiniteFeed {
             (adsbygoogle = window.adsbygoogle || []).push({});
         } catch (e) {
             console.error('AdSense error:', e);
+        }
+    }
+
     cleanSnippet(html) {
         if (!html) return '';
         const temp = document.createElement('div');
@@ -707,8 +702,6 @@ class InfiniteFeed {
         temp.querySelectorAll('img, picture, figure').forEach(el => el.remove());
         const text = temp.textContent || temp.innerText || '';
         return text.trim();
-    }
-        }
     }
 
     async defaultContentClick(item) {
