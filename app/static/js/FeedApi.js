@@ -106,4 +106,4 @@ class FeedApi {
     }
 }
 
-window.FeedApi = FeedApi;
+globalThis.FeedApi = FeedApi;
