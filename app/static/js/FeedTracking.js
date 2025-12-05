@@ -21,7 +21,7 @@ class FeedTracking {
         if (window.HoverTracker && this.globalScrollTracker) {
             const tracker = new HoverTracker(card, contentId);
             this.hoverTrackers.set(contentId, tracker);
-            this.globalScrollTracker.registerTracker(tracker);
+            this.globalScrollTracker.register(tracker);
             return tracker;
         }
         return null;
@@ -30,6 +30,9 @@ class FeedTracking {
     cleanupTracker(contentId) {
         const tracker = this.hoverTrackers.get(contentId);
         if (tracker) {
+            if (this.globalScrollTracker) {
+                this.globalScrollTracker.unregister(tracker);
+            }
             tracker.destroy();
             this.hoverTrackers.delete(contentId);
         }

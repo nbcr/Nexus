@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,13 +10,13 @@
     <meta name="slurp" content="noindex, nofollow">
     <meta name="duckduckbot" content="noindex, nofollow">
     <title>Nexus Admin Panel</title>
-    
+
     <!-- Immediate mode initialization to prevent flash - MUST be before CSS -->
     <script>
-        (function() {
+        (function () {
             // Only apply light mode if explicitly selected (dark mode is default)
             const savedPreference = localStorage.getItem('adminDarkMode');
-            
+
             if (savedPreference === 'false') {
                 // User explicitly selected light mode
                 document.documentElement.classList.add('light-mode');
@@ -34,7 +35,7 @@
             --text-secondary: #cccccc;
             --text-muted: #999999;
         }
-        
+
         html.light-mode {
             --bg-primary: #ffffff;
             --bg-secondary: #f5f5f5;
@@ -43,20 +44,21 @@
             --text-secondary: #666666;
             --text-muted: #999999;
         }
-        
+
         /* Apply variables to elements */
-        html, body {
+        html,
+        body {
             background-color: var(--bg-primary);
             color: var(--text-primary);
         }
-        
+
         /* Explicit dark mode styles (default) */
         html:not(.light-mode),
         html:not(.light-mode) body {
             background-color: #181818;
             color: #ffffff;
         }
-        
+
         /* Explicit light mode styles */
         html.light-mode,
         html.light-mode body {
@@ -64,9 +66,10 @@
             color: #333333;
         }
     </style>
-    
+
     <link rel="stylesheet" href="/static/css/admin.css?v=202511210200">
 </head>
+
 <body class="dark-mode">
     <div id="access-denied" class="access-denied hidden">
         <div class="access-denied-content">
@@ -108,7 +111,7 @@
                                 <input type="checkbox" id="auto-refresh" checked> Auto-refresh (5s)
                             </label>
                         </div>
-                        
+
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <h3>Total Events</h3>
@@ -137,14 +140,15 @@
                     <div class="section">
                         <h2>Global Hover Tracking Settings</h2>
                         <p class="section-description">These settings apply to all users by default</p>
-                        
+
                         <div class="settings-grid">
                             <div class="setting-group">
                                 <label for="minHoverDuration">
                                     Minimum Hover Duration (ms)
                                     <span class="help-text">Minimum time to consider as interest</span>
                                 </label>
-                                <input type="number" id="minHoverDuration" value="1500" min="100" max="10000" step="100">
+                                <input type="number" id="minHoverDuration" value="1500" min="100" max="10000"
+                                    step="100">
                             </div>
 
                             <div class="setting-group">
@@ -176,7 +180,8 @@
                                     Slowdown Velocity Threshold (px/ms)
                                     <span class="help-text">Velocity below which counts as slowdown</span>
                                 </label>
-                                <input type="number" id="slowdownVelocityThreshold" value="0.3" min="0.1" max="2.0" step="0.1">
+                                <input type="number" id="slowdownVelocityThreshold" value="0.3" min="0.1" max="2.0"
+                                    step="0.1">
                             </div>
 
                             <div class="setting-group">
@@ -200,7 +205,8 @@
                                     Scroll Slowdown Threshold (px/ms)
                                     <span class="help-text">Scroll velocity indicating interest</span>
                                 </label>
-                                <input type="number" id="scrollSlowdownThreshold" value="2.0" min="0.5" max="10.0" step="0.5">
+                                <input type="number" id="scrollSlowdownThreshold" value="2.0" min="0.5" max="10.0"
+                                    step="0.5">
                             </div>
                         </div>
 
@@ -216,9 +222,10 @@
                 <div id="tab-users" class="tab-content">
                     <div class="section">
                         <h2>User Management & Per-User Settings</h2>
-                        
+
                         <div class="controls">
-                            <input type="text" id="user-search" placeholder="🔍 Search users..." onkeyup="filterUsers()">
+                            <input type="text" id="user-search" placeholder="🔍 Search users..."
+                                onkeyup="filterUsers()">
                             <button onclick="refreshUsers()" class="btn-refresh">🔄 Refresh Users</button>
                         </div>
 
@@ -230,7 +237,7 @@
                 <div id="tab-analytics" class="tab-content">
                     <div class="section">
                         <h2>Analytics Dashboard</h2>
-                        
+
                         <div class="date-range">
                             <label>Date Range:</label>
                             <input type="date" id="start-date" aria-label="Start date">
@@ -267,7 +274,7 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeUserModal()">&times;</button>
             <h2>User Settings: <span id="modal-username"></span></h2>
-            
+
             <div class="modal-section">
                 <h3>Debug Mode</h3>
                 <label class="debug-mode-label">
@@ -289,7 +296,7 @@
                 <label>
                     <input type="checkbox" id="user-use-custom"> Use custom settings for this user
                 </label>
-                
+
                 <div id="user-custom-settings" class="settings-grid hidden">
                     <div class="setting-group">
                         <label for="user-minHoverDuration">Min Hover Duration (ms)</label>
@@ -325,4 +332,5 @@
     <script src="/static/js/AdminUsers.js?v=202512040100"></script>
     <script src="/static/js/AdminSettings.js?v=202512040100"></script>
 </body>
+
 </html>

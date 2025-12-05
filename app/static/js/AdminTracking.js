@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    
+
     // Initial load of tracking data
     refreshTracking();
     startAutoRefresh();
@@ -152,10 +152,10 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // Export
-window.AdminTracking = { 
-    refreshTracking, 
-    updateTrackingStats, 
-    renderTrackingLog, 
+window.AdminTracking = {
+    refreshTracking,
+    updateTrackingStats,
+    renderTrackingLog,
     clearTracking,
     startAutoRefresh,
     stopAutoRefresh
