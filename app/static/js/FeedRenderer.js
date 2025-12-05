@@ -93,7 +93,7 @@ class FeedRenderer {
 
         this.setupCardEventHandlers(article, item, isNewsArticle, isSearchQuery, onContentClick);
         this.setupCardImage(article, item);
-        
+
         container.appendChild(article);
     }
 
