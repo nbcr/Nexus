@@ -190,9 +190,9 @@ async function saveUserSettings() {
     const debugMode = document.getElementById('user-debug-mode').checked;
     const useCustom = document.getElementById('user-use-custom').checked;
     const settings = useCustom ? {
-        minHoverDuration: parseInt(document.getElementById('user-minHoverDuration').value),
-        afkThreshold: parseInt(document.getElementById('user-afkThreshold').value),
-        interestScoreThreshold: parseInt(document.getElementById('user-interestScoreThreshold').value)
+        minHoverDuration: Number.parseInt(document.getElementById('user-minHoverDuration').value),
+        afkThreshold: Number.parseInt(document.getElementById('user-afkThreshold').value),
+        interestScoreThreshold: Number.parseInt(document.getElementById('user-interestScoreThreshold').value)
     } : null;
 
     try {
@@ -227,7 +227,7 @@ function hideCustomSettings() {
 }
 
 // Export namespace and global functions for onclick handlers
-window.AdminUsers = {
+globalThis.AdminUsers = {
     refreshUsers,
     renderUsers,
     filterUsers,
@@ -238,8 +238,8 @@ window.AdminUsers = {
     hideCustomSettings,
     formatRelativeTime
 };
-window.refreshUsers = refreshUsers;
-window.filterUsers = filterUsers;
-window.openUserModal = openUserModal;
-window.closeUserModal = closeUserModal;
-window.saveUserSettings = saveUserSettings;
+globalThis.refreshUsers = refreshUsers;
+globalThis.filterUsers = filterUsers;
+globalThis.openUserModal = openUserModal;
+globalThis.closeUserModal = closeUserModal;
+globalThis.saveUserSettings = saveUserSettings;

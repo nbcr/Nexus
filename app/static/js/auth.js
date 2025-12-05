@@ -27,8 +27,8 @@ class AuthManager {
             localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(this.user));
             
             // Migrate session history to user
-            if (this.user && window.sessionManager) {
-                await window.sessionManager.migrateToUser(this.user.id);
+            if (this.user && globalThis.sessionManager) {
+                await globalThis.sessionManager.migrateToUser(this.user.id);
             }
             
             return { success: true };

@@ -7,7 +7,7 @@ Uses BeautifulSoup to parse HTML and extract main content.
 
 import requests
 from bs4 import BeautifulSoup
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 import re
 from urllib.parse import urlparse
 from fastapi import HTTPException
@@ -555,7 +555,7 @@ class ArticleScraperService:
                 "instant_answer": None,
             }
 
-            print(f"✅ Extracted search results from HTML")
+            print("✅ Extracted search results from HTML")
             return search_data
 
         except Exception as e:
