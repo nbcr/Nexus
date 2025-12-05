@@ -296,12 +296,12 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
                 "Woah! You're scrolling faster than dad jokes spread at a BBQ. Give it a sec!",
                 "Cool your jets! You're browsing faster than dad running when mom says 'dinner's ready'!",
             ]
-            import random
+            import secrets
 
             return {
                 "snippet": None,
                 "rate_limited": True,
-                "message": random.choice(dad_jokes),
+                "message": secrets.choice(dad_jokes),
             }
         print(f"Error fetching snippet: {e}")
 
