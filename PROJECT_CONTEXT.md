@@ -1012,3 +1012,96 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
 ✅ Notification bubble CSS properly defined and should display when new content arrives via WebSocket
 ✅ Both features use consistent purple gradient theme (`#667eea` to `#764ba2`)
 ✅ CSS files properly organized with no duplicates or conflicts
+
+---
+
+# 2025-12-04: Feed System Refactoring (Modularization)
+
+## What Was Done
+
+Refactored monolithic `feed.js` (~1200 lines) into 7 modular, single-responsibility components:
+
+### New Modules Created
+1. **FeedUtils.js** (~100 lines)
+   - Text processing: `cleanSnippet()`, `truncateText()`
+   - Formatting: `formatTime()` (relative timestamps)
+   - Image handling: `buildProxyUrl()`, `extractDominantColor()`
+   - Content classification: `isSearchQuery()`, `isNewsArticle()`
+   - Button text logic: `getSourceButtonText()`, `getSourceButtonTextForUrl()`
+
+2. **FeedApi.js** (~120 lines)
+   - Centralized API communication
+   - Methods: `fetchFeed()`, `fetchSnippet()`, `fetchRelated()`, `fetchThumbnail()`, `fetchArticle()`, `trackView()`
+   - Auth header management: `getAccessToken()`, `getHeaders()`
+   - Easy to extend (retry logic, caching, custom endpoints)
+
+3. **FeedTracking.js** (~90 lines)
+   - View duration timers: `startViewTimer()`, `stopViewTimer()`
+   - Hover tracker management: `createHoverTracker()`, `cleanupTracker()`
+   - Scroll tracker coordination: `initGlobalScrollTracker()`
+   - Analytics isolated from UI code
+
+4. **FeedObservers.js** (~130 lines)
+   - IntersectionObserver for infinite scroll: `setupScrollObserver()`
+   - Card visibility observer: `setupCardObserver()`, `observeCard()`, `unobserveCard()`
+   - Scroll-to-refresh logic: `setupScrollRefresh()`
+   - All event wiring in one place
+
+5. **FeedRenderer.js** (~280 lines)
+   - DOM creation: `renderContentItem()`, `buildImageHtml()`
+   - Event handlers: `setupCardEventHandlers()`
+   - Dynamic content loading: `loadSnippet()`, `loadRelatedContent()`, `setupCardImage()`
+   - Ads: `insertAdUnit()`
+   - UI elements: `renderLoadingIndicator()`, `renderEndMessage()`, `renderErrorMessage()`
+
+6. **FeedArticleModal.js** (~180 lines)
+   - Article modal display: `openArticleModal()`
+   - Related items rendering: `renderRelatedItems()`
+   - Modal controls: `setupModalControls()`
+   - All GA4 analytics events in one place
+
+7. **InfiniteFeed.js** (~180 lines)
+   - Core orchestrator: initializes and coordinates all 6 modules
+   - State management: pagination, filtering, viewed content tracking
+   - Public API: `loadMore()`, `renderContentItem()`, `refreshFeed()`, `setCategory()`, `setCategories()`, `destroy()`
+   - Zero rendering/API/tracking logic - only orchestration
+
+### HTML Update
+- **index.html**: Updated script loading to load all 7 modules in correct dependency order (FeedUtils first, InfiniteFeed last)
+
+### Documentation
+- **FEED_ARCHITECTURE.md**: Comprehensive guide including:
+  - Module responsibilities and APIs
+  - Benefits of modularization (testability, maintainability, reusability)
+  - Usage examples
+  - Extension patterns (custom API, custom tracking, custom rendering)
+  - Unit testing examples
+  - Migration guide (API unchanged - drop-in replacement)
+
+## Benefits
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| **File Size** | 1200+ lines | 100-300 per module |
+| **Testability** | Difficult - tight coupling | ✅ Each module independently testable |
+| **API Changes** | Modify multiple methods | ✅ Only modify FeedApi.js |
+| **Tracking Changes** | Search entire file | ✅ Only modify FeedTracking.js |
+| **Rendering Changes** | Mixed with logic | ✅ Isolated in FeedRenderer.js |
+| **Reusability** | Hard to extract pieces | ✅ FeedApi/FeedRenderer/FeedArticleModal reusable |
+| **Observer Logic** | Mixed with feed state | ✅ Isolated in FeedObservers.js |
+
+## Backward Compatibility
+
+✅ **No breaking changes** - API is identical. Existing code using `new InfiniteFeed('container')` works unchanged.
+
+## Files Modified/Created
+- Created: `FeedUtils.js`, `FeedApi.js`, `FeedTracking.js`, `FeedObservers.js`, `FeedRenderer.js`, `FeedArticleModal.js`, `InfiniteFeed.js`
+- Created: `FEED_ARCHITECTURE.md` (documentation)
+- Modified: `feed.js` (converted to deprecation notice with reference to modules)
+- Modified: `index.html` (updated script loading)
+
+## Status
+✅ Refactoring complete and committed to main branch
+✅ Module separation allows for independent evolution of features
+✅ Ready for feature expansion, custom implementations, or unit testing
+✅ All module dependencies properly ordered in HTML
