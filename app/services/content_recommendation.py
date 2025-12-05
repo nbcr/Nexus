@@ -327,7 +327,7 @@ class ContentRecommendationService:
 
     def _apply_cursor_filter(self, query, cursor: Optional[str]):
         """Apply cursor-based pagination filter"""
-        if not query or not cursor:
+        if not cursor:
             return query
 
         try:
