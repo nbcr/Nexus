@@ -128,7 +128,6 @@ async def get_personalized_feed(
         logger.info("Category 'All' selected: returning all items")
         result = await recommendation_service.get_all_feed(
             db=db,
-            page=page,
             page_size=page_size,
             exclude_ids=excluded_ids,
             cursor=cursor,
@@ -138,7 +137,6 @@ async def get_personalized_feed(
         logger.info(f"Filtering feed by categories: {safe_category_list}")
         result = await recommendation_service.get_all_feed(
             db=db,
-            page=page,
             page_size=page_size,
             exclude_ids=excluded_ids,
             cursor=cursor,
@@ -149,7 +147,6 @@ async def get_personalized_feed(
         logger.info("No categories selected: returning all items")
         result = await recommendation_service.get_all_feed(
             db=db,
-            page=page,
             page_size=page_size,
             exclude_ids=excluded_ids,
             cursor=cursor,
