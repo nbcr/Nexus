@@ -451,6 +451,9 @@ class InfiniteFeed {
                     item.source_urls[0].includes('duckduckgo.com')));
         const isNewsArticle = !isSearchQuery && (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
 
+        // Clean description to remove embedded images
+        const cleanDescription = item.description ? this.cleanSnippet(item.description) : '';
+
         article.innerHTML = `
         <div class="feed-item-content">
             <div class="feed-item-header">
@@ -466,7 +469,7 @@ class InfiniteFeed {
                         <span class="feed-item-source">${source}</span>
                     </div>
                     <h2 class="feed-item-title">${item.title}</h2>
-                    ${item.description ? `<p class="feed-item-description">${item.description}</p>` : ''}
+                    ${cleanDescription ? `<p class="feed-item-description">${cleanDescription}</p>` : ''}
                     <span class="expand-indicator">▼</span>
                 </div>
             </div>
