@@ -824,7 +824,7 @@ footer {
 
 /* Continue Reading CTA (AdSense Compliance - Facts Only) */
 .continue-reading-cta {
-    margin: 30px 0;
+    margin: 10px 0 30px;
     padding: 20px;
     background: var(--bg-tertiary, #2a2a2a);
     border-radius: 12px;

@@ -848,7 +848,7 @@ class InfiniteFeed {
                     </p>
                     <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
                        class="btn-continue-reading">
-                        Read Facts on ${article.domain || 'Source Site'} →
+                        Read full article on ${article.domain || 'Source Site'} →
                     </a>
                 `;
                 body.appendChild(continueReadingBtn);
