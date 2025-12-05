@@ -22,7 +22,7 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 
 ### Server Setup
 
-- Host: `ec2-54-167-58-129.compute-1.amazonaws.com`
+- Host: `ec2-35-172-220-70.compute-1.amazonaws.com`
 - SSH access: `admin` user via plink (PuTTY on Windows)
 - Application runs as: `nexus` user
 - Service: `nexus.service` (systemd service running gunicorn)
