@@ -226,7 +226,7 @@ class ArticleScraperService:
             score += 1.5
 
         # 2. Contains quotes (direct information)
-        if '"' in sentence or '"' in sentence or "'" in sentence:
+        if '"' in sentence or '"' in sentence or "'" in sentence or "'" in sentence:
             score += 2.5
 
         # 3. Contains key action words
@@ -309,6 +309,56 @@ class ArticleScraperService:
 
         return score
 
+    def _get_instant_answer_from_api(
+        self, api_data: Dict
+    ) -> tuple[Optional[str], Optional[str]]:
+        """Extract instant answer and image from API response"""
+        instant_answer = None
+        image_url = None
+
+        # Abstract is the main description (like Wikipedia excerpt)
+        abstract = api_data.get("Abstract", "").strip()
+        if abstract:
+            instant_answer = abstract
+            image_url = api_data.get("Image", "")
+
+        # If no abstract, try Definition
+        if not instant_answer:
+            definition = api_data.get("Definition", "").strip()
+            if definition:
+                instant_answer = definition
+
+        return instant_answer, image_url
+
+    def _build_context_from_api(
+        self, api_data: Dict, query: str, instant_answer: Optional[str]
+    ) -> List[str]:
+        """Build context parts from API data"""
+        context_parts = []
+
+        if instant_answer:
+            context_parts.append(f"**{query}**\n")
+            context_parts.append(instant_answer)
+
+            # Add source if available
+            source = api_data.get("AbstractSource", "")
+            if source:
+                context_parts.append(f"\n\n*Source: {source}*")
+
+            context_parts.append("\n" + "=" * 50)
+
+        # Add related topics if available
+        related_topics = api_data.get("RelatedTopics", [])
+        if related_topics:
+            context_parts.append("\n\n**Related Information:**\n")
+            for i, topic in enumerate(related_topics[:5], 1):
+                if isinstance(topic, dict):
+                    text = topic.get("Text", "")
+                    if text:
+                        context_parts.append(f"{i}. {text}")
+
+        return context_parts
+
     def fetch_search_context(self, url: str) -> Optional[Dict]:
         """
         Fetch and parse search results from DuckDuckGo to provide context.
@@ -344,34 +394,15 @@ class ArticleScraperService:
             api_data = api_response.json()
 
             # Extract instant answer content
-            instant_answer = None
-            image_url = None
-
-            # Abstract is the main description (like Wikipedia excerpt)
-            abstract = api_data.get("Abstract", "").strip()
-            if abstract:
-                instant_answer = abstract
-                image_url = api_data.get("Image", "")
-
-            # If no abstract, try Definition
-            if not instant_answer:
-                definition = api_data.get("Definition", "").strip()
-                if definition:
-                    instant_answer = definition
+            instant_answer, image_url = self._get_instant_answer_from_api(api_data)
 
             # Build context
             context_parts = []
 
             if instant_answer:
-                context_parts.append(f"**{query}**\n")
-                context_parts.append(instant_answer)
-
-                # Add source if available
-                source = api_data.get("AbstractSource", "")
-                if source:
-                    context_parts.append(f"\n\n*Source: {source}*")
-
-                context_parts.append("\n" + "=" * 50)
+                context_parts = self._build_context_from_api(
+                    api_data, query, instant_answer
+                )
             else:
                 # No instant answer from API - scrape HTML page
                 print(f"⚠️ No instant answer from API, scraping HTML for '{query}'")
@@ -385,16 +416,6 @@ class ArticleScraperService:
                 context_parts.append(
                     "\n\nThis query may require direct searching on DuckDuckGo."
                 )
-
-            # Add related topics if available
-            related_topics = api_data.get("RelatedTopics", [])
-            if related_topics:
-                context_parts.append("\n\n**Related Information:**\n")
-                for i, topic in enumerate(related_topics[:5], 1):
-                    if isinstance(topic, dict):
-                        text = topic.get("Text", "")
-                        if text:
-                            context_parts.append(f"{i}. {text}")
 
             content = (
                 "\n".join(context_parts) if context_parts else "No information found."
@@ -424,6 +445,75 @@ class ArticleScraperService:
             traceback.print_exc()
             return None
 
+    def _extract_answer_box(self, soup: BeautifulSoup, query: str) -> List[str]:
+        """Extract featured snippet / answer box from HTML"""
+        context_parts = [f"**{query}**\n"]
+
+        answer_selectors = [
+            ("div", {"class": re.compile("module__text|zci")}),
+            ("div", {"id": "zero_click_abstract"}),
+            ("div", {"class": "result__snippet--d"}),
+        ]
+
+        for tag, attrs in answer_selectors:
+            answer_box = soup.find(tag, attrs)
+            if answer_box:
+                snippet_text = answer_box.get_text(strip=True, separator=" ")
+                if snippet_text and len(snippet_text) > 30:
+                    context_parts.append(f"{snippet_text}\n")
+                    context_parts.append("=" * 50)
+                    break
+
+        return context_parts
+
+    def _extract_search_result_item(
+        self, result
+    ) -> tuple[Optional[str], Optional[str]]:
+        """Extract title and snippet from a single search result"""
+        # Extract title
+        title_elem = (
+            result.find("h2")
+            or result.find("a", class_=re.compile("result__a|result__title"))
+            or result.find("a")
+        )
+
+        title = title_elem.get_text(strip=True) if title_elem else None
+
+        # Extract snippet/description
+        snippet_elem = (
+            result.find("span", class_=re.compile("result__snippet"))
+            or result.find("div", class_=re.compile("result__snippet|snippet"))
+            or result.find("p")
+        )
+        snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+
+        return title, snippet
+
+    def _extract_search_results(self, soup: BeautifulSoup) -> tuple[List[str], bool]:
+        """Extract search results from HTML"""
+        context_parts = []
+        results_found = False
+
+        # Try modern DuckDuckGo result selectors
+        results = soup.find_all("article", limit=5)
+        if not results:
+            results = soup.find_all("div", class_=re.compile("result__"), limit=5)
+        if not results:
+            results = soup.find_all("li", class_=re.compile("result"), limit=5)
+
+        if results:
+            context_parts.append("\n**Search Results:**\n")
+            for i, result in enumerate(results, 1):
+                title, snippet = self._extract_search_result_item(result)
+
+                if title:
+                    context_parts.append(f"\n{i}. **{title}**")
+                    if snippet and len(snippet) > 20:
+                        context_parts.append(f"   {snippet[:200]}")
+                    results_found = True
+
+        return context_parts, results_found
+
     def _scrape_search_html(self, url: str, query: str) -> Optional[Dict]:
         """
         Scrape DuckDuckGo HTML page when API returns no instant answer.
@@ -439,66 +529,12 @@ class ArticleScraperService:
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
 
-            context_parts = [f"**{query}**\n"]
+            # Extract answer box
+            context_parts = self._extract_answer_box(soup, query)
 
-            # Try to find featured snippet / answer box
-            answer_selectors = [
-                ("div", {"class": re.compile("module__text|zci")}),
-                ("div", {"id": "zero_click_abstract"}),
-                ("div", {"class": "result__snippet--d"}),
-            ]
-
-            for tag, attrs in answer_selectors:
-                answer_box = soup.find(tag, attrs)
-                if answer_box:
-                    snippet_text = answer_box.get_text(strip=True, separator=" ")
-                    if snippet_text and len(snippet_text) > 30:
-                        context_parts.append(f"{snippet_text}\n")
-                        context_parts.append("=" * 50)
-                        break
-
-            # Extract top search results
-            results_found = False
-
-            # Try modern DuckDuckGo result selectors
-            results = soup.find_all("article", limit=5)
-            if not results:
-                results = soup.find_all("div", class_=re.compile("result__"), limit=5)
-            if not results:
-                results = soup.find_all("li", class_=re.compile("result"), limit=5)
-
-            if results:
-                context_parts.append("\n**Search Results:**\n")
-                for i, result in enumerate(results, 1):
-                    # Extract title
-                    title_elem = (
-                        result.find("h2")
-                        or result.find(
-                            "a", class_=re.compile("result__a|result__title")
-                        )
-                        or result.find("a")
-                    )
-
-                    if title_elem:
-                        title = title_elem.get_text(strip=True)
-
-                        # Extract snippet/description
-                        snippet_elem = (
-                            result.find("span", class_=re.compile("result__snippet"))
-                            or result.find(
-                                "div", class_=re.compile("result__snippet|snippet")
-                            )
-                            or result.find("p")
-                        )
-                        snippet = (
-                            snippet_elem.get_text(strip=True) if snippet_elem else ""
-                        )
-
-                        if title:
-                            context_parts.append(f"\n{i}. **{title}**")
-                            if snippet and len(snippet) > 20:
-                                context_parts.append(f"   {snippet[:200]}")
-                            results_found = True
+            # Extract search results
+            result_parts, results_found = self._extract_search_results(soup)
+            context_parts.extend(result_parts)
 
             # If we got no useful content, return None
             if not results_found and len(context_parts) <= 1:
@@ -519,7 +555,7 @@ class ArticleScraperService:
                 "instant_answer": None,
             }
 
-            print(f"✅ Extracted {len(results)} search results from HTML")
+            print(f"✅ Extracted search results from HTML")
             return search_data
 
         except Exception as e:
@@ -546,21 +582,39 @@ class ArticleScraperService:
 
         return "unknown query"
 
+    def _try_extract_from_selector(
+        self, soup: BeautifulSoup, tag: str, selector_pattern: str, min_length: int = 50
+    ) -> Optional[str]:
+        """Try to extract text from a specific selector"""
+        element = soup.find(tag, class_=re.compile(selector_pattern))
+        if element:
+            text = element.get_text(separator=" ", strip=True)
+            if text and len(text) > min_length:
+                return text
+        return None
+
+    def _try_extract_from_attrs(
+        self, soup: BeautifulSoup, tag: str, attrs: dict, min_length: int = 50
+    ) -> Optional[str]:
+        """Try to extract text from element with specific attributes"""
+        element = soup.find(tag, attrs=attrs)
+        if element:
+            text = element.get_text(separator=" ", strip=True)
+            if text and len(text) > min_length:
+                return text
+        return None
+
     def _extract_instant_answer(self, soup: BeautifulSoup) -> Optional[str]:
         """
         Extract instant answer/infobox from search results.
         This includes Wikipedia snippets, knowledge panels, etc.
         """
-        # Try multiple selectors for different instant answer formats
-
-        # DuckDuckGo instant answer box
-        instant_box = soup.find(
-            "div", class_=re.compile("module__text|zci-wrapper|ia-module")
+        # Try DuckDuckGo instant answer box
+        result = self._try_extract_from_selector(
+            soup, "div", "module__text|zci-wrapper|ia-module"
         )
-        if instant_box:
-            text = instant_box.get_text(separator=" ", strip=True)
-            if text and len(text) > 50:
-                return text
+        if result:
+            return result
 
         # Wikipedia/knowledge panel content
         kb_panel = soup.find("div", attrs={"data-area": "infobox"})
@@ -578,14 +632,11 @@ class ArticleScraperService:
                     return text
 
         # Try to find any prominent description or snippet at top of results
-        # This often contains the answer
-        top_content = soup.find(
-            "div", class_=re.compile("result--zero-click|abstract|answer")
+        result = self._try_extract_from_selector(
+            soup, "div", "result--zero-click|abstract|answer"
         )
-        if top_content:
-            text = top_content.get_text(separator=" ", strip=True)
-            if text and len(text) > 50:
-                return text
+        if result:
+            return result
 
         # Look for any highlighted/featured content
         featured = soup.find(

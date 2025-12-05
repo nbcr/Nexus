@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession  # pyright: ignore[reportMissingImports]
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
 from app.models import UserSession, UserInteraction, ContentItem
@@ -21,9 +21,10 @@ async def create_anonymous_session(db: AsyncSession, session_token: str = None):
         # Create new anonymous session (user_id is NULL for anonymous users)
         session = UserSession(
             session_token=session_token,
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(days=30),  # 30-day session
-            last_activity=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc)
+            + timedelta(days=30),  # 30-day session
+            last_activity=datetime.now(timezone.utc),
         )
         db.add(session)
         await db.commit()
@@ -54,7 +55,7 @@ async def track_content_interaction(
     session = await create_anonymous_session(db, session_token)
 
     # Update last activity
-    session.last_activity = datetime.utcnow()
+    session.last_activity = datetime.now(timezone.utc)
 
     # Record interaction
     interaction = UserInteraction(
@@ -63,7 +64,7 @@ async def track_content_interaction(
         content_item_id=content_item_id,
         interaction_type=interaction_type,
         duration_seconds=duration_seconds,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
 
     # Log metadata for future analysis (not stored in DB yet)

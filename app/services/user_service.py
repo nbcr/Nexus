@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.models import User, UserInterestProfile, UserInteraction
@@ -85,7 +85,7 @@ async def get_user_stats(db: AsyncSession, user_id: int, timeframe: str) -> User
     from app.models import Topic, ContentItem
 
     # Calculate time range
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     if timeframe == "24h":
         start_time = now - timedelta(days=1)
     elif timeframe == "7d":
