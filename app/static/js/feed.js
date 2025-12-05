@@ -1,13 +1,35 @@
 /**
  * Infinite Scroll Feed System
  * 
- * Handles:
- * - Loading personalized content feed
- * - Infinite scroll pagination
- * - Content tracking and exclusion
- * - Category filtering
+ * DEPRECATED: This file is kept for reference only.
+ * The feed system has been refactored into modular components.
+ * 
+ * Module Organization:
+ * - FeedUtils.js: Text processing, formatting, and utility functions
+ * - FeedApi.js: All API calls (fetch feed, snippets, articles, etc.)
+ * - FeedTracking.js: View duration tracking, hover trackers, analytics
+ * - FeedObservers.js: Intersection observers, scroll listeners
+ * - FeedRenderer.js: DOM creation and rendering
+ * - FeedArticleModal.js: Article modal display and interactions
+ * - InfiniteFeed.js: Core orchestrator that ties everything together
+ * 
+ * To use the feed, load scripts in this order:
+ * 1. FeedUtils.js
+ * 2. FeedApi.js
+ * 3. FeedTracking.js
+ * 4. FeedObservers.js
+ * 5. FeedRenderer.js
+ * 6. FeedArticleModal.js
+ * 7. InfiniteFeed.js
+ * 
+ * Then instantiate: new InfiniteFeed('feed-container', options)
+ * 
+ * ===========================================================================
+ * 
+ * Original monolithic implementation below (kept for reference, do not use):
  */
 
+/*
 class InfiniteFeed {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
@@ -1133,40 +1155,4 @@ class InfiniteFeed {
     }
 }
 
-// Export for use in other scripts
-window.InfiniteFeed = InfiniteFeed;
-
-// Modal controls
-document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('article-modal');
-    const closeBtn = document.querySelector('.article-modal-close');
-
-    if (!modal) {
-        console.warn('Article modal not found');
-        return;
-    }
-
-    // Close modal on close button click
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-            document.body.style.overflow = ''; // Unlock body scroll
-        });
-    }
-
-    // Close modal on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = ''; // Unlock body scroll
-        }
-    });
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('active')) {
-            modal.classList.remove('active');
-            document.body.style.overflow = ''; // Unlock body scroll
-        }
-    });
-});
+*/
