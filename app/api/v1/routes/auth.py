@@ -180,48 +180,11 @@ async def register(
     user = await create_user(db, user_data)
 
     # Migrate anonymous session data if session token exists
-    session_token = nexus_session or request.cookies.get("nexus_session")
-    if session_token:
-        try:
-            migrated_count = await migrate_session_to_user(db, session_token, user.id)
-            if migrated_count > 0:
-                print(
-                    f"Migrated {migrated_count} interactions from anonymous session to user {user.id}"
-                )
-        except Exception as e:
-            # Log the error but don't fail registration
-            print(f"Failed to migrate session data: {str(e)}")
+    await _migrate_anonymous_session(db, request, nexus_session, user.id)
 
-    email_status = "ok"
-    email_error: Optional[str] = None
-
-    # Check for Brevo email validation issues
-    from sqlalchemy import select
-    from app.models.user import BrevoEmailEvent
-
-    stmt = (
-        select(BrevoEmailEvent)
-        .where(BrevoEmailEvent.email == user_data.email)
-        .order_by(BrevoEmailEvent.received_at.desc())
-        .limit(1)
+    email_status, email_error = await _send_registration_email(
+        db, user_data.email, user.username
     )
-    brevo_result = await db.execute(stmt)
-    brevo_event = brevo_result.scalars().first()
-
-    if brevo_event:
-        email_status = "error"
-        email_error = "Email not working. Try a different one."
-    else:
-        try:
-            success = await email_service.send_registration_email_async(
-                user_data.email, user.username
-            )
-            if not success:
-                email_status = "error"
-                email_error = "Registration email failed to send."
-        except Exception as e:
-            email_status = "error"
-            email_error = str(e)
 
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
@@ -239,6 +202,52 @@ async def register(
         email_status=email_status,
         email_error=email_error,
     )
+
+
+async def _migrate_anonymous_session(
+    db: AsyncSession, request: Request, nexus_session: Optional[str], user_id: int
+) -> None:
+    """Migrate anonymous session data to new user account"""
+    session_token = nexus_session or request.cookies.get("nexus_session")
+    if not session_token:
+        return
+
+    try:
+        migrated_count = await migrate_session_to_user(db, session_token, user_id)
+        if migrated_count > 0:
+            print(
+                f"Migrated {migrated_count} interactions from anonymous session to user {user_id}"
+            )
+    except Exception as e:
+        print(f"Failed to migrate session data: {str(e)}")
+
+
+async def _send_registration_email(
+    db: AsyncSession, email: str, username: str
+) -> tuple[str, Optional[str]]:
+    """Send registration email and check for Brevo email issues"""
+    from sqlalchemy import select
+    from app.models.user import BrevoEmailEvent
+
+    stmt = (
+        select(BrevoEmailEvent)
+        .where(BrevoEmailEvent.email == email)
+        .order_by(BrevoEmailEvent.received_at.desc())
+        .limit(1)
+    )
+    brevo_result = await db.execute(stmt)
+    brevo_event = brevo_result.scalars().first()
+
+    if brevo_event:
+        return "error", "Email not working. Try a different one."
+
+    try:
+        success = await email_service.send_registration_email_async(email, username)
+        if not success:
+            return "error", "Registration email failed to send."
+        return "ok", None
+    except Exception as e:
+        return "error", str(e)
 
 
 @router.post(

@@ -212,21 +212,39 @@ class RSSDiscoveryService:
     ) -> List[Dict]:
         """Add feeds based on user's explicit interest profile"""
         profile = await db.get(UserInterestProfile, user_id)
-        if profile and profile.interests:
-            for interest in profile.interests[:5]:
-                interest_lower = interest.lower()
-                for category, feeds in self.CURATED_FEEDS.items():
-                    if interest_lower in category.lower():
-                        for feed_url in feeds:
-                            if not any(f["url"] == feed_url for f in discovered_feeds):
-                                discovered_feeds.append(
-                                    {
-                                        "url": feed_url,
-                                        "category": category,
-                                        "relevance_score": 0.9,
-                                        "source": "interest_profile",
-                                    }
-                                )
+        if not profile or not profile.interests:
+            return discovered_feeds
+
+        for interest in profile.interests[:5]:
+            discovered_feeds = self._add_feeds_for_interest(interest, discovered_feeds)
+        return discovered_feeds
+
+    def _add_feeds_for_interest(
+        self, interest: str, discovered_feeds: List[Dict]
+    ) -> List[Dict]:
+        """Add feeds matching a specific interest"""
+        interest_lower = interest.lower()
+        for category, feeds in self.CURATED_FEEDS.items():
+            if interest_lower in category.lower():
+                discovered_feeds = self._append_category_feeds(
+                    category, feeds, discovered_feeds
+                )
+        return discovered_feeds
+
+    def _append_category_feeds(
+        self, category: str, feeds: List[str], discovered_feeds: List[Dict]
+    ) -> List[Dict]:
+        """Append feeds from a category if not already discovered"""
+        for feed_url in feeds:
+            if not any(f["url"] == feed_url for f in discovered_feeds):
+                discovered_feeds.append(
+                    {
+                        "url": feed_url,
+                        "category": category,
+                        "relevance_score": 0.9,
+                        "source": "interest_profile",
+                    }
+                )
         return discovered_feeds
 
     async def fetch_feed_content(
@@ -433,47 +451,69 @@ class RSSDiscoveryService:
         entries = feed.get("entries", [])
         feed_info = feed.get("feed", {})
 
-        # Check update recency
-        if entries:
-            try:
-                latest_entry = entries[0]
-                if latest_entry.get("published_parsed"):
-                    pub_date = datetime(*latest_entry["published_parsed"][:6])
-                    days_old = (datetime.now(timezone.utc) - pub_date).days
-                    if days_old < 1:
-                        score += 0.2
-                    elif days_old < 7:
-                        score += 0.15
-                    elif days_old < 30:
-                        score += 0.1
-            except (ValueError, TypeError, AttributeError):
-                pass
+        score += self._score_update_recency(entries)
+        score += self._score_content_quality(entries)
+        score += self._score_entry_count(entries)
+        score += self._score_metadata(feed_info)
 
-        # Check content quality
-        if entries:
-            avg_length = sum(
-                len(entry.get("summary", "") or entry.get("description", ""))
-                for entry in entries[:5]
-            ) / min(5, len(entries))
+        return min(score, 1.0)
 
-            if avg_length > 500:
-                score += 0.15
-            elif avg_length > 200:
-                score += 0.1
+    def _score_update_recency(self, entries: List) -> float:
+        """Score based on how recent the latest entry is"""
+        if not entries:
+            return 0.0
 
-        # Check number of entries
-        if len(entries) > 20:
-            score += 0.1
-        elif len(entries) > 10:
-            score += 0.05
+        try:
+            latest_entry = entries[0]
+            if not latest_entry.get("published_parsed"):
+                return 0.0
 
-        # Check feed metadata
+            pub_date = datetime(*latest_entry["published_parsed"][:6])
+            days_old = (datetime.now(timezone.utc) - pub_date).days
+
+            if days_old < 1:
+                return 0.2
+            if days_old < 7:
+                return 0.15
+            if days_old < 30:
+                return 0.1
+            return 0.0
+        except (ValueError, TypeError, AttributeError):
+            return 0.0
+
+    def _score_content_quality(self, entries: List) -> float:
+        """Score based on average content length"""
+        if not entries:
+            return 0.0
+
+        avg_length = sum(
+            len(entry.get("summary", "") or entry.get("description", ""))
+            for entry in entries[:5]
+        ) / min(5, len(entries))
+
+        if avg_length > 500:
+            return 0.15
+        if avg_length > 200:
+            return 0.1
+        return 0.0
+
+    def _score_entry_count(self, entries: List) -> float:
+        """Score based on number of available entries"""
+        entry_count = len(entries)
+        if entry_count > 20:
+            return 0.1
+        if entry_count > 10:
+            return 0.05
+        return 0.0
+
+    def _score_metadata(self, feed_info: Dict) -> float:
+        """Score based on feed metadata completeness"""
+        score = 0.0
         if feed_info.get("title"):
             score += 0.05
         if feed_info.get("description"):
             score += 0.05
-
-        return min(score, 1.0)
+        return score
 
     async def auto_discover_feeds_for_user(
         self,
