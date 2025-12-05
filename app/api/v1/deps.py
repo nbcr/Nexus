@@ -142,7 +142,7 @@ async def get_or_create_session(
     Returns:
         UserSession: Current session (with or without user_id)
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     # Try to get session token from cookie
     session_token = request.cookies.get("nexus_session")
@@ -156,7 +156,7 @@ async def get_or_create_session(
 
         if session:
             # Update last activity
-            session.last_activity = datetime.now(timezone.utc)
+            session.last_activity = datetime.now()
             await db.commit()
             return session
 
@@ -165,10 +165,9 @@ async def get_or_create_session(
     new_session = UserSession(
         session_token=session_token,
         user_id=None,  # Anonymous
-        created_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc)
-        + timedelta(days=365),  # 1 year for anonymous
-        last_activity=datetime.now(timezone.utc),
+        created_at=datetime.now(),
+        expires_at=datetime.now() + timedelta(days=365),  # 1 year for anonymous
+        last_activity=datetime.now(),
     )
 
     db.add(new_session)
