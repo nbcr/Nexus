@@ -213,98 +213,117 @@ async def get_content_item(content_id: int, db: AsyncSession = Depends(get_db)):
     return content_dict
 
 
-@router.get("/snippet/{content_id}")
-async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db)):
-    """
-    Fetch and store article snippet/content on demand.
-    Scrapes full article content and stores it in database.
-    Returns snippet with rate limit handling.
-    """
-    # Get content item from database
-    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
-    content = result.scalar_one_or_none()
-
-    if not content:
-        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
-
-    # Check if we already have scraped content stored
+def _get_cached_content(content: ContentItem) -> Optional[dict]:
+    """Return cached content if available and valid."""
     if (
         content.content_text
         and len(content.content_text) > 100
         and not content.content_text.startswith("Trending topic")
     ):
-        # Already scraped, return it
         snippet = (
             content.content_text[:800]
             if len(content.content_text) > 800
             else content.content_text
         )
         return {"snippet": snippet, "full_content_available": True}
+    return None
 
-    # Get the source URL
+
+def _get_source_url(content: ContentItem) -> Optional[str]:
+    """Extract and validate source URL from content."""
     if not content.source_urls or len(content.source_urls) == 0:
+        return None
+    return content.source_urls[0]
+
+
+async def _scrape_and_store_article(
+    content: ContentItem, source_url: str, db: AsyncSession
+) -> Optional[str]:
+    """Scrape article and persist to database. Returns snippet or None."""
+    article_data = await article_scraper.fetch_article(source_url)
+    if not article_data or not article_data.get("content"):
+        return None
+
+    # Update content fields
+    content.content_text = article_data["content"]
+    if article_data.get("title"):
+        content.title = article_data["title"]
+    if article_data.get("author"):
+        if not content.source_metadata:
+            content.source_metadata = {}
+        content.source_metadata["author"] = article_data["author"]
+    if article_data.get("published_date"):
+        if not content.source_metadata:
+            content.source_metadata = {}
+        content.source_metadata["published_date"] = article_data["published_date"]
+
+    await db.commit()
+
+    # Generate snippet
+    full_content = article_data["content"]
+    snippet = full_content[:800] if len(full_content) > 800 else full_content
+    return snippet
+
+
+def _is_rate_limit_error(error: Exception) -> bool:
+    """Check if error is rate-limit related."""
+    error_msg = str(error).lower()
+    return any(keyword in error_msg for keyword in ["rate", "limit", "429", "too many"])
+
+
+def _get_rate_limit_response() -> dict:
+    """Return dad joke rate limit response."""
+    import secrets
+
+    dad_jokes = [
+        "Whoa there, speed racer! Even my dad jokes need a breather. Try again in a moment!",
+        "Easy there, tiger! You're clicking faster than my dad can tell a punchline. Slow down!",
+        "Hold your horses! You're moving faster than a dad running to turn off the thermostat!",
+        "Pump the brakes! Even the internet needs a coffee break. Try again soon!",
+        "Woah! You're scrolling faster than dad jokes spread at a BBQ. Give it a sec!",
+        "Cool your jets! You're browsing faster than dad running when mom says 'dinner's ready'!",
+    ]
+    return {
+        "snippet": None,
+        "rate_limited": True,
+        "message": secrets.choice(dad_jokes),
+    }
+
+
+@router.get("/snippet/{content_id}")
+async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db)):
+    """Fetch and store article snippet/content on demand."""
+    # Get content from database
+    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
+    content = result.scalar_one_or_none()
+    if not content:
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+
+    # Check cache first
+    cached = _get_cached_content(content)
+    if cached:
+        return cached
+
+    # Validate source URL
+    source_url = _get_source_url(content)
+    if not source_url:
         return {"snippet": content.description or None, "rate_limited": False}
 
-    source_url = content.source_urls[0]
-
-    # Scrape the article and store full content
+    # Scrape and store
     try:
-        article_data = await article_scraper.fetch_article(source_url)
-        if article_data and article_data.get("content"):
-            # Store the full scraped content in database
-            content.content_text = article_data["content"]
-            if article_data.get("title"):
-                content.title = article_data["title"]
-            if article_data.get("author"):
-                if not content.source_metadata:
-                    content.source_metadata = {}
-                content.source_metadata["author"] = article_data["author"]
-            if article_data.get("published_date"):
-                if not content.source_metadata:
-                    content.source_metadata = {}
-                content.source_metadata["published_date"] = article_data[
-                    "published_date"
-                ]
-
-            await db.commit()
-
-            # Return snippet (first 800 chars)
-            snippet = (
-                article_data["content"][:800]
-                if len(article_data["content"]) > 800
-                else article_data["content"]
-            )
+        snippet = await _scrape_and_store_article(content, source_url, db)
+        if snippet:
             return {
                 "snippet": snippet,
                 "full_content_available": True,
                 "rate_limited": False,
             }
     except Exception as e:
-        error_msg = str(e).lower()
-        # Check for rate limiting errors
-        if (
-            "rate" in error_msg
-            or "limit" in error_msg
-            or "429" in error_msg
-            or "too many" in error_msg
-        ):
-            dad_jokes = [
-                "Whoa there, speed racer! Even my dad jokes need a breather. Try again in a moment!",
-                "Easy there, tiger! You're clicking faster than my dad can tell a punchline. Slow down!",
-                "Hold your horses! You're moving faster than a dad running to turn off the thermostat!",
-                "Pump the brakes! Even the internet needs a coffee break. Try again soon!",
-                "Woah! You're scrolling faster than dad jokes spread at a BBQ. Give it a sec!",
-                "Cool your jets! You're browsing faster than dad running when mom says 'dinner's ready'!",
-            ]
-            import secrets
-
-            return {
-                "snippet": None,
-                "rate_limited": True,
-                "message": secrets.choice(dad_jokes),
-            }
+        if _is_rate_limit_error(e):
+            return _get_rate_limit_response()
         print(f"Error fetching snippet: {e}")
 
+    # Fallback to description
     return {"snippet": content.description or None, "rate_limited": False}
 
 
@@ -341,51 +360,29 @@ async def get_related_content(content_id: int, db: AsyncSession = Depends(get_db
     }
 
 
-@router.get("/article/{content_id}")
-async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
-    """
-    Fetch and return the full article content for a content item.
-    For news articles: scrapes the article from the source URL
-    For search queries: scrapes search results to provide context
-    Returns content along with related items.
-    """
-    # Get content item from database
-    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
-    content = result.scalar_one_or_none()
-
-    if not content:
-        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
-
-    # Get the source URL
-    if not content.source_urls or len(content.source_urls) == 0:
-        raise HTTPException(status_code=404, detail="No source URL available")
-
-    source_url = content.source_urls[0]
-
-    # Check if URL is actually a search query (not just trending_analysis type)
-    is_search_url = (
-        "duckduckgo.com" in source_url
-        or "google.com/search" in source_url
-        or "bing.com/search" in source_url
+def _is_search_url(url: str) -> bool:
+    """Check if URL is a search engine query."""
+    return (
+        "duckduckgo.com" in url
+        or "google.com/search" in url
+        or "bing.com/search" in url
     )
 
-    # Scrape appropriate content based on actual URL type
-    if is_search_url:
-        article_data = await article_scraper.fetch_search_context(source_url)
+
+async def _fetch_article_by_type(source_url: str) -> dict:
+    """Fetch article content based on URL type (search vs regular article)."""
+    if _is_search_url(source_url):
+        return await article_scraper.fetch_search_context(source_url)
     else:
-        # For trending_analysis with news URLs, scrape as regular article
-        article_data = await article_scraper.fetch_article(source_url)
+        return await article_scraper.fetch_article(source_url)
 
-    if not article_data:
-        raise HTTPException(
-            status_code=404, detail="Unable to fetch content from source"
-        )
 
-    # Save scraped content back to database for future use
+async def _save_scraped_content(
+    content: ContentItem, article_data: dict, content_id: int, db: AsyncSession
+) -> None:
+    """Save scraped content back to database for future use."""
     try:
-        content.content_text = article_data.get("content", "")[
-            :10000
-        ]  # Limit to 10k chars
+        content.content_text = article_data.get("content", "")[:10000]
 
         # Update title if better one was scraped
         if article_data.get("title") and len(article_data["title"]) > len(
@@ -408,17 +405,10 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
         print(f"⚠️ Error saving scraped content: {e}")
         await db.rollback()
 
-    # Find related content items (after scraping succeeds)
-    try:
-        from sqlalchemy import or_, and_, func
 
-        related_items = await find_related_content(db, content)
-    except Exception as e:
-        print(f"❌ Error finding related content: {e}")
-        related_items = []
-
-    # Add related items to response
-    article_data["related_items"] = [
+def _format_related_items(related_items: List[ContentItem]) -> List[dict]:
+    """Format related content items for API response."""
+    return [
         {
             "content_id": item.id,
             "title": item.title,
@@ -435,6 +425,41 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
         }
         for item in related_items
     ]
+
+
+@router.get("/article/{content_id}")
+async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
+    """Fetch and return the full article content for a content item."""
+    # Get content item from database
+    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
+    content = result.scalar_one_or_none()
+    if not content:
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+
+    # Validate source URL
+    source_url = _get_source_url(content)
+    if not source_url:
+        raise HTTPException(status_code=404, detail="No source URL available")
+
+    # Scrape appropriate content based on URL type
+    article_data = await _fetch_article_by_type(source_url)
+    if not article_data:
+        raise HTTPException(
+            status_code=404, detail="Unable to fetch content from source"
+        )
+
+    # Save scraped content
+    await _save_scraped_content(content, article_data, content_id, db)
+
+    # Find related content items
+    try:
+        related_items = await find_related_content(db, content)
+    except Exception as e:
+        print(f"❌ Error finding related content: {e}")
+        related_items = []
+
+    # Add related items to response
+    article_data["related_items"] = _format_related_items(related_items)
 
     return article_data
 
@@ -572,32 +597,26 @@ async def image_proxy(url: str):
         raise HTTPException(status_code=404, detail="Unable to fetch image")
 
 
-async def find_related_content(
-    db: AsyncSession, content: ContentItem, limit: int = 5
-) -> List[ContentItem]:
-    """
-    Find related content items based on title similarity, tags, and keywords.
-    For news articles: find related trending searches
-    For trending searches: find related news articles
-    """
-    from sqlalchemy import or_, and_, func
-
-    # Extract keywords from title (proper nouns - capitalized words)
-    original_words = content.title.split()
+def _extract_keywords(title: str) -> tuple[List[str], List[str]]:
+    """Extract proper nouns and other significant keywords from title."""
+    original_words = title.split()
     proper_nouns = [
         word.strip(".,!?:;\"'-()[]{}").lower()
         for word in original_words
         if word and word[0].isupper()
     ]
 
-    # Also extract other significant words (length > 2)
     other_keywords = [
         word.strip(".,!?:;\"'-()[]{}").lower()
         for word in original_words
         if len(word) > 2 and not word[0].isupper()
     ]
 
-    # Combine and filter stop words
+    return proper_nouns, other_keywords
+
+
+def _filter_stop_words(proper_nouns: List[str], other_keywords: List[str]) -> List[str]:
+    """Filter stop words and return priority keywords."""
     stop_words = {
         "the",
         "and",
@@ -618,9 +637,64 @@ async def find_related_content(
         "begging",
     }
     all_keywords = [w for w in (proper_nouns + other_keywords) if w not in stop_words]
+    return proper_nouns[:8] if proper_nouns else all_keywords[:8]
 
-    # Prioritize proper nouns
-    priority_keywords = proper_nouns[:8] if proper_nouns else all_keywords[:8]
+
+def _build_search_conditions(
+    priority_keywords: List[str], content: ContentItem
+) -> List:
+    """Build SQLAlchemy search conditions for keywords."""
+    from sqlalchemy import func
+
+    conditions = []
+    for keyword in priority_keywords:
+        conditions.append(func.lower(ContentItem.title).contains(keyword))
+        if content.description:
+            conditions.append(func.lower(ContentItem.description).contains(keyword))
+    return conditions
+
+
+def _calculate_match_score(
+    item: ContentItem,
+    proper_nouns: List[str],
+    other_keywords: List[str],
+    content: ContentItem,
+) -> int:
+    """Calculate relevance score for a candidate match."""
+    score = 0
+    item_title_lower = item.title.lower() if item.title else ""
+    item_desc_lower = item.description.lower() if item.description else ""
+
+    # Score based on keyword matches
+    for keyword in proper_nouns:
+        if keyword in item_title_lower:
+            score += 2
+        if keyword in item_desc_lower:
+            score += 1
+
+    for keyword in other_keywords:
+        if keyword in item_title_lower or keyword in item_desc_lower:
+            score += 1
+
+    # Bonus for different source
+    if content.source_metadata and item.source_metadata:
+        content_source = content.source_metadata.get("source", "")
+        item_source = item.source_metadata.get("source", "")
+        if content_source != item_source:
+            score += 3
+
+    return score
+
+
+async def find_related_content(
+    db: AsyncSession, content: ContentItem, limit: int = 5
+) -> List[ContentItem]:
+    """Find related content items based on title similarity and keywords."""
+    from sqlalchemy import or_, and_
+
+    # Extract and filter keywords
+    proper_nouns, other_keywords = _extract_keywords(content.title)
+    priority_keywords = _filter_stop_words(proper_nouns, other_keywords)
 
     if not priority_keywords:
         return []
@@ -629,14 +703,8 @@ async def find_related_content(
         f"🔍 Finding related content for '{content.title}' using keywords: {priority_keywords}"
     )
 
-    # Build query with OR conditions for each keyword
-    conditions = []
-    for keyword in priority_keywords:
-        conditions.append(func.lower(ContentItem.title).contains(keyword))
-        if content.description:
-            conditions.append(func.lower(ContentItem.description).contains(keyword))
-
-    # Execute query
+    # Build and execute query
+    conditions = _build_search_conditions(priority_keywords, content)
     result = await db.execute(
         select(ContentItem)
         .where(
@@ -646,40 +714,18 @@ async def find_related_content(
                 or_(*conditions),
             )
         )
-        .limit(limit * 2)  # Get more than needed for scoring
+        .limit(limit * 2)
     )
 
     candidates = result.scalars().all()
 
-    # Score each match
+    # Score and sort matches
     scored_matches = []
     for item in candidates:
-        score = 0
-        item_title_lower = item.title.lower() if item.title else ""
-        item_desc_lower = item.description.lower() if item.description else ""
-
-        # Score based on keyword matches
-        for keyword in proper_nouns:
-            if keyword in item_title_lower:
-                score += 2  # Proper noun match in title
-            if keyword in item_desc_lower:
-                score += 1  # Proper noun match in description
-
-        for keyword in other_keywords:
-            if keyword in item_title_lower or keyword in item_desc_lower:
-                score += 1
-
-        # Bonus for different source (news + search query pairing)
-        if content.source_metadata and item.source_metadata:
-            content_source = content.source_metadata.get("source", "")
-            item_source = item.source_metadata.get("source", "")
-            if content_source != item_source:
-                score += 3
-
+        score = _calculate_match_score(item, proper_nouns, other_keywords, content)
         if score > 0:
             scored_matches.append((score, item))
 
-    # Sort by score and return top matches
     scored_matches.sort(key=lambda x: x[0], reverse=True)
     related = [item for score, item in scored_matches[:limit]]
 
