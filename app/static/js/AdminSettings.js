@@ -251,7 +251,7 @@ if (savedAdminDarkMode === 'false') {
 }
 
 // Export namespace and global functions for onclick handlers
-window.AdminSettings = {
+globalThis.AdminSettings = {
     saveGlobalSettings,
     resetToDefaults,
     testSettings,
@@ -263,8 +263,8 @@ window.AdminSettings = {
     renderHoverPatterns,
     toggleDarkMode
 };
-window.saveGlobalSettings = saveGlobalSettings;
-window.resetToDefaults = resetToDefaults;
-window.testSettings = testSettings;
-window.loadAnalytics = loadAnalytics;
-window.toggleDarkMode = toggleDarkMode;
+globalThis.saveGlobalSettings = saveGlobalSettings;
+globalThis.resetToDefaults = resetToDefaults;
+globalThis.testSettings = testSettings;
+globalThis.loadAnalytics = loadAnalytics;
+globalThis.toggleDarkMode = toggleDarkMode;

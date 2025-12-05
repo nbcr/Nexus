@@ -227,14 +227,14 @@ startAutoRefresh();
 // Global Settings Functions
 async function saveGlobalSettings() {
     const settings = {
-        minHoverDuration: parseInt(document.getElementById('minHoverDuration').value),
-        afkThreshold: parseInt(document.getElementById('afkThreshold').value),
-        movementThreshold: parseInt(document.getElementById('movementThreshold').value),
-        microMovementThreshold: parseInt(document.getElementById('microMovementThreshold').value),
-        slowdownVelocityThreshold: parseFloat(document.getElementById('slowdownVelocityThreshold').value),
-        velocitySampleRate: parseInt(document.getElementById('velocitySampleRate').value),
-        interestScoreThreshold: parseInt(document.getElementById('interestScoreThreshold').value),
-        scrollSlowdownThreshold: parseFloat(document.getElementById('scrollSlowdownThreshold').value)
+        minHoverDuration: Number.parseInt(document.getElementById('minHoverDuration').value),
+        afkThreshold: Number.parseInt(document.getElementById('afkThreshold').value),
+        movementThreshold: Number.parseInt(document.getElementById('movementThreshold').value),
+        microMovementThreshold: Number.parseInt(document.getElementById('microMovementThreshold').value),
+        slowdownVelocityThreshold: Number.parseFloat(document.getElementById('slowdownVelocityThreshold').value),
+        velocitySampleRate: Number.parseInt(document.getElementById('velocitySampleRate').value),
+        interestScoreThreshold: Number.parseInt(document.getElementById('interestScoreThreshold').value),
+        scrollSlowdownThreshold: Number.parseFloat(document.getElementById('scrollSlowdownThreshold').value)
     };
 
     try {
@@ -265,15 +265,15 @@ function resetToDefaults() {
     document.getElementById('slowdownVelocityThreshold').value = 0.3;
     document.getElementById('velocitySampleRate').value = 100;
     document.getElementById('interestScoreThreshold').value = 50;
-    document.getElementById('scrollSlowdownThreshold').value = 2.0;
+    document.getElementById('scrollSlowdownThreshold').value = 2;
 }
 
 function testSettings() {
     const settings = {
-        minHoverDuration: parseInt(document.getElementById('minHoverDuration').value),
-        afkThreshold: parseInt(document.getElementById('afkThreshold').value),
-        movementThreshold: parseInt(document.getElementById('movementThreshold').value),
-        interestScoreThreshold: parseInt(document.getElementById('interestScoreThreshold').value)
+        minHoverDuration: Number.parseInt(document.getElementById('minHoverDuration').value),
+        afkThreshold: Number.parseInt(document.getElementById('afkThreshold').value),
+        movementThreshold: Number.parseInt(document.getElementById('movementThreshold').value),
+        interestScoreThreshold: Number.parseInt(document.getElementById('interestScoreThreshold').value)
     };
 
     alert(`Current Settings:\n\n${JSON.stringify(settings, null, 2)}\n\nThese settings will be used for all users by default.`);
@@ -440,9 +440,9 @@ async function saveUserSettings() {
     const debugMode = document.getElementById('user-debug-mode').checked;
     const useCustom = document.getElementById('user-use-custom').checked;
     const settings = useCustom ? {
-        minHoverDuration: parseInt(document.getElementById('user-minHoverDuration').value),
-        afkThreshold: parseInt(document.getElementById('user-afkThreshold').value),
-        interestScoreThreshold: parseInt(document.getElementById('user-interestScoreThreshold').value)
+        minHoverDuration: Number.parseInt(document.getElementById('user-minHoverDuration').value),
+        afkThreshold: Number.parseInt(document.getElementById('user-afkThreshold').value),
+        interestScoreThreshold: Number.parseInt(document.getElementById('user-interestScoreThreshold').value)
     } : null;
 
     try {
