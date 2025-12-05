@@ -377,31 +377,31 @@ body.dark-mode #hamburger-menu .bar {
 .text-size-controls .text-size-btn {
     flex: 1;
     min-width: 0;
-    font-size: 14px !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: none !important;
-    outline: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
 }
 
 .text-size-controls .text-size-btn .menu-icon {
-    font-size: 20px !important;
+    font-size: 20px;
 }
 
 .text-size-controls .text-size-btn .menu-label {
-    font-size: 12px !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 12px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .text-size-label {
     color: #fff;
-    font-size: 14px !important;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    font-size: 14px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 500;
     text-align: center;
     display: flex;
@@ -487,8 +487,8 @@ body.dark-mode #hamburger-menu .bar {
         max-height: 100px;
         text-align: center;
         padding: 16px 8px;
-        font-size: 14px !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-size: 14px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: transparent;
         border: none;
         outline: none;
@@ -499,7 +499,7 @@ body.dark-mode #hamburger-menu .bar {
 
     .nav-links.open a .menu-icon,
     .nav-links.open button .menu-icon {
-        font-size: 28px !important;
+        font-size: 28px;
         margin-bottom: 8px;
         margin-right: 0;
         display: block;
@@ -510,8 +510,8 @@ body.dark-mode #hamburger-menu .bar {
     .nav-links.open a .menu-label,
     .nav-links.open button .menu-label {
         display: block;
-        font-size: 14px !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-size: 14px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         font-weight: 500;
         line-height: 1.2;
         overflow: hidden;
@@ -559,14 +559,14 @@ body.dark-mode #hamburger-menu .bar {
 @media (width >=901px) {
 
     /* Show desktop auth buttons */
-    .header-auth-buttons {
-        display: flex !important;
+    .main-header .header-auth-buttons {
+        display: flex;
     }
 
     /* Hide mobile auth buttons */
-    .auth-btn-mobile,
-    .register-btn-mobile {
-        display: none !important;
+    .main-header .auth-btn-mobile,
+    .main-header .register-btn-mobile {
+        display: none;
     }
 
     /* Desktop hamburger menu - match mobile styling */
@@ -603,8 +603,8 @@ body.dark-mode #hamburger-menu .bar {
         max-height: 100px;
         text-align: center;
         padding: 16px 8px;
-        font-size: 14px !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-size: 14px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background: transparent;
         border: none;
         outline: none;
@@ -615,7 +615,7 @@ body.dark-mode #hamburger-menu .bar {
 
     .nav-links.open a .menu-icon,
     .nav-links.open button .menu-icon {
-        font-size: 28px !important;
+        font-size: 28px;
         margin-bottom: 8px;
         margin-right: 0;
         display: block;
@@ -626,8 +626,8 @@ body.dark-mode #hamburger-menu .bar {
     .nav-links.open a .menu-label,
     .nav-links.open button .menu-label {
         display: block;
-        font-size: 14px !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        font-size: 14px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         font-weight: 500;
         line-height: 1.2;
         overflow: hidden;
@@ -707,6 +707,7 @@ body.dark-mode #hamburger-menu .bar {
 }
 
 /* Hide desktop auth buttons on small screens - they appear in hamburger menu */
+/* Keep !important to override any inline styles */
 @media (width <=900px) {
     .header-auth-buttons {
         display: none !important;
@@ -732,7 +733,7 @@ html.light-mode .nav-links {
 }
 
 html.light-mode .nav-links.open {
-    background: #1440a6 !important;
+    background: #1440a6;
 }
 
 html.light-mode .nav-links.open a,
