@@ -924,7 +924,7 @@ class TrendingService:
 
             # Create new content items for news updates
             # Add microsecond increments to ensure unique timestamps for ordering
-            from datetime import datetime, timedelta
+            from datetime import datetime, timedelta, timezone
 
             base_time = datetime.now(timezone.utc)
 
