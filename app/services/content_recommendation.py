@@ -25,11 +25,22 @@ class ContentRecommendationService:
         if not html_text:
             return ""
         # Remove img tags
-        text = re.sub(r"<img[^>]*>", "", html_text)
+        text = re.sub(r"<img[^>]*/?>", "", html_text)
         # Remove picture tags
         text = re.sub(r"<picture[^>]*>.*?</picture>", "", text, flags=re.DOTALL)
-        # Remove figure tags
+        # Remove figure tags with content
         text = re.sub(r"<figure[^>]*>.*?</figure>", "", text, flags=re.DOTALL)
+        # Remove video and audio tags
+        text = re.sub(r"<video[^>]*>.*?</video>", "", text, flags=re.DOTALL)
+        text = re.sub(r"<audio[^>]*>.*?</audio>", "", text, flags=re.DOTALL)
+        # Remove iframes (often contain embeds/images)
+        text = re.sub(r"<iframe[^>]*>.*?</iframe>", "", text, flags=re.DOTALL)
+        # Remove style tags that might define background images
+        text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL)
+        # Remove inline styles that reference images/background images
+        text = re.sub(
+            r'style="[^"]*(?:background|image)[^"]*"', "", text, flags=re.IGNORECASE
+        )
         return text.strip()
 
     async def _get_related_content(
@@ -242,7 +253,9 @@ class ContentRecommendationService:
                         content.category if content.category else topic.category
                     ),  # Use content category if available
                     "content_type": content.content_type,
-                    "content_text": content.content_text,
+                    "content_text": self._strip_images_from_html(
+                        content.content_text
+                    ),  # Clean images from content text
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
                     "trend_score": topic.trend_score,
@@ -365,10 +378,12 @@ class ContentRecommendationService:
                     "slug": content.slug,
                     "topic_id": topic.id,
                     "title": content.title or topic.title,
-                    "description": content.description or topic.description,
+                    "description": self._strip_images_from_html(
+                        content.description or topic.description
+                    ),
                     "category": content.category or topic.category,
                     "content_type": content.content_type,
-                    "content_text": content.content_text,
+                    "content_text": self._strip_images_from_html(content.content_text),
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
                     "thumbnail_url": (
