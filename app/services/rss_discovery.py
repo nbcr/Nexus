@@ -17,7 +17,7 @@ from urllib.parse import urljoin, urlparse
 
 from app.models import UserInteraction, ContentItem, Topic, UserInterestProfile
 from app.core.config import settings
-from app.utils.async_rss_parser import async_rss_parser
+from app.utils.async_rss_parser import get_async_rss_parser
 
 
 class RSSDiscoveryService:
@@ -262,7 +262,7 @@ class RSSDiscoveryService:
         """
         try:
             # Use async RSS parser with connection pooling
-            feed = await async_rss_parser.parse_feed(feed_url)
+            feed = await get_async_rss_parser().parse_feed(feed_url)
 
             items = []
             for entry in feed.get("entries", [])[:max_items]:
@@ -407,7 +407,7 @@ class RSSDiscoveryService:
         """
         try:
             # Use async RSS parser with connection pooling
-            feed = await async_rss_parser.parse_feed(url)
+            feed = await get_async_rss_parser().parse_feed(url)
 
             # Check if it's a valid feed with entries
             entries = feed.get("entries", [])

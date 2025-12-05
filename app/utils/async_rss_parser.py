@@ -266,5 +266,13 @@ class AsyncRSSParser:
         return None
 
 
-# Global instance with connection pooling
-async_rss_parser = AsyncRSSParser(max_connections=50, timeout=10)
+# Global instance with connection pooling - will be initialized on first use
+async_rss_parser = None
+
+
+def get_async_rss_parser():
+    """Get or create global async RSS parser instance"""
+    global async_rss_parser
+    if async_rss_parser is None:
+        async_rss_parser = AsyncRSSParser(max_connections=50, timeout=10)
+    return async_rss_parser
