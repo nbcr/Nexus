@@ -147,8 +147,8 @@ class FeedUtils {
     }
 
     static isNewsArticle(item) {
-        return !FeedUtils.isSearchQuery(item) && 
-               (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
+        return !FeedUtils.isSearchQuery(item) &&
+            (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
     }
 }
 

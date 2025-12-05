@@ -52,7 +52,7 @@ class FeedApi {
         if (filters.cursor) params.append('cursor', filters.cursor);
 
         const endpoint = filters.isPersonalized ? '/api/v1/content/feed' : '/api/v1/content/trending-feed';
-        
+
         const response = await fetch(`${endpoint}?${params}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
