@@ -76,12 +76,12 @@ class ArticleScraperService:
             if hostname_lower in ("::1", "::ffff:127.0.0.1"):
                 raise ValueError("Access to internal resources is forbidden")
 
-        except ValueError as e:
+        except ValueError:
             raise
         except Exception:
             raise ValueError("Invalid URL format")
 
-    async def fetch_article(self, url: str) -> Optional[Dict]:
+    def fetch_article(self, url: str) -> Optional[Dict]:
         """
         Fetch and parse article content from a URL.
 
@@ -144,7 +144,7 @@ class ArticleScraperService:
                     print("ℹ️ Returning article with limited content")
                     # Set a message indicating content couldn't be extracted
                     article_data["content"] = (
-                        f"Unable to extract full article content. Please visit the source site to read the full article."
+                        "Unable to extract full article content. Please visit the source site to read the full article."
                     )
                     article_data["is_excerpt"] = False
                     article_data["full_article_available"] = False
@@ -226,7 +226,7 @@ class ArticleScraperService:
             score += 1.5
 
         # 2. Contains quotes (direct information)
-        if '"' in sentence or '"' in sentence or '"' in sentence:
+        if '"' in sentence or '"' in sentence or "'" in sentence:
             score += 2.5
 
         # 3. Contains key action words
@@ -309,7 +309,7 @@ class ArticleScraperService:
 
         return score
 
-    async def fetch_search_context(self, url: str) -> Optional[Dict]:
+    def fetch_search_context(self, url: str) -> Optional[Dict]:
         """
         Fetch and parse search results from DuckDuckGo to provide context.
         Extracts instant answer boxes and top search results.
@@ -389,7 +389,7 @@ class ArticleScraperService:
             # Add related topics if available
             related_topics = api_data.get("RelatedTopics", [])
             if related_topics:
-                context_parts.append(f"\n\n**Related Information:**\n")
+                context_parts.append("\n\n**Related Information:**\n")
                 for i, topic in enumerate(related_topics[:5], 1):
                     if isinstance(topic, dict):
                         text = topic.get("Text", "")

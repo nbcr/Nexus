@@ -9,6 +9,14 @@ import logging
 import builtins
 from dotenv import load_dotenv
 
+
+# Custom exception classes
+class DeploymentError(Exception):
+    """Exception raised for deployment failures"""
+
+    pass
+
+
 # Load environment variables
 load_dotenv()
 
@@ -41,6 +49,7 @@ def print(*args, **kwargs):  # type: ignore
     logger.info(msg)
     return _print(*args, **kwargs)
 
+
 print(f"Webhook secret loaded: {WEBHOOK_SECRET is not None}")
 print(f"Virtual environment Python: {VENV_PYTHON}")
 print(f"Virtual environment PIP: {VENV_PIP}")
@@ -59,9 +68,9 @@ def webhook():
         print(f"❌ Error creating lock file: {e}")
         import traceback
 
-        print(traceback.format_exc())
+        print(traceback.format_exc())  # Log to server only
         return (
-            jsonify({"status": "error", "message": f"Lock file error: {str(e)}"}),
+            jsonify({"status": "error", "message": "Lock file error"}),
             500,
         )
 
@@ -126,7 +135,7 @@ def webhook():
                     if pip_result.returncode != 0:
                         error_msg = f"pip install failed with return code {pip_result.returncode}: {pip_result.stderr}"
                         print(f"❌ {error_msg}")
-                        raise Exception(error_msg)
+                        raise DeploymentError(error_msg)
 
                     # Verify uvicorn is available in venv
                     print("Verifying uvicorn installation in venv...")
@@ -152,7 +161,7 @@ def webhook():
                     if verify_result.returncode != 0:
                         error_msg = f"uvicorn not available in virtual environment: {verify_result.stderr}"
                         print(f"❌ {error_msg}")
-                        raise Exception(error_msg)
+                        raise DeploymentError(error_msg)
 
                     print("Restarting application via systemd...")
                     restart_application()
@@ -190,11 +199,9 @@ def webhook():
 
                 error_trace = traceback.format_exc()
                 print(f"❌ Error processing webhook: {e}")
-                print(f"Traceback:\n{error_trace}")
+                print(f"Traceback:\n{error_trace}")  # Log to server only
                 return (
-                    jsonify(
-                        {"status": "error", "message": str(e), "traceback": error_trace}
-                    ),
+                    jsonify({"status": "error", "message": "Deployment failed"}),
                     500,
                 )
 
@@ -204,9 +211,9 @@ def webhook():
 
         error_trace = traceback.format_exc()
         print(f"❌ Unexpected error in webhook handler: {e}")
-        print(f"Traceback:\n{error_trace}")
+        print(f"Traceback:\n{error_trace}")  # Log to server only
         return (
-            jsonify({"status": "error", "message": str(e), "traceback": error_trace}),
+            jsonify({"status": "error", "message": "Internal server error"}),
             500,
         )
     finally:
@@ -220,7 +227,7 @@ def webhook():
 
 
 def verify_signature(payload_body, signature_header):
-    print(f"=== SIGNATURE VERIFICATION DEBUG ===")
+    print("=== SIGNATURE VERIFICATION DEBUG ===")
     print(f"Signature header: '{signature_header}'")
     print(f"WEBHOOK_SECRET exists: {WEBHOOK_SECRET is not None}")
     if WEBHOOK_SECRET:
@@ -228,11 +235,11 @@ def verify_signature(payload_body, signature_header):
         print(f"WEBHOOK_SECRET starts with: {WEBHOOK_SECRET[:10]}...")
 
     if not signature_header or not WEBHOOK_SECRET:
-        print(f"FAIL: Missing signature or secret")
+        print("FAIL: Missing signature or secret")
         return False
 
     if not signature_header.startswith("sha256="):
-        print(f"FAIL: Invalid signature format")
+        print("FAIL: Invalid signature format")
         return False
 
     received_signature = signature_header[7:]
@@ -266,7 +273,7 @@ def restart_application():
         print(f"Service output: {result.stdout}")
     else:
         print(f"❌ Error restarting service: {result.stderr}")
-        raise Exception(f"Failed to restart service: {result.stderr}")
+        raise DeploymentError(f"Failed to restart service: {result.stderr}")
 
 
 @app.route("/webhook", methods=["GET"])
