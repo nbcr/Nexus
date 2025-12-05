@@ -173,17 +173,29 @@ class RSSDiscoveryService:
             - description: Feed description
             - relevance_score: How relevant to user (0-1)
         """
-        # Analyze user preferences
         preferences = await self.analyze_user_preferences(db, user_id, session_token)
         top_categories = preferences["top_categories"]
 
         discovered_feeds = []
 
         # Get curated feeds for user's top categories
+        discovered_feeds = self._add_category_feeds(top_categories, discovered_feeds)
+
+        # If user has explicit interests in profile, add those too
+        if user_id:
+            discovered_feeds = await self._add_interest_feeds(
+                db, user_id, discovered_feeds
+            )
+
+        return discovered_feeds
+
+    def _add_category_feeds(
+        self, top_categories: List[str], discovered_feeds: List[Dict]
+    ) -> List[Dict]:
+        """Add feeds based on user's top categories"""
         for category in top_categories:
             if category in self.CURATED_FEEDS:
                 for feed_url in self.CURATED_FEEDS[category]:
-                    # Calculate relevance based on category position
                     relevance = 1.0 - (top_categories.index(category) * 0.15)
                     discovered_feeds.append(
                         {
@@ -193,30 +205,28 @@ class RSSDiscoveryService:
                             "source": "curated",
                         }
                     )
+        return discovered_feeds
 
-        # If user has explicit interests in profile, add those too
-        if user_id:
-            profile = await db.get(UserInterestProfile, user_id)
-            if profile and profile.interests:
-                # Add feeds for explicitly stated interests
-                for interest in profile.interests[:5]:  # Top 5 interests
-                    interest_lower = interest.lower()
-                    # Map interests to categories
-                    for category, feeds in self.CURATED_FEEDS.items():
-                        if interest_lower in category.lower():
-                            for feed_url in feeds:
-                                if not any(
-                                    f["url"] == feed_url for f in discovered_feeds
-                                ):
-                                    discovered_feeds.append(
-                                        {
-                                            "url": feed_url,
-                                            "category": category,
-                                            "relevance_score": 0.9,
-                                            "source": "interest_profile",
-                                        }
-                                    )
-
+    async def _add_interest_feeds(
+        self, db: AsyncSession, user_id: int, discovered_feeds: List[Dict]
+    ) -> List[Dict]:
+        """Add feeds based on user's explicit interest profile"""
+        profile = await db.get(UserInterestProfile, user_id)
+        if profile and profile.interests:
+            for interest in profile.interests[:5]:
+                interest_lower = interest.lower()
+                for category, feeds in self.CURATED_FEEDS.items():
+                    if interest_lower in category.lower():
+                        for feed_url in feeds:
+                            if not any(f["url"] == feed_url for f in discovered_feeds):
+                                discovered_feeds.append(
+                                    {
+                                        "url": feed_url,
+                                        "category": category,
+                                        "relevance_score": 0.9,
+                                        "source": "interest_profile",
+                                    }
+                                )
         return discovered_feeds
 
     async def fetch_feed_content(

@@ -153,77 +153,108 @@ class RSSFetcher:
             is_google_trends = "trends.google.com" in feed_url
 
             for entry in feed.entries[:20]:
-                title = getattr(entry, "title", "").strip()
-                description = getattr(entry, "summary", "") or getattr(
-                    entry, "description", ""
+                trend_data = self._process_single_entry(
+                    entry, is_google_trends, feed_url, category_hint, source_name
                 )
-                url = getattr(entry, "link", "")
-
-                if not title or not url:
-                    continue
-
-                news_items = []
-                image_url = None
-                source = source_name
-
-                if is_google_trends:
-                    news_items = self._extract_google_trends_items(entry)
-                    if news_items:
-                        first_news = news_items[0]
-                        image_url = first_news.get("picture")
-                        source = first_news.get("source", source_name)
-                    else:
-                        image_url = getattr(entry, "ht_picture", None)
-                        source = getattr(entry, "ht_picture_source", source_name)
-                    title = self._generate_summary_title(title, news_items)
-                else:
-                    if hasattr(entry, "media_content") and entry.media_content:
-                        image_url = entry.media_content[0].get("url")
-                    elif hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
-                        image_url = entry.media_thumbnail[0].get("url")
-                    elif hasattr(entry, "enclosures") and entry.enclosures:
-                        for enc in entry.enclosures:
-                            if "image" in enc.get("type", ""):
-                                image_url = enc.get("href")
-                                break
-
-                    news_items = [
-                        {
-                            "title": title,
-                            "snippet": description[:200] if description else "",
-                            "url": url,
-                            "picture": image_url,
-                            "source": source_name,
-                        }
-                    ]
-
-                category = (
-                    category_hint
-                    if category_hint
-                    else self.categorizer.extract_category(entry)
-                )
-
-                trend_data = {
-                    "title": title,
-                    "original_query": title,
-                    "description": description[:500] if description else "",
-                    "url": url,
-                    "source": source,
-                    "image_url": image_url,
-                    "published": entry.get("published", ""),
-                    "trend_score": 0.7,
-                    "category": category,
-                    "tags": self.categorizer.extract_tags(entry)
-                    + [source_name.lower()],
-                    "news_items": news_items,
-                }
-                trends.append(trend_data)
+                if trend_data:
+                    trends.append(trend_data)
 
             return trends
 
         except Exception as e:
             print(f"❌ Error fetching RSS from {feed_url}: {e}")
             return []
+
+    def _process_single_entry(
+        self,
+        entry,
+        is_google_trends: bool,
+        feed_url: str,
+        category_hint: Optional[str],
+        source_name: str,
+    ) -> Optional[Dict]:
+        """Process a single feed entry"""
+        title = getattr(entry, "title", "").strip()
+        description = getattr(entry, "summary", "") or getattr(entry, "description", "")
+        url = getattr(entry, "link", "")
+
+        if not title or not url:
+            return None
+
+        news_items, image_url, source = self._extract_entry_data(
+            entry, is_google_trends, source_name, title
+        )
+
+        category = (
+            category_hint if category_hint else self.categorizer.extract_category(entry)
+        )
+
+        return {
+            "title": title,
+            "original_query": title,
+            "description": description[:500] if description else "",
+            "url": url,
+            "source": source,
+            "image_url": image_url,
+            "published": entry.get("published", ""),
+            "trend_score": 0.7,
+            "category": category,
+            "tags": self.categorizer.extract_tags(entry) + [source_name.lower()],
+            "news_items": news_items,
+        }
+
+    def _extract_entry_data(
+        self, entry, is_google_trends: bool, source_name: str, title: str
+    ) -> tuple:
+        """Extract news items, image URL, and source from entry"""
+        if is_google_trends:
+            return self._extract_google_trends_data(entry, source_name, title)
+        return self._extract_standard_data(
+            entry,
+            source_name,
+            title,
+            getattr(entry, "summary", "") or getattr(entry, "description", ""),
+            getattr(entry, "link", ""),
+        )
+
+    def _extract_google_trends_data(self, entry, source_name: str, title: str) -> tuple:
+        """Extract data from Google Trends entry"""
+        news_items = self._extract_google_trends_items(entry)
+        if news_items:
+            first_news = news_items[0]
+            image_url = first_news.get("picture")
+            source = first_news.get("source", source_name)
+        else:
+            image_url = getattr(entry, "ht_picture", None)
+            source = getattr(entry, "ht_picture_source", source_name)
+        title = self._generate_summary_title(title, news_items)
+        return news_items, image_url, source
+
+    def _extract_standard_data(
+        self, entry, source_name: str, title: str, description: str, url: str
+    ) -> tuple:
+        """Extract data from standard RSS entry"""
+        image_url = None
+        if hasattr(entry, "media_content") and entry.media_content:
+            image_url = entry.media_content[0].get("url")
+        elif hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+            image_url = entry.media_thumbnail[0].get("url")
+        elif hasattr(entry, "enclosures") and entry.enclosures:
+            for enc in entry.enclosures:
+                if "image" in enc.get("type", ""):
+                    image_url = enc.get("href")
+                    break
+
+        news_items = [
+            {
+                "title": title,
+                "snippet": description[:200] if description else "",
+                "url": url,
+                "picture": image_url,
+                "source": source_name,
+            }
+        ]
+        return news_items, image_url, source_name
 
     def _extract_google_trends_items(self, entry) -> List[Dict]:
         """Extract news items specifically from Google Trends RSS entries"""
