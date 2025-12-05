@@ -72,5 +72,6 @@ function initHamburgerMenu() {
     });
 }
 
-// Export
+// Export namespace and global functions
 window.HeaderMenu = { initHamburgerMenu };
+window.initHamburgerMenu = initHamburgerMenu;

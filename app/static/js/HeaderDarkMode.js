@@ -110,5 +110,6 @@ function toggleDarkMode() {
     }
 }
 
-// Export
+// Export namespace and global functions
 window.HeaderDarkMode = { initDarkMode, toggleDarkMode };
+window.toggleDarkMode = toggleDarkMode;

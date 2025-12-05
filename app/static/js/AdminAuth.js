@@ -66,5 +66,6 @@ async function logout() {
     window.location.href = '/';
 }
 
-// Export
+// Export namespace and global functions for onclick handlers
 window.AdminAuth = { checkAdminAccess, showAccessDenied, showAdminContent, logout };
+window.logout = logout;
