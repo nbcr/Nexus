@@ -9,7 +9,7 @@ import asyncio
 import aiohttp
 import re
 from typing import List, Dict, Optional, Set, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 from collections import Counter

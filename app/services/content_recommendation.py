@@ -8,7 +8,7 @@ Provides personalized content recommendations based on:
 - Category preferences
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Optional, Set
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, desc, cast, String
@@ -19,62 +19,78 @@ from app.models import ContentItem, Topic, UserInteraction, UserInterestProfile,
 
 class ContentRecommendationService:
     async def _get_related_content(
-            self,
-            db: AsyncSession,
-            base_content: ContentItem,
-            base_topic: Topic,
-            limit: int = 3,
-        ) -> List[Dict]:
-            """Find related content items by category and overlapping tags."""
-            # Build base filters: same category and recent items, exclude self
-            filters = [
-                ContentItem.id != base_content.id,
-                ContentItem.is_published == True,
-                Topic.category == base_topic.category,
-            ]
+        self,
+        db: AsyncSession,
+        base_content: ContentItem,
+        base_topic: Topic,
+        limit: int = 3,
+    ) -> List[Dict]:
+        """Find related content items by category and overlapping tags."""
+        # Build base filters: same category and recent items, exclude self
+        filters = [
+            ContentItem.id != base_content.id,
+            ContentItem.is_published == True,
+            Topic.category == base_topic.category,
+        ]
 
-            query = (
-                select(ContentItem, Topic)
-                .join(Topic, ContentItem.topic_id == Topic.id)
-                .where(*filters)
-                .order_by(desc(ContentItem.created_at))
-                .limit(20)
+        query = (
+            select(ContentItem, Topic)
+            .join(Topic, ContentItem.topic_id == Topic.id)
+            .where(*filters)
+            .order_by(desc(ContentItem.created_at))
+            .limit(20)
+        )
+
+        result = await db.execute(query)
+        candidates = result.all()
+
+        # Score by tag overlap and title similarity
+        def score(c: ContentItem, t: Topic) -> float:
+            s = 0.0
+            base_tags = set(
+                (base_topic.tags or [])
+                + (
+                    []
+                    if not base_content.source_metadata
+                    else list(base_content.source_metadata.get("tags", []))
+                )
+            )
+            cand_tags = set(
+                (t.tags or [])
+                + (
+                    []
+                    if not c.source_metadata
+                    else list(c.source_metadata.get("tags", []))
+                )
+            )
+            overlap = base_tags.intersection(cand_tags)
+            if overlap:
+                s += 0.6 * min(len(overlap) / max(len(base_tags) or 1, 1), 1.0)
+            # Simple title keyword overlap
+            base_words = set(
+                (base_content.title or base_topic.title or "").lower().split()
+            )
+            cand_words = set((c.title or t.title or "").lower().split())
+            word_overlap = base_words.intersection(cand_words)
+            if word_overlap:
+                s += 0.4 * min(len(word_overlap) / max(len(base_words) or 1, 1), 1.0)
+            return s
+
+        scored = sorted(candidates, key=lambda ct: score(ct[0], ct[1]), reverse=True)
+        related = []
+        for content, topic in scored[:limit]:
+            related.append(
+                {
+                    "content_id": content.id,
+                    "title": content.title or topic.title,
+                    "source_urls": content.source_urls,
+                    "category": content.category or topic.category,
+                    "created_at": content.created_at.isoformat(),
+                }
             )
 
-            result = await db.execute(query)
-            candidates = result.all()
-
-            # Score by tag overlap and title similarity
-            def score(c: ContentItem, t: Topic) -> float:
-                s = 0.0
-                base_tags = set((base_topic.tags or []) + ([] if not base_content.source_metadata else list(base_content.source_metadata.get('tags', []))))
-                cand_tags = set((t.tags or []) + ([] if not c.source_metadata else list(c.source_metadata.get('tags', []))))
-                overlap = base_tags.intersection(cand_tags)
-                if overlap:
-                    s += 0.6 * min(len(overlap) / max(len(base_tags) or 1, 1), 1.0)
-                # Simple title keyword overlap
-                base_words = set((base_content.title or base_topic.title or '').lower().split())
-                cand_words = set((c.title or t.title or '').lower().split())
-                word_overlap = base_words.intersection(cand_words)
-                if word_overlap:
-                    s += 0.4 * min(len(word_overlap) / max(len(base_words) or 1, 1), 1.0)
-                return s
-
-            scored = sorted(candidates, key=lambda ct: score(ct[0], ct[1]), reverse=True)
-            related = []
-            for content, topic in scored[:limit]:
-                related.append(
-                    {
-                        "content_id": content.id,
-                        "title": content.title or topic.title,
-                        "source_urls": content.source_urls,
-                        "category": content.category or topic.category,
-                        "created_at": content.created_at.isoformat(),
-                    }
-                )
-
-                return related
-            """Service for generating personalized content recommendations"""
+            return related
+        """Service for generating personalized content recommendations"""
 
     async def get_personalized_feed(
         self,
@@ -141,7 +157,9 @@ class ContentRecommendationService:
         # This ensures newest content always appears first regardless of type
         query = query.order_by(
             desc(ContentItem.created_at),  # Show newest content first
-        ).limit(page_size + 1)  # Fetch one extra to check if there's more
+        ).limit(
+            page_size + 1
+        )  # Fetch one extra to check if there's more
 
         result = await db.execute(query)
         items = result.all()
@@ -284,7 +302,9 @@ class ContentRecommendationService:
                     "content_text": content.content_text,
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
-                    "thumbnail_url": (getattr(content, "source_metadata", {}) or {}).get("picture_url"),
+                    "thumbnail_url": (
+                        getattr(content, "source_metadata", {}) or {}
+                    ).get("picture_url"),
                     "trend_score": topic.trend_score,
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
@@ -559,7 +579,9 @@ class ContentRecommendationService:
                 score += 0.1 * min(matching_tags / len(topic.tags), 1.0)
 
         # Recency bonus
-        age_hours = (datetime.utcnow() - content.created_at).total_seconds() / 3600
+        age_hours = (
+            datetime.now(timezone.utc) - content.created_at
+        ).total_seconds() / 3600
         if age_hours < 24:
             score += 0.1 * (1 - age_hours / 24)
 

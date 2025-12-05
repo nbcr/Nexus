@@ -59,7 +59,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 # Dependencies
-async def get_db() -> AsyncSession:
+async def get_db():
     """Dependency for database session management."""
     async with AsyncSessionLocal() as session:
         try:
@@ -194,16 +194,20 @@ async def register(
 
     email_status = "ok"
     email_error: Optional[str] = None
-    
+
     # Check for Brevo email validation issues
     from sqlalchemy import select
     from app.models.user import BrevoEmailEvent
-    stmt = select(BrevoEmailEvent).where(
-        BrevoEmailEvent.email == user_data.email
-    ).order_by(BrevoEmailEvent.received_at.desc()).limit(1)
+
+    stmt = (
+        select(BrevoEmailEvent)
+        .where(BrevoEmailEvent.email == user_data.email)
+        .order_by(BrevoEmailEvent.received_at.desc())
+        .limit(1)
+    )
     brevo_result = await db.execute(stmt)
     brevo_event = brevo_result.scalars().first()
-    
+
     if brevo_event:
         email_status = "error"
         email_error = "Email not working. Try a different one."
@@ -335,24 +339,23 @@ async def check_email_status(email: str, db: AsyncSession = Depends(get_db)):
     """Check if an email has failed Brevo validation."""
     from sqlalchemy import select
     from app.models.user import BrevoEmailEvent
-    
+
     # Check for any failed email events
-    stmt = select(BrevoEmailEvent).where(
-        BrevoEmailEvent.email == email
-    ).order_by(BrevoEmailEvent.received_at.desc()).limit(1)
-    
+    stmt = (
+        select(BrevoEmailEvent)
+        .where(BrevoEmailEvent.email == email)
+        .order_by(BrevoEmailEvent.received_at.desc())
+        .limit(1)
+    )
+
     result = await db.execute(stmt)
     event = result.scalars().first()
-    
+
     if event:
         return {
             "has_error": True,
             "message": "Email not working. Try a different one.",
-            "event_type": event.event_type
+            "event_type": event.event_type,
         }
-    
-    return {
-        "has_error": False,
-        "message": None,
-        "event_type": None
-    }
+
+    return {"has_error": False, "message": None, "event_type": None}

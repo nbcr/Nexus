@@ -1,6 +1,6 @@
 import asyncio
 import fcntl
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
@@ -33,7 +33,7 @@ class ContentRefreshService:
             self.last_refresh = latest_content.created_at
 
         # Refresh if last refresh was more than 15 minutes ago
-        refresh_time = datetime.utcnow() - timedelta(minutes=15)
+        refresh_time = datetime.now(timezone.utc) - timedelta(minutes=15)
         return self.last_refresh < refresh_time
 
     async def refresh_content_if_needed(self):
@@ -52,7 +52,7 @@ class ContentRefreshService:
                     print("🔄 Refreshing trending content from Google Trends...")
                     topics = await trending_service.save_trends_to_database(db)
                     count = len(topics)  # Get count from list of topics
-                    self.last_refresh = datetime.utcnow()
+                    self.last_refresh = datetime.now(timezone.utc)
                     print(
                         f"✅ Trending content refresh completed! Added {count} new items"
                     )

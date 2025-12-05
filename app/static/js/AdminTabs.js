@@ -49,5 +49,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Export namespace and global functions for onclick handlers
-window.AdminTabs = { initializeTabs, switchTab };
-window.switchTab = switchTab;
+globalThis.AdminTabs = { initializeTabs, switchTab };
+globalThis.switchTab = switchTab;
