@@ -227,9 +227,9 @@ function hideCustomSettings() {
 }
 
 // Export namespace and global functions for onclick handlers
-window.AdminUsers = { 
-    refreshUsers, 
-    renderUsers, 
+window.AdminUsers = {
+    refreshUsers,
+    renderUsers,
     filterUsers,
     openUserModal,
     closeUserModal,
