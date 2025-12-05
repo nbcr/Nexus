@@ -31,7 +31,7 @@ function formatRelativeTime(date) {
 document.addEventListener('DOMContentLoaded', function () {
     const userUseCustom = document.getElementById('user-use-custom');
     const userDebugMode = document.getElementById('user-debug-mode');
-    
+
     if (userUseCustom) {
         userUseCustom.addEventListener('change', function (e) {
             if (e.target.checked) {
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    
+
     if (userDebugMode) {
         userDebugMode.addEventListener('change', function (e) {
             if (e.target.checked) {
@@ -227,9 +227,9 @@ function hideCustomSettings() {
 }
 
 // Export
-window.AdminUsers = { 
-    refreshUsers, 
-    renderUsers, 
+window.AdminUsers = {
+    refreshUsers,
+    renderUsers,
     filterUsers,
     openUserModal,
     closeUserModal,

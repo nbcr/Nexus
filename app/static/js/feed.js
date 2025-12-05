@@ -682,7 +682,7 @@ class InfiniteFeed {
         if (window.HoverTracker && this.globalScrollTracker) {
             const tracker = new HoverTracker(article, item.content_id);
             this.hoverTrackers.set(item.content_id, tracker);
-            this.globalScrollTracker.registerTracker(tracker);
+            this.globalScrollTracker.register(tracker);
         }
 
         // Observe this card for visibility tracking (view duration)

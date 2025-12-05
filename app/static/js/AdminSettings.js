@@ -197,7 +197,7 @@ function renderHoverPatterns(patterns) {
 // Load initial settings on page load
 document.addEventListener('DOMContentLoaded', async function () {
     initializeDateRange();
-    
+
     try {
         const response = await fetch('/api/v1/admin/settings/global', {
             credentials: 'include'
