@@ -20,6 +20,25 @@ from app.models import ContentItem, Topic, UserInteraction, UserInterestProfile,
 
 class ContentRecommendationService:
     @staticmethod
+    def _extract_first_image_url(html_text: Optional[str]) -> Optional[str]:
+        """Extract the first image URL from HTML."""
+        if not html_text:
+            return None
+        # Try to extract from img src attribute
+        img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html_text)
+        if img_match:
+            return img_match.group(1)
+        # Try to extract from picture source srcset
+        picture_match = re.search(
+            r'<picture[^>]*>.*?<source[^>]+srcset=["\']([^"\']+)["\']',
+            html_text,
+            re.DOTALL,
+        )
+        if picture_match:
+            return picture_match.group(1)
+        return None
+
+    @staticmethod
     def _strip_images_from_html(html_text: Optional[str]) -> str:
         """Remove img tags and their content from HTML, return plain text."""
         if not html_text:
@@ -372,6 +391,18 @@ class ContentRecommendationService:
         items = []
         for content, topic in rows:
             related_items = await self._get_related_content(db, content, topic, limit=3)
+
+            # Extract first image from description/content before stripping
+            description_for_display = content.description or topic.description
+            extracted_image_url = self._extract_first_image_url(description_for_display)
+
+            # Use extracted image as thumbnail if no existing thumbnail
+            thumbnail_url = (getattr(content, "source_metadata", {}) or {}).get(
+                "picture_url"
+            )
+            if not thumbnail_url and extracted_image_url:
+                thumbnail_url = extracted_image_url
+
             items.append(
                 {
                     "content_id": content.id,
@@ -379,16 +410,14 @@ class ContentRecommendationService:
                     "topic_id": topic.id,
                     "title": content.title or topic.title,
                     "description": self._strip_images_from_html(
-                        content.description or topic.description
+                        description_for_display
                     ),
                     "category": content.category or topic.category,
                     "content_type": content.content_type,
                     "content_text": self._strip_images_from_html(content.content_text),
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
-                    "thumbnail_url": (
-                        getattr(content, "source_metadata", {}) or {}
-                    ).get("picture_url"),
+                    "thumbnail_url": thumbnail_url,
                     "trend_score": topic.trend_score,
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
