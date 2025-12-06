@@ -17,12 +17,39 @@ class TrendingPersistence:
 
     def __init__(self, categorizer):
         self.categorizer = categorizer
+        self.bad_feeds = {}  # track feeds with bad items: feed_url -> count
 
     def generate_ai_summary(self, trend_title: str, trend_description: str = "") -> str:
         """Generate AI summary for trending topics"""
         if trend_description:
             return trend_description
         return f"Trending topic in Canada: {trend_title}"
+
+    def _test_scrape_item(self, title: str, url: str, source_url: str) -> bool:
+        """Try to scrape an item to see if we can get better content.
+        Returns True if scraping got good content, False if feed is bad."""
+        if not url:
+            return False
+
+        print(f"  🔍 Testing scrape for '{title}' from {url}")
+        try:
+            article_data = article_scraper.fetch_article(url)
+            if (
+                article_data
+                and article_data.get("content")
+                and len(article_data.get("content", "")) > 50
+            ):
+                print(f"  ✅ Scrape successful ({len(article_data['content'])} chars)")
+                return True
+            else:
+                print(f"  ⚠️ Scrape got no useful content")
+                # Track this bad feed
+                self.bad_feeds[source_url] = self.bad_feeds.get(source_url, 0) + 1
+                return False
+        except Exception as e:
+            print(f"  ❌ Scrape failed: {e}")
+            self.bad_feeds[source_url] = self.bad_feeds.get(source_url, 0) + 1
+            return False
 
     async def update_topic_news_items(
         self, db: AsyncSession, topic_id: int, news_items: List[Dict]
@@ -49,6 +76,9 @@ class TrendingPersistence:
                 snippet = news_item.get("snippet", "").strip()
                 if not snippet or snippet.lower() in ("comments", ""):
                     print(f"  ⊘ Skipping item '{title}' - empty or trivial description")
+                    # Try to scrape to see if we can salvage it
+                    source_url = news_item.get("source", "unknown")
+                    self._test_scrape_item(title, url, source_url)
                     continue
 
                 existing = await deduplication_service.find_duplicate(db, title, url)
@@ -202,6 +232,18 @@ class TrendingPersistence:
             print(
                 f"🎯 Total trends saved/updated in database: {len(saved_topics)} (New: {new_content_count})"
             )
+
+            # Report any bad feeds detected
+            if self.bad_feeds:
+                print(
+                    "\n⚠️ Bad feeds detected (consistently providing empty/trivial content):"
+                )
+                for feed_url, count in sorted(
+                    self.bad_feeds.items(), key=lambda x: x[1], reverse=True
+                ):
+                    print(f"  - {feed_url}: {count} bad items")
+                print("Consider removing these feeds from rss_feeds.txt")
+
             return saved_topics, new_content_count
 
         except Exception as e:
