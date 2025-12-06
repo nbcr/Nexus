@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Topic
 from .rss_fetcher import RSSFetcher
-from .reddit_fetcher import RedditFetcher
 from .categorization import ContentCategorizer
 from .persistence import TrendingPersistence
 
@@ -21,24 +20,18 @@ class TrendingService:
     def __init__(self):
         self.categorizer = ContentCategorizer()
         self.rss_fetcher = RSSFetcher(self.categorizer)
-        self.reddit_fetcher = RedditFetcher()
         self.persistence = TrendingPersistence(self.categorizer)
 
         print(f"✅ Configured {len(self.rss_fetcher.rss_feeds)} RSS feeds")
 
     async def fetch_canada_trends(self) -> List[Dict]:
-        """Fetch trending topics from multiple RSS feeds and Reddit"""
+        """Fetch trending topics from RSS feeds"""
         trends = []
 
         rss_trends = await self.rss_fetcher.fetch_all_rss_feeds()
         trends.extend(rss_trends)
 
-        reddit_trends = await self.reddit_fetcher.fetch_reddit_trends()
-        trends.extend(reddit_trends)
-
-        print(
-            f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)}, Reddit: {len(reddit_trends)})"
-        )
+        print(f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)})")
         return trends
 
     async def save_trends_to_database(self, db: AsyncSession) -> tuple:

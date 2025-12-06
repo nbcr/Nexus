@@ -156,6 +156,22 @@ class TrendingPersistence:
             print("Warning: No trends to save")
             return [], 0
 
+        # Filter out any trends with google trends tag to prevent them from being created
+        filtered_trends = []
+        for trend in trends:
+            tags = trend.get("tags", [])
+            if google_trends_tag not in tags:
+                filtered_trends.append(trend)
+            else:
+                print(f"⊘ Skipping trend with google_trends tag: {trend.get('title')}")
+
+        trends = filtered_trends
+        if not trends:
+            print(
+                "Warning: All trends were filtered out (all contained google_trends tag)"
+            )
+            return [], 0
+
         for trend_data in trends:
             try:
                 normalized_title = trend_data["title"].lower().replace(" ", "_")[:190]
