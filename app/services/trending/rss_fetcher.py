@@ -46,10 +46,18 @@ class FeedFailureTracker:
 class RSSFetcher:
     """Fetches and processes RSS feeds for trending content"""
 
-    def __init__(self, categorizer, feeds_file: str = "rss_feeds.txt"):
+    def __init__(
+        self,
+        categorizer,
+        feeds_file: str = "rss_feeds.txt",
+        items_per_feed: int = 1,
+        batch_size: int = 10,
+    ):
         self.failure_tracker = FeedFailureTracker(max_failures=5)
         self.categorizer = categorizer
         self.feeds_file = feeds_file
+        self.items_per_feed = items_per_feed  # How many items to fetch per feed
+        self.batch_size = batch_size  # How many feeds to process in parallel
         self.rss_feeds = self._load_feeds_from_file()
 
     def _clean_html_description(self, description: str) -> str:
@@ -122,39 +130,51 @@ class RSSFetcher:
             return False
 
     async def fetch_all_rss_feeds(self) -> List[Dict]:
-        """Fetch from all configured RSS feeds in parallel with timeout"""
+        """Fetch from all configured RSS feeds in batches with timeout"""
         self.failure_tracker.reset_if_needed()
 
-        tasks = []
-        feed_names = []
-
+        # Build list of feeds to fetch
+        feeds_to_fetch = []
         for feed_name, feed_config in self.rss_feeds.items():
             if self.failure_tracker.is_disabled(feed_name):
                 print(f"⏭️ Skipping disabled feed: {feed_name}")
                 continue
-
-            print(f"📡 Queuing {feed_name}: {feed_config['url']}")
-            task = self._fetch_single_feed_with_timeout(
-                feed_name,
-                feed_config["url"],
-                feed_config.get("category_hint"),
-                timeout=8,
-            )
-            tasks.append(task)
-            feed_names.append(feed_name)
-
-        print(f"🚀 Fetching {len(tasks)} feeds in parallel...")
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+            feeds_to_fetch.append((feed_name, feed_config))
 
         all_trends = []
-        for feed_name, result in zip(feed_names, results):
-            if isinstance(result, Exception):
-                print(f"⚠️ Error fetching {feed_name}: {result}")
-                self.failure_tracker.record_failure(feed_name)
-            elif isinstance(result, list):
-                all_trends.extend(result)
-                print(f"✅ {feed_name}: {len(result)} items")
-                self.failure_tracker.record_success(feed_name)
+        total_feeds = len(feeds_to_fetch)
+
+        # Process feeds in batches
+        for batch_num, i in enumerate(range(0, total_feeds, self.batch_size)):
+            batch = feeds_to_fetch[i : i + self.batch_size]
+            print(
+                f"\n📦 Batch {batch_num + 1}: Processing {len(batch)} feeds (items_per_feed={self.items_per_feed})..."
+            )
+
+            tasks = []
+            feed_names = []
+
+            for feed_name, feed_config in batch:
+                print(f"  📡 {feed_name}: {feed_config['url']}")
+                task = self._fetch_single_feed_with_timeout(
+                    feed_name,
+                    feed_config["url"],
+                    feed_config.get("category_hint"),
+                    timeout=8,
+                )
+                tasks.append(task)
+                feed_names.append(feed_name)
+
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            for feed_name, result in zip(feed_names, results):
+                if isinstance(result, Exception):
+                    print(f"  ⚠️ Error fetching {feed_name}: {result}")
+                    self.failure_tracker.record_failure(feed_name)
+                elif isinstance(result, list):
+                    all_trends.extend(result)
+                    print(f"  ✅ {feed_name}: {len(result)} items")
+                    self.failure_tracker.record_success(feed_name)
             else:
                 print(f"⚠️ Unexpected result from {feed_name}")
                 self.failure_tracker.record_failure(feed_name)
@@ -193,7 +213,7 @@ class RSSFetcher:
             trends = []
             is_google_trends = "trends.google.com" in feed_url
 
-            for entry in feed.get("entries", [])[:1]:
+            for entry in feed.get("entries", [])[: self.items_per_feed]:
                 trend_data = self._process_single_entry(
                     entry, is_google_trends, feed_url, category_hint, source_name
                 )
