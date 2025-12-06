@@ -22,6 +22,22 @@ async def remove_google_trends_content():
 
     async with async_session() as db:
         try:
+            # First, get content items that need to be deleted (those without the tag but with topics that have it)
+            result = await db.execute(
+                text(
+                    """
+                    SELECT COUNT(*) FROM content_items ci
+                    INNER JOIN topics t ON ci.topic_id = t.id
+                    WHERE t.tags::jsonb ? 'google trends'
+                    AND NOT (ci.tags::jsonb ? 'google trends')
+                """
+                )
+            )
+            indirect_count = result.scalar()
+            print(
+                f"Found {indirect_count} content items linked to google trends topics"
+            )
+
             # Count content items with google trends tag
             result = await db.execute(
                 text(
@@ -48,18 +64,24 @@ async def remove_google_trends_content():
             topic_count = result.scalar()
             print(f"Found {topic_count} topics with 'google trends' tag")
 
-            # Delete content items first (foreign key constraint)
-            if content_count > 0:
+            # Delete content items linked to google trends topics (via topic_id)
+            if indirect_count > 0 or content_count > 0:
                 result = await db.execute(
                     text(
                         """
                         DELETE FROM content_items 
                         WHERE tags::jsonb ? 'google trends'
+                        OR topic_id IN (
+                            SELECT id FROM topics 
+                            WHERE tags::jsonb ? 'google trends'
+                        )
                     """
                     )
                 )
                 await db.commit()
-                print(f"Deleted {content_count} content items")
+                print(
+                    f"Deleted {indirect_count + content_count} content items (including linked ones)"
+                )
 
             # Delete topics after content items
             if topic_count > 0:
