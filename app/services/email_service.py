@@ -82,7 +82,7 @@ class EmailService:
     ) -> bool:
         """Send email via Brevo API."""
         if not self.brevo_api_key:
-            logger.warning("Brevo API key not configured, falling back to SMTP")
+            logger.warning("Brevo API key not configured")
             return False
 
         try:
