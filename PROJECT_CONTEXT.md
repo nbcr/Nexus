@@ -1105,3 +1105,6 @@ Refactored monolithic `feed.js` (~1200 lines) into 7 modular, single-responsibil
 ✅ Module separation allows for independent evolution of features
 ✅ Ready for feature expansion, custom implementations, or unit testing
 ✅ All module dependencies properly ordered in HTML
+
+### 2025-12-06: Facts Button Detection Fix
+- Tightened search-query detection in `app/static/js/feed.js` to rely only on `content_type === 'search_query'` or category match, restoring facts buttons on news cards that were mislabelled as search context.
