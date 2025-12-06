@@ -49,6 +49,33 @@ class TrendingPersistence:
 
                 if existing:
                     print(f"  ⚠️ Duplicate found for '{title}' - linking as related")
+
+                    # If existing item hasn't been scraped yet, scrape it now
+                    if url and not (
+                        existing.source_metadata
+                        and existing.source_metadata.get("scraped_at")
+                    ):
+                        print(f"  📰 Scraping unscraped existing article: {url}")
+                        article_data = article_scraper.fetch_article(url)
+                        if article_data:
+                            existing.content_text = article_data.get("content")
+                            if not existing.source_metadata:
+                                existing.source_metadata = {}
+                            existing.source_metadata["scraped_at"] = datetime.now(
+                                timezone.utc
+                            ).isoformat()
+                            if article_data.get(
+                                "image_url"
+                            ) and not existing.source_metadata.get("picture_url"):
+                                existing.source_metadata["picture_url"] = article_data[
+                                    "image_url"
+                                ]
+                            print(
+                                f"  ✅ Scraped and updated existing item with {len(article_data.get('content', ''))} chars"
+                            )
+                        else:
+                            print(f"  ⚠️ Scraping failed for existing item")
+
                     await deduplication_service.link_as_related(
                         db, existing.id, topic_id
                     )
