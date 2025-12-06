@@ -121,7 +121,7 @@ class ArticleScraperService:
                 # Limit to excerpt for AdSense/copyright compliance
                 original_length = len(article_data["content"])
                 article_data["content"] = self._limit_to_excerpt(
-                    article_data["content"]
+                    article_data["content"], article_data["domain"]
                 )
                 article_data["is_excerpt"] = (
                     True  # Flag to show "Continue Reading" button
@@ -155,18 +155,31 @@ class ArticleScraperService:
             print(f"❌ Error scraping article: {e}")
             return None
 
-    def _limit_to_excerpt(self, content: str) -> str:
+    def _limit_to_excerpt(self, content: str, domain: str) -> str:
         """
         Extract key facts from article content using hybrid approach.
         Combines heuristics and simple NLP to identify important sentences.
 
         Args:
             content: Full article content
+            domain: Source domain (affects extraction strategy)
 
         Returns:
-            Bullet-point list of 5-7 key facts (AdSense/copyright compliant)
+            Bullet-point list of 5-7 key facts for tech articles (BetaKit),
+            or simple excerpt for news articles (Global News, etc.)
         """
-        # Split into sentences
+        # For tech/startup articles (BetaKit), use bullet point extraction
+        tech_domains = ["betakit.com", "techcrunch.com", "theverge.com"]
+        use_bullet_extraction = any(domain.endswith(d) for d in tech_domains)
+
+        # For general news sites, just take first few paragraphs
+        if not use_bullet_extraction:
+            # Return first 300 words as a clean excerpt
+            words = content.split()
+            excerpt = " ".join(words[: self.MAX_EXCERPT_WORDS])
+            return excerpt
+
+        # Split into sentences for bullet point extraction
         sentences = re.split(r"(?<=[.!?])\s+", content)
 
         # If very short content, return as-is
