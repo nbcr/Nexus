@@ -202,7 +202,7 @@ body.dark-mode .category-btn.active {
     border-radius: var(--border-radius-large, 12px);
     max-width: 900px;
     width: 100%;
-    max-height: 90vh;
+    max-height: calc(100vh - 60px);
     overflow-y: auto;
     position: relative;
     padding: var(--spacing-xl, 32px);
