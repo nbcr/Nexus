@@ -70,6 +70,23 @@ class TrendingPersistence:
                 category_text = f"{title} {snippet}"
                 category = self.categorizer.categorize_text(category_text)
 
+                # Scrape article content immediately during fetch
+                scraped_content = None
+                scraped_at = None
+                image_url = news_item.get("picture", None)
+
+                if url:
+                    print(f"  📰 Scraping article: {url}")
+                    article_data = article_scraper.fetch_article(url)
+                    if article_data:
+                        scraped_content = article_data.get("content")
+                        scraped_at = datetime.now(timezone.utc).isoformat()
+                        if article_data.get("image_url") and not image_url:
+                            image_url = article_data["image_url"]
+                        print(f"  ✅ Scraped {len(scraped_content)} chars")
+                    else:
+                        print(f"  ⚠️ Scraping failed, using RSS snippet")
+
                 content_item = ContentItem(
                     topic_id=topic_id,
                     title=title,
@@ -77,15 +94,16 @@ class TrendingPersistence:
                     description=snippet,
                     category=category,
                     content_type="news_update",
-                    content_text=news_item.get("snippet", ""),
+                    content_text=scraped_content or news_item.get("snippet", ""),
                     ai_model_used="google_trends_news_v1",
                     source_urls=[url],
                     is_published=True,
                     created_at=created_time,
                     source_metadata={
                         "source": news_item.get("source", "News"),
-                        "picture_url": news_item.get("picture", None),
+                        "picture_url": image_url,
                         "title": title,
+                        "scraped_at": scraped_at,
                     },
                 )
                 db.add(content_item)
