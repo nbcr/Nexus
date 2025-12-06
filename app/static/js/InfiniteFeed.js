@@ -35,11 +35,7 @@ class InfiniteFeed {
         this.isPersonalized = options.isPersonalized !== false;
         this.cursor = null;
 
-        // RSS source limiting - track consecutive items from same source
-        this.sourceMap = new Map(); // Maps source domain to count of consecutive items
-        this.skipSources = new Set(); // Sources to skip due to user scrolling past
-        this.lastCardSource = null; // Track last rendered source
-        this.maxConsecutiveFromSource = 2; // Skip source after this many consecutive items without opening
+
 
         // UI elements
         this.loadingIndicator = null;
@@ -70,11 +66,6 @@ class InfiniteFeed {
         if (window.historyTracker && typeof window.historyTracker.init === 'function') {
             window.historyTracker.init();
         }
-
-        // Listen for card opened events for RSS source tracking
-        document.addEventListener('cardOpened', (e) => {
-            this.recordCardOpened(e.detail.contentId);
-        });
 
         // Setup observers
         this.observers.setupScrollRefresh();
@@ -126,26 +117,9 @@ class InfiniteFeed {
             const data = await this.api.fetchFeed(this.currentPage, this.pageSize, filters);
             console.log('Received data:', { itemCount: data.items?.length, cursor: data.next_cursor, hasMore: data.has_more });
 
-            // Add new content items - filter out items from sources with too many consecutive items
+            // Add new content items
             if (data.items && data.items.length > 0) {
                 data.items.forEach((item, index) => {
-                    // Check if we should skip this item based on source
-                    const sourceUrl = item.source_urls?.[0];
-                    if (sourceUrl) {
-                        try {
-                            const url = new URL(sourceUrl);
-                            const domain = url.hostname.replace('www.', '');
-                            
-                            // Skip if source has too many consecutive items
-                            if (this.sourceMap.get(domain) >= this.maxConsecutiveFromSource) {
-                                console.log(`⊘ Skipping item from ${domain} (too many consecutive)`);
-                                return; // Skip rendering this item
-                            }
-                        } catch (e) {
-                            // Invalid URL, render anyway
-                        }
-                    }
-
                     this.viewedContentIds.add(item.content_id);
                     this.renderContentItem(item);
 
@@ -194,44 +168,6 @@ class InfiniteFeed {
             if (window.historyTracker) {
                 window.historyTracker.observeCard(article);
             }
-
-            // Track RSS source for limiting consecutive items
-            this.trackRssSource(item, article);
-        }
-    }
-
-    trackRssSource(item, article) {
-        // Extract source domain from URL
-        const sourceUrl = item.source_urls?.[0];
-        if (!sourceUrl) return;
-
-        try {
-            const url = new URL(sourceUrl);
-            const domain = url.hostname.replace('www.', '');
-            
-            // If same source as last item, increment counter
-            if (this.lastCardSource === domain) {
-                this.sourceMap.set(domain, (this.sourceMap.get(domain) || 0) + 1);
-            } else {
-                // Different source, reset counter for new source
-                this.lastCardSource = domain;
-                this.sourceMap.set(domain, 1);
-            }
-
-            // Store source on card for click tracking
-            article.dataset.sourceUrl = sourceUrl;
-            article.dataset.sourceSource = domain;
-        } catch (e) {
-            // Invalid URL, skip source tracking
-        }
-    }
-
-    recordCardOpened(contentId) {
-        // When a card is opened, reset source count for that source
-        const article = this.container.querySelector(`[data-content-id="${contentId}"]`);
-        if (article && article.dataset.sourceSource) {
-            const source = article.dataset.sourceSource;
-            this.sourceMap.set(source, 0);
         }
     }
 
@@ -302,9 +238,6 @@ class InfiniteFeed {
             source_url: item.source_urls?.[0],
             isSearchQuery
         });
-
-        // Record that this card was opened (resets source counter)
-        this.recordCardOpened(item.content_id);
 
         // For both search queries and news articles, open modal to show content
         console.log('📰 Opening modal for:', isSearchQuery ? 'search context' : 'article');
