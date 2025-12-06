@@ -387,3 +387,260 @@ async def get_analytics(
             "afk_rate": 0,  # FIXME: Calculate from metadata
         },
     }
+
+
+# === Dashboard Endpoints ===
+from pathlib import Path
+import subprocess
+import json
+from fastapi.responses import HTMLResponse
+
+STORAGE_STATUS_FILE = Path("/home/nexus/nexus/STORAGE_STATUS.txt")
+STORAGE_HISTORY_FILE = Path("/home/nexus/nexus/storage_history.json")
+
+AVAILABLE_SCRIPTS = {
+    "Storage Monitor": "python3 storage_monitor.py",
+    "RSS Benchmark": "python3 benchmark_feeds.py",
+    "Check Logs": "tail -100 /home/nexus/nexus/logs/error.log",
+    "Database Stats": "psql -d nexus -c 'SELECT COUNT(*) as total_stories FROM content_items;'",
+}
+
+
+@router.get("/dashboard", response_class=HTMLResponse)
+async def admin_dashboard(current_user: User = Depends(verify_admin)):
+    """Admin dashboard with storage, scripts, terminal, and chat"""
+    # Read storage status
+    storage_status = ""
+    if STORAGE_STATUS_FILE.exists():
+        with open(STORAGE_STATUS_FILE) as f:
+            storage_status = f.read()
+
+    # Build script buttons HTML
+    script_buttons = ""
+    for name in AVAILABLE_SCRIPTS.keys():
+        script_buttons += f'    <button class="script-btn" onclick="runScript(\'{name}\')">▶ {name}</button>\n'
+
+    return HTMLResponse(
+        f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Nexus Admin Dashboard</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; }}
+            .container {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; }}
+            .panel {{ background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; overflow: auto; }}
+            .panel h2 {{ color: #58a6ff; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }}
+            .storage-status {{ font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }}
+            .scripts {{ max-height: 400px; overflow-y: auto; }}
+            .script-btn {{ display: block; width: 100%; padding: 10px; margin: 8px 0; background: #238636; color: white; border: none; border-radius: 4px; cursor: pointer; text-align: left; font-size: 13px; }}
+            .script-btn:hover {{ background: #2ea043; }}
+            .terminal {{ background: #010409; font-family: monospace; font-size: 12px; max-height: 400px; overflow-y: auto; padding: 10px; border-radius: 4px; }}
+            .terminal-input {{ width: 100%; padding: 8px; margin-top: 10px; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 4px; font-family: monospace; }}
+            .chat-container {{ display: flex; flex-direction: column; height: 500px; }}
+            .chat-messages {{ flex: 1; overflow-y: auto; margin-bottom: 10px; padding: 10px; background: #010409; border-radius: 4px; }}
+            .chat-message {{ margin-bottom: 10px; padding: 8px; border-radius: 4px; }}
+            .chat-user {{ background: #238636; text-align: right; }}
+            .chat-assistant {{ background: #1f6feb; }}
+            .chat-input-area {{ display: flex; gap: 10px; }}
+            .chat-input {{ flex: 1; padding: 8px; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 4px; font-family: monospace; }}
+            select {{ padding: 8px; background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 4px; }}
+            button {{ padding: 8px 16px; background: #238636; color: white; border: none; border-radius: 4px; cursor: pointer; }}
+            button:hover {{ background: #2ea043; }}
+            .button-group {{ display: flex; gap: 8px; margin-top: 10px; }}
+            .output {{ background: #010409; padding: 10px; border-radius: 4px; margin-top: 10px; max-height: 150px; overflow-y: auto; font-size: 11px; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Storage Monitor -->
+            <div class="panel">
+                <h2>📊 Storage Monitor</h2>
+                <div class="storage-status" id="storageStatus">{storage_status}</div>
+                <button onclick="refreshStorage()" style="width: 100%; margin-top: 10px;">Refresh Now</button>
+            </div>
+
+            <!-- Script Runner -->
+            <div class="panel">
+                <h2>🔧 Server Scripts</h2>
+                <div class="scripts">
+{script_buttons}                </div>
+                <div class="output" id="scriptOutput"></div>
+            </div>
+
+            <!-- Mini Terminal -->
+            <div class="panel">
+                <h2>⌨️ Terminal</h2>
+                <div class="terminal" id="terminal">\$ Ready</div>
+                <input type="text" class="terminal-input" id="terminalInput" placeholder="Enter command..." onkeypress="if(event.key==='Enter') runTerminalCommand()">
+                <button onclick="runTerminalCommand()" style="width: 100%; margin-top: 8px;">Execute</button>
+            </div>
+
+            <!-- AI Chat (Full Width Below) -->
+            <div class="panel" style="grid-column: 1 / -1;">
+                <h2>🤖 Copilot Chat</h2>
+                <select id="agentSelect" style="width: 200px; margin-bottom: 10px;">
+                    <option value="general">General Assistant</option>
+                    <option value="code">Code Expert</option>
+                    <option value="devops">DevOps Specialist</option>
+                </select>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Ask Copilot..." onkeypress="if(event.key==='Enter') sendChat()">
+                        <button onclick="sendChat()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function refreshStorage() {{
+                const response = await fetch('/api/v1/admin/storage');
+                const data = await response.json();
+                document.getElementById('storageStatus').textContent = data.status;
+            }}
+
+            async function runScript(name) {{
+                const output = document.getElementById('scriptOutput');
+                output.textContent = `Running ${{name}}...`;
+                const response = await fetch('/api/v1/admin/run-script', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{name}})
+                }});
+                const data = await response.json();
+                output.textContent = data.output;
+            }}
+
+            async function runTerminalCommand() {{
+                const input = document.getElementById('terminalInput');
+                const terminal = document.getElementById('terminal');
+                terminal.textContent += `\n\$ ${{input.value}}\n`;
+                const response = await fetch('/api/v1/admin/terminal', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{cmd: input.value}})
+                }});
+                const data = await response.json();
+                terminal.textContent += data.output;
+                terminal.scrollTop = terminal.scrollHeight;
+                input.value = '';
+            }}
+
+            async function sendChat() {{
+                const input = document.getElementById('chatInput');
+                const messages = document.getElementById('chatMessages');
+                const agent = document.getElementById('agentSelect').value;
+                
+                const userMsg = document.createElement('div');
+                userMsg.className = 'chat-message chat-user';
+                userMsg.textContent = input.value;
+                messages.appendChild(userMsg);
+
+                const response = await fetch('/api/v1/admin/chat', {{
+                    method: 'POST',
+                    headers: {{'Content-Type': 'application/json'}},
+                    body: JSON.stringify({{message: input.value, agent}})
+                }});
+                const data = await response.json();
+
+                const assistantMsg = document.createElement('div');
+                assistantMsg.className = 'chat-message chat-assistant';
+                assistantMsg.textContent = data.response;
+                messages.appendChild(assistantMsg);
+                
+                messages.scrollTop = messages.scrollHeight;
+                input.value = '';
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    )
+
+
+@router.get("/storage")
+async def get_storage(current_user: User = Depends(verify_admin)):
+    """Get current storage status"""
+    if STORAGE_STATUS_FILE.exists():
+        with open(STORAGE_STATUS_FILE) as f:
+            status = f.read()
+        return {"status": status}
+    return {"status": "Storage monitor not available"}
+
+
+@router.post("/run-script")
+async def run_script_endpoint(
+    request: Dict[str, str], current_user: User = Depends(verify_admin)
+):
+    """Run a predefined server script"""
+    script_name = request.get("name")
+
+    if script_name not in AVAILABLE_SCRIPTS:
+        raise HTTPException(status_code=400, detail="Script not found")
+
+    cmd = AVAILABLE_SCRIPTS[script_name]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            cwd="/home/nexus/nexus",
+        )
+        output = result.stdout + (result.stderr if result.returncode != 0 else "")
+        return {"output": output[:5000]}  # Limit output
+    except subprocess.TimeoutExpired:
+        return {"output": "Script timed out after 30 seconds"}
+    except Exception as e:
+        return {"output": f"Error: {str(e)}"}
+
+
+@router.post("/terminal")
+async def terminal_endpoint(
+    request: Dict[str, str], current_user: User = Depends(verify_admin)
+):
+    """Execute arbitrary terminal command (admin only)"""
+    cmd = request.get("cmd", "").strip()
+
+    if not cmd:
+        return {"output": "No command provided"}
+
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            cwd="/home/nexus/nexus",
+        )
+        output = result.stdout + (result.stderr if result.returncode != 0 else "")
+        return {"output": output[:2000]}  # Limit output
+    except subprocess.TimeoutExpired:
+        return {"output": "Command timed out after 10 seconds"}
+    except Exception as e:
+        return {"output": f"Error: {str(e)}"}
+
+
+@router.post("/chat")
+async def chat_endpoint(
+    request: Dict[str, str], current_user: User = Depends(verify_admin)
+):
+    """Chat with Copilot (placeholder - would integrate with actual Copilot API)"""
+    message = request.get("message", "")
+    agent = request.get("agent", "general")
+
+    agent_descriptions = {
+        "general": "General Assistant",
+        "code": "Code Review Expert",
+        "devops": "DevOps Specialist",
+    }
+
+    return {
+        "response": f"[{agent_descriptions.get(agent, 'Assistant')}] I received: '{message}'. Real Copilot API integration coming soon!"
+    }
