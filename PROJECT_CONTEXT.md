@@ -1133,3 +1133,12 @@ exus-webhook.service systemd service from EC2
 - **Kept**: scripts/update_cache_bust.py - runs in GitHub Actions pipeline
 - **Benefit**: No long-running processes, cleaner architecture, full logging in GitHub Actions UI
 - **Workflow**: Push to main → GitHub Actions handles cache busting → Commits changes → Deploys to EC2 → Service running
+
+### 2025-12-06: Facts Display Optimization & Truncation Fixes
+- **Removed content truncation**: Removed 10,000 character limit from `article_scraper.py` `_extract_content()` that was cutting off facts mid-sentence
+- **Removed database truncation**: Removed `[:10000]` slice in `content.py` `_save_scraped_content()` to preserve full article content
+- **Frontend display fix**: Modified `FeedRenderer.js` `loadSnippet()` to display full `content_text` from database on card expansion instead of fetching from API
+- **Caching optimization**: Updated `/api/v1/content/article/{content_id}` endpoint to return cached `content_text` from database if available, only scraping when missing
+- **No user-triggered scraping**: Feed expansion now uses pre-scraped content from database; system scrapes articles during initial content ingestion only
+- **Logging added**: Added comprehensive logging to `update_cache_bust.py` script with file logging to `logs/cache_bust.log` and console output
+- **Result**: Facts now display completely without truncation, no API calls on card expansion, faster UX
