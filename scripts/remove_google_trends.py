@@ -48,7 +48,7 @@ async def remove_google_trends_content():
             topic_count = result.scalar()
             print(f"Found {topic_count} topics with 'google trends' tag")
 
-            # Delete content items
+            # Delete content items first (foreign key constraint)
             if content_count > 0:
                 result = await db.execute(
                     text(
@@ -61,7 +61,7 @@ async def remove_google_trends_content():
                 await db.commit()
                 print(f"Deleted {content_count} content items")
 
-            # Delete topics
+            # Delete topics after content items
             if topic_count > 0:
                 result = await db.execute(
                     text(
