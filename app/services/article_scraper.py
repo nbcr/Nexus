@@ -752,10 +752,6 @@ class ArticleScraperService:
 
         content = "\n\n".join(paragraphs)
 
-        # Limit content length (optional)
-        if len(content) > 10000:
-            content = content[:10000] + "..."
-
         return content
 
     def _extract_author(self, soup: BeautifulSoup) -> Optional[str]:
