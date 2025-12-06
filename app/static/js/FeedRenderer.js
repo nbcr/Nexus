@@ -132,7 +132,7 @@ class FeedRenderer {
             });
         }
 
-        // Add click handler for read more button
+        // Add click handler for read more button - goes to source site
         const readMoreBtn = article.querySelector('.btn-read-more');
         if (readMoreBtn) {
             readMoreBtn.addEventListener('click', (e) => {
@@ -144,8 +144,10 @@ class FeedRenderer {
                     globalThis.historyTracker.recordClick(item.content_id, slug);
                 }
 
-                onContentClick(item);
-                this.api.trackView(item.content_id);
+                // Go to source site instead of opening modal
+                if (item.source_urls && item.source_urls.length > 0) {
+                    window.open(item.source_urls[0], '_blank', 'noopener');
+                }
             });
         }
 
