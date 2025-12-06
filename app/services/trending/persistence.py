@@ -45,6 +45,12 @@ class TrendingPersistence:
                 if not title:
                     title = url.split("/")[-1][:100] or "News Update"
 
+                # Skip items with empty or trivial descriptions
+                snippet = news_item.get("snippet", "").strip()
+                if not snippet or snippet.lower() in ("comments", ""):
+                    print(f"  ⊘ Skipping item '{title}' - empty or trivial description")
+                    continue
+
                 existing = await deduplication_service.find_duplicate(db, title, url)
 
                 if existing:
