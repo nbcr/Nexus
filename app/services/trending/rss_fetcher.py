@@ -48,11 +48,6 @@ class RSSFetcher:
         self.failure_tracker = FeedFailureTracker(max_failures=5)
         self.categorizer = categorizer
         self.rss_feeds = {
-            "google_trends": {
-                "url": "https://trends.google.com/trending/rss?geo=CA",
-                "category_hint": None,
-                "priority": "high",
-            },
             "cbc_top": {
                 "url": "https://www.cbc.ca/cmlink/rss-topstories",
                 "category_hint": None,
