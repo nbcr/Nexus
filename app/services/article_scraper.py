@@ -157,29 +157,17 @@ class ArticleScraperService:
 
     def _limit_to_excerpt(self, content: str, domain: str) -> str:
         """
-        Extract key facts from article content using hybrid approach.
-        Combines heuristics and simple NLP to identify important sentences.
+        Extract and condense key facts from article content.
+        Intelligently summarizes content to ~300 words of key ideas rather than truncating.
 
         Args:
             content: Full article content
             domain: Source domain (affects extraction strategy)
 
         Returns:
-            Bullet-point list of 5-7 key facts for tech articles (BetaKit),
-            or simple excerpt for news articles (Global News, etc.)
+            Condensed key facts as bullet points or summarized excerpt
         """
-        # For tech/startup articles (BetaKit), use bullet point extraction
-        tech_domains = ["betakit.com", "techcrunch.com", "theverge.com"]
-        use_bullet_extraction = any(domain.endswith(d) for d in tech_domains)
-
-        # For general news sites, just take first few paragraphs
-        if not use_bullet_extraction:
-            # Return first 300 words as a clean excerpt
-            words = content.split()
-            excerpt = " ".join(words[: self.MAX_EXCERPT_WORDS])
-            return excerpt
-
-        # Split into sentences for bullet point extraction
+        # For all articles, extract important sentences and condense them
         sentences = re.split(r"(?<=[.!?])\s+", content)
 
         # If very short content, return as-is
@@ -195,16 +183,33 @@ class ArticleScraperService:
             score = self._score_sentence_importance(sentence)
             scored_sentences.append((score, sentence.strip()))
 
-        # Sort by score and take top 5-7 facts
+        # Sort by score and extract top facts
         scored_sentences.sort(reverse=True, key=lambda x: x[0])
-        top_facts = scored_sentences[:7]  # Take top 7
 
-        # Re-sort by original order (maintain narrative flow)
-        # Find original index for each fact
-        fact_sentences = [fact[1] for fact in top_facts]
+        # Extract enough facts to reach ~300 words, prioritizing importance
+        extracted_facts = []
+        word_count = 0
+        target_words = 300
+
+        for score, sentence in scored_sentences:
+            sentence_words = len(sentence.split())
+            # Allow going over if it's an important sentence and we're under 400 words
+            if word_count < target_words or (score > 1.5 and word_count < 400):
+                extracted_facts.append(sentence)
+                word_count += sentence_words
+            elif word_count >= target_words:
+                # Once we exceed target, only add very high-scoring facts
+                if score > 3.0 and word_count < 450:
+                    extracted_facts.append(sentence)
+                    word_count += sentence_words
+                else:
+                    break
+
+        # Re-sort by original order in document (maintain narrative flow)
+        fact_sentences_set = {fact for fact in extracted_facts}
         ordered_facts = []
         for sentence in sentences:
-            if sentence.strip() in fact_sentences:
+            if sentence.strip() in fact_sentences_set:
                 ordered_facts.append(sentence.strip())
 
         # Format as bullet points
