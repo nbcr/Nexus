@@ -1112,3 +1112,11 @@ Refactored monolithic `feed.js` (~1200 lines) into 7 modular, single-responsibil
 ### 2025-12-06: Remove Deprecated feed.js
 - Deleted legacy `app/static/js/feed.js` to avoid confusion; feed is now served solely via modular stack (`FeedUtils/FeedApi/FeedTracking/FeedObservers/FeedRenderer/FeedArticleModal/InfiniteFeed`).
 - Updated `TEMPLATING_GUIDE.md` to reference the modular scripts instead of the removed file.
+
+### 2025-12-06: Facts Modal Scraping Fix
+- Replaced `await` on synchronous `article_scraper` calls with `asyncio.to_thread` in `app/api/routes/content.py` and `app/services/trending/persistence.py`, preventing TypeErrors and blocking in async endpoints.
+- Facts modal now fetches article excerpts again instead of showing the fallback "We can't display the facts" message on every card.
+
+### 2025-12-06: Session Tracking Endpoint Fixes
+- Restored `/api/v1/session/track-interest` by removing a duplicate router reset and aligning the route to accept the JSON body used by the frontend (no path parameter).
+- Added `InterestEvent` payload handling and session cookie persistence for both interest and view tracking to keep session tokens consistent across requests.

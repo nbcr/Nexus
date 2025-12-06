@@ -1,5 +1,6 @@
 """Database persistence operations for trending content"""
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -141,7 +142,9 @@ class TrendingPersistence:
         if url:
             try:
                 print(f"  📰 Scraping article for facts: {url}")
-                article_data = await article_scraper.fetch_article(url)
+                article_data = await asyncio.to_thread(
+                    article_scraper.fetch_article, url
+                )
                 if article_data and article_data.get("content"):
                     content_text = article_data["content"]
                     print(f"  ✅ Extracted article content ({len(content_text)} chars)")
