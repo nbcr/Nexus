@@ -55,6 +55,15 @@ class TrendingPersistence:
                     continue
 
                 slug = generate_slug(title) if title else generate_slug_from_url(url)
+
+                # Check if slug already exists
+                result = await db.execute(
+                    select(ContentItem).where(ContentItem.slug == slug)
+                )
+                if result.scalar_one_or_none():
+                    print(f"  ⚠️ Slug already exists for '{title}' - skipping")
+                    continue
+
                 created_time = base_time + timedelta(microseconds=idx * 1000)
 
                 snippet = news_item.get("snippet", "")
@@ -106,6 +115,13 @@ class TrendingPersistence:
         url = trend_data.get("url", "")
         content_text = await self._get_content_text(url, ai_summary)
         slug = generate_slug(title) or generate_slug_from_url(url)
+
+        # Check if slug already exists
+        result = await db.execute(select(ContentItem).where(ContentItem.slug == slug))
+        if result.scalar_one_or_none():
+            print(f"  ⚠️ Content item slug already exists for '{title}' - skipping")
+            return None
+
         source_meta = await self._build_source_metadata(db, trend_data, title, url)
 
         content_item = ContentItem(
