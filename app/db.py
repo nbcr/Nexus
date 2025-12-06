@@ -12,7 +12,7 @@ DATABASE_URL = os.getenv(
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=True,
+    echo=False,
     poolclass=AsyncAdaptedQueuePool,
     pool_size=20,
     max_overflow=40,
@@ -37,3 +37,5 @@ async def get_db():
         except Exception as e:
             await session.rollback()
             raise e
+        finally:
+            await session.close()
