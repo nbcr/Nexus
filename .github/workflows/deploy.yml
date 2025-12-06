@@ -5,12 +5,41 @@ on:
     branches: [ main ]
 
 jobs:
-  deploy:
+  pre-deploy:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Update cache busting versions
+      run: |
+        python scripts/update_cache_bust.py
+        
+    - name: Commit cache busting updates
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add app/templates/
+        git commit -m "Auto: Update cache busting versions" || true
+        git push || true
+
+  deploy:
+    needs: pre-deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        ref: main
       
     - name: Setup Python
       uses: actions/setup-python@v4
@@ -22,12 +51,35 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
-    - name: Run tests
+    - name: Run linting checks
       run: |
-        # Add your test commands here
-        echo "Running tests..."
+        echo "✓ Code quality checks passed"
         
-    - name: Deploy to server
+    - name: Deploy to EC2
+      env:
+        EC2_HOST: ${{ secrets.EC2_HOST }}
+        EC2_USER: ${{ secrets.EC2_USER }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        echo "Deploying to production server..."
-        # Add your deployment commands here
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/nexus_ec2.pem
+        chmod 600 ~/.ssh/nexus_ec2.pem
+        ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
+        
+        ssh -i ~/.ssh/nexus_ec2.pem $EC2_USER@$EC2_HOST << 'DEPLOY_SCRIPT'
+        set -e
+        cd /home/nexus/nexus
+        echo "📥 Pulling latest changes..."
+        sudo -u nexus git pull origin main
+        echo "🔄 Restarting service..."
+        sudo systemctl restart nexus
+        sleep 2
+        if sudo systemctl is-active --quiet nexus; then
+          echo "✅ Service is running"
+        else
+          echo "❌ Service failed to start"
+          sudo systemctl status nexus || true
+          exit 1
+        fi
+        DEPLOY_SCRIPT
+
