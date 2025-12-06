@@ -146,7 +146,7 @@ class FeedUtils {
     static isNewsArticle(item) {
         if (FeedUtils.isSearchQuery(item)) return false;
         const type = item.content_type;
-        return !type || ['news', 'news_update', 'trending_analysis'].includes(type);
+        return !type || ['news', 'news_update'].includes(type);
     }
 }
 
