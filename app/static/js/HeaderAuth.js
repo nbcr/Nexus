@@ -36,6 +36,15 @@ async function checkAuthStatus() {
                 welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
                 welcomeEl.style.display = 'inline';
             }
+            
+            // Show admin link if user is admin
+            if (currentUser.is_admin) {
+                const adminLink = document.getElementById('admin-link');
+                if (adminLink) {
+                    adminLink.style.display = 'flex';
+                }
+            }
+            
             if (authBtn) {
                 const label = authBtn.querySelector('.menu-label');
                 const icon = authBtn.querySelector('.menu-icon');
