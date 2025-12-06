@@ -442,20 +442,50 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
     if not content:
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
-    # Validate source URL
-    source_url = _get_source_url(content)
-    if not source_url:
-        raise HTTPException(status_code=404, detail="No source URL available")
+    # Check if we have valid cached content
+    if (
+        content.content_text
+        and len(content.content_text) > 100
+        and not content.content_text.startswith("Trending topic")
+    ):
+        # Use cached content - construct response from database
+        article_data = {
+            "title": content.title,
+            "content": content.content_text,
+            "author": (
+                content.source_metadata.get("author")
+                if content.source_metadata
+                else None
+            ),
+            "published_date": (
+                content.source_metadata.get("published_date")
+                if content.source_metadata
+                else None
+            ),
+            "image_url": (
+                content.source_metadata.get("picture_url")
+                if content.source_metadata
+                else None
+            ),
+            "domain": (
+                content.source_urls[0].split("/")[2] if content.source_urls else None
+            ),
+        }
+    else:
+        # Need to scrape - validate source URL
+        source_url = _get_source_url(content)
+        if not source_url:
+            raise HTTPException(status_code=404, detail="No source URL available")
 
-    # Scrape appropriate content based on URL type
-    article_data = await _fetch_article_by_type(source_url)
-    if not article_data:
-        raise HTTPException(
-            status_code=404, detail="Unable to fetch content from source"
-        )
+        # Scrape appropriate content based on URL type
+        article_data = await _fetch_article_by_type(source_url)
+        if not article_data:
+            raise HTTPException(
+                status_code=404, detail="Unable to fetch content from source"
+            )
 
-    # Save scraped content
-    await _save_scraped_content(content, article_data, content_id, db)
+        # Save scraped content
+        await _save_scraped_content(content, article_data, content_id, db)
 
     # Find related content items
     try:
