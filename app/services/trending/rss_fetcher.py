@@ -3,6 +3,8 @@
 import asyncio
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta, timezone
+import re
+from html import unescape
 
 from app.utils.async_rss_parser import get_async_rss_parser
 
@@ -49,6 +51,18 @@ class RSSFetcher:
         self.categorizer = categorizer
         self.feeds_file = feeds_file
         self.rss_feeds = self._load_feeds_from_file()
+
+    def _clean_html_description(self, description: str) -> str:
+        """Remove HTML tags and decode entities from RSS description."""
+        if not description:
+            return ""
+        # Remove HTML tags
+        clean = re.sub(r"<[^>]+>", "", description)
+        # Decode HTML entities
+        clean = unescape(clean)
+        # Remove extra whitespace
+        clean = re.sub(r"\s+", " ", clean).strip()
+        return clean
 
     def _load_feeds_from_file(self) -> Dict:
         """Load RSS feeds from plaintext file"""
@@ -238,10 +252,13 @@ class RSSFetcher:
         if category == "General" and category_hint:
             category = category_hint
 
+        # Clean HTML from description
+        clean_description = self._clean_html_description(description)
+
         return {
             "title": title,
             "original_query": title,
-            "description": description[:500] if description else "",
+            "description": clean_description[:500] if clean_description else "",
             "url": url,
             "source": source,
             "image_url": image_url,
@@ -296,10 +313,13 @@ class RSSFetcher:
                         image_url = enc.get("href")
                         break
 
+        # Clean HTML from snippet
+        clean_snippet = self._clean_html_description(description)
+
         news_items = [
             {
                 "title": title,
-                "snippet": description[:200] if description else "",
+                "snippet": clean_snippet[:200] if clean_snippet else "",
                 "url": url,
                 "picture": image_url,
                 "source": source_name,
