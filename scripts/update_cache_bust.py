@@ -9,8 +9,47 @@ import os
 import re
 import hashlib
 import json
+import logging
 from pathlib import Path
 from datetime import datetime
+
+
+# Configure logging
+def setup_logging():
+    """Set up logging to both file and console."""
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+
+    log_file = os.path.join(log_dir, "cache_bust.log")
+
+    # Create logger
+    logger = logging.getLogger("cache_bust")
+    logger.setLevel(logging.INFO)
+
+    # Remove existing handlers
+    logger.handlers.clear()
+
+    # File handler
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_formatter = logging.Formatter(
+        "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    file_handler.setFormatter(file_formatter)
+
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_formatter = logging.Formatter("%(message)s")
+    console_handler.setFormatter(console_formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return logger
+
+
+logger = setup_logging()
 
 
 def get_file_hash(filepath: str) -> str:
@@ -46,6 +85,7 @@ def save_file_hashes(hashes_file: str, hashes: dict) -> None:
 
 def check_for_changes(static_dir: str, hashes_file: str) -> dict:
     """Check which files have changed since last run."""
+    logger.info("Checking for file changes...")
     old_hashes = load_file_hashes(hashes_file)
     new_hashes = {}
     changed_files = {}
@@ -63,6 +103,7 @@ def check_for_changes(static_dir: str, hashes_file: str) -> dict:
             # Check if changed
             if relpath not in old_hashes or old_hashes[relpath] != current_hash:
                 changed_files[relpath] = current_hash
+                logger.info(f"  Changed: {relpath}")
 
     # Save new hashes
     save_file_hashes(hashes_file, new_hashes)
@@ -80,11 +121,11 @@ def update_template_versions(
 ) -> None:
     """Update version strings in template files."""
     if not changed_files:
-        print("✓ No file changes detected, skipping template updates")
+        logger.info("✓ No file changes detected, skipping template updates")
         return
 
-    print(f"📝 Detected {len(changed_files)} changed file(s)")
-    print(f"🔄 Updating version to: {new_version}")
+    logger.info(f"📝 Detected {len(changed_files)} changed file(s)")
+    logger.info(f"🔄 Updating version to: {new_version}")
 
     # Group changed files by type
     css_files = {f for f in changed_files if f.endswith(".css")}
@@ -152,16 +193,16 @@ def update_template_versions(
             if content != original_content:
                 with open(template_path, "w", encoding="utf-8") as f:
                     f.write(content)
-                print(f"  ✓ Updated {os.path.basename(template_path)}")
+                logger.info(f"  ✓ Updated {os.path.basename(template_path)}")
                 updated_count += 1
 
         except Exception as e:
-            print(f"  ✗ Error updating {template_path}: {e}")
+            logger.error(f"  ✗ Error updating {template_path}: {e}")
 
     if updated_count > 0:
-        print(f"✅ Updated {updated_count} template file(s)")
+        logger.info(f"✅ Updated {updated_count} template file(s)")
     else:
-        print("ℹ️ No templates needed updating")
+        logger.info("ℹ️ No templates needed updating")
 
 
 def main():
@@ -173,10 +214,10 @@ def main():
     templates_dir = os.path.join(project_root, "app", "templates")
     hashes_file = os.path.join(script_dir, ".cache_bust_hashes.json")
 
-    print("🔍 Cache Busting Update Check")
-    print(f"📂 Static directory: {static_dir}")
-    print(f"📂 Templates directory: {templates_dir}")
-    print()
+    logger.info("🔍 Cache Busting Update Check")
+    logger.info(f"📂 Static directory: {static_dir}")
+    logger.info(f"📂 Templates directory: {templates_dir}")
+    logger.info("")
 
     # Check for changes
     changed_files = check_for_changes(static_dir, hashes_file)
@@ -185,9 +226,9 @@ def main():
     if changed_files:
         new_version = get_version_string()
         update_template_versions(templates_dir, changed_files, new_version)
-        print("\n✨ Cache busting update complete!")
+        logger.info("\n✨ Cache busting update complete!")
     else:
-        print("✓ No changes detected")
+        logger.info("✓ No changes detected")
 
 
 if __name__ == "__main__":
