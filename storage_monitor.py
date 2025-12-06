@@ -54,35 +54,33 @@ def get_disk_usage() -> Dict[str, Any]:
 
 def get_db_stats() -> Dict[str, Any]:
     """Get database statistics"""
-    size_output = run_command(
-        "sudo -u postgres psql -d nexus -t -c 'SELECT pg_size_pretty(pg_database_size(current_database()));'"
-    )
-    count_output = run_command(
-        "sudo -u postgres psql -d nexus -t -c 'SELECT COUNT(*) FROM content_items;'"
-    )
+    # Use bash wrapper to handle quoting
+    db_output = run_command("bash /home/nexus/nexus/get_db_stats.sh")
+    lines = db_output.strip().split("\n") if db_output else []
+
+    size_display = lines[0].strip() if len(lines) > 0 else ""
+    item_count = 0
+    if len(lines) > 1:
+        try:
+            item_count = int(lines[1].strip())
+        except:
+            pass
 
     # Parse size (e.g., "65 MB" -> bytes)
     size_bytes = 0
-    if size_output:
+    if size_display:
         try:
-            value, unit = size_output.strip().split()
+            value, unit = size_display.split()
             value = float(value)
             unit_map = {"B": 1, "kB": 1024, "MB": 1024**2, "GB": 1024**3}
             size_bytes = int(value * unit_map.get(unit, 1))
         except:
             pass
 
-    item_count = 0
-    if count_output:
-        try:
-            item_count = int(count_output.strip())
-        except:
-            pass
-
     return {
         "size_bytes": size_bytes,
         "item_count": item_count,
-        "size_display": size_output,
+        "size_display": size_display,
     }
 
 
