@@ -177,7 +177,7 @@ class FeedRenderer {
                                    || !article.dataset.snippetLoaded;
             
             if (needsFullContent && item.content_text && item.content_text.length > 100) {
-                // Display full facts content from database
+                // Display condensed facts from database
                 const paragraphs = item.content_text.split('\n\n');
                 const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
                 summaryEl.innerHTML = factsHtml;
