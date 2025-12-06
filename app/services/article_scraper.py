@@ -144,7 +144,7 @@ class ArticleScraperService:
                     print("ℹ️ Returning article with limited content")
                     # Set a message indicating content couldn't be extracted
                     article_data["content"] = (
-                        "Unable to extract full article content. Please visit the source site to read the full article."
+                        "Unable to extract facts. Please visit the source site to read the full article."
                     )
                     article_data["is_excerpt"] = False
                     article_data["full_article_available"] = False

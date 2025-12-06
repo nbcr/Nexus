@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
@@ -237,7 +239,7 @@ async def _scrape_and_store_article(
     content: ContentItem, source_url: str, db: AsyncSession
 ) -> Optional[str]:
     """Scrape article and persist to database. Returns snippet or None."""
-    article_data = await article_scraper.fetch_article(source_url)
+    article_data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
     if not article_data or not article_data.get("content"):
         return None
 
@@ -369,9 +371,9 @@ def _is_search_url(url: str) -> bool:
 async def _fetch_article_by_type(source_url: str) -> dict:
     """Fetch article content based on URL type (search vs regular article)."""
     if _is_search_url(source_url):
-        return await article_scraper.fetch_search_context(source_url)
+        return await asyncio.to_thread(article_scraper.fetch_search_context, source_url)
     else:
-        return await article_scraper.fetch_article(source_url)
+        return await asyncio.to_thread(article_scraper.fetch_article, source_url)
 
 
 async def _save_scraped_content(
@@ -492,9 +494,11 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     )
     try:
         if is_search_url:
-            data = await article_scraper.fetch_search_context(source_url)
+            data = await asyncio.to_thread(
+                article_scraper.fetch_search_context, source_url
+            )
         else:
-            data = await article_scraper.fetch_article(source_url)
+            data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
         if data and data.get("image_url"):
             if not content.source_metadata:
                 content.source_metadata = {}

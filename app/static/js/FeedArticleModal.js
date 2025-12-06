@@ -72,7 +72,7 @@ class FeedArticleModal {
             const article = await this.api.fetchArticle(item.content_id);
 
             // Check if this is a fallback response (content extraction failed)
-            const isFallback = article.content && article.content.includes('Unable to extract full article content');
+            const isFallback = article.content && article.content.includes('Unable to extract facts');
 
             if (isFallback) {
                 // Show error view with source link

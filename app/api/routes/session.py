@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
+from pydantic import BaseModel
 
 from app.db import AsyncSessionLocal, get_db
 from app.services.session_service import (
@@ -9,34 +10,64 @@ from app.services.session_service import (
     track_content_interaction,
     get_session_history,
     migrate_session_to_user,
-    # Add a stub for interest tracking if not present
 )
 
+# Single router instance for all session routes
 router = APIRouter()
 
 
-@router.post("/track-interest/{content_id}")
+class InterestEvent(BaseModel):
+    content_id: int
+    interest_score: Optional[int] = None
+    hover_duration_ms: Optional[int] = None
+    movement_detected: Optional[bool] = None
+    slowdowns_detected: Optional[int] = None
+    clicks_detected: Optional[int] = None
+    was_afk: Optional[bool] = None
+    trigger: Optional[str] = None
+    timestamp: Optional[str] = None
+
+
+@router.post("/track-interest")
 async def track_content_interest(
-    content_id: int, request: Request, db: AsyncSession = Depends(get_db)
+    interest: InterestEvent,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
 ):
     """Track when a user shows interest in content (e.g., hover/click)"""
-    session_token = get_session_token(request)
-    visitor_id = request.cookies.get("visitor_id")
-    # Debug logging for backend troubleshooting
     import logging
 
+    session_token = get_session_token(request)
+    visitor_id = request.cookies.get("visitor_id")
+
+    # Persist the session token for subsequent requests
+    if not request.cookies.get("nexus_session"):
+        response.set_cookie(
+            "nexus_session",
+            session_token,
+            max_age=60 * 60 * 24 * 30,
+            httponly=False,
+            samesite="lax",
+        )
+
     logging.debug(
-        f"[track-interest] visitor_id={visitor_id}, session_token={session_token}, content_id={content_id}"
+        f"[track-interest] visitor_id={visitor_id}, session_token={session_token}, content_id={interest.content_id}"
     )
+
     try:
         await track_content_interaction(
-            db, session_token, content_id, interaction_type="interest"
+            db,
+            session_token,
+            interest.content_id,
+            interaction_type="interest",
+            metadata=interest.model_dump(exclude_none=True),
         )
         return {
             "status": "tracked",
             "session_token": session_token,
             "visitor_id": visitor_id,
-            "content_id": content_id,
+            "content_id": interest.content_id,
         }
     except Exception as e:
         logging.error(f"[track-interest] Error: {str(e)}")
@@ -45,18 +76,7 @@ async def track_content_interest(
         )
 
 
-from app.schemas import ContentWithTopic
-
-router = APIRouter()
-
-
-# Dependency
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+# Note: get_db imported from app.db is reused across routes
 
 
 def get_session_token(request: Request):
@@ -81,10 +101,23 @@ def get_session_token(request: Request):
 
 @router.post("/track-view/{content_id}")
 async def track_content_view(
-    content_id: int, request: Request, db: AsyncSession = Depends(get_db)
+    content_id: int,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
 ):
     """Track when a user views content"""
     session_token = get_session_token(request)
+
+    # Ensure the session token is persisted for subsequent calls
+    if not request.cookies.get("nexus_session"):
+        response.set_cookie(
+            "nexus_session",
+            session_token,
+            max_age=60 * 60 * 24 * 30,
+            httponly=False,
+            samesite="lax",
+        )
 
     try:
         await track_content_interaction(

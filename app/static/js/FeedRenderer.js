@@ -32,7 +32,7 @@ class FeedRenderer {
         let readMoreButton = '';
         if (isNewsArticle) {
             readMoreButton = `<button class="btn-read-more" data-content-id="${item.content_id}">
-                                Read Facts
+                                Visit site for full story
                             </button>`;
         } else if (isSearchQuery) {
             readMoreButton = `<button class="btn-read-more" data-content-id="${item.content_id}">
@@ -64,12 +64,6 @@ class FeedRenderer {
                     ${summaryHtml}
                     <div class="feed-item-actions">
                         ${readMoreButton}
-                        ${item.source_urls && item.source_urls.length > 0 ? `
-                            <a href="${item.source_urls[0]}" target="_blank" rel="noopener" 
-                               class="btn-source">
-                                ${FeedUtils.getSourceButtonText(item)}
-                            </a>
-                        ` : ''}
                         <span class="feed-item-time">${FeedUtils.formatTime(item.created_at)}</span>
                     </div>
                     ${item.tags && item.tags.length > 0 ? `
@@ -236,6 +230,18 @@ class FeedRenderer {
     }
 
     setupCardImage(article, item) {
+        // Add click handler to image to toggle card open/close
+        const imageEl = article.querySelector('.feed-item-image');
+        if (imageEl) {
+            imageEl.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wasExpanded = article.classList.contains('expanded');
+                article.classList.toggle('expanded');
+                if (!wasExpanded && !article.dataset.snippetLoaded) {
+                    this.loadSnippet(article, item).catch(err => console.error('Error loading snippet:', err));
+                }
+            });
+        }
         // Always try to fetch a thumbnail if not present
         if (!item.thumbnail_url && !item.source_metadata?.picture_url) {
             (async () => {
