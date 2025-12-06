@@ -3,10 +3,55 @@
 # category_hint: Optional fallback category used only when auto-categorization returns "General"
 # Lines starting with # are comments
 
-# DISABLED: Google Trends RSS only has search terms without real content
-# google_trends|https://trends.google.com/trending/rss?geo=CA|None|high
-cbc_top|https://www.cbc.ca/cmlink/rss-topstories|None|high
-global_news|https://globalnews.ca/feed/|None|high
-tsn|https://www.tsn.ca/rss|Sports|medium
-betakit|https://betakit.com/feed/|Technology|medium
-nhl|https://www.nhl.com/news/rss|Sports|medium
+
+google_news_ca|https://news.google.com/rss?hl=en-CA&gl=CA&ceid=CA:en|News|low
+ctv_news|https://www.ctvnews.ca/rss/ctvnews-ca-top-stories-1.822977|News|low
+national_post|https://nationalpost.com/feed/|News|low
+toronto_star|https://www.thestar.com/rss.html|News|low
+globe_and_mail|https://www.theglobeandmail.com/arc/outboundfeeds/rss/|News|low
+cbc_world|https://www.cbc.ca/cmlink/rss-world|News|low
+bbc_world|https://feeds.bbci.co.uk/news/world/rss.xml|News|low
+reuters_top|https://www.reutersagency.com/feed/?best-topics=world&post_type=best|News|low
+ap_top|https://feeds.feedburner.com/AssociatedPressTopNews|News|low
+al_jazeera|https://www.aljazeera.com/xml/rss/all.xml|News|low
+the_guardian|https://www.theguardian.com/world/rss|News|low
+nytimes_world|https://rss.nytimes.com/services/xml/rss/nyt/World.xml|News|low
+washington_post|https://feeds.washingtonpost.com/rss/world|News|low
+financial_times|https://www.ft.com/rss|Business|low
+bloomberg|https://feeds.bloomberg.com/news/feeds/sitewide.xml|Business|low
+cnbc|https://www.cnbc.com/id/100003114/device/rss/rss.html|Business|low
+techcrunch|https://techcrunch.com/feed/|Technology|low
+the_verge|https://www.theverge.com/rss/index.xml|Technology|low
+wired|https://www.wired.com/feed/rss|Technology|low
+arstechnica|https://arstechnica.com/rss|Technology|low
+engadget|https://www.engadget.com/rss.xml|Technology|low
+gizmodo|https://gizmodo.com/rss|Technology|low
+hacker_news|https://news.ycombinator.com/rss|Technology|low
+nasa|https://www.nasa.gov/rss/dyn/breaking_news.rss|Science|low
+nature|https://www.nature.com/nature.rss|Science|low
+scientific_american|https://rss.sciam.com/sciam/all|Science|low
+new_scientist|https://www.newscientist.com/feed/home?cmpid=RSS|NSNS|Science|low
+espn|https://www.espn.com/espn/rss/news|Sports|low
+sportsnet|https://www.sportsnet.ca/feed/|Sports|low
+the_athletic|https://theathletic.com/rss|Sports|low
+mlb|https://www.mlb.com/rss/news|Sports|low
+nba|https://www.nba.com/rss/nba.xml|Sports|low
+nfl|https://www.nfl.com/rss/rsslanding?contentType=news|Sports|low
+the_score|https://www.thescore.com/news/feed|Sports|low
+vice|https://www.vice.com/en/rss|Culture|low
+pitchfork|https://pitchfork.com/feed/feed-news/rss|Music|low
+billboard|https://www.billboard.com/feed/|Music|low
+rolling_stone|https://www.rollingstone.com/feed/|Music|low
+variety|https://variety.com/feed/|Entertainment|low
+hollywood_reporter|https://www.hollywoodreporter.com/feed/|Entertainment|low
+tmz|https://www.tmz.com/rss.xml|Entertainment|low
+reddit_worldnews|https://www.reddit.com/r/worldnews/.rss|News|low
+reddit_technology|https://www.reddit.com/r/technology/.rss|Technology|low
+cnn_top|https://rss.cnn.com/rss/cnn_topstories.rss|News|low
+fox_news|https://moxie.foxnews.com/feedburner/latest.xml|News|low
+politico|https://www.politico.com/rss/politicopicks.xml|Politics|low
+the_economist|https://www.economist.com/rss|Business|low
+wall_street_journal|https://feeds.wsj.com/wsj/xml/rss|Business|low
+macrumors|https://www.macrumors.com/macrumors.xml|Technology|low
+android_central|https://www.androidcentral.com/feed|Technology|low
+space|https://www.space.com/feeds/all|Science|low
