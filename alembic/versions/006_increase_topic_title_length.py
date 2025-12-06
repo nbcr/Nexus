@@ -18,11 +18,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Drop the unique constraints first
-    op.drop_constraint("topics_title_key", "topics", type_="unique")
-    op.drop_constraint("topics_normalized_title_key", "topics", type_="unique")
-
-    # Alter the columns
+    # Alter the columns to increase varchar length
     op.alter_column(
         "topics",
         "title",
@@ -36,21 +32,11 @@ def upgrade() -> None:
         existing_type=sa.String(200),
         type_=sa.String(500),
         existing_nullable=False,
-    )
-
-    # Recreate the unique constraints
-    op.create_unique_constraint("topics_title_key", "topics", ["title"])
-    op.create_unique_constraint(
-        "topics_normalized_title_key", "topics", ["normalized_title"]
     )
 
 
 def downgrade() -> None:
-    # Drop the unique constraints
-    op.drop_constraint("topics_title_key", "topics", type_="unique")
-    op.drop_constraint("topics_normalized_title_key", "topics", type_="unique")
-
-    # Alter the columns back
+    # Alter the columns back to original size
     op.alter_column(
         "topics",
         "title",
@@ -64,10 +50,4 @@ def downgrade() -> None:
         existing_type=sa.String(500),
         type_=sa.String(200),
         existing_nullable=False,
-    )
-
-    # Recreate the unique constraints
-    op.create_unique_constraint("topics_title_key", "topics", ["title"])
-    op.create_unique_constraint(
-        "topics_normalized_title_key", "topics", ["normalized_title"]
     )
