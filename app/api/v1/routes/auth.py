@@ -372,15 +372,6 @@ async def forgot_password(
     request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)
 ):
     """Send password reset email to user"""
-    import logging
-
-    logger = logging.getLogger(__name__)
-
-    # Direct write to ensure we see this
-    with open("/tmp/forgot_password_debug.log", "a") as f:
-        f.write(f"[ENDPOINT-START] Forgot password endpoint called\n")
-        f.flush()
-
     username_or_email = request.username_or_email.strip()
 
     if not username_or_email:
@@ -419,34 +410,15 @@ async def forgot_password(
     """
 
     try:
-        # Direct file write for debugging
-        with open("/tmp/forgot_password_debug.log", "a") as f:
-            f.write(
-                f"[{datetime.utcnow()}] Attempting to send reset email to {user.email}\n"
-            )
-            f.flush()
-
-        logger.info(f"[FORGOT-PASSWORD] Attempting to send reset email to {user.email}")
         result = await asyncio.to_thread(
             email_service.send_email,
             recipient=user.email,
             subject=subject,
             body_html=html_content,
         )
-        with open("/tmp/forgot_password_debug.log", "a") as f:
-            f.write(f"[{datetime.utcnow()}] Email send result: {result}\n")
-            f.flush()
-        logger.info(f"[FORGOT-PASSWORD] Email send result: {result}")
-    except Exception as e:
-        with open("/tmp/forgot_password_debug.log", "a") as f:
-            f.write(
-                f"[{datetime.utcnow()}] Failed to send email to {user.email}: {type(e).__name__}: {e}\n"
-            )
-            f.flush()
-        logger.error(
-            f"[FORGOT-PASSWORD] Failed to send email to {user.email}: {type(e).__name__}: {e}"
-        )
+    except Exception:
         # Still return success message for security
+        pass
 
     return {"detail": "If account exists, reset link sent to email"}
 
