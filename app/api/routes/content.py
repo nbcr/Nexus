@@ -388,7 +388,7 @@ async def _save_scraped_content(
 ) -> None:
     """Save scraped content back to database for future use."""
     try:
-        content.content_text = article_data.get("content", "")[:10000]
+        content.content_text = article_data.get("content", "")
 
         # Update title if better one was scraped
         if article_data.get("title") and len(article_data["title"]) > len(
