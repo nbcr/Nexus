@@ -19,7 +19,7 @@ class UserInteraction(Base):
     content_item_id = Column(Integer, ForeignKey("content_items.id"))
     interaction_type = Column(String(50))
     duration_seconds = Column(Integer, default=0)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
 
     user = relationship("User", back_populates="interactions")
     session = relationship("UserSession", back_populates="interactions")
@@ -38,6 +38,8 @@ class UserInterestProfile(Base):
     avatar_url = Column(String(255), nullable=True)
     social_links = Column(JSON, default=dict)
     expertise = Column(JSON, default=list)
-    last_updated = Column(DateTime, default=func.now(), onupdate=func.now())
+    last_updated = Column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
 
     user = relationship("User", back_populates="interest_profile")

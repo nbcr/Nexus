@@ -37,9 +37,9 @@ class UserSession(Base):
         Integer, ForeignKey("users.id"), nullable=True
     )  # NULL for anonymous
     session_token = Column(String(255), unique=True, index=True)
-    created_at = Column(DateTime, default=func.now())
-    expires_at = Column(DateTime)
-    last_activity = Column(DateTime, default=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    expires_at = Column(DateTime(timezone=True))
+    last_activity = Column(DateTime(timezone=True), default=func.now())
 
     user = relationship("User", back_populates="sessions")
     interactions = relationship("UserInteraction", back_populates="session")
@@ -64,7 +64,7 @@ class ContentViewHistory(Base):
         String(255), nullable=False, index=True
     )  # Denormalized for quick lookup
     view_type = Column(String(50), nullable=False)  # 'seen', 'clicked', 'read'
-    viewed_at = Column(DateTime, default=func.now(), nullable=False)
+    viewed_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
     time_spent_seconds = Column(
         Integer, nullable=True
     )  # Optional: track engagement time
@@ -80,7 +80,13 @@ class BrevoEmailEvent(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(100), index=True, nullable=False)
-    event_type = Column(String(50), nullable=False)  # 'invalid_email', 'bounce', 'complaint', 'unsubscribe', etc.
-    event_data = Column(String(1000), nullable=True)  # Store full event JSON for debugging
+    event_type = Column(
+        String(50), nullable=False
+    )  # 'invalid_email', 'bounce', 'complaint', 'unsubscribe', etc.
+    event_data = Column(
+        String(1000), nullable=True
+    )  # Store full event JSON for debugging
     received_at = Column(DateTime, default=func.now(), nullable=False)
-    checked_at = Column(DateTime, nullable=True)  # When the registration page last checked
+    checked_at = Column(
+        DateTime, nullable=True
+    )  # When the registration page last checked
