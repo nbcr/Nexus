@@ -44,41 +44,68 @@ class FeedFailureTracker:
 class RSSFetcher:
     """Fetches and processes RSS feeds for trending content"""
 
-    def __init__(self, categorizer):
+    def __init__(self, categorizer, feeds_file: str = "rss_feeds.txt"):
         self.failure_tracker = FeedFailureTracker(max_failures=5)
         self.categorizer = categorizer
-        self.rss_feeds = {
-            "google_trends": {
-                "url": "https://trends.google.com/trending/rss?geo=CA",
-                "category_hint": None,
-                "priority": "high",
-            },
-            "cbc_top": {
-                "url": "https://www.cbc.ca/cmlink/rss-topstories",
-                "category_hint": None,
-                "priority": "high",
-            },
-            "global_news": {
-                "url": "https://globalnews.ca/feed/",
-                "category_hint": None,
-                "priority": "high",
-            },
-            "tsn": {
-                "url": "https://www.tsn.ca/rss",
-                "category_hint": "Sports",
-                "priority": "medium",
-            },
-            "betakit": {
-                "url": "https://betakit.com/feed/",
-                "category_hint": "Technology",
-                "priority": "medium",
-            },
-            "nhl": {
-                "url": "https://www.nhl.com/news/rss",
-                "category_hint": "Sports",
-                "priority": "medium",
-            },
+        self.feeds_file = feeds_file
+        self.rss_feeds = self._load_feeds_from_file()
+
+    def _load_feeds_from_file(self) -> Dict:
+        """Load RSS feeds from plaintext file"""
+        feeds = {}
+        try:
+            with open(self.feeds_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip comments and empty lines
+                    if not line or line.startswith("#"):
+                        continue
+
+                    # Parse: feed_name|url|category_hint|priority
+                    parts = line.split("|")
+                    if len(parts) == 4:
+                        feed_name, url, category_hint, priority = parts
+                        feeds[feed_name] = {
+                            "url": url,
+                            "category_hint": (
+                                None if category_hint == "None" else category_hint
+                            ),
+                            "priority": priority,
+                        }
+        except FileNotFoundError:
+            print(
+                f"⚠️ RSS feeds file not found: {self.feeds_file}, using empty feed list"
+            )
+        except Exception as e:
+            print(f"❌ Error loading RSS feeds from file: {e}")
+
+        return feeds
+
+    def add_feed(
+        self,
+        feed_name: str,
+        url: str,
+        category_hint: Optional[str] = None,
+        priority: str = "medium",
+    ) -> bool:
+        """Add a new RSS feed and save to file"""
+        # Add to in-memory dict
+        self.rss_feeds[feed_name] = {
+            "url": url,
+            "category_hint": category_hint,
+            "priority": priority,
         }
+
+        # Append to file
+        try:
+            with open(self.feeds_file, "a", encoding="utf-8") as f:
+                category_str = category_hint if category_hint else "None"
+                f.write(f"\n{feed_name}|{url}|{category_str}|{priority}")
+            print(f"✅ Added feed '{feed_name}' to {self.feeds_file}")
+            return True
+        except Exception as e:
+            print(f"❌ Error adding feed to file: {e}")
+            return False
 
     async def fetch_all_rss_feeds(self) -> List[Dict]:
         """Fetch from all configured RSS feeds in parallel with timeout"""
@@ -197,9 +224,11 @@ class RSSFetcher:
             entry, is_google_trends, source_name, title
         )
 
-        category = (
-            category_hint if category_hint else self.categorizer.extract_category(entry)
-        )
+        # Always try to categorize based on content first
+        category = self.categorizer.extract_category(entry)
+        # Only use category_hint as fallback if categorization returns "General"
+        if category == "General" and category_hint:
+            category = category_hint
 
         return {
             "title": title,

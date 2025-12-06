@@ -124,10 +124,17 @@ class TrendingPersistence:
 
         source_meta = await self._build_source_metadata(db, trend_data, title, url)
 
+        # Extract category from trend_data or categorize the title+description
+        category = trend_data.get("category")
+        if not category or category == "Trending":
+            category_text = f"{title} {trend_data.get('description', '')}"
+            category = self.categorizer.categorize_text(category_text)
+
         content_item = ContentItem(
             topic_id=topic.id,
             title=title,
             slug=slug,
+            category=category,
             content_type="trending_analysis",
             content_text=content_text,
             ai_model_used="google_trends_analyzer_v1",

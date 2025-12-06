@@ -570,10 +570,23 @@ class RSSDiscoveryService:
         # Sort by quality score
         unique_feeds.sort(key=lambda x: x["quality_score"], reverse=True)
 
-        # Filter out feeds we already have in curated list
+        # Filter out feeds we already have in curated list and rss_feeds.txt
         existing_urls = set()
         for feeds in self.CURATED_FEEDS.values():
             existing_urls.update(feeds)
+
+        # Also check rss_feeds.txt
+        try:
+            with open("rss_feeds.txt", "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    parts = line.split("|")
+                    if len(parts) >= 2:
+                        existing_urls.add(parts[1])
+        except FileNotFoundError:
+            pass
 
         new_feeds = [f for f in unique_feeds if f["url"] not in existing_urls]
 
