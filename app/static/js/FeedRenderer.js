@@ -108,7 +108,7 @@ class FeedRenderer {
         </div>`;
         } else {
             return `<div class="feed-item-image">
-            <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="filter:grayscale(1);opacity:0.5;">
+            <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="opacity:0.5;">
         </div>`;
         }
     }
