@@ -55,10 +55,10 @@ def get_disk_usage() -> Dict[str, Any]:
 def get_db_stats() -> Dict[str, Any]:
     """Get database statistics"""
     size_output = run_command(
-        'sudo -u postgres psql -d nexus -t -c \'SELECT pg_size_pretty(pg_database_size("""nexus"""))\''
+        "sudo -u postgres psql -d nexus -t -c 'SELECT pg_size_pretty(pg_database_size(current_database()));'"
     )
     count_output = run_command(
-        "sudo -u postgres psql -d nexus -t -c 'SELECT COUNT(*) FROM content_items'"
+        "sudo -u postgres psql -d nexus -t -c 'SELECT COUNT(*) FROM content_items;'"
     )
 
     # Parse size (e.g., "65 MB" -> bytes)
