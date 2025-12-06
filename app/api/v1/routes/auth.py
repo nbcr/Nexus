@@ -3,6 +3,7 @@ from typing import Annotated, Optional
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
+import sys
 
 from app.db import AsyncSessionLocal
 from app.schemas import Token, UserCreate, UserResponse, UserLogin, RegisterResponse
@@ -409,18 +410,23 @@ async def forgot_password(
     """
 
     try:
-        print(f"[FORGOT-PASSWORD] Attempting to send reset email to {user.email}")
-        await asyncio.to_thread(
+        sys.stderr.write(
+            f"[FORGOT-PASSWORD] Attempting to send reset email to {user.email}\n"
+        )
+        sys.stderr.flush()
+        result = await asyncio.to_thread(
             email_service.send_email,
             recipient=user.email,
             subject=subject,
             body_html=html_content,
         )
-        print(f"[FORGOT-PASSWORD] Email sent successfully to {user.email}")
+        sys.stderr.write(f"[FORGOT-PASSWORD] Email send result: {result}\n")
+        sys.stderr.flush()
     except Exception as e:
-        print(
-            f"[FORGOT-PASSWORD] Failed to send email to {user.email}: {type(e).__name__}: {e}"
+        sys.stderr.write(
+            f"[FORGOT-PASSWORD] Failed to send email to {user.email}: {type(e).__name__}: {e}\n"
         )
+        sys.stderr.flush()
         # Still return success message for security
 
     return {"detail": "If account exists, reset link sent to email"}
