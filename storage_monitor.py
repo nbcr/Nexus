@@ -54,28 +54,62 @@ def get_disk_usage() -> Dict[str, Any]:
 
 def get_db_stats() -> Dict[str, Any]:
     """Get database statistics"""
-    # Use bash wrapper to handle quoting
-    db_output = run_command("bash /home/nexus/nexus/get_db_stats.sh")
-    lines = db_output.strip().split("\n") if db_output else []
-
-    size_display = lines[0].strip() if len(lines) > 0 else ""
-    item_count = 0
-    if len(lines) > 1:
-        try:
-            item_count = int(lines[1].strip())
-        except:
-            pass
-
-    # Parse size (e.g., "65 MB" -> bytes)
+    # Query database for size and item count
     size_bytes = 0
-    if size_display:
-        try:
-            value, unit = size_display.split()
-            value = float(value)
-            unit_map = {"B": 1, "kB": 1024, "MB": 1024**2, "GB": 1024**3}
-            size_bytes = int(value * unit_map.get(unit, 1))
-        except:
-            pass
+    item_count = 0
+    size_display = ""
+
+    try:
+        # Get database size
+        size_result = subprocess.run(
+            [
+                "sudo",
+                "-u",
+                "postgres",
+                "psql",
+                "-d",
+                "nexus",
+                "-t",
+                "-c",
+                "SELECT pg_size_pretty(pg_database_size(current_database()));",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        size_display = size_result.stdout.strip() if size_result.returncode == 0 else ""
+
+        if size_display:
+            try:
+                value, unit = size_display.split()
+                value = float(value)
+                unit_map = {"B": 1, "kB": 1024, "MB": 1024**2, "GB": 1024**3}
+                size_bytes = int(value * unit_map.get(unit, 1))
+            except:
+                pass
+
+        # Get item count
+        count_result = subprocess.run(
+            [
+                "sudo",
+                "-u",
+                "postgres",
+                "psql",
+                "-d",
+                "nexus",
+                "-t",
+                "-c",
+                "SELECT COUNT(*) FROM content_items;",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if count_result.returncode == 0:
+            item_count = int(count_result.stdout.strip() or 0)
+
+    except Exception as e:
+        print(f"Warning: Could not query database: {e}")
 
     return {
         "size_bytes": size_bytes,
