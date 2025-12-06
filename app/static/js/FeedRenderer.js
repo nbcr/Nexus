@@ -20,7 +20,10 @@ class FeedRenderer {
         const imageHtml = this.buildImageHtml(item);
 
         const source = item.source_metadata?.source || 'News';
-        const rawSummary = item.content_text || item.description || '';
+        // Only show content_text if article has been scraped (has scraped_at timestamp)
+        // Otherwise it's just the RSS description which already shows in description field
+        const hasScrapedContent = item.source_metadata?.scraped_at;
+        const rawSummary = hasScrapedContent ? (item.content_text || item.description || '') : (item.description || '');
         const cleanSummary = FeedUtils.cleanSnippet(rawSummary);
         const summaryHtml = cleanSummary
             ? `<p class="feed-item-summary">${FeedUtils.truncateText(cleanSummary, 400)}</p>`
