@@ -3,9 +3,9 @@ import multiprocessing
 # Bind to localhost (Nginx will proxy)
 bind = "127.0.0.1:8000"
 
-# Worker configuration - using 1 worker to minimize memory
-# Uvicorn with async/await handles concurrent requests efficiently without multiple workers
-workers = 1
+# Worker configuration - using 2 workers for reliability
+# Uvicorn with async/await handles concurrent requests efficiently
+workers = 2
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # Logging
