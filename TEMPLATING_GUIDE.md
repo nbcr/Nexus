@@ -116,11 +116,17 @@ templates = Jinja2Templates(directory="app/templates")
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/feed.js?v=202511230700"></script>
+<script src="/static/js/FeedUtils.js?v=202512040100"></script>
+<script src="/static/js/FeedApi.js?v=202512040100"></script>
+<script src="/static/js/FeedTracking.js?v=202512060100"></script>
+<script src="/static/js/FeedObservers.js?v=202512040100"></script>
+<script src="/static/js/FeedRenderer.js?v=202512040100"></script>
+<script src="/static/js/FeedArticleModal.js?v=202512040100"></script>
+<script src="/static/js/InfiniteFeed.js?v=202512040100"></script>
 <script src="/static/js/feed-notifier.js?v=202511210700"></script>
 <script src="/static/js/history-tracker.js"></script>
 <script>
-    // Feed initialization code
+    // Feed initialization code (see index.html for full example)
 </script>
 {% endblock %}
 ```

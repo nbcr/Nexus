@@ -1108,3 +1108,7 @@ Refactored monolithic `feed.js` (~1200 lines) into 7 modular, single-responsibil
 
 ### 2025-12-06: Facts Button Detection Fix
 - Tightened search-query detection in `app/static/js/feed.js` to rely only on `content_type === 'search_query'` or category match, restoring facts buttons on news cards that were mislabelled as search context.
+
+### 2025-12-06: Remove Deprecated feed.js
+- Deleted legacy `app/static/js/feed.js` to avoid confusion; feed is now served solely via modular stack (`FeedUtils/FeedApi/FeedTracking/FeedObservers/FeedRenderer/FeedArticleModal/InfiniteFeed`).
+- Updated `TEMPLATING_GUIDE.md` to reference the modular scripts instead of the removed file.
