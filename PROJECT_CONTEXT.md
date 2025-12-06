@@ -26,12 +26,12 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 - SSH access: `admin` user via plink (PuTTY on Windows)
 - Application runs as: `nexus` user
 - Service: `nexus.service` (systemd service running gunicorn)
-- Webhook Listener: `nexus-webhook.service` (Flask app on port 5000)
-  - Location: `/home/nexus/nexus/webhook_listener.py`
-  - Listens for GitHub webhooks to automatically deploy changes
-  - Requires Flask and python-dotenv in venv
-  - Sudoers configured: nexus can restart nexus.service without password
-  - Webhook secret: Configured in `.env` file as `WEBHOOK_SECRET`
+- Deployment: GitHub Actions workflow (`.github/workflows/deploy.yml`)
+  - Triggers on push to main branch
+  - Runs cache busting update in pre-deploy job
+  - Auto-commits template changes
+  - Deploys to EC2 in deploy job
+  - No long-running webhook listener needed
 
 ### Code Structure
 
@@ -1120,3 +1120,16 @@ Refactored monolithic `feed.js` (~1200 lines) into 7 modular, single-responsibil
 ### 2025-12-06: Session Tracking Endpoint Fixes
 - Restored `/api/v1/session/track-interest` by removing a duplicate router reset and aligning the route to accept the JSON body used by the frontend (no path parameter).
 - Added `InterestEvent` payload handling and session cookie persistence for both interest and view tracking to keep session tokens consistent across requests.
+
+### 2025-12-06: Switched from Webhook Listener to GitHub Actions
+- **Removed**: webhook_listener.py - long-running Flask app listening on port 5000
+- **Removed**: 
+exus-webhook.service systemd service from EC2
+- **Replaced with**: GitHub Actions workflow (.github/workflows/deploy.yml)
+  - Pre-deploy job runs scripts/update_cache_bust.py automatically
+  - Auto-commits template changes with updated cache busting versions
+  - Deploy job pulls latest code and restarts service on EC2
+  - Required setup: GitHub Secrets for EC2_HOST, EC2_USER, SSH_PRIVATE_KEY
+- **Kept**: scripts/update_cache_bust.py - runs in GitHub Actions pipeline
+- **Benefit**: No long-running processes, cleaner architecture, full logging in GitHub Actions UI
+- **Workflow**: Push to main → GitHub Actions handles cache busting → Commits changes → Deploys to EC2 → Service running
