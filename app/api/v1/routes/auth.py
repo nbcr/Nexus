@@ -376,6 +376,11 @@ async def forgot_password(
 
     logger = logging.getLogger(__name__)
 
+    # Direct write to ensure we see this
+    with open("/tmp/forgot_password_debug.log", "a") as f:
+        f.write(f"[ENDPOINT-START] Forgot password endpoint called\n")
+        f.flush()
+
     username_or_email = request.username_or_email.strip()
 
     if not username_or_email:

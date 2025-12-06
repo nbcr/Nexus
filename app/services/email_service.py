@@ -98,7 +98,9 @@ class EmailService:
                 "subject": subject,
                 "htmlContent": body_html,
             }
+            logger.info(f"[BREVO] Sending to {recipient}, sender: {self.sender_email}")
             response = requests.post(url, headers=headers, json=data, timeout=10)
+            logger.info(f"[BREVO] Response status: {response.status_code}")
             response.raise_for_status()
 
             safe_recipient = recipient.replace("\n", "").replace("\r", "")
