@@ -453,9 +453,9 @@ async def reset_password(
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
     # Update password
-    from app.services.user_service import hash_password
+    from app.core.auth import get_password_hash
 
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = get_password_hash(new_password)
     user.password_reset_token = None
     user.password_reset_expires = None
     db.add(user)
