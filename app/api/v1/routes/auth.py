@@ -1,33 +1,5 @@
-from fastapi import APIRouter, Response
-
-router = APIRouter()
-
-
-@router.get("/debug")
-async def debug_auth_router():
-    return {"status": "auth router loaded"}
-
-
-@router.post("/logout")
-async def logout(response: Response):
-    """Logout endpoint: clears access/refresh tokens"""
-    response.delete_cookie(key="access_token", path="/")
-    response.delete_cookie(key="refresh_token", path="/")
-    return {"detail": "Logged out"}
-
-
-"""
-Authentication Router
-
-This module handles user authentication and authorization endpoints including:
-- User registration
-- User login (token generation)
-- Current user information
-
-Authentication is handled via OAuth2 with Bearer tokens.
-"""
+from fastapi import APIRouter, Response, Depends, HTTPException, status, Request
 from typing import Annotated, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, Cookie
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
@@ -53,6 +25,14 @@ router = APIRouter()
 @router.get("/debug")
 async def debug_auth_router():
     return {"status": "auth router loaded"}
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    """Logout endpoint: clears access/refresh tokens"""
+    response.delete_cookie(key="access_token", path="/")
+    response.delete_cookie(key="refresh_token", path="/")
+    return {"detail": "Logged out"}
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
