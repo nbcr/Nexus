@@ -222,6 +222,18 @@ async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 
+@app.get("/forgot-password", include_in_schema=False)
+async def forgot_password_page(request: Request):
+    """Serve forgot password page"""
+    return templates.TemplateResponse("forgot-password.html", {"request": request})
+
+
+@app.get("/reset-password", include_in_schema=False)
+async def reset_password_page(request: Request):
+    """Serve reset password page"""
+    return templates.TemplateResponse("reset-password.html", {"request": request})
+
+
 @app.get("/settings", include_in_schema=False)
 async def settings_page(request: Request):
     """Serve settings page"""

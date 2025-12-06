@@ -368,3 +368,121 @@ async def check_email_status(email: str, db: AsyncSession = Depends(get_db)):
         }
 
     return {"has_error": False, "message": None, "event_type": None}
+
+
+# === Password Reset Flow ===
+import secrets
+from datetime import datetime, timedelta
+import asyncio
+
+
+@router.post("/forgot-password")
+async def forgot_password(request: dict, db: AsyncSession = Depends(get_db)):
+    """Send password reset email to user"""
+    username_or_email = request.get("username_or_email", "").strip()
+
+    if not username_or_email:
+        raise HTTPException(status_code=400, detail="Username or email required")
+
+    # Find user by username or email
+    user = await get_user_by_username(db, username_or_email) or await get_user_by_email(
+        db, username_or_email
+    )
+
+    if not user or not user.email:
+        # Return generic message for security (don't reveal if account exists)
+        return {"detail": "If account exists, reset link sent to email"}
+
+    # Generate reset token (expires in 1 hour)
+    reset_token = secrets.token_urlsafe(32)
+    reset_expires = datetime.utcnow() + timedelta(hours=1)
+
+    # Store reset token in user record
+    user.password_reset_token = reset_token
+    user.password_reset_expires = reset_expires
+    db.add(user)
+    await db.commit()
+
+    # Send reset email
+    reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+    subject = "Nexus - Reset Your Password"
+    html_content = f"""
+    <h2>Password Reset Request</h2>
+    <p>Click the link below to reset your password. This link expires in 1 hour.</p>
+    <a href="{reset_url}" style="background: #0078d7; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;">
+        Reset Password
+    </a>
+    <p>Or copy this link: {reset_url}</p>
+    <p>If you didn't request this, you can safely ignore this email.</p>
+    """
+
+    try:
+        await asyncio.to_thread(
+            email_service.send_email,
+            to=user.email,
+            subject=subject,
+            html_content=html_content,
+        )
+    except Exception as e:
+        print(f"Failed to send reset email: {e}")
+        # Still return success message for security
+
+    return {"detail": "If account exists, reset link sent to email"}
+
+
+@router.post("/reset-password")
+async def reset_password(request: dict, db: AsyncSession = Depends(get_db)):
+    """Reset password using reset token"""
+    token = request.get("token", "").strip()
+    new_password = request.get("new_password", "").strip()
+
+    if not token or not new_password:
+        raise HTTPException(status_code=400, detail="Token and password required")
+
+    if len(new_password) < 8:
+        raise HTTPException(
+            status_code=400, detail="Password must be at least 8 characters"
+        )
+
+    # Find user with matching reset token
+    from sqlalchemy import select
+
+    stmt = select(User).where(
+        User.password_reset_token == token,
+        User.password_reset_expires > datetime.utcnow(),
+    )
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+
+    # Update password
+    from app.services.user_service import hash_password
+
+    user.hashed_password = hash_password(new_password)
+    user.password_reset_token = None
+    user.password_reset_expires = None
+    db.add(user)
+    await db.commit()
+
+    # Send confirmation email
+    subject = "Nexus - Password Reset Successful"
+    html_content = """
+    <h2>Password Changed</h2>
+    <p>Your password has been successfully reset.</p>
+    <p>You can now log in with your new password.</p>
+    <p>If you didn't make this change, please contact support immediately.</p>
+    """
+
+    try:
+        await asyncio.to_thread(
+            email_service.send_email,
+            to=user.email,
+            subject=subject,
+            html_content=html_content,
+        )
+    except Exception as e:
+        print(f"Failed to send confirmation email: {e}")
+
+    return {"detail": "Password reset successfully"}
