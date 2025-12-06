@@ -175,15 +175,16 @@ class TrendingPersistence:
 
     async def save_trends_to_database(
         self, db: AsyncSession, trends: List[Dict], google_trends_tag: str
-    ) -> List[Topic]:
-        """Save or update trends in database"""
+    ) -> tuple:
+        """Save or update trends in database. Returns (saved_topics, new_content_count)"""
         print("Starting save_trends_to_database...")
         print(f"Processing {len(trends)} trends for database storage")
         saved_topics = []
+        new_content_count = 0
 
         if not trends:
             print("Warning: No trends to save")
-            return []
+            return [], 0
 
         for trend_data in trends:
             try:
@@ -205,6 +206,7 @@ class TrendingPersistence:
                         db, trend_data, normalized_title, google_trends_tag
                     )
                     saved_topics.append(new_topic)
+                    new_content_count += 1
 
             except Exception as e:
                 print(f"❌ Error saving trend '{trend_data['title']}': {e}")
@@ -218,8 +220,10 @@ class TrendingPersistence:
                 await db.refresh(topic)
                 print(f"✅ Refreshed topic: {topic.title}")
 
-            print(f"🎯 Total trends saved/updated in database: {len(saved_topics)}")
-            return saved_topics
+            print(
+                f"🎯 Total trends saved/updated in database: {len(saved_topics)} (New: {new_content_count})"
+            )
+            return saved_topics, new_content_count
 
         except Exception as e:
             print(f"❌ Error finalizing database transaction: {e}")

@@ -41,18 +41,30 @@ class TrendingService:
         )
         return trends
 
-    async def save_trends_to_database(self, db: AsyncSession) -> List[Topic]:
-        """Fetch trends and save them to database"""
+    async def save_trends_to_database(self, db: AsyncSession) -> tuple:
+        """Fetch trends and save them to database. Returns (topics, new_content_count)"""
         trends = await self.fetch_canada_trends()
         print(f"Fetched {len(trends)} trends")
 
         if not trends:
             print("Warning: No trends fetched")
-            return []
+            return [], 0
 
-        return await self.persistence.save_trends_to_database(
+        topics, new_content_count = await self.persistence.save_trends_to_database(
             db, trends, self.GOOGLE_TRENDS_TAG
         )
+
+        # Trigger WebSocket notification if new content was created
+        if new_content_count > 0:
+            try:
+                from app.api.v1.routes.websocket import notify_new_content
+
+                await notify_new_content(count=new_content_count)
+                print(f"📢 Notified clients of {new_content_count} new items")
+            except Exception as e:
+                print(f"⚠️ Failed to notify clients: {e}")
+
+        return topics, new_content_count
 
     async def update_topic_news_items(
         self, db: AsyncSession, topic_id: int, news_items: List[Dict]
