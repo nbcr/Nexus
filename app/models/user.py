@@ -17,9 +17,11 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     debug_mode = Column(Boolean, default=False)
     must_reset_password = Column(Boolean, default=False)
-    last_login = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    last_login = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
 
     sessions = relationship("UserSession", back_populates="user")
     interactions = relationship("UserInteraction", back_populates="user")
@@ -86,7 +88,7 @@ class BrevoEmailEvent(Base):
     event_data = Column(
         String(1000), nullable=True
     )  # Store full event JSON for debugging
-    received_at = Column(DateTime, default=func.now(), nullable=False)
+    received_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
     checked_at = Column(
-        DateTime, nullable=True
+        DateTime(timezone=True), nullable=True
     )  # When the registration page last checked

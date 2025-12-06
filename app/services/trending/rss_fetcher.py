@@ -2,7 +2,7 @@
 
 import asyncio
 from typing import List, Dict, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.utils.async_rss_parser import get_async_rss_parser
 
@@ -14,7 +14,7 @@ class FeedFailureTracker:
         self.failures = {}  # feed_name -> failure_count
         self.disabled_feeds = set()
         self.max_failures = max_failures
-        self.last_reset = datetime.now()
+        self.last_reset = datetime.now(timezone.utc)
 
     def record_failure(self, feed_name: str):
         """Record a failure for a feed"""
@@ -34,11 +34,11 @@ class FeedFailureTracker:
 
     def reset_if_needed(self):
         """Reset failure tracking once per day"""
-        if datetime.now() - self.last_reset > timedelta(days=1):
+        if datetime.now(timezone.utc) - self.last_reset > timedelta(days=1):
             print("🔄 Resetting feed failure tracking")
             self.failures.clear()
             self.disabled_feeds.clear()
-            self.last_reset = datetime.now()
+            self.last_reset = datetime.now(timezone.utc)
 
 
 class RSSFetcher:

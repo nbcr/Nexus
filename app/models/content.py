@@ -33,8 +33,10 @@ class ContentItem(Base):
     source_urls = Column(JSON, default=list)
     source_metadata = Column(JSON, default=dict)
     is_published = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
 
     topic = relationship("Topic", back_populates="content_items")
     interactions = relationship("UserInteraction", back_populates="content_item")
