@@ -170,22 +170,13 @@ class FeedRenderer {
         if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
             summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
             try {
-                const data = await this.api.fetchSnippet(item.content_id);
-                if (data.rate_limited) {
-                    summaryEl.innerHTML = `<div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin: 10px 0;">
-                        <p style="margin: 0; color: #856404; font-size: 16px;">😅 ${data.message}</p>
-                    </div>`;
-                    article.dataset.snippetLoaded = 'rate-limited';
-                } else if (data.snippet) {
-                    const sanitizedSnippet = FeedUtils.cleanSnippet(data.snippet);
-                    if (sanitizedSnippet) {
-                        const factsAvailable = data.full_content_available 
-                            ? '<p style="color: #007bff; font-size: 14px; margin-top: 10px;">✓ Facts content available</p>' 
-                            : '';
-                        summaryEl.innerHTML = `<p style="line-height: 1.8;">${sanitizedSnippet}</p>${factsAvailable}`;
-                    } else {
-                        summaryEl.innerHTML = '<em>No preview available from this source</em>';
-                    }
+                const data = await this.api.fetchArticle(item.content_id);
+                
+                if (data.content) {
+                    // Display full facts content
+                    const paragraphs = data.content.split('\n\n');
+                    const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
+                    summaryEl.innerHTML = factsHtml;
                     article.dataset.snippetLoaded = 'true';
                 } else {
                     summaryEl.innerHTML = '<em>No preview available from this source</em>';
