@@ -81,9 +81,8 @@ jobs:
         echo "🚀 Connecting to $EC2_USER@$EC2_HOST..."
         ssh -v -i ~/.ssh/nexus_ec2.pem $EC2_USER@$EC2_HOST << 'DEPLOY_SCRIPT'
         set -e
-        cd /home/nexus/nexus
         echo "📥 Pulling latest changes..."
-        sudo -u nexus git pull origin main
+        sudo -u nexus git -C /home/nexus/nexus pull origin main
         echo "🔄 Restarting service..."
         sudo systemctl restart nexus
         sleep 2
