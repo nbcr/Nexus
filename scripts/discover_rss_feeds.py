@@ -204,50 +204,39 @@ async def discover_feeds_for_category(category: str, max_feeds: int = 3) -> List
 
 
 async def get_current_feeds() -> Set[str]:
-    """Get currently configured feeds from trending_service.py"""
+    """Get currently configured feeds from rss_feeds.txt"""
+    feeds = set()
     try:
-        with open("app/services/trending_service.py", "r") as f:
-            content = f.read()
-
-        # Extract URLs from the file
-        import re
-
-        urls = re.findall(r"'url':\s*'([^']+)'", content)
-        return set(urls)
+        with open("rss_feeds.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                parts = line.split("|")
+                if len(parts) >= 2:
+                    feeds.add(parts[1])  # URL is second field
+    except FileNotFoundError:
+        print("⚠️ rss_feeds.txt not found, starting with empty feed list")
     except Exception as e:
-        print(f"Error reading current feeds: {e}")
-        return set()
+        print(f"❌ Error reading rss_feeds.txt: {e}")
+
+    return feeds
 
 
 async def add_feed_to_config(feed_url: str, category: str, feed_name: str):
-    """Add a new feed to the trending_service.py configuration"""
+    """Add a new feed to the rss_feeds.txt file"""
     try:
-        with open("app/services/trending_service.py", "r") as f:
-            content = f.read()
-
-        # Find the self.rss_feeds dictionary
-        import re
-
-        pattern = r"(self\.rss_feeds = \{[^}]+)(\s+\})"
-
-        # Create new feed entry
         feed_key = feed_name.lower().replace(" ", "_").replace(".", "_")
-        new_feed = f"""            '{feed_key}': {{
-                'url': '{feed_url}',
-                'category_hint': '{category}',
-                'priority': 'medium'
-            }},"""
+        category_str = category if category else "None"
 
-        # Insert before the closing brace
-        updated = re.sub(pattern, r"\1" + new_feed + r"\2", content)
+        # Append to rss_feeds.txt
+        with open("rss_feeds.txt", "a", encoding="utf-8") as f:
+            f.write(f"\n{feed_key}|{feed_url}|{category_str}|medium")
 
-        with open("app/services/trending_service.py", "w") as f:
-            f.write(updated)
-
-        print(f"✅ Added {feed_name} to configuration")
+        print(f"✅ Added {feed_name} to rss_feeds.txt")
         return True
     except Exception as e:
-        print(f"❌ Error adding feed to config: {e}")
+        print(f"❌ Error adding feed to rss_feeds.txt: {e}")
         return False
 
 
@@ -294,7 +283,7 @@ async def main():
 
     if new_feeds_added > 0:
         print("\n⚠️ Remember to:")
-        print("   1. Review the changes in app/services/trending_service.py")
+        print("   1. Review the changes in rss_feeds.txt")
         print("   2. Commit and push the changes")
         print("   3. Restart the service to activate new feeds")
 

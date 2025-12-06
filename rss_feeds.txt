@@ -1,0 +1,11 @@
+# Nexus RSS Feeds
+# Format: feed_name|url|category_hint|priority
+# category_hint: Optional fallback category used only when auto-categorization returns "General"
+# Lines starting with # are comments
+
+google_trends|https://trends.google.com/trending/rss?geo=CA|None|high
+cbc_top|https://www.cbc.ca/cmlink/rss-topstories|None|high
+global_news|https://globalnews.ca/feed/|None|high
+tsn|https://www.tsn.ca/rss|Sports|medium
+betakit|https://betakit.com/feed/|Technology|medium
+nhl|https://www.nhl.com/news/rss|Sports|medium
