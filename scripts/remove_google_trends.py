@@ -64,6 +64,26 @@ async def remove_google_trends_content():
             topic_count = result.scalar()
             print(f"Found {topic_count} topics with 'google trends' tag")
 
+            # Delete view history for affected content items first
+            if indirect_count > 0 or content_count > 0:
+                result = await db.execute(
+                    text(
+                        """
+                        DELETE FROM content_view_history 
+                        WHERE content_id IN (
+                            SELECT id FROM content_items 
+                            WHERE tags::jsonb ? 'google trends'
+                            OR topic_id IN (
+                                SELECT id FROM topics 
+                                WHERE tags::jsonb ? 'google trends'
+                            )
+                        )
+                    """
+                    )
+                )
+                await db.commit()
+                print(f"Deleted view history for google trends content items")
+
             # Delete content items linked to google trends topics (via topic_id)
             if indirect_count > 0 or content_count > 0:
                 result = await db.execute(
