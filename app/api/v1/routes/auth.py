@@ -372,6 +372,10 @@ async def forgot_password(
     request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)
 ):
     """Send password reset email to user"""
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     username_or_email = request.username_or_email.strip()
 
     if not username_or_email:
@@ -410,23 +414,18 @@ async def forgot_password(
     """
 
     try:
-        sys.stderr.write(
-            f"[FORGOT-PASSWORD] Attempting to send reset email to {user.email}\n"
-        )
-        sys.stderr.flush()
+        logger.info(f"[FORGOT-PASSWORD] Attempting to send reset email to {user.email}")
         result = await asyncio.to_thread(
             email_service.send_email,
             recipient=user.email,
             subject=subject,
             body_html=html_content,
         )
-        sys.stderr.write(f"[FORGOT-PASSWORD] Email send result: {result}\n")
-        sys.stderr.flush()
+        logger.info(f"[FORGOT-PASSWORD] Email send result: {result}")
     except Exception as e:
-        sys.stderr.write(
-            f"[FORGOT-PASSWORD] Failed to send email to {user.email}: {type(e).__name__}: {e}\n"
+        logger.error(
+            f"[FORGOT-PASSWORD] Failed to send email to {user.email}: {type(e).__name__}: {e}"
         )
-        sys.stderr.flush()
         # Still return success message for security
 
     return {"detail": "If account exists, reset link sent to email"}
