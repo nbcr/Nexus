@@ -14,9 +14,10 @@ engine = create_async_engine(
     DATABASE_URL,
     echo=True,
     poolclass=AsyncAdaptedQueuePool,
-    pool_size=2,
-    max_overflow=3,
+    pool_size=10,
+    max_overflow=20,
     pool_pre_ping=True,
+    pool_recycle=3600,
 )
 
 AsyncSessionLocal = async_sessionmaker(
