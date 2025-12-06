@@ -15,6 +15,7 @@ from typing import Dict, Any
 REPORT_FILE = Path("/home/nexus/nexus/storage_report.json")
 PREVIOUS_REPORT_FILE = Path("/home/nexus/nexus/storage_report_previous.json")
 DISPLAY_FILE = Path("/home/nexus/nexus/STORAGE_STATUS.txt")
+HISTORY_FILE = Path("/home/nexus/nexus/storage_history.json")
 
 # Database query
 DB_SIZE_QUERY = """SELECT pg_size_pretty(pg_database_size('nexus')) as size;"""
@@ -220,12 +221,114 @@ def save_report(report: Dict[str, Any]) -> None:
     with open(REPORT_FILE, "w") as f:
         json.dump(report, f, indent=2)
 
+    # Update history file
+    update_history(report)
+
+
+def update_history(report: Dict[str, Any]) -> None:
+    """Track historical metrics for trend analysis"""
+    history = {}
+    if HISTORY_FILE.exists():
+        try:
+            with open(HISTORY_FILE) as f:
+                history = json.load(f)
+        except:
+            pass
+
+    # Add today's data
+    today = datetime.datetime.now().date().isoformat()
+    history[today] = {
+        "timestamp": report["timestamp"],
+        "disk_used_bytes": report["disk"]["used_bytes"],
+        "db_size_bytes": report["database"]["size_bytes"],
+        "item_count": report["database"]["item_count"],
+        "disk_percent": report["disk"]["percent_used"],
+    }
+
+    # Keep only last 90 days
+    dates = sorted(history.keys())
+    if len(dates) > 90:
+        for old_date in dates[:-90]:
+            del history[old_date]
+
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history, f, indent=2)
+
+
+def calculate_statistics() -> Dict[str, Any]:
+    """Calculate min/max/avg statistics from history"""
+    stats = {
+        "daily_new_stories_min": 0,
+        "daily_new_stories_max": 0,
+        "daily_new_stories_avg": 0,
+        "daily_db_growth_min_bytes": 0,
+        "daily_db_growth_max_bytes": 0,
+        "daily_db_growth_avg_bytes": 0,
+        "stories_per_fetch_avg": 0,
+        "predicted_backup_size_mb": 0,
+        "days_tracked": 0,
+    }
+
+    if not HISTORY_FILE.exists():
+        return stats
+
+    try:
+        with open(HISTORY_FILE) as f:
+            history = json.load(f)
+    except:
+        return stats
+
+    if len(history) < 2:
+        return stats
+
+    # Calculate daily metrics
+    dates = sorted(history.keys())
+    daily_new_stories = []
+    daily_db_growth = []
+
+    for i in range(1, len(dates)):
+        prev_date = dates[i - 1]
+        curr_date = dates[i]
+
+        prev_items = history[prev_date]["item_count"]
+        curr_items = history[curr_date]["item_count"]
+        new_stories = max(0, curr_items - prev_items)
+        daily_new_stories.append(new_stories)
+
+        prev_db_size = history[prev_date]["db_size_bytes"]
+        curr_db_size = history[curr_date]["db_size_bytes"]
+        db_growth = max(0, curr_db_size - prev_db_size)
+        daily_db_growth.append(db_growth)
+
+    if daily_new_stories:
+        stats["daily_new_stories_min"] = min(daily_new_stories)
+        stats["daily_new_stories_max"] = max(daily_new_stories)
+        stats["daily_new_stories_avg"] = sum(daily_new_stories) / len(daily_new_stories)
+
+        # Stories per fetch (96 fetches per day)
+        stats["stories_per_fetch_avg"] = stats["daily_new_stories_avg"] / 96
+
+    if daily_db_growth:
+        stats["daily_db_growth_min_bytes"] = min(daily_db_growth)
+        stats["daily_db_growth_max_bytes"] = max(daily_db_growth)
+        stats["daily_db_growth_avg_bytes"] = sum(daily_db_growth) / len(daily_db_growth)
+
+        # Predict backup size (compressed SQL is typically 1-2% of database size)
+        stats["predicted_backup_size_mb"] = (
+            stats["daily_db_growth_avg_bytes"] * 0.015 / (1024 * 1024)
+        )  # 1.5% compression
+
+    stats["days_tracked"] = len(dates) - 1
+
+    return stats
+
 
 def generate_display_text(report: Dict[str, Any]) -> str:
     """Generate human-readable display text"""
     disk = report["disk"]
     db = report["database"]
     proj = report["projections"]
+    stats = calculate_statistics()
 
     lines = [
         "=" * 70,
@@ -243,6 +346,25 @@ def generate_display_text(report: Dict[str, Any]) -> str:
         f"  Items:      {db['item_count']:,} stories",
         "",
     ]
+
+    # Add statistics if we have history
+    if stats["days_tracked"] > 0:
+        lines.extend(
+            [
+                f"DAILY STATISTICS (tracked {stats['days_tracked']} days):",
+                "  New Stories Added:",
+                f"    Min:  {stats['daily_new_stories_min']:,.0f}/day",
+                f"    Avg:  {stats['daily_new_stories_avg']:,.0f}/day",
+                f"    Max:  {stats['daily_new_stories_max']:,.0f}/day",
+                "  Database Growth:",
+                f"    Min:  {format_bytes(stats['daily_db_growth_min_bytes'])}/day",
+                f"    Avg:  {format_bytes(stats['daily_db_growth_avg_bytes'])}/day",
+                f"    Max:  {format_bytes(stats['daily_db_growth_max_bytes'])}/day",
+                f"  Stories per Fetch: {stats['stories_per_fetch_avg']:.1f}",
+                f"  Predicted Daily Backup Size: {stats['predicted_backup_size_mb']:.2f}MB",
+                "",
+            ]
+        )
 
     if proj:
         lines.extend(
