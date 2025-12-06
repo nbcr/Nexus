@@ -63,6 +63,11 @@ class GlobalScrollTracker {
         }
     }
 
+    // Backward compatibility alias
+    registerTracker(hoverTracker) {
+        return this.register(hoverTracker);
+    }
+
     unregister(hoverTracker) {
         const index = this.scrollTrackers.indexOf(hoverTracker);
         if (index > -1) {
