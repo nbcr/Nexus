@@ -17,6 +17,8 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     debug_mode = Column(Boolean, default=False)
     must_reset_password = Column(Boolean, default=False)
+    password_reset_token = Column(String(255), nullable=True, unique=True)
+    password_reset_expires = Column(DateTime(timezone=True), nullable=True)
     last_login = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(

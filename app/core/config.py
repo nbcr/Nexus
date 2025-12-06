@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     api_host: str = "127.0.0.1"
     api_port: int = 8000
 
+    # Frontend
+    FRONTEND_URL: str = "http://localhost:8000"
+
     # Database
     database_url: str = "postgresql+asyncpg://localhost:5432/nexus"
     database_url_sync: str = "postgresql://localhost:5432/nexus"
