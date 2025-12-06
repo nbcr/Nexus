@@ -53,9 +53,9 @@ def log_message(message: str, level: str = "INFO"):
     """Log message to both console and file."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] [{level}] {message}"
-    
+
     print(log_entry)
-    
+
     LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_FILE, "a") as f:
         f.write(log_entry + "\n")
@@ -70,30 +70,27 @@ def get_directory_size(path: Path) -> float:
                 total += entry.stat().st_size
     except Exception as e:
         log_message(f"Error calculating size for {path}: {e}", "WARNING")
-    
-    return total / (1024 ** 3)  # Convert to GB
+
+    return total / (1024**3)  # Convert to GB
 
 
 def get_filesystem_usage() -> dict:
     """Get filesystem usage information."""
     try:
         result = subprocess.run(
-            ["df", "-B1", "/"],
-            capture_output=True,
-            text=True,
-            check=True
+            ["df", "-B1", "/"], capture_output=True, text=True, check=True
         )
         lines = result.stdout.strip().split("\n")
         fs_info = lines[1].split()
-        
+
         total_bytes = int(fs_info[1])
         used_bytes = int(fs_info[2])
         available_bytes = int(fs_info[3])
-        
+
         return {
-            "total_gb": total_bytes / (1024 ** 3),
-            "used_gb": used_bytes / (1024 ** 3),
-            "available_gb": available_bytes / (1024 ** 3),
+            "total_gb": total_bytes / (1024**3),
+            "used_gb": used_bytes / (1024**3),
+            "available_gb": available_bytes / (1024**3),
             "percent_used": (used_bytes / total_bytes) * 100,
         }
     except Exception as e:
@@ -106,46 +103,44 @@ def estimate_backup_size() -> float:
     # Get database size
     try:
         result = subprocess.run(
-            ["sudo", "-u", "nexus", "psql", "-U", "nexus", "-d", "nexus_db", "-t", "-c",
-             "SELECT pg_database.datname, pg_size_pretty(pg_database.datsize) "
-             "FROM pg_database WHERE datname = 'nexus_db';"],
+            [
+                "sudo",
+                "-u",
+                "postgres",
+                "psql",
+                "-d",
+                "nexus",
+                "-t",
+                "-c",
+                "SELECT pg_size_pretty(pg_database_size(current_database()));",
+            ],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
-        # Output format: "nexus_db | 123 MB"
+        # Output format: "123 MB"
         if result.returncode == 0 and result.stdout.strip():
-            parts = result.stdout.strip().split("|")
-            if len(parts) > 1:
-                size_str = parts[1].strip()
-                # Parse size string (e.g., "123 MB", "1.5 GB")
-                size_parts = size_str.split()
-                if len(size_parts) == 2:
-                    try:
-                        size_val = float(size_parts[0])
-                        unit = size_parts[1].upper()
-                        
-                        if "GB" in unit:
-                            return size_val
-                        elif "MB" in unit:
-                            return size_val / 1024
-                        elif "KB" in unit:
-                            return size_val / (1024 ** 2)
-                    except ValueError:
-                        pass
+            size_str = result.stdout.strip()
+            # Parse size string (e.g., "123 MB", "1.5 GB")
+            size_parts = size_str.split()
+            if len(size_parts) == 2:
+                try:
+                    size_val = float(size_parts[0])
+                    unit = size_parts[1].upper()
+
+                    if "GB" in unit:
+                        return size_val * 0.7  # gzip compression factor
+                    elif "MB" in unit:
+                        return (size_val / 1024) * 0.7
+                    elif "KB" in unit:
+                        return (size_val / (1024**2)) * 0.7
+                except ValueError:
+                    pass
     except Exception as e:
         log_message(f"Error estimating backup size: {e}", "WARNING")
-    
-    # Fallback: estimate based on logical size of app directory
-    # Database is typically smaller than app files, use ~10% of app size
-    app_size = get_directory_size(NEXUS_DIR)
-    estimated_db_size = app_size * 0.1
-    
-    # Add gzip compression factor (~30% reduction)
-    compressed_size = estimated_db_size * 0.7
-    
-    log_message(f"Estimated backup size: {compressed_size:.2f} GB", "DEBUG")
-    return compressed_size
+
+    # Fallback: 100MB compressed estimate
+    return 0.1
 
 
 def send_email_alert(subject: str, body: str) -> bool:
@@ -155,10 +150,10 @@ def send_email_alert(subject: str, body: str) -> bool:
         msg["From"] = SENDER_EMAIL
         msg["To"] = ADMIN_EMAIL
         msg["Subject"] = f"[{HOSTNAME}] {subject}"
-        
+
         # Add body
         msg.attach(MIMEText(body, "plain"))
-        
+
         # Send email
         if SMTP_USER and SMTP_PASSWORD:
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
@@ -169,7 +164,7 @@ def send_email_alert(subject: str, body: str) -> bool:
             # Use local SMTP without authentication
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
                 server.send_message(msg)
-        
+
         log_message(f"Email alert sent to {ADMIN_EMAIL}", "INFO")
         return True
     except Exception as e:
@@ -180,48 +175,48 @@ def send_email_alert(subject: str, body: str) -> bool:
 def check_storage_and_backup() -> bool:
     """
     Main function: Check storage and perform backup if safe.
-    
+
     Returns:
         True if backup was completed, False if aborted
     """
     log_message("=" * 80)
     log_message("Starting backup process with storage validation")
-    
+
     # Step 1: Get current filesystem usage
     log_message("Step 1: Checking filesystem usage...")
     fs_usage = get_filesystem_usage()
     if not fs_usage:
         log_message("Failed to get filesystem usage", "ERROR")
         return False
-    
+
     log_message(
         f"Filesystem status: {fs_usage['used_gb']:.2f} GB / "
         f"{fs_usage['total_gb']:.2f} GB used "
         f"({fs_usage['percent_used']:.1f}%)"
     )
     log_message(f"Available space: {fs_usage['available_gb']:.2f} GB")
-    
+
     # Step 2: Estimate backup size
     log_message("Step 2: Estimating backup size...")
     backup_size = estimate_backup_size()
     log_message(f"Estimated backup size: {backup_size:.2f} GB")
-    
+
     # Step 3: Check if backup would fit
     log_message("Step 3: Validating backup would fit...")
-    projected_usage = fs_usage['used_gb'] + backup_size
-    
+    projected_usage = fs_usage["used_gb"] + backup_size
+
     log_message(f"Storage limit: {STORAGE_LIMIT_GB:.2f} GB")
     log_message(f"Current usage: {fs_usage['used_gb']:.2f} GB")
     log_message(f"Backup size: {backup_size:.2f} GB")
     log_message(f"Projected usage after backup: {projected_usage:.2f} GB")
-    
+
     if projected_usage > STORAGE_LIMIT_GB:
         # Storage would be exceeded - abort backup
         log_message("❌ BACKUP ABORTED: Storage limit would be exceeded!", "ERROR")
-        
+
         # Calculate how much space needs to be freed
         space_needed = projected_usage - STORAGE_LIMIT_GB + 1.0  # +1GB safety margin
-        
+
         # Send email alert
         subject = "🚨 URGENT: Backup Failed - Storage Space Critical"
         body = f"""
@@ -254,51 +249,55 @@ RECOMMENDATIONS:
 Please free up space and the backup will resume on the next scheduled run.
 """
         send_email_alert(subject, body)
-        
+
         log_message("=" * 80)
         return False
-    
+
     # Step 4: Perform backup
     log_message("Step 4: Performing backup...")
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     backup_date = datetime.now().strftime("%Y%m%d")
     backup_file = BACKUP_DIR / f"nexus_db_{backup_date}.sql.gz"
-    
+
     try:
         # Dump database
         log_message(f"Dumping database to {backup_file}...")
-        
+
         with open(backup_file, "wb") as f:
             dump_process = subprocess.Popen(
-                ["pg_dump", "-U", "nexus", "nexus_db"],
+                ["sudo", "-u", "postgres", "pg_dump", "nexus"],
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
+                stderr=subprocess.PIPE,
             )
-            
+
             with gzip.GzipFile(fileobj=f, mode="wb") as gz:
                 while True:
                     chunk = dump_process.stdout.read(65536)  # 64KB chunks
                     if not chunk:
                         break
                     gz.write(chunk)
-            
+
             dump_process.wait()
             if dump_process.returncode != 0:
                 error = dump_process.stderr.read().decode()
                 raise RuntimeError(f"pg_dump failed: {error}")
-        
-        backup_size_actual = backup_file.stat().st_size / (1024 ** 3)
-        log_message(f"✅ Backup completed: {backup_file.name} ({backup_size_actual:.2f} GB)")
-        
+
+        backup_size_actual = backup_file.stat().st_size / (1024**3)
+        log_message(
+            f"✅ Backup completed: {backup_file.name} ({backup_size_actual:.2f} GB)"
+        )
+
         # Clean up old backups (keep last 7 days)
         log_message("Step 5: Cleaning up old backups...")
-        cutoff_date = datetime.now().replace(day=datetime.now().day - 7)
+        import time
+
+        cutoff_timestamp = time.time() - (7 * 24 * 60 * 60)  # 7 days ago
         for old_backup in BACKUP_DIR.glob("nexus_db_*.sql.gz"):
-            if old_backup.stat().st_mtime < cutoff_date.timestamp():
+            if old_backup.stat().st_mtime < cutoff_timestamp:
                 log_message(f"Removing old backup: {old_backup.name}")
                 old_backup.unlink()
-        
+
         # Send success email
         subject = "✅ Backup Completed Successfully"
         body = f"""
@@ -317,17 +316,17 @@ STORAGE STATUS:
 - Usage after backup: {(fs_usage['used_gb'] + backup_size_actual):.2f} / {fs_usage['total_gb']:.2f} GB
 """
         send_email_alert(subject, body)
-        
+
         log_message("=" * 80)
         return True
-        
+
     except Exception as e:
         log_message(f"Backup failed: {e}", "ERROR")
-        
+
         # Clean up partial backup
         if backup_file.exists():
             backup_file.unlink()
-        
+
         # Send failure email
         subject = "❌ Backup Failed"
         body = f"""
@@ -345,7 +344,7 @@ STORAGE STATUS:
 Please check logs for more details.
 """
         send_email_alert(subject, body)
-        
+
         log_message("=" * 80)
         return False
 
