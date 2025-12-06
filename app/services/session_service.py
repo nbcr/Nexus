@@ -19,12 +19,12 @@ async def create_anonymous_session(db: AsyncSession, session_token: str = None):
 
     if not session:
         # Create new anonymous session (user_id is NULL for anonymous users)
+        now = datetime.utcnow()
         session = UserSession(
             session_token=session_token,
-            created_at=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc)
-            + timedelta(days=30),  # 30-day session
-            last_activity=datetime.now(timezone.utc),
+            created_at=now,
+            expires_at=now + timedelta(days=30),  # 30-day session
+            last_activity=now,
         )
         db.add(session)
         await db.commit()
@@ -55,7 +55,7 @@ async def track_content_interaction(
     session = await create_anonymous_session(db, session_token)
 
     # Update last activity
-    session.last_activity = datetime.now(timezone.utc)
+    session.last_activity = datetime.utcnow()
 
     # Record interaction
     interaction = UserInteraction(
@@ -64,7 +64,7 @@ async def track_content_interaction(
         content_item_id=content_item_id,
         interaction_type=interaction_type,
         duration_seconds=duration_seconds,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.utcnow(),
     )
 
     # Log metadata for future analysis (not stored in DB yet)
