@@ -125,6 +125,12 @@ class FeedRenderer {
                 const wasExpanded = article.classList.contains('expanded');
                 article.classList.toggle('expanded');
 
+                // Emit card opened event for RSS source tracking
+                if (!wasExpanded) {
+                    const event = new CustomEvent('cardOpened', { detail: { contentId: item.content_id } });
+                    document.dispatchEvent(event);
+                }
+
                 if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
                     await this.loadSnippet(article, item);
                 }
@@ -141,6 +147,10 @@ class FeedRenderer {
             readMoreBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
+                // Emit card opened event for RSS source tracking
+                const event = new CustomEvent('cardOpened', { detail: { contentId: item.content_id } });
+                document.dispatchEvent(event);
 
                 if (globalThis.historyTracker) {
                     const slug = article.dataset.contentSlug;
