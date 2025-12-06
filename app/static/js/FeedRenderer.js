@@ -168,22 +168,18 @@ class FeedRenderer {
     async loadSnippet(article, item) {
         const summaryEl = article.querySelector('.feed-item-summary');
         if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
-            summaryEl.innerHTML = '<em>📰 Fetching article content...</em>';
-            try {
-                const data = await this.api.fetchArticle(item.content_id);
-                
-                if (data.content) {
-                    // Display full facts content
-                    const paragraphs = data.content.split('\n\n');
-                    const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
-                    summaryEl.innerHTML = factsHtml;
-                    article.dataset.snippetLoaded = 'true';
-                } else {
-                    summaryEl.innerHTML = '<em>No preview available from this source</em>';
-                }
-            } catch (error) {
-                console.error('Error loading snippet:', error);
-                summaryEl.innerHTML = '<em>Error loading preview</em>';
+            // Use content_text from item data (already in database)
+            if (item.content_text && item.content_text.length > 100) {
+                // Display full facts content from database
+                const paragraphs = item.content_text.split('\n\n');
+                const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
+                summaryEl.innerHTML = factsHtml;
+                article.dataset.snippetLoaded = 'true';
+            } else if (item.description) {
+                summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
+                article.dataset.snippetLoaded = 'true';
+            } else {
+                summaryEl.innerHTML = '<em>No preview available from this source</em>';
             }
         }
     }
