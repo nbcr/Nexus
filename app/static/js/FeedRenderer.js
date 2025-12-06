@@ -167,18 +167,22 @@ class FeedRenderer {
 
     async loadSnippet(article, item) {
         const summaryEl = article.querySelector('.feed-item-summary');
-        if (summaryEl && (summaryEl.textContent.includes('No snippet available') || summaryEl.textContent.trim().length < 50)) {
-            // Use content_text from item data (already in database)
-            if (item.content_text && item.content_text.length > 100) {
+        if (summaryEl) {
+            // Check if we need to load full content
+            const needsFullContent = summaryEl.textContent.includes('No snippet available') 
+                                   || summaryEl.textContent.trim().length < 50
+                                   || !article.dataset.snippetLoaded;
+            
+            if (needsFullContent && item.content_text && item.content_text.length > 100) {
                 // Display full facts content from database
                 const paragraphs = item.content_text.split('\n\n');
                 const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
                 summaryEl.innerHTML = factsHtml;
                 article.dataset.snippetLoaded = 'true';
-            } else if (item.description) {
+            } else if (needsFullContent && item.description) {
                 summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
                 article.dataset.snippetLoaded = 'true';
-            } else {
+            } else if (needsFullContent) {
                 summaryEl.innerHTML = '<em>No preview available from this source</em>';
             }
         }
