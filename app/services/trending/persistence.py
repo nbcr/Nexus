@@ -97,9 +97,6 @@ class TrendingPersistence:
             print(f"❌ Error updating news items for topic {topic_id}: {str(e)}")
             print("Detailed error:", e.__class__.__name__, str(e))
             raise
-            source_meta["related_content_ids"] = [existing.id]
-
-        return source_meta
 
     async def save_trends_to_database(
         self, db: AsyncSession, trends: List[Dict], google_trends_tag: str
