@@ -412,9 +412,9 @@ async def forgot_password(
         print(f"[FORGOT-PASSWORD] Attempting to send reset email to {user.email}")
         await asyncio.to_thread(
             email_service.send_email,
-            to=user.email,
+            recipient=user.email,
             subject=subject,
-            html_content=html_content,
+            body_html=html_content,
         )
         print(f"[FORGOT-PASSWORD] Email sent successfully to {user.email}")
     except Exception as e:
