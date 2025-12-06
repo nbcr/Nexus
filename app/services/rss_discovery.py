@@ -468,7 +468,9 @@ class RSSDiscoveryService:
             if not latest_entry.get("published_parsed"):
                 return 0.0
 
-            pub_date = datetime(*latest_entry["published_parsed"][:6])
+            pub_date = datetime(
+                *latest_entry["published_parsed"][:6], tzinfo=timezone.utc
+            )
             days_old = (datetime.now(timezone.utc) - pub_date).days
 
             if days_old < 1:

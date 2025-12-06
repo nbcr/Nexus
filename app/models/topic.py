@@ -16,7 +16,9 @@ class Topic(Base):
     trend_score = Column(Float, default=0.0)
     category = Column(String(100))
     tags = Column(JSON)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
 
     content_items = relationship("ContentItem", back_populates="topic")
