@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 import os
 from dotenv import load_dotenv
 
@@ -13,7 +13,10 @@ DATABASE_URL = os.getenv(
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,
-    poolclass=StaticPool,
+    poolclass=AsyncAdaptedQueuePool,
+    pool_size=2,
+    max_overflow=3,
+    pool_pre_ping=True,
 )
 
 AsyncSessionLocal = async_sessionmaker(
