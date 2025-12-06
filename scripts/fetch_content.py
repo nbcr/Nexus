@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.services.trending import trending_service
 from app.database import AsyncSessionLocal
+from app.utils.async_rss_parser import get_async_rss_parser
 
 
 async def fetch_content():
@@ -26,6 +27,9 @@ async def fetch_content():
     except Exception as e:
         print(f"❌ Error fetching content: {e}")
         sys.exit(1)
+    finally:
+        # Close aiohttp session
+        await get_async_rss_parser().close()
 
 
 if __name__ == "__main__":
