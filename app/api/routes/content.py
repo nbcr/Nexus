@@ -476,67 +476,86 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     If missing, scrape the article to fetch image_url and persist to source_metadata.picture_url.
     Uses in-memory caching to prevent hammering database on repeated failed attempts.
     """
-    # Check cache first
-    current_time = time.time()
-    if content_id in _thumbnail_cache:
-        cached_url, timestamp = _thumbnail_cache[content_id]
-        if current_time - timestamp < _THUMBNAIL_CACHE_TTL:
-            return ThumbnailResponse(picture_url=cached_url)
-        else:
-            # Cache expired
-            del _thumbnail_cache[content_id]
+    import logging
 
-    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
-    content = result.scalar_one_or_none()
-    if not content:
-        # Cache negative result for 5 min to avoid repeated 404 queries
-        _thumbnail_cache[content_id] = (None, current_time)
-        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+    logger = logging.getLogger(LOGGER_NAME)
 
-    # If already have a picture_url, cache and return it
-    pic = (
-        (content.source_metadata or {}).get("picture_url")
-        if content.source_metadata
-        else None
-    )
-    if pic:
-        _thumbnail_cache[content_id] = (pic, current_time)
-        return ThumbnailResponse(picture_url=pic)
-
-    # Try to scrape the article to get image_url
-    if not content.source_urls or len(content.source_urls) == 0:
-        _thumbnail_cache[content_id] = (None, current_time)
-        return ThumbnailResponse(picture_url=None)
-
-    source_url = content.source_urls[0]
-    is_search_url = (
-        "duckduckgo.com" in source_url
-        or "google.com/search" in source_url
-        or "bing.com/search" in source_url
-    )
     try:
-        if is_search_url:
-            data = await asyncio.to_thread(
-                article_scraper.fetch_search_context, source_url
-            )
-        else:
-            data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
-        if data and data.get("image_url"):
-            if not content.source_metadata:
-                content.source_metadata = {}
-            content.source_metadata["picture_url"] = data["image_url"]
-            content.source_metadata["scraped_at"] = datetime.now(
-                timezone.utc
-            ).isoformat()
-            await db.commit()
-            _thumbnail_cache[content_id] = (data["image_url"], current_time)
-            return ThumbnailResponse(picture_url=data["image_url"])
-    except Exception as e:
-        await db.rollback()
-        # Still cache the failed attempt to avoid retrying immediately
-        _thumbnail_cache[content_id] = (None, current_time)
+        # Check cache first
+        current_time = time.time()
+        if content_id in _thumbnail_cache:
+            cached_url, timestamp = _thumbnail_cache[content_id]
+            if current_time - timestamp < _THUMBNAIL_CACHE_TTL:
+                return ThumbnailResponse(picture_url=cached_url)
+            else:
+                # Cache expired
+                del _thumbnail_cache[content_id]
 
-    return ThumbnailResponse(picture_url=None)
+        result = await db.execute(
+            select(ContentItem).where(ContentItem.id == content_id)
+        )
+        content = result.scalar_one_or_none()
+        if not content:
+            # Cache negative result for 5 min to avoid repeated 404 queries
+            _thumbnail_cache[content_id] = (None, current_time)
+            raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+
+        # If already have a picture_url, cache and return it
+        pic = (
+            (content.source_metadata or {}).get("picture_url")
+            if content.source_metadata
+            else None
+        )
+        if pic:
+            _thumbnail_cache[content_id] = (pic, current_time)
+            return ThumbnailResponse(picture_url=pic)
+
+        # Try to scrape the article to get image_url
+        if not content.source_urls or len(content.source_urls) == 0:
+            _thumbnail_cache[content_id] = (None, current_time)
+            return ThumbnailResponse(picture_url=None)
+
+        source_url = content.source_urls[0]
+        is_search_url = (
+            "duckduckgo.com" in source_url
+            or "google.com/search" in source_url
+            or "bing.com/search" in source_url
+        )
+        try:
+            if is_search_url:
+                data = await asyncio.to_thread(
+                    article_scraper.fetch_search_context, source_url
+                )
+            else:
+                data = await asyncio.to_thread(
+                    article_scraper.fetch_article, source_url
+                )
+            if data and data.get("image_url"):
+                if not content.source_metadata:
+                    content.source_metadata = {}
+                content.source_metadata["picture_url"] = data["image_url"]
+                content.source_metadata["scraped_at"] = datetime.now(
+                    timezone.utc
+                ).isoformat()
+                await db.commit()
+                _thumbnail_cache[content_id] = (data["image_url"], current_time)
+                return ThumbnailResponse(picture_url=data["image_url"])
+        except Exception:
+            await db.rollback()
+            # Still cache the failed attempt to avoid retrying immediately
+            _thumbnail_cache[content_id] = (None, current_time)
+            logger.exception(
+                "Thumbnail scrape failed",
+                extra={"content_id": content_id, "source_url": source_url},
+            )
+            return ThumbnailResponse(picture_url=None)
+
+        return ThumbnailResponse(picture_url=None)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Thumbnail endpoint failed", extra={"content_id": content_id})
+        raise HTTPException(status_code=500, detail="Failed to fetch thumbnail")
 
 
 @router.get("/proxy/image")
