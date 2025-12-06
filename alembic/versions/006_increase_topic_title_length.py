@@ -1,7 +1,7 @@
 """Increase title length for topics to accommodate longer titles
 
 Revision ID: 006
-Revises: merge_heads_20251124a
+Revises: 005_add_timezone_to_timestamps
 Create Date: 2025-12-06 00:00:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "006"
-down_revision = "merge_heads_20251124a"
+down_revision = "005_add_timezone_to_timestamps"
 branch_labels = None
 depends_on = None
 
