@@ -51,20 +51,20 @@ echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo -u 
 - Backend: FastAPI with async SQLAlchemy, PostgreSQL database
 - Frontend: Vanilla JavaScript (feed.js), HTML/CSS
 - Key routes: content.py (NOT the v1 version - main.py imports from `app.api.routes`, not `app.api.v1.routes`)
-- Services: PyTrends integration, article scraper (BeautifulSoup), content recommendation
+- Services: Google Trends RSS feed, article scraper (BeautifulSoup), content recommendation
 
 ### Key Features
 
-1. Infinite scroll feed - personalized content from RSS feeds and Google Trends
+1. Infinite scroll feed - personalized content from RSS feeds and Google Trends RSS
 2. Article modal - full article view with related content suggestions
-3. Search query cards - PyTrends queries that open searches in new tabs (not article modals)
+3. Search query cards - Google Trends searches that open in new tabs (not article modals)
 4. Related content matching - links news articles with trending searches using keyword extraction and scoring
 
 ### Important Files
 
 - Routes: content.py (active), content.py (not used)
 - Frontend: index.html, feed.js
-- Services: article_scraper.py, pytrends_service.py
+- Services: article_scraper.py, trending/rss_fetcher.py
 - Logs: `/home/nexus/nexus/logs/error.log`, `/home/nexus/nexus/logs/access.log`
 - Password/auth: auth.py, user_service.py, auth.py
 
@@ -139,7 +139,7 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Fixed content endpoint returning 500 errors (NULL titles in database, needed `.all()` for result iteration, topic serialization).
 - Article endpoint was missing from old routes file - added manually.
 - Article scraper returns fallback message when content extraction fails.
-- Search query detection: checks for `pytrends` tag or search engine URLs to open in new tab vs. article modal.
+- Search query detection: checks for Google Trends URLs or search engine URLs to open in new tab vs. article modal.
 
 #### Password Hashing/Authentication
 

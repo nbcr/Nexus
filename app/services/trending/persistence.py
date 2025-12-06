@@ -108,8 +108,10 @@ class TrendingPersistence:
         """Helper to create a content item for a topic"""
         title = self._determine_title(topic, trend_data)
 
-        if not title or title in ("Trending Update", "Trending Topic"):
-            print(f"  ⚠️ Skipping content item for topic {topic.id} - no valid title")
+        if not title:
+            print(
+                f"  ⚠️ Skipping content item for topic {topic.id} - only search term, no real article"
+            )
             return None
 
         url = trend_data.get("url", "")
@@ -146,18 +148,22 @@ class TrendingPersistence:
 
     def _determine_title(self, topic, trend_data: Dict) -> str:
         """Determine the best title for content item"""
+        # First try to get title from news_items (actual articles)
+        news_items = trend_data.get("news_items", [])
+        if news_items and news_items[0].get("title"):
+            news_title = news_items[0]["title"].strip()
+            # Make sure it's not just a search term (> 30 chars is likely a real headline)
+            if len(news_title) > 30:
+                return news_title
+
+        # If we have a good trend title (not just a search term)
         title = trend_data.get("title", "").strip()
+        if title and len(title) > 30:
+            return title
 
-        if not title:
-            news_items = trend_data.get("news_items", [])
-            if news_items and news_items[0].get("title"):
-                title = news_items[0]["title"].strip()
-            elif topic.title:
-                title = topic.title
-            else:
-                title = "Trending Update"
-
-        return title
+        # Skip items that are just search terms with no real content
+        # This prevents "donald trump", "x", etc. from being saved
+        return None
 
     async def _get_content_text(self, url: str, ai_summary: str) -> str:
         """Get content text, either by scraping or using summary"""
@@ -271,16 +277,6 @@ class TrendingPersistence:
         topic.tags = trend_data.get("tags", ["trending", "canada", google_trends_tag])
         await db.flush()
 
-        ai_summary = self.generate_ai_summary(
-            trend_data["title"], trend_data.get("description", "")
-        )
-
-        content_item = await self._create_content_item(
-            db, topic, trend_data, ai_summary
-        )
-        if content_item:
-            db.add(content_item)
-
         if trend_data.get("news_items"):
             await self.update_topic_news_items(db, topic.id, trend_data["news_items"])
 
@@ -312,16 +308,6 @@ class TrendingPersistence:
         )
         db.add(topic)
         await db.flush()
-
-        ai_summary = self.generate_ai_summary(
-            trend_data["title"], trend_data.get("description", "")
-        )
-
-        content_item = await self._create_content_item(
-            db, topic, trend_data, ai_summary
-        )
-        if content_item:
-            db.add(content_item)
 
         if trend_data.get("news_items"):
             await self.update_topic_news_items(db, topic.id, trend_data["news_items"])
