@@ -374,12 +374,24 @@ async def check_email_status(email: str, db: AsyncSession = Depends(get_db)):
 import secrets
 from datetime import datetime, timedelta
 import asyncio
+from pydantic import BaseModel
+
+
+class ForgotPasswordRequest(BaseModel):
+    username_or_email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: dict, db: AsyncSession = Depends(get_db)):
+async def forgot_password(
+    request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)
+):
     """Send password reset email to user"""
-    username_or_email = request.get("username_or_email", "").strip()
+    username_or_email = request.username_or_email.strip()
 
     if not username_or_email:
         raise HTTPException(status_code=400, detail="Username or email required")
@@ -431,10 +443,12 @@ async def forgot_password(request: dict, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/reset-password")
-async def reset_password(request: dict, db: AsyncSession = Depends(get_db)):
+async def reset_password(
+    request: ResetPasswordRequest, db: AsyncSession = Depends(get_db)
+):
     """Reset password using reset token"""
-    token = request.get("token", "").strip()
-    new_password = request.get("new_password", "").strip()
+    token = request.token.strip()
+    new_password = request.new_password.strip()
 
     if not token or not new_password:
         raise HTTPException(status_code=400, detail="Token and password required")
