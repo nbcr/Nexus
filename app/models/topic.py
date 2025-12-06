@@ -10,8 +10,8 @@ class Topic(Base):
     __tablename__ = "topics"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(200), unique=True, index=True)
-    normalized_title = Column(String(200), unique=True, index=True)
+    title = Column(String(500), unique=True, index=True)
+    normalized_title = Column(String(500), unique=True, index=True)
     description = Column(Text)
     trend_score = Column(Float, default=0.0)
     category = Column(String(100))

@@ -193,7 +193,7 @@ class RSSFetcher:
             trends = []
             is_google_trends = "trends.google.com" in feed_url
 
-            for entry in feed.get("entries", []):
+            for entry in feed.get("entries", [])[:50]:
                 trend_data = self._process_single_entry(
                     entry, is_google_trends, feed_url, category_hint, source_name
                 )
