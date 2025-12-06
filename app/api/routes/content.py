@@ -442,12 +442,16 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
     if not content:
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
-    # Check if we have valid cached content
-    if (
+    # Check if we have valid cached content (must have been scraped, not just RSS description)
+    has_scraped_content = (
         content.content_text
         and len(content.content_text) > 100
         and not content.content_text.startswith("Trending topic")
-    ):
+        and content.source_metadata
+        and content.source_metadata.get("scraped_at")
+    )
+
+    if has_scraped_content:
         # Use cached content - construct response from database
         article_data = {
             "title": content.title,
