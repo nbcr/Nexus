@@ -19,8 +19,11 @@ class TrendingService:
 
     def __init__(self):
         self.categorizer = ContentCategorizer()
-        # Fetch 3 items per feed, but only 15 feeds in parallel at a time
-        self.rss_fetcher = RSSFetcher(self.categorizer, items_per_feed=3, batch_size=15)
+        # Fetch 10 items per feed, process all feeds in batches of 20
+        # Benchmarked: 490 items total in ~492s with 408s headroom in 15-minute budget
+        self.rss_fetcher = RSSFetcher(
+            self.categorizer, items_per_feed=10, batch_size=20
+        )
         self.persistence = TrendingPersistence(self.categorizer)
 
         print(f"✅ Configured {len(self.rss_fetcher.rss_feeds)} RSS feeds")
