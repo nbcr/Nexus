@@ -220,8 +220,16 @@ class RSSFetcher:
         if not title or not url:
             return None
 
-        news_items, image_url, source = self._extract_entry_data(
-            entry, is_google_trends, source_name, title
+        news_items, image_url, source = self._extract_standard_data(
+            entry,
+            source_name,
+            title,
+            (
+                description
+                if isinstance(entry, dict)
+                else getattr(entry, "summary", "") or getattr(entry, "description", "")
+            ),
+            url,
         )
 
         # Always try to categorize based on content first
@@ -240,47 +248,10 @@ class RSSFetcher:
             "published": entry.get("published", ""),
             "trend_score": 0.7,
             "category": category,
-            "tags": self.categorizer.extract_tags(entry) + [source_name.lower()],
+            "tags": self.categorizer.extract_tags(entry, is_google_trends)
+            + [source_name.lower()],
             "news_items": news_items,
         }
-
-    def _extract_entry_data(
-        self, entry, is_google_trends: bool, source_name: str, title: str
-    ) -> tuple:
-        """Extract news items, image URL, and source from entry"""
-        if is_google_trends:
-            return self._extract_google_trends_data(entry, source_name, title)
-
-        # Handle both dict and object-based entries
-        if isinstance(entry, dict):
-            description = entry.get("summary", "") or entry.get("description", "")
-            url = entry.get("link", "")
-        else:
-            description = getattr(entry, "summary", "") or getattr(
-                entry, "description", ""
-            )
-            url = getattr(entry, "link", "")
-
-        return self._extract_standard_data(
-            entry,
-            source_name,
-            title,
-            description,
-            url,
-        )
-
-    def _extract_google_trends_data(self, entry, source_name: str, title: str) -> tuple:
-        """Extract data from Google Trends entry"""
-        news_items = self._extract_google_trends_items(entry)
-        if news_items:
-            first_news = news_items[0]
-            image_url = first_news.get("picture")
-            source = first_news.get("source", source_name)
-        else:
-            image_url = getattr(entry, "ht_picture", None)
-            source = getattr(entry, "ht_picture_source", source_name)
-        title = self._generate_summary_title(title, news_items)
-        return news_items, image_url, source
 
     def _extract_standard_data(
         self, entry, source_name: str, title: str, description: str, url: str

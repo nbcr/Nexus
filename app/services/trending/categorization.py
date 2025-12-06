@@ -411,9 +411,11 @@ class ContentCategorizer:
         text = f"{title} {description} {' '.join(tags)}"
         return self.categorize_text(text)
 
-    def extract_tags(self, entry) -> List[str]:
+    def extract_tags(self, entry, is_google_trends: bool = False) -> List[str]:
         """Extract tags from entry"""
-        tags = ["trending", "canada", self.GOOGLE_TRENDS_TAG]
+        tags = ["trending", "canada"]
+        if is_google_trends:
+            tags.append(self.GOOGLE_TRENDS_TAG)
         if hasattr(entry, "tags"):
             for tag in entry.tags:
                 if hasattr(tag, "term"):
