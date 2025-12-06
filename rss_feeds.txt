@@ -3,7 +3,8 @@
 # category_hint: Optional fallback category used only when auto-categorization returns "General"
 # Lines starting with # are comments
 
-google_trends|https://trends.google.com/trending/rss?geo=CA|None|high
+# DISABLED: Google Trends RSS only has search terms without real content
+# google_trends|https://trends.google.com/trending/rss?geo=CA|None|high
 cbc_top|https://www.cbc.ca/cmlink/rss-topstories|None|high
 global_news|https://globalnews.ca/feed/|None|high
 tsn|https://www.tsn.ca/rss|Sports|medium
