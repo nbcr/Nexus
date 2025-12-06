@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "006"
-down_revision = "005_add_timezone_to_timestamps"
+down_revision = "merge_heads_20251124a"
 branch_labels = None
 depends_on = None
 
