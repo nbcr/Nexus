@@ -5,8 +5,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "007_add_password_reset_fields"
-down_revision = "006_increase_topic_title_length"
+revision = "007"
+down_revision = "006"
 branch_labels = None
 depends_on = None
 
