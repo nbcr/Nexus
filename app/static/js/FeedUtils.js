@@ -140,15 +140,13 @@ class FeedUtils {
     }
 
     static isSearchQuery(item) {
-        return item.category === 'Search Query' || item.content_type === 'trending_analysis' ||
-            (item.source_urls && item.source_urls[0] &&
-                (item.source_urls[0].includes('google.com/search') ||
-                    item.source_urls[0].includes('duckduckgo.com')));
+        return item.content_type === 'search_query' || item.category === 'Search Query';
     }
 
     static isNewsArticle(item) {
-        return !FeedUtils.isSearchQuery(item) &&
-            (item.content_type === 'news' || item.content_type === 'news_update' || item.content_type === 'trending_analysis');
+        if (FeedUtils.isSearchQuery(item)) return false;
+        const type = item.content_type;
+        return !type || ['news', 'news_update', 'trending_analysis'].includes(type);
     }
 }
 
