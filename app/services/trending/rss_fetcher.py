@@ -174,9 +174,21 @@ class RSSFetcher:
         source_name: str,
     ) -> Optional[Dict]:
         """Process a single feed entry"""
-        title = getattr(entry, "title", "").strip()
-        description = getattr(entry, "summary", "") or getattr(entry, "description", "")
-        url = getattr(entry, "link", "")
+        # Handle both dict and object-based entries
+        if isinstance(entry, dict):
+            title = (
+                entry.get("title", "").strip()
+                if isinstance(entry.get("title"), str)
+                else ""
+            )
+            description = entry.get("summary", "") or entry.get("description", "") or ""
+            url = entry.get("link", "") or ""
+        else:
+            title = getattr(entry, "title", "").strip()
+            description = getattr(entry, "summary", "") or getattr(
+                entry, "description", ""
+            )
+            url = getattr(entry, "link", "")
 
         if not title or not url:
             return None
@@ -209,12 +221,23 @@ class RSSFetcher:
         """Extract news items, image URL, and source from entry"""
         if is_google_trends:
             return self._extract_google_trends_data(entry, source_name, title)
+
+        # Handle both dict and object-based entries
+        if isinstance(entry, dict):
+            description = entry.get("summary", "") or entry.get("description", "")
+            url = entry.get("link", "")
+        else:
+            description = getattr(entry, "summary", "") or getattr(
+                entry, "description", ""
+            )
+            url = getattr(entry, "link", "")
+
         return self._extract_standard_data(
             entry,
             source_name,
             title,
-            getattr(entry, "summary", "") or getattr(entry, "description", ""),
-            getattr(entry, "link", ""),
+            description,
+            url,
         )
 
     def _extract_google_trends_data(self, entry, source_name: str, title: str) -> tuple:
@@ -235,15 +258,43 @@ class RSSFetcher:
     ) -> tuple:
         """Extract data from standard RSS entry"""
         image_url = None
-        if hasattr(entry, "media_content") and entry.media_content:
-            image_url = entry.media_content[0].get("url")
-        elif hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
-            image_url = entry.media_thumbnail[0].get("url")
-        elif hasattr(entry, "enclosures") and entry.enclosures:
-            for enc in entry.enclosures:
-                if "image" in enc.get("type", ""):
-                    image_url = enc.get("href")
-                    break
+
+        # Handle both dict and object-based entries
+        if isinstance(entry, dict):
+            if entry.get("media_content"):
+                media = entry.get("media_content")
+                if isinstance(media, list) and media:
+                    image_url = (
+                        media[0].get("url") if isinstance(media[0], dict) else None
+                    )
+                elif isinstance(media, dict):
+                    image_url = media.get("url")
+            elif entry.get("media_thumbnail"):
+                thumb = entry.get("media_thumbnail")
+                if isinstance(thumb, list) and thumb:
+                    image_url = (
+                        thumb[0].get("url") if isinstance(thumb[0], dict) else None
+                    )
+                elif isinstance(thumb, dict):
+                    image_url = thumb.get("url")
+            elif entry.get("enclosures"):
+                enclosures = entry.get("enclosures")
+                if not isinstance(enclosures, list):
+                    enclosures = [enclosures] if enclosures else []
+                for enc in enclosures:
+                    if isinstance(enc, dict) and "image" in enc.get("type", ""):
+                        image_url = enc.get("url")
+                        break
+        else:
+            if hasattr(entry, "media_content") and entry.media_content:
+                image_url = entry.media_content[0].get("url")
+            elif hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+                image_url = entry.media_thumbnail[0].get("url")
+            elif hasattr(entry, "enclosures") and entry.enclosures:
+                for enc in entry.enclosures:
+                    if "image" in enc.get("type", ""):
+                        image_url = enc.get("href")
+                        break
 
         news_items = [
             {
