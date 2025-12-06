@@ -797,25 +797,66 @@ class ArticleScraperService:
         return None
 
     def _extract_image(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
-        """Extract main article image"""
+        """Extract main article image, filtering out small placeholder images"""
         selectors = [
             ("meta", {"property": "og:image"}),
             ("meta", {"name": "twitter:image"}),
         ]
 
+        def make_absolute_url(img_url: str) -> str:
+            """Convert relative URLs to absolute"""
+            if img_url.startswith("//"):
+                return "https:" + img_url
+            elif img_url.startswith("/"):
+                parsed = urlparse(base_url)
+                return f"{parsed.scheme}://{parsed.netloc}{img_url}"
+            return img_url
+
+        def is_placeholder_image(img_url: str) -> bool:
+            """Check if image is likely a small placeholder (150x150 or similar)"""
+            # Check for common placeholder dimensions in URL
+            placeholder_patterns = [
+                r"150x150",
+                r"150[_-]150",  # Exact 150x150
+                r"100x100",
+                r"100[_-]100",  # 100x100
+                r"thumbnail",
+                r"thumb",  # Thumbnail keywords
+                r"avatar",
+                r"icon",  # Avatar/icon images
+            ]
+            url_lower = img_url.lower()
+            return any(
+                re.search(pattern, url_lower) for pattern in placeholder_patterns
+            )
+
+        # Try meta tags first
         for selector in selectors:
             tag, attrs = selector
             element = soup.find(tag, attrs)
             if element:
                 img_url = element.get("content")
                 if img_url:
-                    # Make absolute URL if relative
-                    if img_url.startswith("//"):
-                        img_url = "https:" + img_url
-                    elif img_url.startswith("/"):
-                        parsed = urlparse(base_url)
-                        img_url = f"{parsed.scheme}://{parsed.netloc}{img_url}"
-                    return img_url
+                    img_url = make_absolute_url(img_url)
+                    # Reject if it's a placeholder
+                    if not is_placeholder_image(img_url):
+                        return img_url
+                    print(f"⚠️ Rejected placeholder meta image: {img_url}")
+
+        # Fallback: Look for first large image in article body
+        article_element = (
+            soup.find("article")
+            or soup.find("main")
+            or soup.find("div", {"class": re.compile("article|content|post", re.I)})
+        )
+        if article_element:
+            for img in article_element.find_all("img", limit=5):
+                img_url = img.get("src") or img.get("data-src")
+                if img_url:
+                    img_url = make_absolute_url(img_url)
+                    if not is_placeholder_image(img_url):
+                        print(f"✅ Found article body image: {img_url}")
+                        return img_url
 
         return None
 
