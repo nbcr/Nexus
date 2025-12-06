@@ -134,19 +134,17 @@ class EmailService:
         Returns:
             True if successful, False otherwise
         """
-        # Try Brevo if configured
+        # Use Brevo only
         if self.brevo_api_key:
             logger.info(f"[SEND_EMAIL] Attempting Brevo for {recipient}")
-            if self._send_via_brevo(recipient, subject, body_html, recipient_name):
-                logger.info(f"[SEND_EMAIL] Brevo succeeded for {recipient}")
-                return True
-            logger.warning(
-                f"[SEND_EMAIL] Brevo failed, falling back to SMTP for {recipient}"
+            result = self._send_via_brevo(recipient, subject, body_html, recipient_name)
+            logger.info(f"[SEND_EMAIL] Brevo result for {recipient}: {result}")
+            return result
+        else:
+            logger.error(
+                f"[SEND_EMAIL] No Brevo API key configured, cannot send email to {recipient}"
             )
-
-        # Fall back to SMTP
-        logger.info(f"[SEND_EMAIL] Using SMTP for {recipient}")
-        return self._send_via_smtp(recipient, subject, body_html, body_text)
+            return False
 
     async def send_email_async(
         self,
