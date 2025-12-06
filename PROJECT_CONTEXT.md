@@ -43,8 +43,10 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 ### Deployment Pattern
 
 ```powershell
-echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo -u nexus git -C /home/nexus/nexus pull && sudo systemctl restart nexus && echo 'Deployed'"
+echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo systemctl restart nexus && echo 'Deployed'"
 ```
+
+**CRITICAL:** Never use `git pull` on EC2. All deployments must go through GitHub Actions workflow.
 
 ### Architecture
 
@@ -81,7 +83,7 @@ The backend is running and stable after recent fixes. No crashes or critical err
 - Check logs: `sudo tail -100 /home/nexus/nexus/logs/error.log`
 - Service status: `systemctl status nexus`
 - Reinstall dependencies: `sudo /home/nexus/nexus/venv/bin/pip install --force-reinstall -r /home/nexus/nexus/requirements.txt`
-- Push local files after changes: `git add <file>; git commit -m "<message>"; git push`
+- **NEVER use git pull on EC2** - All deployments must go through GitHub Actions
 
 ---
 
@@ -147,6 +149,17 @@ This file should be updated after every significant change, fix, or troubleshoot
 - Removed all manual password encoding/truncation logic; always pass password as string.
 - Pinned `bcrypt` to version 4.0.1 in requirements.txt to avoid compatibility issues with newer versions.
 - Reinstalled dependencies and restarted backend service after pinning bcrypt.
+
+---
+
+### 2025-12-06: Database Connection Pool Exhaustion Fix
+
+- **Issue**: PostgreSQL reached max connections limit causing 502 errors
+- **Resolution**: Restarted PostgreSQL and reset systemd service limits
+- **Prevention**: Monitor database connections and implement connection pooling limits
+- **Critical Rule**: NEVER use `git pull` on EC2 - all deployments must go through GitHub Actions workflow only
+
+---
 
 #### Categories Endpoint
 

@@ -38,8 +38,9 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 - Run backend: `python run_server.py` (local) or via systemd (`nexus.service`) on EC2
 - Deploy: SSH to EC2 and run:
   ```powershell
-  echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo -u nexus git -C /home/nexus/nexus pull && sudo systemctl restart nexus && echo 'Deployed'"
+  echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo systemctl restart nexus && echo 'Deployed'"
   ```
+- **NEVER pull files from git on EC2** - Deploy via GitHub Actions only
 - Database: Use `db_setup.sh` and migration scripts for setup/updates
 - Always update and push `PROJECT_CONTEXT.md` after significant changes
 - After updating files, always commit and push your changes to the repository
