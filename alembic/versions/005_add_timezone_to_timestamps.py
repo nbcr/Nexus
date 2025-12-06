@@ -11,8 +11,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = "005_add_timezone_to_timestamps"
-down_revision = "004_add_must_reset_password_to_users"
+revision = "005"
+down_revision = "004"
 branch_labels = None
 depends_on = None
 
