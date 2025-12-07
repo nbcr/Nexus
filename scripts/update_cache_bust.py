@@ -154,22 +154,24 @@ def update_template_versions(
 
                 # Normalize path separators to forward slashes for regex
                 normalized_path = changed_file.replace("\\", "/")
+                # Prepend /static/ to the path since templates use absolute URLs
+                full_static_path = f"static/{normalized_path}"
 
                 # Create regex patterns to match different URL formats
                 patterns = [
                     # Standard pattern: /static/path/to/file.ext?v=XXXXXXXX
                     (
-                        rf"(/{re.escape(normalized_path)}\?v=)\d{{12}}",
+                        rf"(/{re.escape(full_static_path)}\?v=)\d{{12}}",
                         rf"\1{new_version}",
                     ),
                     # Alternative with quotes: "/static/path/file.ext?v=XXXXXXXX"
                     (
-                        rf'("{re.escape(normalized_path)}\?v=)\d{{12}}"',
+                        rf'("{re.escape(full_static_path)}\?v=)\d{{12}}"',
                         rf'\1{new_version}"',
                     ),
                     # Apostrophes: '/static/path/file.ext?v=XXXXXXXX'
                     (
-                        rf"('{re.escape(normalized_path)}\?v=)\d{{12}}'",
+                        rf"('{re.escape(full_static_path)}\?v=)\d{{12}}'",
                         rf"\1{new_version}'",
                     ),
                 ]
