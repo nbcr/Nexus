@@ -89,6 +89,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 ## Content Scraping System (Spinner & Facts Display)
 
 ### How It Works (User Perspective)
+
 1. **Feed loads instantly** - User sees article titles + RSS descriptions in collapsed cards (feed.css, FeedRenderer.js)
 2. **Background scraping runs silently** - `/api/v1/content/feed` endpoint triggers `background_scrape_articles()` via `asyncio.create_task()` for up to 5 articles (non-blocking, separate Gunicorn worker)
 3. **User clicks card** - Card expands, shows RSS description initially; if facts already scraped, displays `item.content_text`
@@ -98,6 +99,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 7. **Display facts or error** - Replace spinner with facts if scraped, or "Scraping took too long" error if timeout
 
 ### Code Locations
+
 - **Spinner CSS:** `app/static/css/feed.css` - `.spinner` class with @keyframes spin animation
   - **Critical:** Uses `border-top-color: var(--accent)` and `border: var(--bg-tertiary)` - these CSS variables MUST be defined globally in base.css
 - **Frontend rendering:** `app/static/js/FeedRenderer.js`
@@ -111,6 +113,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 - **Scraped metadata:** `app/models/content.py` - ContentItem has `source_metadata` JSON column; tracks `scraped_at` timestamp (set immediately on scraping attempt, not just on success)
 
 ### Key Implementation Details
+
 - **RSS feeds always provide content** - Via `app/services/trending/rss_fetcher.py` and `app/utils/async_rss_parser.py`, descriptions are extracted and returned as `item.description` in feed
 - **Never display description twice** - Show it once in collapsed header only; expanded section shows facts/spinner/error or remains empty
 - **Background vs on-demand trade-off:** Background scraping is non-blocking but may miss articles if EC2 restarts; on-demand scraping guarantees attempt but has 10s timeout
@@ -118,6 +121,7 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 - **Memory constraints:** 1GB RAM + 2GB swap on EC2; background scraping non-blocking, on-demand scraping timeout-enforced (no backfill operations)
 
 ### If Spinner Doesn't Display
+
 1. Check CSS variables in `app/static/css/base.css` - ensure `--accent` and `--bg-tertiary` are defined
 2. Verify FeedRenderer.js `loadSnippet()` is called when card expanded
 3. Check console for `/priority` endpoint errors (use `/api/v1/...` not `/api/...`)
