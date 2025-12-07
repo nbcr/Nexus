@@ -23,12 +23,13 @@ class FeedRenderer {
         const isNewsArticle = FeedUtils.isNewsArticle(item);
         
         // Build summary HTML for expanded content
-        // Only show facts or spinner here - description is already in collapsed header
+        // Show facts if available, otherwise empty (spinner will show on click)
         let summaryHtml;
         if (item.content_text) {
             // Show scraped facts if available
             const cleanSummary = FeedUtils.cleanSnippet(item.content_text);
-            summaryHtml = `<p class="feed-item-summary">${FeedUtils.truncateText(cleanSummary, 400)}</p>`;
+            const paragraphs = cleanSummary.split('\n\n');
+            summaryHtml = paragraphs.map(p => `<p class="feed-item-summary" style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
         } else {
             // Empty - spinner will show on card click if facts aren't ready yet
             summaryHtml = '';
