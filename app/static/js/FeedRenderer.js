@@ -186,10 +186,6 @@ class FeedRenderer {
         const summaryEl = article.querySelector('.feed-item-summary');
         if (!summaryEl) return;
 
-    async loadSnippet(article, item) {
-        const summaryEl = article.querySelector('.feed-item-summary');
-        if (!summaryEl) return;
-
         // If already loaded, don't reload
         if (article.dataset.snippetLoaded === 'true') return;
 
