@@ -248,13 +248,16 @@
     height: 100%;
     background: var(--card-color, transparent);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: scale(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
     z-index: -1;
+    border-radius: 12px;
 }
 
-.feed-item.expanded .feed-item-expanded-content::before {
+.feed-item:hover .feed-item.expanded .feed-item-expanded-content::before {
     opacity: 0.15;
+    transform: scale(1);
 }
 
 .feed-item.expanded .feed-item-expanded-content {
