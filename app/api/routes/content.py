@@ -390,8 +390,83 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
         "status": "fetching",
     }
 
+
+@router.get("/snippet/{content_id}/priority")
+async def get_content_snippet_priority(
+    content_id: int,
+    db: AsyncSession = Depends(get_db),
+    timeout: int = Query(5, ge=1, le=30),
+):
+    """
+    Fetch article snippet on-demand with user waiting (e.g., card expansion).
+    Attempts to scrape immediately and returns within timeout.
+    Shows loading state if scraping takes longer than timeout.
+    """
+    # Get content from database
+    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
+    content = result.scalar_one_or_none()
+    if not content:
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+
+    # Check if already scraped
+    if content.content_text:
+        snippet = (
+            content.content_text[:800]
+            if len(content.content_text) > 800
+            else content.content_text
+        )
+        return {
+            "snippet": snippet,
+            "full_content_available": True,
+            "rate_limited": False,
+            "status": "ready",
+        }
+
+    # Validate source URL
+    source_url = _get_source_url(content)
+    if not source_url:
+        return {
+            "snippet": content.description or None,
+            "rate_limited": False,
+            "status": "ready",
+        }
+
+    # Try to scrape immediately with timeout
+    try:
+        # Use asyncio.wait_for to enforce timeout
+        snippet = await asyncio.wait_for(
+            _scrape_and_store_article(content, source_url, db),
+            timeout=float(timeout),
+        )
+
+        if snippet:
+            return {
+                "snippet": snippet,
+                "full_content_available": True,
+                "rate_limited": False,
+                "status": "ready",
+            }
+    except asyncio.TimeoutError:
+        # Scraping took too long - return loading state
+        return {
+            "snippet": None,
+            "rate_limited": False,
+            "status": "loading",
+        }
+    except Exception as e:
+        if _is_rate_limit_error(e):
+            return _get_rate_limit_response()
+        import logging
+
+        logger = logging.getLogger(LOGGER_NAME)
+        logger.debug(f"Priority scrape error for {content_id}: {e}")
+
     # Fallback to description
-    return {"snippet": content.description or None, "rate_limited": False}
+    return {
+        "snippet": content.description or None,
+        "rate_limited": False,
+        "status": "ready",
+    }
 
 
 @router.get("/related/{content_id}")
