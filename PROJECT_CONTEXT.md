@@ -1155,3 +1155,22 @@ exus-webhook.service systemd service from EC2
 - **No user-triggered scraping**: Feed expansion now uses pre-scraped content from database; system scrapes articles during initial content ingestion only
 - **Logging added**: Added comprehensive logging to `update_cache_bust.py` script with file logging to `logs/cache_bust.log` and console output
 - **Result**: Facts now display completely without truncation, no API calls on card expansion, faster UX
+
+### 2025-12-07: Background Article Scraping & Loading State UI
+- **Issue 1**: Site no longer scraping articles → articles stuck without content
+- **Issue 2**: Cards showed duplicate snippet text when article lacked story facts
+- **Solution - Backend**: Refactored `/api/v1/content/snippet/{content_id}` to return immediately with description and trigger background scraping via `asyncio.create_task()`
+  - Returns immediately without blocking response
+  - Scraping happens in background on one of the 2 Gunicorn workers
+  - No more long-hanging requests waiting for scraper
+- **Solution - Feed Endpoint**: Added background scraping to `/api/v1/content/feed` endpoint
+  - Scrapes up to 5 articles per feed request without blocking response
+  - Uses separate database session via `AsyncSessionLocal()`
+  - Allows one worker to serve API, other worker to scrape articles
+- **Solution - Frontend**: Modified `FeedRenderer.js` to show loading state instead of duplicate content
+  - Shows spinning loader + "Fetching story facts..." message when article needs scraping
+  - `loadSnippet()` polls for updated content and replaces loading state when ready
+  - Added `loading-state` class and `spinner` CSS animation to `feed.css`
+- **Architecture**: Two Gunicorn workers allow parallel fetch + scrape operations without blocking user experience
+- **Result**: Articles scrape in background while feed loads, UI shows loading spinner instead of incomplete content
+
