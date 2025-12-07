@@ -169,7 +169,7 @@ async def get_personalized_feed(
             articles_to_scrape = [
                 item
                 for item in result["items"]
-                if not item.get("content_text") and item.get("source_urls")
+                if not item.get("facts") and item.get("source_urls")
             ]
 
             if articles_to_scrape:
@@ -177,7 +177,7 @@ async def get_personalized_feed(
                     for item in articles_to_scrape[:5]:  # Limit to 5 per request
                         try:
                             content = await bg_db.get(ContentItem, item["content_id"])
-                            if content and not content.content_text:
+                            if content and not content.facts:
                                 source_url = (
                                     content.source_urls[0]
                                     if content.source_urls
@@ -295,8 +295,11 @@ async def _scrape_and_store_article(
         await db.commit()
         return None
 
-    # Update content fields
-    content.content_text = article_data["content"]
+    # Store full content in content_text and extracted facts in facts field
+    full_content = article_data["content"]
+    content.content_text = full_content
+    content.facts = full_content  # Facts are the same as content (already extracted by _limit_to_excerpt)
+
     if article_data.get("title"):
         content.title = article_data["title"]
     if article_data.get("author"):
@@ -306,9 +309,8 @@ async def _scrape_and_store_article(
 
     await db.commit()
 
-    # Generate snippet
-    full_content = article_data["content"]
-    snippet = full_content[:800] if len(full_content) > 800 else full_content
+    # Generate snippet from facts
+    snippet = content.facts[:800] if len(content.facts) > 800 else content.facts
     return snippet
 
 
@@ -350,12 +352,8 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # Check if already scraped
-    if content.content_text:
-        snippet = (
-            content.content_text[:800]
-            if len(content.content_text) > 800
-            else content.content_text
-        )
+    if content.facts:
+        snippet = content.facts[:800] if len(content.facts) > 800 else content.facts
         return {
             "snippet": snippet,
             "full_content_available": True,
@@ -377,7 +375,7 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
                     select(ContentItem).where(ContentItem.id == content_id)
                 )
                 bg_content = bg_result.scalar_one_or_none()
-                if bg_content and not bg_content.content_text:
+                if bg_content and not bg_content.facts:
                     await _scrape_and_store_article(bg_content, source_url, bg_db)
         except Exception as e:
             import logging
@@ -414,12 +412,8 @@ async def get_content_snippet_priority(
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # Check if already scraped
-    if content.content_text:
-        snippet = (
-            content.content_text[:800]
-            if len(content.content_text) > 800
-            else content.content_text
-        )
+    if content.facts:
+        snippet = content.facts[:800] if len(content.facts) > 800 else content.facts
         return {
             "snippet": snippet,
             "full_content_available": True,

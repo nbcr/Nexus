@@ -25,9 +25,9 @@ class FeedRenderer {
         // Build summary HTML for expanded content
         // Show facts if available, otherwise empty (spinner will show on click)
         let summaryHtml;
-        if (item.content_text) {
+        if (item.facts) {
             // Show scraped facts if available
-            const cleanSummary = FeedUtils.cleanSnippet(item.content_text);
+            const cleanSummary = FeedUtils.cleanSnippet(item.facts);
             const paragraphs = cleanSummary.split('\n\n');
             const factsContent = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
             summaryHtml = `<div class="feed-item-summary">${factsContent}</div>`;
@@ -98,7 +98,7 @@ class FeedRenderer {
     `;
 
         // Mark as loaded if facts already present
-        if (item.content_text) {
+        if (item.facts) {
             article.dataset.snippetLoaded = 'true';
         }
 
@@ -197,8 +197,8 @@ class FeedRenderer {
         if (article.dataset.snippetLoaded === 'true') return;
 
         // Check if already has facts
-        if (item.content_text && item.content_text.length > 100) {
-            const paragraphs = item.content_text.split('\n\n');
+        if (item.facts && item.facts.length > 100) {
+            const paragraphs = item.facts.split('\n\n');
             const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
             summaryEl.innerHTML = factsHtml;
             article.dataset.snippetLoaded = 'true';
@@ -208,7 +208,7 @@ class FeedRenderer {
         const isNewsArticle = FeedUtils.isNewsArticle(item);
 
         // For news articles without facts yet, show spinner and fetch
-        if (isNewsArticle && !item.content_text) {
+        if (isNewsArticle && !item.facts) {
             // Show loading spinner
             summaryEl.classList.add('loading-state');
             summaryEl.innerHTML = `<div class="spinner"></div>

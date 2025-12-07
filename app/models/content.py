@@ -29,6 +29,7 @@ class ContentItem(Base):
     tags = Column(JSON, default=list)
     content_type = Column(String(50))
     content_text = Column(Text)
+    facts = Column(Text, nullable=True)  # Extracted key facts from scraped content
     ai_model_used = Column(String(100))
     source_urls = Column(JSON, default=list)
     source_metadata = Column(JSON, default=dict)
