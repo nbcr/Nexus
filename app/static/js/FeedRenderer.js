@@ -25,12 +25,26 @@ class FeedRenderer {
         const hasScrapedContent = item.source_metadata?.scraped_at;
         const rawSummary = hasScrapedContent ? (item.content_text || item.description || '') : (item.description || '');
         const cleanSummary = FeedUtils.cleanSnippet(rawSummary);
-        const summaryHtml = cleanSummary
-            ? `<p class="feed-item-summary">${FeedUtils.truncateText(cleanSummary, 400)}</p>`
-            : '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>';
+        
+        // Determine if we need to show loading state
+        // Show loading if no description and not yet scraped
+        const needsScraped = !item.description || item.description.length < 50;
+        const isNewsArticle = FeedUtils.isNewsArticle(item);
+        
+        let summaryHtml;
+        if (needsScraped && isNewsArticle && !hasScrapedContent) {
+            // Show loading spinner for articles that need scraping
+            summaryHtml = `<div class="feed-item-summary loading-state">
+                <div class="spinner"></div>
+                <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>
+            </div>`;
+        } else if (cleanSummary) {
+            summaryHtml = `<p class="feed-item-summary">${FeedUtils.truncateText(cleanSummary, 400)}</p>`;
+        } else {
+            summaryHtml = '<p class="feed-item-summary" style="font-style: italic;">No snippet available</p>';
+        }
 
         const isSearchQuery = FeedUtils.isSearchQuery(item);
-        const isNewsArticle = FeedUtils.isNewsArticle(item);
         
         let readMoreButton = '';
         if (isNewsArticle) {
@@ -180,24 +194,53 @@ class FeedRenderer {
 
     async loadSnippet(article, item) {
         const summaryEl = article.querySelector('.feed-item-summary');
-        if (summaryEl) {
-            // Check if we need to load full content
-            const needsFullContent = summaryEl.textContent.includes('No snippet available') 
-                                   || summaryEl.textContent.trim().length < 50
-                                   || !article.dataset.snippetLoaded;
-            
-            if (needsFullContent && item.content_text && item.content_text.length > 100) {
-                // Display condensed facts from database
-                const paragraphs = item.content_text.split('\n\n');
-                const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
-                summaryEl.innerHTML = factsHtml;
-                article.dataset.snippetLoaded = 'true';
-            } else if (needsFullContent && item.description) {
-                summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
-                article.dataset.snippetLoaded = 'true';
-            } else if (needsFullContent) {
-                summaryEl.innerHTML = '<em>No preview available from this source</em>';
+        if (!summaryEl) return;
+
+        // If already loaded, don't reload
+        if (article.dataset.snippetLoaded === 'true') return;
+
+        // Check if already has content
+        if (item.content_text && item.content_text.length > 100) {
+            const paragraphs = item.content_text.split('\n\n');
+            const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
+            summaryEl.innerHTML = factsHtml;
+            article.dataset.snippetLoaded = 'true';
+            return;
+        }
+
+        // If showing loading state, try to fetch the snippet
+        const isLoadingState = summaryEl.classList.contains('loading-state');
+        if (isLoadingState) {
+            try {
+                const response = await this.api.fetchSnippet(item.content_id);
+                
+                if (response.snippet) {
+                    // Replace loading spinner with actual content
+                    summaryEl.classList.remove('loading-state');
+                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${response.snippet}</p>`;
+                    article.dataset.snippetLoaded = 'true';
+                } else if (response.status === 'fetching') {
+                    // Still fetching in background, poll again in 2 seconds
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await this.loadSnippet(article, item);
+                } else if (item.description) {
+                    // Fallback to description
+                    summaryEl.classList.remove('loading-state');
+                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
+                    article.dataset.snippetLoaded = 'true';
+                }
+            } catch (error) {
+                console.error('Error loading snippet:', error);
+                // Fallback to description on error
+                if (item.description) {
+                    summaryEl.classList.remove('loading-state');
+                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
+                    article.dataset.snippetLoaded = 'true';
+                }
             }
+        } else if (item.description) {
+            summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
+            article.dataset.snippetLoaded = 'true';
         }
     }
 
