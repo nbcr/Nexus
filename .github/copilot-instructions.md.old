@@ -1,10 +1,5 @@
 # Copilot Instructions for Nexus
 
-> **⚠️ CRITICAL: DEPLOYMENT WORKFLOW - NO MANUAL SERVER CHANGES**
->
-> - **DO NOT manually pull files to EC2 or restart the service**
-> - **ONLY METHOD**: Commit and push changes to GitHub → GitHub Actions automatically deploys and restarts the service
-> - After making code changes, run: `git add`, `git commit`, `git push` (that's it!)
 > - GitHub Actions handles pulling files and restarting `nexus` service automatically
 
 > **CRITICAL: Response Protocol:**
