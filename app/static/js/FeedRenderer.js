@@ -32,8 +32,8 @@ class FeedRenderer {
             const factsContent = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
             summaryHtml = `<div class="feed-item-summary">${factsContent}</div>`;
         } else {
-            // Empty - spinner will show on card click if facts aren't ready yet
-            summaryHtml = '';
+            // Always create summary element, even if empty (spinner will populate it on click)
+            summaryHtml = '<div class="feed-item-summary"></div>';
         }
 
         const isSearchQuery = FeedUtils.isSearchQuery(item);
