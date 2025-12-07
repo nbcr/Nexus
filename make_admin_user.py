@@ -13,7 +13,7 @@ from app.core.config import settings
 def make_admin(username: str):
     """Make a user an admin"""
     # Create database engine
-    engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URL), echo=False)
+    engine = create_engine(settings.database_url_sync, echo=False)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
 
