@@ -30,10 +30,14 @@ async def debug_auth_router():
 
 @router.post("/logout")
 async def logout(response: Response):
-    """Logout endpoint: clears access/refresh tokens"""
+    """Logout endpoint: clears access/refresh tokens and redirects to logged-out page"""
+    from fastapi.responses import RedirectResponse
+
+    # Delete cookies
+    response = RedirectResponse(url="/logged-out.html", status_code=302)
     response.delete_cookie(key="access_token", path="/")
     response.delete_cookie(key="refresh_token", path="/")
-    return {"detail": "Logged out"}
+    return response
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
