@@ -20,26 +20,17 @@ class FeedRenderer {
         const imageHtml = this.buildImageHtml(item);
 
         const source = item.source_metadata?.source || 'News';
-        // Check if article has been scraped (has scraped_at timestamp)
-        const hasBeenScraped = item.source_metadata?.scraped_at;
         const isNewsArticle = FeedUtils.isNewsArticle(item);
-        const hasDescription = item.description && item.description.length > 0;
         
         // Build summary HTML for expanded content
-        // Priority: scraped content > spinner if scraped but no content > nothing (description shown in header)
+        // Only show facts or spinner here - description is already in collapsed header
         let summaryHtml;
         if (item.content_text) {
-            // Show scraped content if available
+            // Show scraped facts if available
             const cleanSummary = FeedUtils.cleanSnippet(item.content_text);
             summaryHtml = `<p class="feed-item-summary">${FeedUtils.truncateText(cleanSummary, 400)}</p>`;
-        } else if (!hasDescription && isNewsArticle && hasBeenScraped && !item.content_text) {
-            // Show loading spinner if scraping completed but no content returned
-            summaryHtml = `<div class="feed-item-summary loading-state">
-                <div class="spinner"></div>
-                <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>
-            </div>`;
         } else {
-            // Don't show anything - description is already shown in collapsed header
+            // Empty - spinner will show on card click if facts aren't ready yet
             summaryHtml = '';
         }
 
@@ -195,26 +186,27 @@ class FeedRenderer {
         const summaryEl = article.querySelector('.feed-item-summary');
         if (!summaryEl) return;
 
+    async loadSnippet(article, item) {
+        const summaryEl = article.querySelector('.feed-item-summary');
+        if (!summaryEl) return;
+
         // If already loaded, don't reload
         if (article.dataset.snippetLoaded === 'true') return;
 
-        // Check if already has content
+        // Check if already has facts
         if (item.content_text && item.content_text.length > 100) {
             const paragraphs = item.content_text.split('\n\n');
             const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
             summaryEl.innerHTML = factsHtml;
-            article.data.snippetLoaded = 'true';
+            article.dataset.snippetLoaded = 'true';
             return;
         }
 
         const isNewsArticle = FeedUtils.isNewsArticle(item);
-        const isLoadingState = summaryEl.classList.contains('loading-state');
 
-        // Try scraping if: already showing loading state OR no content_text yet
-        const shouldTryScraping = isLoadingState || !item.content_text;
-
-        if (shouldTryScraping && isNewsArticle) {
-            // Show loading circle immediately
+        // For news articles without facts yet, show spinner and fetch
+        if (isNewsArticle && !item.content_text) {
+            // Show loading spinner
             summaryEl.classList.add('loading-state');
             summaryEl.innerHTML = `<div class="spinner"></div>
                 <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>`;
@@ -227,16 +219,16 @@ class FeedRenderer {
                 const data = await response.json();
 
                 if (data.status === 'ready' && data.snippet) {
-                    // Content ready - display it
+                    // Facts ready - display them
                     summaryEl.classList.remove('loading-state');
                     summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>`;
                     article.dataset.snippetLoaded = 'true';
                 } else if (data.status === 'loading') {
-                    // Still loading - poll again with 1 second interval
+                    // Still scraping - poll again with 1 second interval
                     await new Promise((resolve) => setTimeout(resolve, 1000));
                     await this.loadSnippet(article, item);
                 } else if (data.status === 'failed') {
-                    // Scraping failed - show error message with button
+                    // Scraping failed - show error with button
                     summaryEl.classList.remove('loading-state');
                     const readMoreBtn = article.querySelector('.btn-read-more');
                     const buttonText = readMoreBtn
@@ -245,10 +237,7 @@ class FeedRenderer {
                     summaryEl.innerHTML = `
                         <div style="text-align: center; padding: 20px;">
                             <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">
-                                ⚠️ Scraping failed
-                            </p>
-                            <p style="color: #666; margin-bottom: 16px;">
-                                We couldn't fetch the story facts. Please visit the site for the full story.
+                                ⚠️ We couldn't fetch the story facts
                             </p>
                             <button class="btn-read-more" data-content-id="${item.content_id}" 
                                 style="background: #0078d4; color: white; border: none; padding: 10px 20px; 
@@ -257,7 +246,7 @@ class FeedRenderer {
                             </button>
                         </div>
                     `;
-                    // Re-attach click handler to the new button
+                    // Re-attach click handler
                     const newBtn = summaryEl.querySelector('.btn-read-more');
                     if (newBtn) {
                         newBtn.addEventListener('click', (e) => {
@@ -270,15 +259,10 @@ class FeedRenderer {
                         });
                     }
                     article.dataset.snippetLoaded = 'true';
-                } else if (hasDescription) {
-                    // Fallback to description if available
-                    summaryEl.classList.remove('loading-state');
-                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
-                    article.dataset.snippetLoaded = 'true';
                 }
             } catch (error) {
                 console.error('Error loading snippet:', error);
-                // Show error message on network error
+                // Show error on network failure
                 summaryEl.classList.remove('loading-state');
                 const readMoreBtn = article.querySelector('.btn-read-more');
                 const buttonText = readMoreBtn
@@ -287,10 +271,7 @@ class FeedRenderer {
                 summaryEl.innerHTML = `
                     <div style="text-align: center; padding: 20px;">
                         <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">
-                            ⚠️ Scraping failed
-                        </p>
-                        <p style="color: #666; margin-bottom: 16px;">
-                            We couldn't fetch the story facts. Please visit the site for the full story.
+                            ⚠️ We couldn't fetch the story facts
                         </p>
                         <button class="btn-read-more" data-content-id="${item.content_id}" 
                             style="background: #0078d4; color: white; border: none; padding: 10px 20px; 
@@ -314,6 +295,7 @@ class FeedRenderer {
                 article.dataset.snippetLoaded = 'true';
             }
         }
+    }
     }
 
     async loadRelatedContent(article, item) {
