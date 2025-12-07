@@ -1174,3 +1174,33 @@ exus-webhook.service systemd service from EC2
 - **Architecture**: Two Gunicorn workers allow parallel fetch + scrape operations without blocking user experience
 - **Result**: Articles scrape in background while feed loads, UI shows loading spinner instead of incomplete content
 
+### 2025-12-07: Priority Scraping & On-Demand Article Loading
+- **Goal**: Improve UX when user clicks card to expand - fetch facts immediately with loading feedback
+- **Issue - Duplicate Display**: Cards were showing the same description twice (collapsed header + expanded section)
+  - Fix: Only show loading spinner or content in expanded section if no description shown in header
+  - Prevents duplication by checking `hasDescription` flag before rendering expanded content
+- **New Priority Scraping Endpoint**: `/api/v1/content/snippet/{id}/priority?timeout=10`
+  - Attempts immediate scraping when user clicks card (on-demand, not background)
+  - Returns three states:
+    - `"status": "ready"` - content ready, send facts
+    - `"status": "loading"` - still scraping, keep polling
+    - `"status": "failed"` - scraping error, show error message
+  - 10-second timeout (adjustable 1-30s) to balance UX vs giving scraper time
+  - Uses `asyncio.wait_for()` to enforce timeout and stop long-running scrapes
+- **Frontend Card Expansion Flow**:
+  1. User clicks card → immediately show loading circle + "Fetching story facts..."
+  2. Backend scrapes article while frontend polls `/priority` endpoint
+  3. Once scraping completes → facts display instantly
+  4. If scraping fails within timeout → show error message with "Visit site for full story" button
+  5. Polling interval: 1 second (faster feedback than background 2s interval)
+- **Error Handling**: 
+  - Scraping failure shows professional error UI with button to visit source
+  - Network errors also show same error message
+  - Graceful fallback: if both scraping and error UI fail, user still sees button
+- **Architecture Benefits**:
+  - User waiting for facts gets priority (on-demand scraping)
+  - Background scraping still handles other articles in parallel
+  - Two Gunicorn workers: one serves prioritized requests, other handles background work
+  - Feed loads instantly, facts appear as they're ready
+- **Result**: Responsive UX with loading feedback, clear error handling, facts appear as soon as available
+
