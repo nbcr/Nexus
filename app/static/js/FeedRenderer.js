@@ -292,7 +292,6 @@ class FeedRenderer {
             }
         }
     }
-    }
 
     async loadRelatedContent(article, item) {
         const contentInner = article.querySelector('.content-inner');
