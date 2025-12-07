@@ -208,23 +208,29 @@ class FeedRenderer {
             return;
         }
 
-        // If showing loading state, try to fetch the snippet
+        // If showing loading state, try immediate scraping with timeout
         const isLoadingState = summaryEl.classList.contains('loading-state');
         if (isLoadingState) {
             try {
-                const response = await this.api.fetchSnippet(item.content_id);
+                // Use priority endpoint for on-demand scraping with timeout
+                const response = await fetch(`/api/v1/content/snippet/${item.content_id}/priority?timeout=5`);
+                const data = await response.json();
                 
-                if (response.snippet) {
-                    // Replace loading spinner with actual content
+                if (data.status === 'ready' && data.snippet) {
+                    // Content ready - display it
                     summaryEl.classList.remove('loading-state');
-                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${response.snippet}</p>`;
+                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>`;
                     article.dataset.snippetLoaded = 'true';
-                } else if (response.status === 'fetching') {
-                    // Still fetching in background, poll again in 2 seconds
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                } else if (data.status === 'loading') {
+                    // Still loading - show spinner and poll again
+                    summaryEl.innerHTML = `<div class="spinner"></div>
+                        <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>`;
+                    
+                    // Poll for updates every 1 second (shorter than default 2s)
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     await this.loadSnippet(article, item);
                 } else if (item.description) {
-                    // Fallback to description
+                    // Fallback to description if available
                     summaryEl.classList.remove('loading-state');
                     summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
                     article.dataset.snippetLoaded = 'true';
@@ -235,6 +241,10 @@ class FeedRenderer {
                 if (item.description) {
                     summaryEl.classList.remove('loading-state');
                     summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
+                    article.dataset.snippetLoaded = 'true';
+                } else {
+                    summaryEl.classList.remove('loading-state');
+                    summaryEl.innerHTML = '<em>Unable to load content</em>';
                     article.dataset.snippetLoaded = 'true';
                 }
             }
