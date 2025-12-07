@@ -6,7 +6,8 @@ from fastapi.responses import FileResponse, RedirectResponse
 import os
 
 from app.api.routes import topics, content, users, session
-from app.api.routes import logged_out
+
+from app.api.routes.logged_out import router as logged_out_router
 from app.api.v1.routes import (
     admin,
     settings as v1_settings,
@@ -142,7 +143,7 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Include routers
-app.include_router(logged_out)
+app.include_router(logged_out_router)
 app.include_router(
     v1_auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["authentication"]
 )
