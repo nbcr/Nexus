@@ -282,8 +282,17 @@ async def _scrape_and_store_article(
     content: ContentItem, source_url: str, db: AsyncSession
 ) -> Optional[str]:
     """Scrape article and persist to database. Returns snippet or None."""
+    from datetime import timezone
+
     article_data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
+
+    # Always mark scraping as attempted
+    if not content.source_metadata:
+        content.source_metadata = {}
+    content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
+
     if not article_data or not article_data.get("content"):
+        await db.commit()
         return None
 
     # Update content fields
@@ -291,12 +300,8 @@ async def _scrape_and_store_article(
     if article_data.get("title"):
         content.title = article_data["title"]
     if article_data.get("author"):
-        if not content.source_metadata:
-            content.source_metadata = {}
         content.source_metadata["author"] = article_data["author"]
     if article_data.get("published_date"):
-        if not content.source_metadata:
-            content.source_metadata = {}
         content.source_metadata["published_date"] = article_data["published_date"]
 
     await db.commit()
