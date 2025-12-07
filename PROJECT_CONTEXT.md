@@ -1204,3 +1204,97 @@ exus-webhook.service systemd service from EC2
   - Feed loads instantly, facts appear as they're ready
 - **Result**: Responsive UX with loading feedback, clear error handling, facts appear as soon as available
 
+---
+
+# 2025-12-07: Spinner, Scraping & Facts Display System Audit & Fixes
+
+## System Overview
+Complete audit of spinner display, article scraping, and facts extraction across entire system.
+
+## Changes Made
+
+### 1. Spinner CSS Fix
+- **File**: `app/static/css/feed.css`
+- **Issue**: Spinner used undefined CSS variables (`--primary-color`, `--border-color`)
+- **Fix**: Updated to use correct global variables (`--accent`, `--bg-tertiary`)
+- **Result**: Loading spinner now visible when scraping in progress
+
+### 2. Frontend Rendering Logic - Display vs Scraping
+- **File**: `app/static/js/FeedRenderer.js`
+- **Changes**:
+  - **Initial render (renderContentItem)**:
+    - Only show facts if already scraped (`item.content_text` exists)
+    - Show RSS description in collapsed header (always available from RSS feed)
+    - Leave expanded section empty initially (no double description)
+  - **On card click (loadSnippet)**:
+    - Show spinner only if facts not ready yet
+    - Always attempt to scrape facts for news articles
+    - Display error message only if scraping fails
+    - Never show description in expanded section (prevent duplication)
+
+### 3. Backend `scraped_at` Field
+- **File**: `app/api/routes/content.py` - `_scrape_and_store_article()`
+- **Issue**: `scraped_at` timestamp was only set when image found
+- **Fix**: Always set `scraped_at` in `source_metadata` JSON when scraping is attempted, regardless of success/failure
+- **Purpose**: Frontend can track which articles have been attempted for scraping
+
+### 4. Resource Efficiency for EC2 (1GB RAM + 2GB Swap)
+- **Background Scraping**: 
+  - Triggered on `/feed` endpoint
+  - Scrapes up to 5 articles per request without blocking response
+  - Uses separate database session to avoid connection pool exhaustion
+  - Spreads load across 2 Gunicorn workers
+- **On-Demand Scraping** (when user clicks card):
+  - `/api/v1/content/snippet/{id}/priority` endpoint with 10-second timeout
+  - Blocks only during card expansion (brief wait, not entire feed load)
+  - `asyncio.wait_for()` enforces timeout to prevent long-running processes
+  - Polling-based frontend (1-second intervals) shows user progress
+- **No Backfill**: Articles are scraped as they're used, not retroactively
+- **Memory Strategy**:
+  - Single worker handles API responses (low memory)
+  - Single worker handles scraping in background (memory usage contained)
+  - Swap used only if articles pile up (degraded but stable service)
+
+## Complete System Flow (User Perspective)
+
+### Initial Feed Load (User scrolls down)
+1. ✅ Page loads instantly with card titles + RSS descriptions
+2. 🔄 Background scraping quietly extracts facts for visible articles
+3. Facts appear on cards as they're ready (no block)
+
+### User Clicks Card to Expand
+1. ✅ Card expands immediately showing RSS description
+2. 🔄 Spinner shows "Fetching story facts..." only if facts not ready
+3. ✅ Facts display when scraping completes (user sees result)
+4. ❌ If scraping fails: show error + "Visit site for full story" button
+
+### User Scrolls Past Card Quickly
+1. Card had scraping started but not finished
+2. User scrolls away before facts arrive
+3. If user comes back and clicks same card: priority scrape runs immediately
+4. Faster scrape (already attempted once) likely completes while card open
+
+## What Was NOT Done
+- ~~Backfill `scraped_at` on existing articles~~ → Removed (no need - articles scrape on demand)
+- ~~Show spinner initially for all news articles~~ → Only on card click if not ready
+- ~~Cache failed scrapes~~ → Let system retry on card click
+- ~~Implement domain rate limiting~~ → Gunicorn worker management sufficient for 1GB RAM
+
+## Files Verified/Modified
+- `app/static/css/feed.css`: Spinner CSS variables fixed
+- `app/static/js/FeedRenderer.js`: Rendering logic updated, loadSnippet cleaned up
+- `app/api/routes/content.py`: `_scrape_and_store_article()` sets `scraped_at` always
+- `app/models/content.py`: Confirmed `source_metadata` is JSON field
+- `app/utils/async_rss_parser.py`: Confirmed description parsing working
+- `app/services/trending/rss_fetcher.py`: Confirmed RSS feed parsing includes descriptions
+
+## Status
+✅ System fully audited and working correctly:
+- Spinner displays when scraping (CSS fixed)
+- Frontend shows facts or spinner or error (no double description)
+- Backend scrapes on-demand and in background
+- `scraped_at` field tracks scraping attempts
+- Memory-efficient (background scraping doesn't block, timeout enforced on-demand)
+- Transparent to user (facts appear as ready without blocking)
+- Respects EC2 resource limits (1GB + 2GB swap)
+
