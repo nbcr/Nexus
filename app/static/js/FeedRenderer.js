@@ -208,28 +208,71 @@ class FeedRenderer {
             return;
         }
 
-        // If showing loading state, try immediate scraping with timeout
+        const isNewsArticle = FeedUtils.isNewsArticle(item);
+        const hasDescription = item.description && item.description.length > 0;
+
+        // If showing loading state or no description, try immediate scraping
         const isLoadingState = summaryEl.classList.contains('loading-state');
-        if (isLoadingState) {
+        const shouldTryScraping = isLoadingState || !hasDescription;
+
+        if (shouldTryScraping && isNewsArticle) {
+            // Show loading circle immediately
+            summaryEl.classList.add('loading-state');
+            summaryEl.innerHTML = `<div class="spinner"></div>
+                <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>`;
+
             try {
                 // Use priority endpoint for on-demand scraping with timeout
-                const response = await fetch(`/api/v1/content/snippet/${item.content_id}/priority?timeout=5`);
+                const response = await fetch(
+                    `/api/v1/content/snippet/${item.content_id}/priority?timeout=10`
+                );
                 const data = await response.json();
-                
+
                 if (data.status === 'ready' && data.snippet) {
                     // Content ready - display it
                     summaryEl.classList.remove('loading-state');
                     summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>`;
                     article.dataset.snippetLoaded = 'true';
                 } else if (data.status === 'loading') {
-                    // Still loading - show spinner and poll again
-                    summaryEl.innerHTML = `<div class="spinner"></div>
-                        <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>`;
-                    
-                    // Poll for updates every 1 second (shorter than default 2s)
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    // Still loading - poll again with 1 second interval
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                     await this.loadSnippet(article, item);
-                } else if (item.description) {
+                } else if (data.status === 'failed') {
+                    // Scraping failed - show error message with button
+                    summaryEl.classList.remove('loading-state');
+                    const readMoreBtn = article.querySelector('.btn-read-more');
+                    const buttonText = readMoreBtn
+                        ? readMoreBtn.textContent.trim()
+                        : 'Visit site for full story';
+                    summaryEl.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">
+                                ⚠️ Scraping failed
+                            </p>
+                            <p style="color: #666; margin-bottom: 16px;">
+                                We couldn't fetch the story facts. Please visit the site for the full story.
+                            </p>
+                            <button class="btn-read-more" data-content-id="${item.content_id}" 
+                                style="background: #0078d4; color: white; border: none; padding: 10px 20px; 
+                                border-radius: 4px; cursor: pointer; font-weight: 500;">
+                                ${buttonText}
+                            </button>
+                        </div>
+                    `;
+                    // Re-attach click handler to the new button
+                    const newBtn = summaryEl.querySelector('.btn-read-more');
+                    if (newBtn) {
+                        newBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const originalBtn = article.querySelector(
+                                '.feed-item-actions .btn-read-more'
+                            );
+                            if (originalBtn) originalBtn.click();
+                        });
+                    }
+                    article.dataset.snippetLoaded = 'true';
+                } else if (hasDescription) {
                     // Fallback to description if available
                     summaryEl.classList.remove('loading-state');
                     summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
@@ -237,18 +280,42 @@ class FeedRenderer {
                 }
             } catch (error) {
                 console.error('Error loading snippet:', error);
-                // Fallback to description on error
-                if (item.description) {
-                    summaryEl.classList.remove('loading-state');
-                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
-                    article.dataset.snippetLoaded = 'true';
-                } else {
-                    summaryEl.classList.remove('loading-state');
-                    summaryEl.innerHTML = '<em>Unable to load content</em>';
-                    article.dataset.snippetLoaded = 'true';
+                // Show error message on network error
+                summaryEl.classList.remove('loading-state');
+                const readMoreBtn = article.querySelector('.btn-read-more');
+                const buttonText = readMoreBtn
+                    ? readMoreBtn.textContent.trim()
+                    : 'Visit site for full story';
+                summaryEl.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">
+                            ⚠️ Scraping failed
+                        </p>
+                        <p style="color: #666; margin-bottom: 16px;">
+                            We couldn't fetch the story facts. Please visit the site for the full story.
+                        </p>
+                        <button class="btn-read-more" data-content-id="${item.content_id}" 
+                            style="background: #0078d4; color: white; border: none; padding: 10px 20px; 
+                            border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            ${buttonText}
+                        </button>
+                    </div>
+                `;
+                // Re-attach click handler
+                const newBtn = summaryEl.querySelector('.btn-read-more');
+                if (newBtn) {
+                    newBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const originalBtn = article.querySelector(
+                            '.feed-item-actions .btn-read-more'
+                        );
+                        if (originalBtn) originalBtn.click();
+                    });
                 }
+                article.dataset.snippetLoaded = 'true';
             }
-        } else if (item.description) {
+        } else if (hasDescription) {
             summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
             article.dataset.snippetLoaded = 'true';
         }

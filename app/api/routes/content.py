@@ -460,6 +460,12 @@ async def get_content_snippet_priority(
 
         logger = logging.getLogger(LOGGER_NAME)
         logger.debug(f"Priority scrape error for {content_id}: {e}")
+        # Return failed status when scraping fails
+        return {
+            "snippet": None,
+            "rate_limited": False,
+            "status": "failed",
+        }
 
     # Fallback to description
     return {
