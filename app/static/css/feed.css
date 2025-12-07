@@ -110,7 +110,7 @@
 /* Feed Item Image - YouTube Style */
 .feed-item-image {
     width: 100%;
-    max-width: 360px;
+    max-width: 100%;
     overflow: visible;
     background: transparent;
     border-radius: 12px;
