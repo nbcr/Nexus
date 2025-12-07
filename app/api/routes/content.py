@@ -161,6 +161,42 @@ async def get_personalized_feed(
             cursor=cursor,
         )
 
+    # Trigger background scraping for articles without content
+    # This happens in parallel without blocking the response
+    async def background_scrape_articles():
+        """Background scraping task - runs in separate worker"""
+        try:
+            articles_to_scrape = [
+                item
+                for item in result["items"]
+                if not item.get("content_text") and item.get("source_urls")
+            ]
+
+            if articles_to_scrape:
+                async with AsyncSessionLocal() as bg_db:
+                    for item in articles_to_scrape[:5]:  # Limit to 5 per request
+                        try:
+                            content = await bg_db.get(ContentItem, item["content_id"])
+                            if content and not content.content_text:
+                                source_url = (
+                                    content.source_urls[0]
+                                    if content.source_urls
+                                    else None
+                                )
+                                if source_url:
+                                    await _scrape_and_store_article(
+                                        content, source_url, bg_db
+                                    )
+                        except Exception as e:
+                            logger.debug(
+                                f"Background scrape error for {item['content_id']}: {e}"
+                            )
+        except Exception as e:
+            logger.debug(f"Background scraping task failed: {e}")
+
+    # Fire and forget - don't await
+    asyncio.create_task(background_scrape_articles())
+
     return {
         "page": page,
         "page_size": page_size,
@@ -298,36 +334,61 @@ def _get_rate_limit_response() -> dict:
 
 @router.get("/snippet/{content_id}")
 async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db)):
-    """Fetch and store article snippet/content on demand."""
+    """
+    Fetch article snippet/content on demand.
+    Returns immediately with description, triggers background scraping for full content.
+    """
     # Get content from database
     result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
     content = result.scalar_one_or_none()
     if not content:
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
-    # Check cache first
-    cached = _get_cached_content(content)
-    if cached:
-        return cached
+    # Check if already scraped
+    if content.content_text:
+        snippet = (
+            content.content_text[:800]
+            if len(content.content_text) > 800
+            else content.content_text
+        )
+        return {
+            "snippet": snippet,
+            "full_content_available": True,
+            "rate_limited": False,
+        }
 
     # Validate source URL
     source_url = _get_source_url(content)
     if not source_url:
         return {"snippet": content.description or None, "rate_limited": False}
 
-    # Scrape and store
-    try:
-        snippet = await _scrape_and_store_article(content, source_url, db)
-        if snippet:
-            return {
-                "snippet": snippet,
-                "full_content_available": True,
-                "rate_limited": False,
-            }
-    except Exception as e:
-        if _is_rate_limit_error(e):
-            return _get_rate_limit_response()
-        print(f"Error fetching snippet: {e}")
+    # Return description immediately and trigger background scraping
+    # This way the UI shows the description immediately and gets the full content later
+    async def background_scrape():
+        """Background task to scrape article without blocking response"""
+        try:
+            async with AsyncSessionLocal() as bg_db:
+                bg_result = await bg_db.execute(
+                    select(ContentItem).where(ContentItem.id == content_id)
+                )
+                bg_content = bg_result.scalar_one_or_none()
+                if bg_content and not bg_content.content_text:
+                    await _scrape_and_store_article(bg_content, source_url, bg_db)
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(LOGGER_NAME)
+            logger.error(f"Background scrape failed for content {content_id}: {e}")
+
+    # Fire and forget - don't await
+    asyncio.create_task(background_scrape())
+
+    # Return description immediately while scraping happens in background
+    return {
+        "snippet": content.description or None,
+        "rate_limited": False,
+        "status": "fetching",
+    }
 
     # Fallback to description
     return {"snippet": content.description or None, "rate_limited": False}
