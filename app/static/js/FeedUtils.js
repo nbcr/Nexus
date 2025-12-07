@@ -76,9 +76,16 @@ class FeedUtils {
             g = Math.floor(g / count);
             b = Math.floor(b / count);
 
-            // Set the color as a CSS variable on the card
-            card.style.setProperty('--card-color', `rgb(${r}, ${g}, ${b})`);
-            console.debug(`Extracted color for card: rgb(${r}, ${g}, ${b})`);
+            // Convert RGB to HSL and boost saturation
+            const { h, s, l } = this.rgbToHsl(r, g, b);
+            // Increase saturation and ensure it's vibrant (min 60%)
+            const boostedS = Math.max(s * 1.5, 60);
+            // Slightly adjust lightness for better vibrancy
+            const boostedL = Math.min(l, 55);
+            const boostedRgb = this.hslToRgb(h, boostedS, boostedL);
+            
+            card.style.setProperty('--card-color', `rgb(${boostedRgb.r}, ${boostedRgb.g}, ${boostedRgb.b})`);
+            console.debug(`Extracted color for card: rgb(${boostedRgb.r}, ${boostedRgb.g}, ${boostedRgb.b})`);
 
         } catch (error) {
             // If color extraction fails (CORS or other issues), use a default subtle color
@@ -86,6 +93,58 @@ class FeedUtils {
             // Set a default subtle blue tint as fallback
             card.style.setProperty('--card-color', 'rgb(100, 149, 237)');
         }
+    }
+
+    static rgbToHsl(r, g, b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h = 0, s = 0;
+        const l = (max + min) / 2;
+
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+        return { h: h * 360, s: s * 100, l: l * 100 };
+    }
+
+    static hslToRgb(h, s, l) {
+        h /= 360;
+        s /= 100;
+        l /= 100;
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255)
+        };
     }
 
     static getSourceButtonText(item) {
