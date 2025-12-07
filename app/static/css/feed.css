@@ -13,7 +13,7 @@
     border-radius: 12px;
     box-shadow: none;
     margin-bottom: 24px;
-    overflow: hidden;
+    overflow: visible;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
 }
