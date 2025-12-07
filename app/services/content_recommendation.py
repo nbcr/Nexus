@@ -275,6 +275,9 @@ class ContentRecommendationService:
                     "content_text": self._strip_images_from_html(
                         content.content_text
                     ),  # Clean images from content text
+                    "facts": self._strip_images_from_html(
+                        getattr(content, "facts", None)
+                    ),  # Clean images from facts
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
                     "trend_score": topic.trend_score,
@@ -415,6 +418,9 @@ class ContentRecommendationService:
                     "category": content.category or topic.category,
                     "content_type": content.content_type,
                     "content_text": self._strip_images_from_html(content.content_text),
+                    "facts": self._strip_images_from_html(
+                        getattr(content, "facts", None)
+                    ),
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
                     "thumbnail_url": thumbnail_url,
