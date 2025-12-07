@@ -96,6 +96,11 @@ class FeedRenderer {
         </div>
     `;
 
+        // Mark as loaded if facts already present
+        if (item.content_text) {
+            article.dataset.snippetLoaded = 'true';
+        }
+
         this.setupCardEventHandlers(article, item, isNewsArticle, isSearchQuery, onContentClick);
         this.setupCardImage(article, item);
 
