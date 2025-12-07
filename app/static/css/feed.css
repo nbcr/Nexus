@@ -148,10 +148,6 @@
     transform: rotate(180deg);
 }
 
-.feed-item.expanded .feed-item-description {
-    display: none;
-}
-
 /* Feed Item Body (deprecated - keeping for compatibility) */
 .feed-item-body {
     padding: 20px;
