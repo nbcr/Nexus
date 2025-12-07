@@ -29,7 +29,8 @@ class FeedRenderer {
             // Show scraped facts if available
             const cleanSummary = FeedUtils.cleanSnippet(item.content_text);
             const paragraphs = cleanSummary.split('\n\n');
-            summaryHtml = paragraphs.map(p => `<p class="feed-item-summary" style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
+            const factsContent = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
+            summaryHtml = `<div class="feed-item-summary">${factsContent}</div>`;
         } else {
             // Empty - spinner will show on card click if facts aren't ready yet
             summaryHtml = '';
