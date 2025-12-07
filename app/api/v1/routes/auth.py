@@ -88,7 +88,8 @@ async def refresh_token(
         raise HTTPException(status_code=401, detail="User not found")
     access_token_expires = timedelta(minutes=30)
     new_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "is_admin": user.is_admin},
+        expires_delta=access_token_expires,
     )
     return Token(access_token=new_token, token_type="bearer")
 
@@ -169,7 +170,8 @@ async def register(
 
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "is_admin": user.is_admin},
+        expires_delta=access_token_expires,
     )
 
     if email_status != "ok" and not settings.debug:
@@ -285,7 +287,8 @@ async def login(
 
     access_token_expires = timedelta(minutes=30)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "is_admin": user.is_admin},
+        expires_delta=access_token_expires,
     )
 
     # Set the token in an HTTP-only cookie
