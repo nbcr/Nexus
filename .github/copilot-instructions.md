@@ -1,5 +1,12 @@
 # Copilot Instructions for Nexus
 
+> **⚠️ CRITICAL: DEPLOYMENT WORKFLOW - NO MANUAL SERVER CHANGES**
+>
+> - **DO NOT manually pull files to EC2 or restart the service**
+> - **ONLY METHOD**: Commit and push changes to GitHub → GitHub Actions automatically deploys and restarts the service
+> - After making code changes, run: `git add`, `git commit`, `git push` (that's it!)
+> - GitHub Actions handles pulling files and restarting `nexus` service automatically
+
 > **CRITICAL: Response Protocol:**
 >
 > - Say "ok" when you understand instructions
@@ -36,11 +43,8 @@ Nexus is a FastAPI-based AI news aggregation and personalization platform deploy
 
 - Build: Use VS Code build task (`msbuild`)
 - Run backend: `python run_server.py` (local) or via systemd (`nexus.service`) on EC2
-- Deploy: SSH to EC2 and run:
-  ```powershell
-  echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo systemctl restart nexus && echo 'Deployed'"
-  ```
-- **NEVER pull files from git on EC2** - Deploy via GitHub Actions only
+- **Deploy**: Commit and push to GitHub → GitHub Actions restarts service automatically
+- **DO NOT SSH to EC2 to restart service or pull files** - Always use GitHub push
 - Database: Use `db_setup.sh` and migration scripts for setup/updates
 - Always update and push `PROJECT_CONTEXT.md` after significant changes
 - After updating files, always commit and push your changes to the repository
