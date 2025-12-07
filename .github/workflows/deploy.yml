@@ -83,6 +83,8 @@ jobs:
           set -e
           echo "📥 Pulling latest changes..."
           sudo -u nexus git -C /home/nexus/nexus pull origin main
+          echo "🗄️ Running database migrations..."
+          sudo -u nexus /home/nexus/nexus/venv/bin/alembic -c /home/nexus/nexus/alembic.ini upgrade head
           echo "🔄 Restarting service..."
           sudo systemctl restart nexus
           sleep 2
