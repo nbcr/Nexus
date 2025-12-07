@@ -25,18 +25,18 @@ jobs:
           else
             CHANGED_FILES=$(git diff ${{ github.event.before }}..HEAD --name-only)
           fi
-          
+
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
           # Check if migrations changed
           if echo "$CHANGED_FILES" | grep -q "alembic/versions/"; then
             echo "needs_migration=true" >> $GITHUB_OUTPUT
           else
             echo "needs_migration=false" >> $GITHUB_OUTPUT
           fi
-          
+
           # Check if code/config changed (not just static assets)
           if echo "$CHANGED_FILES" | grep -qE "^(app/|scripts/|requirements\.txt|gunicorn_conf\.py|alembic\.ini)"; then
             echo "needs_restart=true" >> $GITHUB_OUTPUT
@@ -86,12 +86,12 @@ jobs:
           set -e
           echo "📥 Pulling latest changes..."
           sudo -u nexus git -C /home/nexus/nexus pull origin main
-          
+
           if [ "$NEEDS_MIGRATION" = "true" ]; then
             echo "🗄️ Running database migrations..."
             sudo -u nexus /home/nexus/nexus/venv/bin/alembic -c /home/nexus/nexus/alembic.ini upgrade head
           fi
-          
+
           echo "🔄 Restarting service..."
           sudo systemctl restart nexus
           if sudo systemctl is-active --quiet nexus; then
