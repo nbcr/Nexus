@@ -203,16 +203,15 @@ class FeedRenderer {
             const paragraphs = item.content_text.split('\n\n');
             const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
             summaryEl.innerHTML = factsHtml;
-            article.dataset.snippetLoaded = 'true';
+            article.data.snippetLoaded = 'true';
             return;
         }
 
         const isNewsArticle = FeedUtils.isNewsArticle(item);
-        const hasDescription = item.description && item.description.length > 0;
-
-        // If showing loading state or no description, try immediate scraping
         const isLoadingState = summaryEl.classList.contains('loading-state');
-        const shouldTryScraping = isLoadingState || !hasDescription;
+
+        // Try scraping if: already showing loading state OR no content_text yet
+        const shouldTryScraping = isLoadingState || !item.content_text;
 
         if (shouldTryScraping && isNewsArticle) {
             // Show loading circle immediately
@@ -314,9 +313,6 @@ class FeedRenderer {
                 }
                 article.dataset.snippetLoaded = 'true';
             }
-        } else if (hasDescription) {
-            summaryEl.innerHTML = `<p style="line-height: 1.8;">${item.description}</p>`;
-            article.dataset.snippetLoaded = 'true';
         }
     }
 
