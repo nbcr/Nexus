@@ -20,21 +20,20 @@ class FeedRenderer {
         const imageHtml = this.buildImageHtml(item);
 
         const source = item.source_metadata?.source || 'News';
-        // Only show content_text if article has been scraped (has scraped_at timestamp)
-        // Otherwise it's just the RSS description which already shows in description field
-        const hasScrapedContent = item.source_metadata?.scraped_at;
+        // Check if article has been scraped (has scraped_at timestamp)
+        const hasBeenScraped = item.source_metadata?.scraped_at;
         const isNewsArticle = FeedUtils.isNewsArticle(item);
         const hasDescription = item.description && item.description.length > 0;
         
         // Build summary HTML for expanded content
-        // Priority: scraped content > loading state (if no description shown) > nothing (if description already shown)
+        // Priority: scraped content > spinner if scraped but no content > nothing (description shown in header)
         let summaryHtml;
-        if (hasScrapedContent && item.content_text) {
+        if (item.content_text) {
             // Show scraped content if available
             const cleanSummary = FeedUtils.cleanSnippet(item.content_text);
             summaryHtml = `<p class="feed-item-summary">${FeedUtils.truncateText(cleanSummary, 400)}</p>`;
-        } else if (!hasDescription && isNewsArticle && !hasScrapedContent) {
-            // Show loading spinner ONLY if we have NO description in the header
+        } else if (!hasDescription && isNewsArticle && hasBeenScraped && !item.content_text) {
+            // Show loading spinner if scraping completed but no content returned
             summaryHtml = `<div class="feed-item-summary loading-state">
                 <div class="spinner"></div>
                 <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>
