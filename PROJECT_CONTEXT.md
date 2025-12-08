@@ -1298,3 +1298,41 @@ Complete audit of spinner display, article scraping, and facts extraction across
 - Transparent to user (facts appear as ready without blocking)
 - Respects EC2 resource limits (1GB + 2GB swap)
 
+---
+
+## 2025-12-08: System Resource Optimization
+
+**Environment:** Windows development machine with 7.2GB RAM and 2 CPU cores
+
+### Gunicorn Configuration (gunicorn_conf.py)
+- **Workers**: 2 → **3** workers
+  - Optimal for 2 CPU cores with one extra for redundancy
+  - Better load distribution and resilience
+- **Max Requests**: 1,000 → **5,000** per worker
+  - Reduced restart overhead with more available RAM
+- **Jitter**: 50 → **500** (proportional increase)
+
+### Application Database Pool (app/db.py)
+- **Pool Size**: 5 → **15** connections
+- **Max Overflow**: 3 → **5** connections
+- **Total Max**: 20 concurrent database connections
+  - Matches new 3-worker configuration
+  - Fits within PostgreSQL 100 connection limit
+
+### PostgreSQL Configuration (`postgresql.conf`)
+For 7.2GB RAM environment (change requires restart):
+- **shared_buffers**: 128MB → **1,800MB** (25% of RAM)
+  - Increased cache for working set
+- **effective_cache_size**: default → **5,400MB** (75% of RAM)
+  - Helps query planner optimize execution
+- **work_mem**: default → **46MB** per operation
+  - Calculated: 7,200MB / (100 max_connections × 1.5)
+- **maintenance_work_mem**: default → **450MB**
+  - Better performance for VACUUM, CREATE INDEX, ALTER TABLE
+- **random_page_cost**: 4.0 → **1.1**
+  - Optimized for SSD/NVMe storage (lower = favor sequential access)
+- **effective_io_concurrency**: 16 → **4**
+  - Configured for 2 CPU cores with parallel I/O
+
+**Status**: Configuration applied. PostgreSQL service requires restart for changes to take effect.
+
