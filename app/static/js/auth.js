@@ -84,3 +84,7 @@ class AuthManager {
         return this.token ? { 'Authorization': `Bearer ${this.token}` } : {};
     }
 }
+
+// Expose AuthManager globally for admin modules
+globalThis.AuthManager = AuthManager;
+globalThis.authManager = new AuthManager();
