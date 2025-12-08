@@ -19,27 +19,27 @@ database_url_sync = "postgresql://postgres@localhost:5432/nexus"
 try:
     # Create engine
     engine = create_engine(database_url_sync, echo=False, pool_pre_ping=True)
-    
+
     # Create session
     Session = sessionmaker(bind=engine)
     session = Session()
-    
+
     # Find yot user
     yot = session.query(User).filter(User.username == "yot").first()
-    
+
     if not yot:
         print("❌ User 'yot' not found. Creating user first...")
         from passlib.context import CryptContext
-        
+
         pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
         hashed_pw = pwd_context.hash("password123")
-        
+
         yot = User(
             username="yot",
             email="yot@nexus.local",
             hashed_password=hashed_pw,
             is_admin=True,
-            is_active=True
+            is_active=True,
         )
         session.add(yot)
         session.commit()
@@ -49,10 +49,10 @@ try:
         yot.is_admin = True
         session.commit()
         print(f"✅ Updated user 'yot' to admin=True (id={yot.id})")
-        
+
     session.close()
     engine.dispose()
-    
+
 except Exception as e:
     print(f"❌ Error: {e}")
     print("\nTrying alternate connection method...")

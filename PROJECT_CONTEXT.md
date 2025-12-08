@@ -22,8 +22,11 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 
 ### Server Setup
 
-- Host: `ec2-35-172-220-70.compute-1.amazonaws.com`
-- SSH access: `admin` user via plink (PuTTY on Windows)
+- Host: `ec2-35-172-220-70.compute-1.amazonaws.com` (comdat.ca domain)
+- SSH access: `nexus` user via SSH with config file `C:\Users\Yot\.ssh\config-nexus`
+  - SSH config: Host `nexus-server` → `ec2-35-172-220-70.compute-1.amazonaws.com` or `comdat.ca`
+  - Uses identity file: `~/.ssh/nexus`
+  - Connection verified working on Windows 10+ with OpenSSH
 - Application runs as: `nexus` user
 - Service: `nexus.service` (systemd service running gunicorn)
 - Deployment: GitHub Actions workflow (`.github/workflows/deploy.yml`)
@@ -36,15 +39,38 @@ I'm working on a FastAPI-based news aggregation platform called Nexus deployed o
 ### Code Structure
 
 - Remote repo location: `/home/nexus/nexus`
-- Local repo: `c:\Users\Yot\Documents\GitHub Projects\Nexus\Nexus`
+- Local repo: `c:\Nexus` (Windows workspace)
 - GitHub: `nbcr/Nexus` repository (main branch)
-- Virtual environment: `/home/nexus/nexus/venv`
+- Virtual environment: `c:\Nexus\nexus-venv` (Windows local)
+- Remote virtual environment: `/home/nexus/nexus/venv` (EC2)
 
 ### Deployment Pattern
 
 ```powershell
+# Via GitHub Actions (preferred)
+git add .; git commit -m "message"; git push origin main
+
+# Manual deploy via plink (if needed)
 echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo systemctl restart nexus && echo 'Deployed'"
 ```
+
+### Windows SSH Setup
+
+- **SSH Config File**: `C:\Users\Yot\.ssh\config-nexus`
+  - Defines host alias `nexus-server` for easy access
+  - Uses identity file at `~/.ssh/nexus`
+  - Connects to `ec2-35-172-220-70.compute-1.amazonaws.com` (EC2 address)
+  
+- **Usage**:
+  ```bash
+  ssh -F C:\Users\Yot\.ssh\config-nexus nexus-server "cat /path/to/file"
+  ```
+
+- **Environment Variables**: Stored in `C:\Nexus\.env` locally
+  - Database credentials: `nexus_user:***REMOVED***@localhost:5432/nexus`
+  - Email/SMTP: Brevo relay (`smtp-relay.brevo.com:587`)
+  - API keys: BREVO_API_KEY, BREVO_WEBHOOK_TOKEN
+  - Webhook secret shared between local and production
 
 **CRITICAL:** Never use `git pull` on EC2. All deployments must go through GitHub Actions workflow.
 
