@@ -1,14 +1,28 @@
 #!/usr/bin/env python3
+import sys
+import os
+
+# Force UTF-8 encoding on Windows to support emoji output
+if sys.platform == "win32":
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    import io
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+
 import uvicorn
 from app.core.config import settings
 import logging
 from datetime import datetime
 
-# Configure logging to write to server.log
+# Configure logging to write to server.log with UTF-8 encoding
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("server.log"), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler("server.log", encoding="utf-8"),
+        logging.StreamHandler(sys.stdout),
+    ],
 )
 
 logger = logging.getLogger(__name__)
