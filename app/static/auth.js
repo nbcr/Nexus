@@ -105,8 +105,25 @@ class AuthManager {
     }
 }
 
-// Global auth instance
-const auth = new AuthManager();
+// Global auth instance - delayed until CONFIG is defined
+let auth;
+function initAuthManager() {
+    if (typeof CONFIG === 'undefined') {
+        console.warn('CONFIG not defined yet, retrying auth initialization...');
+        setTimeout(initAuthManager, 100);
+        return;
+    }
+    if (!auth) {
+        auth = new AuthManager();
+    }
+}
+
+// Try to initialize immediately, but will retry if CONFIG not ready
+if (typeof CONFIG !== 'undefined') {
+    auth = new AuthManager();
+} else {
+    document.addEventListener('DOMContentLoaded', initAuthManager);
+}
 
 // Auth form handlers
 function showLogin() {
