@@ -9,6 +9,20 @@
 
 
 // Ensure AuthManager is available globally
+// Sync access_token from cookie to localStorage if missing
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+const cookieToken = getCookie('access_token');
+const localToken = localStorage.getItem(CONFIG.TOKEN_KEY);
+if (cookieToken && cookieToken !== localToken) {
+    localStorage.setItem(CONFIG.TOKEN_KEY, cookieToken);
+}
+
 const authManager = globalThis.authManager || new AuthManager();
 globalThis.authManager = authManager;
 
