@@ -22,9 +22,11 @@ async function saveGlobalSettings() {
     };
 
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch('/api/v1/admin/settings/global', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { ...authManager.getAuthHeaders(), 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(settings)
         });
@@ -199,8 +201,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     initializeDateRange();
 
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch('/api/v1/admin/settings/global', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: authManager.getAuthHeaders()
         });
 
         if (response.ok) {

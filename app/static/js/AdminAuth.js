@@ -7,6 +7,11 @@
  * - User state management
  */
 
+
+// Ensure AuthManager is available globally
+const authManager = globalThis.authManager || new AuthManager();
+globalThis.authManager = authManager;
+
 let currentUser = null;
 
 // Authentication check on page load
@@ -18,7 +23,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 async function checkAdminAccess() {
     try {
         const response = await fetch('/api/v1/admin/verify', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: authManager.getAuthHeaders()
         });
 
         if (!response.ok) {

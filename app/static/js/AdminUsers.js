@@ -56,8 +56,11 @@ document.addEventListener('DOMContentLoaded', function () {
 // User Management Functions
 async function refreshUsers() {
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch('/api/v1/admin/users', {
-            credentials: 'include'
+            credentials: 'include',
+            headers: authManager.getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Failed to fetch users');
