@@ -1,5 +1,6 @@
 import asyncio
-import fcntl
+import os
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
@@ -8,8 +9,13 @@ from sqlalchemy import select  # pyright: ignore[reportMissingImports]
 from app.db import AsyncSessionLocal
 from app.services.trending import trending_service
 
-# Lock file to prevent concurrent refreshes
-LOCK_FILE = Path("/tmp/nexus_content_refresh.lock")
+# Lock file to prevent concurrent refreshes (Windows-safe)
+if sys.platform == "win32":
+    LOCK_FILE = Path(
+        os.path.join(os.path.expanduser("~"), ".nexus_content_refresh.lock")
+    )
+else:
+    LOCK_FILE = Path("/tmp/nexus_content_refresh.lock")
 
 
 class ContentRefreshService:
@@ -38,33 +44,71 @@ class ContentRefreshService:
 
     async def refresh_content_if_needed(self):
         """Refresh trending content if it's stale"""
-        # Try to acquire lock (non-blocking)
-        try:
-            lock_fd = open(LOCK_FILE, "w")
-            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except IOError:
-            print("⏭️  Content refresh already running (locked by another process)")
-            return 0
+        # Try to acquire lock (non-blocking, Windows-safe)
+        lock_acquired = False
+        lock_fd = None
 
         try:
+            if sys.platform == "win32":
+                # Windows: simple file existence check
+                if LOCK_FILE.exists():
+                    print(
+                        ">> Content refresh already running (locked by another process)"
+                    )
+                    return 0
+                try:
+                    LOCK_FILE.touch()
+                    lock_acquired = True
+                except Exception:
+                    print(
+                        ">> Content refresh already running (locked by another process)"
+                    )
+                    return 0
+            else:
+                # Unix: fcntl-based locking
+                try:
+                    import fcntl
+
+                    lock_fd = open(LOCK_FILE, "w")
+                    fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    lock_acquired = True
+                except (IOError, ImportError):
+                    print(
+                        ">> Content refresh already running (locked by another process)"
+                    )
+                    return 0
+
             async with AsyncSessionLocal() as db:
                 if await self.should_refresh_content(db):
-                    print("🔄 Refreshing trending content from Google Trends...")
+                    print(">> Refreshing trending content from Google Trends...")
                     topics, new_content_count = (
                         await trending_service.save_trends_to_database(db)
                     )
                     self.last_refresh = datetime.now(timezone.utc)
                     print(
-                        f"✅ Trending content refresh completed! Added {new_content_count} new items"
+                        f">> Trending content refresh completed! Added {new_content_count} new items"
                     )
                     return new_content_count
                 else:
-                    print("⏭️  Content is still fresh, skipping refresh")
+                    print(">> Content is still fresh, skipping refresh")
                     return 0
         finally:
             # Release lock
-            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
-            lock_fd.close()
+            if lock_acquired:
+                if sys.platform == "win32":
+                    try:
+                        LOCK_FILE.unlink()
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        import fcntl
+
+                        if lock_fd:
+                            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
+                            lock_fd.close()
+                    except Exception:
+                        pass
 
 
 # Global instance
@@ -77,7 +121,7 @@ async def start_periodic_refresh():
         try:
             await content_refresh.refresh_content_if_needed()
         except Exception as e:
-            print(f"❌ Error in periodic refresh: {e}")
+            print(f">> Error in periodic refresh: {e}")
 
         # Wait 1 hour between checks
         await asyncio.sleep(3600)
