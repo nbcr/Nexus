@@ -123,8 +123,11 @@ async function openUserModal(userId) {
     selectedUserId = userId;
 
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch(`/api/v1/admin/users/${userId}`, {
-            credentials: 'include'
+            credentials: 'include',
+            headers: authManager.getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Failed to fetch user details');
@@ -199,9 +202,11 @@ async function saveUserSettings() {
     } : null;
 
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch(`/api/v1/admin/users/${selectedUserId}/settings`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { ...authManager.getAuthHeaders(), 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
                 debug_mode: debugMode,

@@ -95,9 +95,12 @@ async function clearTracking() {
     }
 
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch('/api/v1/admin/clear-tracking', {
             method: 'POST',
-            credentials: 'include'
+            credentials: 'include',
+            headers: authManager.getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Failed to clear tracking');
