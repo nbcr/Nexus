@@ -102,17 +102,24 @@ app = FastAPI(
 async def startup_event():
     """Start background scheduler on app startup"""
     import logging
+    import traceback
     from datetime import datetime
 
     logger = logging.getLogger("uvicorn")
-    logger.info("=" * 80)
-    logger.info(
-        f"🚀 Nexus API Started - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    )
-    logger.info(f"Version: {settings.VERSION}")
-    logger.info(f"Environment: {'Development' if settings.debug else 'Production'}")
-    logger.info("=" * 80)
-    scheduler_service.start()
+    try:
+        logger.info("=" * 80)
+        logger.info(
+            f"🚀 Nexus API Started - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        logger.info(f"Version: {settings.VERSION}")
+        logger.info(f"Environment: {'Development' if settings.debug else 'Production'}")
+        logger.info("=" * 80)
+        scheduler_service.start()
+        logger.info("✅ Startup completed successfully")
+    except Exception as e:
+        logger.error(f"❌ Error during startup: {e}")
+        logger.error(traceback.format_exc())
+        raise
 
 
 @app.on_event("shutdown")
