@@ -80,8 +80,11 @@ async function loadAnalytics() {
     const endDate = document.getElementById('end-date').value;
 
     try {
+        const authManager = globalThis.authManager || new AuthManager();
+        globalThis.authManager = authManager;
         const response = await fetch(`/api/v1/admin/analytics?start=${startDate}&end=${endDate}`, {
-            credentials: 'include'
+            credentials: 'include',
+            headers: authManager.getAuthHeaders()
         });
 
         if (!response.ok) throw new Error('Failed to fetch analytics');
