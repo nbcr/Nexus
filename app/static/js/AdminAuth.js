@@ -9,7 +9,8 @@
 
 
 // Ensure AuthManager is available globally
-// Sync access_token from cookie to localStorage if missing
+
+// Sync access_token from cookie to localStorage, stripping quotes and 'Bearer ' prefix
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -17,7 +18,17 @@ function getCookie(name) {
     return null;
 }
 
-const cookieToken = getCookie('access_token');
+let cookieToken = getCookie('access_token');
+if (cookieToken) {
+    // Remove surrounding quotes if present
+    if (cookieToken.startsWith('"') && cookieToken.endsWith('"')) {
+        cookieToken = cookieToken.slice(1, -1);
+    }
+    // Remove 'Bearer ' prefix if present
+    if (cookieToken.startsWith('Bearer ')) {
+        cookieToken = cookieToken.slice(7);
+    }
+}
 const localToken = localStorage.getItem(CONFIG.TOKEN_KEY);
 if (cookieToken && cookieToken !== localToken) {
     localStorage.setItem(CONFIG.TOKEN_KEY, cookieToken);
