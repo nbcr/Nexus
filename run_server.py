@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 if __name__ == "__main__":
     logger.info("=" * 80)
     logger.info(
-        f"🚀 Nexus Server Starting - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        f">> Nexus Server Starting - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     logger.info(f"Host: {settings.api_host}:{settings.api_port}")
     logger.info(f"Debug Mode: {settings.debug}")
@@ -38,6 +38,6 @@ if __name__ == "__main__":
     finally:
         logger.info("=" * 80)
         logger.info(
-            f"🛑 Nexus Server Stopped - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f">> Nexus Server Stopped - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
         logger.info("=" * 80)
