@@ -1,3 +1,50 @@
+## Admin Authentication Troubleshooting & Lessons Learned (Dec 2025)
+
+If you encounter persistent 401 Unauthorized errors on admin API endpoints, follow this checklist:
+
+### 1. Token Format in localStorage
+- The token in `localStorage` (usually under `access_token`) must be a plain JWT string (no quotes, no `Bearer ` prefix).
+
+### 2. Authorization Header in Requests
+- All admin API requests must include the `Authorization` header, formatted as `Bearer <token>`.
+- Use a shared helper (e.g., `authManager.getAuthHeaders()`) to construct headers for all fetch/XHR calls.
+
+### 3. Token Sync Logic
+- If syncing from a cookie, always strip quotes and the `Bearer ` prefix before saving to `localStorage`.
+
+### 4. Frontend Debugging
+- In browser console, run `localStorage.getItem('access_token')` to check the token value.
+- Run `authManager.getAuthHeaders()` to see the Authorization header that will be sent.
+- Inspect network requests in browser dev tools (Network tab) to confirm the header is present and correct.
+- If the header is missing, check that the fetch/XHR code uses `authManager.getAuthHeaders()`.
+
+### 5. Backend Debugging
+- If the header is present and correct, but you still get 401, check backend logs for token validation errors.
+
+### 6. Proxy Issues
+- If all else fails, check Nginx or other proxy configs to ensure they are not stripping the `Authorization` header.
+
+#### Lessons Learned
+- All admin JS modules must use a shared helper to add the Authorization header.
+- Token sync logic must always sanitize the token before saving to localStorage.
+- 401 errors are almost always due to missing/malformed Authorization header or token format issues.
+- Use browser dev tools to confirm both the token value and the presence of the header in requests.
+- If the frontend is correct, backend logs will reveal if the token is expired, malformed, or rejected for another reason.
+
+#### Example Debugging Workflow
+1. Log out and log back in to get a fresh token.
+2. In browser console:
+  - `localStorage.getItem('access_token')` → should be a JWT (no quotes, no Bearer)
+  - `authManager.getAuthHeaders()` → should return `{ Authorization: 'Bearer <token>' }`
+3. Make an admin API request and inspect the Network tab:
+  - Confirm the `Authorization` header is present and correct.
+4. If 401 persists, check backend logs for error details.
+
+#### Common Pitfalls
+- Storing the token with quotes or the `Bearer ` prefix in `localStorage`.
+- Not including the `Authorization` header in fetch requests.
+- Backend rejecting requests due to missing/malformed header.
+- Nginx or other proxies stripping headers (check proxy config if all else fails).
 # Nexus Admin Panel
 
 ## 🔒 Security Notice

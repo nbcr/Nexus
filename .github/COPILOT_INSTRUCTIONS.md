@@ -1,3 +1,4 @@
+
 # Copilot Instructions for Nexus Project
 # This file provides context and recent changes for GitHub Copilot or any automation agent working on this repository.
 
@@ -13,6 +14,13 @@
 #   - `main.py` imports and includes the router.
 # - Changes committed: `Refactor logged_out route to use APIRouter and fix circular import with main.py`
 # - No errors in affected files.
+#
+# - **Admin Authentication Debugging (Dec 2025):**
+#   - Persistent 401 errors on admin API endpoints were traced to issues with the Authorization header and token format.
+#   - All admin JS modules now use a shared helper to add the Authorization header (`Bearer <token>`).
+#   - Token sync logic was fixed to ensure only the plain JWT (no quotes, no `Bearer ` prefix) is stored in localStorage.
+#   - Troubleshooting steps and lessons learned are documented in `ADMIN_PANEL_README.md` (see: Admin Authentication Troubleshooting section).
+#   - If 401 persists, check that the frontend sends the correct header and inspect backend logs for token validation errors.
 
 # Server Access
 # - SSH:  
