@@ -472,7 +472,7 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
             <!-- Mini Terminal -->
             <div class="panel">
                 <h2>⌨️ Terminal</h2>
-                <div class="terminal" id="terminal">\$ Ready</div>
+                <div class="terminal" id="terminal">\\$ Ready</div>
                 <input type="text" class="terminal-input" id="terminalInput" placeholder="Enter command..." onkeypress="if(event.key==='Enter') runTerminalCommand()">
                 <button onclick="runTerminalCommand()" style="width: 100%; margin-top: 8px;">Execute</button>
             </div>
@@ -517,7 +517,7 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
             async function runTerminalCommand() {{
                 const input = document.getElementById('terminalInput');
                 const terminal = document.getElementById('terminal');
-                terminal.textContent += `\n\$ ${{input.value}}\n`;
+                terminal.textContent += `\\n\\$ ${{input.value}}\\n`;
                 const response = await fetch('/api/v1/admin/terminal', {{
                     method: 'POST',
                     headers: {{'Content-Type': 'application/json'}},
