@@ -3,9 +3,10 @@ import multiprocessing
 # Bind to localhost (Nginx will proxy)
 bind = "127.0.0.1:8000"
 
-# Worker configuration - using 2 workers for reliability
+# Worker configuration - 3 workers optimal for 2 CPU cores + load balancing
 # Uvicorn with async/await handles concurrent requests efficiently
-workers = 2
+# With 7.2GB RAM, can support increased concurrency
+workers = 3
 worker_class = "uvicorn.workers.UvicornWorker"
 
 # Logging
@@ -17,8 +18,9 @@ loglevel = "info"
 proc_name = "nexus-api"
 
 # Restart workers after this many requests (prevent memory leaks)
-max_requests = 1000
-max_requests_jitter = 50
+# Increased for better performance with more RAM (7.2GB available)
+max_requests = 5000
+max_requests_jitter = 500
 
 # Timeout - worker will be killed and restarted if it exceeds this
 timeout = 120

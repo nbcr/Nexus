@@ -3,6 +3,7 @@
 import asyncio
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 import re
 from html import unescape
 

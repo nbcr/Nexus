@@ -14,8 +14,8 @@ engine = create_async_engine(
     DATABASE_URL,
     echo=False,
     poolclass=AsyncAdaptedQueuePool,
-    pool_size=5,
-    max_overflow=3,
+    pool_size=15,  # Increased from 5 for 7.2GB RAM with 3 workers
+    max_overflow=5,  # Increased from 3 for better concurrency
     pool_pre_ping=True,
     pool_recycle=1800,  # Recycle connections every 30 minutes
     pool_timeout=30,
