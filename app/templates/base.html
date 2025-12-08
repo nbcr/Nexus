@@ -69,6 +69,9 @@
 
     <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
+
+    <!-- Configuration (must load before auth.js) -->
+    <script src="/static/js/config.js?v=202512060200"></script>
 </head>
 <body{% if body_class %} class="{{ body_class }}" {% endif %}>
     <!-- SHARED HEADER - Edit once, applies everywhere -->
