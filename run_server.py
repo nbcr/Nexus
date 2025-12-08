@@ -41,7 +41,7 @@ if __name__ == "__main__":
             "app.main:app",
             host=settings.api_host,
             port=settings.api_port,
-            reload=settings.debug,
+            reload=False,
             log_level="info",
         )
     except KeyboardInterrupt:
