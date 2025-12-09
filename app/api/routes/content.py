@@ -460,11 +460,9 @@ async def get_content_snippet_priority(
 
     # Try to scrape immediately with timeout
     try:
-        # Use asyncio.wait_for to enforce timeout
-        snippet = await asyncio.wait_for(
-            _scrape_and_store_article(content, source_url, db),
-            timeout=float(timeout),
-        )
+        # Use asyncio.timeout context manager to enforce timeout
+        async with asyncio.timeout(float(timeout)):
+            snippet = await _scrape_and_store_article(content, source_url, db)
 
         if snippet:
             return {
