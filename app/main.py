@@ -227,6 +227,12 @@ async def ads_txt():
 
 
 # Admin panel (still uses static HTML)
+@app.get("/admin", include_in_schema=False)
+async def admin_page(request: Request):
+    """Serve admin panel at /admin"""
+    return templates.TemplateResponse("admin.html", {"request": request})
+
+
 @app.get("/admin.html", include_in_schema=False)
 async def serve_admin(request: Request):
     """Serve admin panel"""
