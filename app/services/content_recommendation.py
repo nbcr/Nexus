@@ -253,7 +253,8 @@ class ContentRecommendationService:
                 topic, content, user_categories, user_interests
             )
 
-            related_items = await self._get_related_content(db, content, topic, limit=3)
+            # Don't fetch related items here - lazy load them on demand
+            # related_items = await self._get_related_content(db, content, topic, limit=3)
 
             feed_items.append(
                 {
@@ -285,7 +286,7 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
                     "tags": topic.tags,
-                    "related_items": related_items,
+                    "related_items": [],
                 }
             )
 
@@ -393,7 +394,8 @@ class ContentRecommendationService:
         """Build feed item dictionaries from query results"""
         items = []
         for content, topic in rows:
-            related_items = await self._get_related_content(db, content, topic, limit=3)
+            # Don't fetch related items here - lazy load them on demand
+            # related_items = await self._get_related_content(db, content, topic, limit=3)
 
             # Extract first image from description/content before stripping
             description_for_display = content.description or topic.description
@@ -428,7 +430,7 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
                     "tags": topic.tags,
-                    "related_items": related_items,
+                    "related_items": [],
                 }
             )
         return items
