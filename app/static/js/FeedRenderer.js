@@ -112,9 +112,8 @@ class FeedRenderer {
         const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
 
         if (imageUrl) {
-            // Use proxy with resize parameters matching actual display size (743x413)
-            // Account for retina displays by using 1.5x resolution
-            const proxiedUrl = `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=1115&h=620`;
+            // Use proxy with resize parameters matching exact display size (743x413)
+            const proxiedUrl = `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
             return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
             <img src="${proxiedUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
