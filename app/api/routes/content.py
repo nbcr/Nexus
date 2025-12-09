@@ -316,11 +316,13 @@ async def _scrape_and_store_article(
             local_image_path = await asyncio.to_thread(
                 article_scraper.download_and_optimize_image,
                 article_data["image_url"],
-                content.id
+                content.id,
             )
             if local_image_path:
                 content.local_image_path = local_image_path
-                print(f"✅ Stored optimized image for content {content.id}: {local_image_path}")
+                print(
+                    f"✅ Stored optimized image for content {content.id}: {local_image_path}"
+                )
         except Exception as e:
             print(f"⚠️ Failed to optimize image: {e}")
 
@@ -753,7 +755,9 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/proxy/image")
-async def image_proxy(url: str, w: int = Query(None, ge=1, le=1200), h: int = Query(None, ge=1, le=1200)):
+async def image_proxy(
+    url: str, w: int = Query(None, ge=1, le=1200), h: int = Query(None, ge=1, le=1200)
+):
     """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
     import httpx  # pyright: ignore[reportMissingImports]
     import logging
@@ -834,21 +838,25 @@ async def image_proxy(url: str, w: int = Query(None, ge=1, le=1200), h: int = Qu
             if (w or h) and content_type.startswith("image/"):
                 try:
                     from PIL import Image
-                    
+
                     img = Image.open(BytesIO(image_data))
-                    
+
                     # Default dimensions for feed display
                     target_w = w or img.width
                     target_h = h or img.height
-                    
+
                     # Maintain aspect ratio
                     img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
-                    
+
                     # Save optimized image
                     output = BytesIO()
                     # Use JPEG for smaller file size, PNG for transparency
                     save_format = "PNG" if img.mode in ("RGBA", "LA") else "JPEG"
-                    save_kwargs = {"optimize": True, "quality": 85} if save_format == "JPEG" else {"optimize": True}
+                    save_kwargs = (
+                        {"optimize": True, "quality": 85}
+                        if save_format == "JPEG"
+                        else {"optimize": True}
+                    )
                     img.save(output, format=save_format, **save_kwargs)
                     image_data = output.getvalue()
                     content_type = f"image/{save_format.lower()}"
@@ -858,12 +866,12 @@ async def image_proxy(url: str, w: int = Query(None, ge=1, le=1200), h: int = Qu
                     pass
 
             return StreamingResponse(
-                iter([image_data]), 
+                iter([image_data]),
                 media_type=content_type,
                 headers={
                     "Cache-Control": "public, max-age=2592000",  # 30 days
                     "ETag": f'"{hash(url)}"',
-                }
+                },
             )
     except HTTPException:
         raise

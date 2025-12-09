@@ -33,7 +33,9 @@ class ContentItem(Base):
     ai_model_used = Column(String(100))
     source_urls = Column(JSON, default=list)
     source_metadata = Column(JSON, default=dict)
-    local_image_path = Column(String(255), nullable=True)  # Path to locally stored optimized image
+    local_image_path = Column(
+        String(255), nullable=True
+    )  # Path to locally stored optimized image
     is_published = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(
