@@ -105,6 +105,9 @@ class NexusService(win32serviceutil.ServiceFramework):
         server_thread = Thread(target=self._run_server, daemon=True)
         server_thread.start()
         
+        # Give service time to fully start before waiting (prevents timeout)
+        time.sleep(5)
+        
         # Wait for stop event
         win32event.WaitForMultipleObjects(
             [self.hWaitStop],
@@ -139,8 +142,9 @@ class NexusService(win32serviceutil.ServiceFramework):
                         "app.main:app",
                         "--host", "127.0.0.1",
                         "--port", "8000",
-                        "--workers", "2",
+                        "--workers", "1",
                         "--log-level", "info",
+                        "--timeout-keep-alive", "30",
                     ],
                     cwd=str(PROJECT_ROOT),
                     stdout=subprocess.PIPE,

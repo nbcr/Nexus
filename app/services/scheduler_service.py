@@ -33,17 +33,17 @@ class SchedulerService:
             count = await content_refresh.refresh_content_if_needed()
 
             if count > 0:
-                logger.info(f"✅ Scheduled refresh completed - {count} new items added")
+                logger.info(f"[OK] Scheduled refresh completed - {count} new items added")
             else:
-                logger.info("ℹ️  No new content to add")
+                logger.info("[INFO] No new content to add")
 
         except Exception as e:
-            logger.error(f"❌ Error in scheduled content refresh: {e}")
+            logger.error(f"[ERROR] Error in scheduled content refresh: {e}")
 
     def start(self):
         """Start the scheduler"""
         if self.is_running:
-            logger.warning("⚠️  Scheduler already running")
+            logger.warning("[WARN] Scheduler already running")
             return
 
         # Schedule content refresh every 15 minutes (cross-platform with APScheduler)
@@ -58,7 +58,7 @@ class SchedulerService:
         self.scheduler.start()
         self.is_running = True
         logger.info(
-            "✅ Background scheduler started (content refresh scheduled every 15 minutes)"
+            "[OK] Background scheduler started (content refresh scheduled every 15 minutes)"
         )
 
     def stop(self):
@@ -68,7 +68,7 @@ class SchedulerService:
 
         self.scheduler.shutdown()
         self.is_running = False
-        logger.info("🛑 Background scheduler stopped")
+        logger.info("[STOP] Background scheduler stopped")
 
 
 # Global scheduler instance
