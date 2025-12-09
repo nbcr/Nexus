@@ -26,7 +26,7 @@ class TrendingService:
         )
         self.persistence = TrendingPersistence(self.categorizer)
 
-        print(f"✅ Configured {len(self.rss_fetcher.rss_feeds)} RSS feeds")
+        print(f"[OK] Configured {len(self.rss_fetcher.rss_feeds)} RSS feeds")
 
     async def fetch_canada_trends(self) -> List[Dict]:
         """Fetch trending topics from RSS feeds"""
@@ -35,7 +35,7 @@ class TrendingService:
         rss_trends = await self.rss_fetcher.fetch_all_rss_feeds()
         trends.extend(rss_trends)
 
-        print(f"✅ Total trends fetched: {len(trends)} (RSS: {len(rss_trends)})")
+        print(f"[OK] Total trends fetched: {len(trends)} (RSS: {len(rss_trends)})")
         return trends
 
     async def save_trends_to_database(self, db: AsyncSession) -> tuple:
@@ -57,9 +57,9 @@ class TrendingService:
                 from app.api.v1.routes.websocket import notify_new_content
 
                 await notify_new_content(count=new_content_count)
-                print(f"📢 Notified clients of {new_content_count} new items")
+                print(f"[INFO] Notified clients of {new_content_count} new items")
             except Exception as e:
-                print(f"⚠️ Failed to notify clients: {e}")
+                print(f"[WARN] Failed to notify clients: {e}")
 
         return topics, new_content_count
 

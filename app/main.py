@@ -81,15 +81,15 @@ async def startup_event():
     try:
         logger.info("=" * 80)
         logger.info(
-            f"🚀 Nexus API Started - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            f"[START] Nexus API Started - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
         )
         logger.info(f"Version: {settings.VERSION}")
         logger.info(f"Environment: {'Development' if settings.debug else 'Production'}")
         logger.info("=" * 80)
         scheduler_service.start()
-        logger.info("✅ Startup completed successfully")
+        logger.info("[OK] Startup completed successfully")
     except Exception as e:
-        logger.error(f"❌ Error during startup: {e}")
+        logger.error(f"[ERROR] Error during startup: {e}")
         logger.error(traceback.format_exc())
         raise
 
@@ -103,7 +103,7 @@ async def shutdown_event():
     logger = logging.getLogger("uvicorn")
     logger.info("=" * 80)
     logger.info(
-        f"🛑 Nexus API Shutting Down - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        f"[STOP] Nexus API Shutting Down - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     logger.info("=" * 80)
     scheduler_service.stop()
