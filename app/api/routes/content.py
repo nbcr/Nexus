@@ -329,7 +329,10 @@ async def _scrape_and_store_article(
     await db.commit()
 
     # Generate snippet from facts
-    snippet = content.facts[:800] if len(content.facts) > 800 else content.facts
+    if content.facts is not None and len(content.facts) > 800:
+        snippet = content.facts[:800]
+    else:
+        snippet = content.facts
     return snippet
 
 
@@ -537,7 +540,7 @@ def _is_search_url(url: str) -> bool:
     )
 
 
-async def _fetch_article_by_type(source_url: str) -> dict:
+async def _fetch_article_by_type(source_url: str) -> dict | None:
     """Fetch article content based on URL type (search vs regular article)."""
     if _is_search_url(source_url):
         return await asyncio.to_thread(article_scraper.fetch_search_context, source_url)
@@ -837,7 +840,7 @@ async def image_proxy(
             # Resize image if dimensions specified
             if (w or h) and content_type.startswith("image/"):
                 try:
-                    from PIL import Image
+                    from PIL import Image  # type: ignore
 
                     img = Image.open(BytesIO(image_data))
 
@@ -857,7 +860,6 @@ async def image_proxy(
                 except Exception as e:
                     logger.warning(f"Image resize failed: {e}, returning original")
                     # Return original if resize fails
-                    pass
 
             return StreamingResponse(
                 iter([image_data]),
