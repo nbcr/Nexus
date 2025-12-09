@@ -109,13 +109,14 @@ class FeedRenderer {
     }
 
     buildImageHtml(item) {
-        const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
+        // Prefer local optimized image, fallback to thumbnail/picture URL
+        let imageUrl = item.local_image_path || item.thumbnail_url || item.source_metadata?.picture_url || null;
 
         if (imageUrl) {
-            // Use proxy with resize parameters matching exact display size (743x413)
-            const proxiedUrl = `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
+            // If it's a local path, use it directly; otherwise use proxy for remote images
+            const imageSrc = imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
             return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
-            <img src="${proxiedUrl}" alt="${item.title}" loading="lazy" decoding="async" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="${imageSrc}" alt="${item.title}" loading="lazy" decoding="async" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
         } else {
             return `<div class="feed-item-image" style="aspect-ratio: 16/9;">

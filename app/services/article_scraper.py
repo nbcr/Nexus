@@ -878,6 +878,57 @@ class ArticleScraperService:
 
         return None
 
+    def download_and_optimize_image(self, image_url: str, content_id: int) -> Optional[str]:
+        """
+        Download image from URL and optimize it for storage.
+        
+        Args:
+            image_url: URL of the image to download
+            content_id: ID of the content item for filename
+            
+        Returns:
+            Local path to optimized image if successful, None otherwise
+        """
+        try:
+            from PIL import Image
+            from io import BytesIO
+            import os
+            
+            # Validate URL
+            self._validate_url(image_url)
+            
+            # Download image
+            response = requests.get(image_url, headers=self.headers, timeout=10)
+            response.raise_for_status()
+            
+            # Open and optimize image
+            img = Image.open(BytesIO(response.content))
+            
+            # Convert RGBA to RGB if needed
+            if img.mode in ("RGBA", "LA", "P"):
+                rgb_img = Image.new("RGB", img.size, (255, 255, 255))
+                rgb_img.paste(img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None)
+                img = rgb_img
+            
+            # Resize to display size
+            img.thumbnail((743, 413), Image.Resampling.LANCZOS)
+            
+            # Create storage directory
+            image_dir = os.path.join(os.path.dirname(__file__), "..", "static", "images", "articles")
+            os.makedirs(image_dir, exist_ok=True)
+            
+            # Save optimized image
+            filename = f"article_{content_id}.jpg"
+            filepath = os.path.join(image_dir, filename)
+            img.save(filepath, "JPEG", quality=85, optimize=True)
+            
+            # Return relative path for serving
+            return f"/static/images/articles/{filename}"
+            
+        except Exception as e:
+            print(f"❌ Failed to download/optimize image {image_url}: {e}")
+            return None
+
 
 # Global instance
 article_scraper = ArticleScraperService()
