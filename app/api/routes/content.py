@@ -1,6 +1,7 @@
 import asyncio
 import time
 from functools import lru_cache
+from typing import cast
 
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
@@ -329,8 +330,11 @@ async def _scrape_and_store_article(
     await db.commit()
 
     # Generate snippet from facts
-    if content.facts is not None and len(content.facts) > 800:
-        snippet = content.facts[:800]
+    if content.facts is not None:
+        if len(cast(str, content.facts)) > 800:
+            snippet = cast(str, content.facts)[:800]
+        else:
+            snippet = content.facts
     else:
         snippet = content.facts
     return snippet
