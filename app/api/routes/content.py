@@ -1,8 +1,6 @@
 import asyncio
 import time
 from functools import lru_cache
-import hashlib
-from typing import Dict, Tuple
 
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
@@ -27,11 +25,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 router = APIRouter()
-
-# In-memory image cache (url+dimensions -> image_data)
-# Prevents re-fetching and reprocessing same images
-_image_cache: Dict[str, bytes] = {}
-_IMAGE_CACHE_MAX_SIZE = 100  # Max 100 cached images
 
 # In-memory cache for thumbnail fetch attempts (content_id -> (picture_url, timestamp))
 # Prevents hammering the database/scraper for items without pictures
@@ -765,29 +758,13 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
 async def image_proxy(
     url: str, w: int = Query(None, ge=1, le=1200), h: int = Query(None, ge=1, le=1200)
 ):
-    """Proxy and optionally resize remote images to avoid mixed-content/CORS issues.
-    Uses in-memory caching to avoid re-fetching the same images."""
+    """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
     import httpx  # pyright: ignore[reportMissingImports]
     import logging
     from urllib.parse import urlparse
     from io import BytesIO
 
     logger = logging.getLogger("uvicorn.error")
-
-    # Create cache key
-    cache_key = f"{url}_{w}_{h}"
-    
-    # Check cache first
-    if cache_key in _image_cache:
-        logger.debug(f"Image cache hit: {cache_key[:50]}...")
-        return StreamingResponse(
-            iter([_image_cache[cache_key]]),
-            media_type="image/webp",
-            headers={
-                "Cache-Control": "public, max-age=2592000",  # 30 days
-                "X-Cache": "HIT",
-            },
-        )
 
     # Validate URL to prevent SSRF attacks
     try:
@@ -849,7 +826,7 @@ async def image_proxy(
         raise HTTPException(status_code=400, detail="Invalid URL format")
 
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=3.0) as client:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
             safe_url = url.replace("\n", "").replace("\r", "")
             logger.info(f"Image proxy fetch: {safe_url}")
             resp = await client.get(url)
@@ -868,13 +845,12 @@ async def image_proxy(
                     target_w = w or img.width
                     target_h = h or img.height
 
-                    # Maintain aspect ratio - use faster resampling
-                    img.thumbnail((target_w, target_h), Image.Resampling.BILINEAR)
+                    # Maintain aspect ratio
+                    img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
 
-                    # Save optimized image as WebP with faster compression
+                    # Save optimized image as WebP for better compression
                     output = BytesIO()
-                    # Lower quality (70) for faster processing, still acceptable for thumbnails
-                    save_kwargs = {"quality": 70, "method": 4}
+                    save_kwargs = {"quality": 80, "method": 6}
                     img.save(output, format="WEBP", **save_kwargs)
                     image_data = output.getvalue()
                     content_type = "image/webp"
@@ -883,18 +859,12 @@ async def image_proxy(
                     # Return original if resize fails
                     pass
 
-            # Store in cache (with simple LRU - remove oldest if cache full)
-            if len(_image_cache) >= _IMAGE_CACHE_MAX_SIZE:
-                # Remove first (oldest) item
-                _image_cache.pop(next(iter(_image_cache)))
-            _image_cache[cache_key] = image_data
-
             return StreamingResponse(
                 iter([image_data]),
                 media_type=content_type,
                 headers={
                     "Cache-Control": "public, max-age=2592000",  # 30 days
-                    "X-Cache": "MISS",
+                    "ETag": f'"{hash(url)}"',
                 },
             )
     except HTTPException:
