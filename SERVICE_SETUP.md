@@ -4,19 +4,26 @@ The Nexus FastAPI server can run as a Windows service that automatically starts 
 
 ## Installation
 
-### Method 1: PowerShell (Recommended)
+### Method 1: Batch File (Easiest - Auto-Elevates)
 
-1. Open PowerShell **as Administrator**
+1. Double-click `Fix-NexusService-Admin.bat` 
+   - It will automatically request Administrator privileges
+   - Will clean up any corrupted service and install fresh
+   - Click **Yes** when prompted for admin access
+
+### Method 2: PowerShell (Requires Admin)
+
+1. **Right-click PowerShell** → Select "Run as Administrator"
 2. Run:
    ```powershell
    cd C:\Nexus
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   .\Manage-NexusService.ps1 -Command install
+   .\Fix-NexusService-Admin.ps1
    ```
 
-### Method 2: Command Prompt
+### Method 3: Command Prompt (Requires Admin)
 
-1. Open Command Prompt **as Administrator**
+1. **Right-click Command Prompt** → Select "Run as Administrator"
 2. Run:
    ```cmd
    cd C:\Nexus
@@ -25,7 +32,57 @@ The Nexus FastAPI server can run as a Windows service that automatically starts 
 
 ## Service Management
 
-### PowerShell Method (Recommended)
+### Easiest: Services GUI
+
+1. Press `Win + R`, type `services.msc`, press Enter
+2. Find "Nexus AI News Platform"
+3. Right-click and select:
+   - **Properties** → Set "Startup type" to "Automatic" → Click OK
+   - **Start** to start the service
+
+### PowerShell Method (Requires Admin)
+
+```powershell
+cd C:\Nexus
+
+# Set to auto-start
+Set-Service -Name NexusServer -StartupType Automatic
+
+# Start the service
+Start-Service -Name NexusServer
+
+# Check service status
+Get-Service -Name NexusServer
+
+# Stop the service
+Stop-Service -Name NexusServer
+
+# Restart the service
+Restart-Service -Name NexusServer
+
+# View logs
+Get-Content C:\Nexus\logs\service.log -Tail 50
+```
+
+### Command Prompt Method (Requires Admin)
+
+```cmd
+cd C:\Nexus
+
+# Set to auto-start
+sc config NexusServer start=auto
+
+# Start the service
+net start NexusServer
+
+# Stop the service
+net stop NexusServer
+
+# View service status
+sc query NexusServer
+```
+
+### Legacy PowerShell Method
 
 ```powershell
 cd C:\Nexus
@@ -45,35 +102,6 @@ cd C:\Nexus
 # Uninstall the service
 .\Manage-NexusService.ps1 -Command remove
 ```
-
-### Command Line Method
-
-```cmd
-cd C:\Nexus
-
-# Start the service
-C:\Nexus\venv\Scripts\python.exe nexus_service.py start
-
-# Stop the service
-C:\Nexus\venv\Scripts\python.exe nexus_service.py stop
-```
-
-### Windows Services GUI
-
-1. Open `Services.msc` (search for "Services" in Windows)
-2. Find "Nexus AI News Platform" in the list
-3. Right-click and select:
-   - **Start** to start the service
-   - **Stop** to stop the service
-   - **Restart** to restart the service
-   - **Properties** to configure startup behavior
-
-To set automatic startup:
-1. Open Services.msc
-2. Find "Nexus AI News Platform"
-3. Right-click → Properties
-4. Set "Startup type" to "Automatic"
-5. Click OK
 
 ## Service Features
 
@@ -98,30 +126,42 @@ type C:\Nexus\logs\service.log
 ## Troubleshooting
 
 **Service won't start**
-- Check `C:\Nexus\logs\service.log` for error messages
-- Ensure port 8000 is not in use: `netstat -aon | findstr 8000`
+- Check logs: `Get-Content C:\Nexus\logs\service.log -Tail 50`
+- Verify port 8000 is free: `netstat -aon | findstr 8000`
 - Verify PostgreSQL is running: `Get-Service postgresql*`
 
-**Access Denied during installation**
+**Service installation fails / Service marked for deletion**
+- Run `Fix-NexusService-Admin.bat` (easiest - auto-elevates to admin)
+- Or run `Fix-NexusService-Admin.ps1` in admin PowerShell
+- This will force-clean the corrupted service and reinstall fresh
+
+**Access Denied errors**
 - Right-click PowerShell/CMD and select "Run as Administrator"
-- Ensure you have admin privileges on the machine
+- Ensure you have admin privileges
 
 **Service keeps restarting**
 - Check logs for the actual error
-- Verify all dependencies (PostgreSQL, Python packages) are installed
+- Verify PostgreSQL is running: `Get-Service postgresql*`
+- Verify dependencies: `pip list | findstr fastapi sqlalchemy psycopg`
 - Check that `app/static` and `app/templates` directories exist
 
 ## Removal
 
 To uninstall the service:
 
+### PowerShell (Requires Admin)
 ```powershell
-cd C:\Nexus
-.\Manage-NexusService.ps1 -Command remove
+Stop-Service -Name "NexusServer"
+Remove-Service -Name "NexusServer"
 ```
 
-Or:
+### Command Prompt (Requires Admin)
 ```cmd
-cd C:\Nexus
-C:\Nexus\venv\Scripts\python.exe nexus_service.py remove
+net stop NexusServer
+sc delete NexusServer
 ```
+
+### GUI
+1. Open Services.msc
+2. Find "Nexus AI News Platform"
+3. Right-click → Delete
