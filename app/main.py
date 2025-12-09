@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
 import os
 
-from app.api.routes import topics, content, users, session
+from app.api.routes import topics, content, users, session, webhooks
 
 from app.api.routes.logged_out import router as logged_out_router
 from app.api.v1.routes import (
@@ -70,34 +70,6 @@ async def register_page():
     return FileResponse("app/static/register.html")
 
 
-from fastapi import FastAPI  # type: ignore
-from fastapi.middleware.cors import CORSMiddleware  # type: ignore
-from fastapi.staticfiles import StaticFiles  # type: ignore
-import os
-
-from app.api.routes import (
-    topics,
-    content,
-    users,
-    session,
-    webhooks,
-)
-from app.api.v1.routes import admin, settings as v1_settings, websocket, history
-from app.core.config import settings
-from app.services.scheduler_service import scheduler_service
-
-# Create FastAPI application
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description="AI-Powered Content Personalization Engine",
-    version=settings.VERSION,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
-)
-
-
-# Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
     """Start background scheduler on app startup"""
