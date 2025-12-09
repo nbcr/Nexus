@@ -155,11 +155,15 @@ async def login_page(request: Request):
 
     # Only redirect if token exists AND is valid
     if token:
-        username = verify_token(token)
-        if username:
-            # Token is valid, redirect to home
-            return RedirectResponse(url="/")
-        # Token is invalid/expired, clear it and show login page
+        try:
+            username = verify_token(token)
+            if username:
+                # Token is valid, redirect to home
+                return RedirectResponse(url="/")
+        except Exception:
+            # Token is invalid/expired, clear it and show login page
+            pass
+        
         response = templates.TemplateResponse("login.html", {"request": request})
         response.delete_cookie("access_token", path="/")
         return response
