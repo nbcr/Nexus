@@ -426,7 +426,6 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
 async def get_content_snippet_priority(
     content_id: int,
     db: AsyncSession = Depends(get_db),
-    timeout: int = Query(5, ge=1, le=30),
 ):
     """
     Fetch article snippet on-demand with user waiting (e.g., card expansion).
@@ -461,7 +460,7 @@ async def get_content_snippet_priority(
     # Try to scrape immediately with timeout
     try:
         # Use asyncio.timeout context manager to enforce timeout
-        async with asyncio.timeout(float(timeout)):
+        async with asyncio.timeout(10.0):
             snippet = await _scrape_and_store_article(content, source_url, db)
 
         if snippet:
