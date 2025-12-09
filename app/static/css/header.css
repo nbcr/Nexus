@@ -61,6 +61,20 @@
     transition: height 0.3s ease, width 0.3s ease;
 }
 
+/* Scrolled state - shrink header on scroll */
+.main-header.scrolled {
+    padding: 8px 0;
+}
+
+.main-header.scrolled h1 {
+    font-size: 20px;
+}
+
+.main-header.scrolled .site-logo {
+    height: 40px;
+    width: 40px;
+}
+
 .header-title-link {
     text-decoration: none;
     color: inherit;
@@ -690,11 +704,7 @@ body.dark-mode #hamburger-menu .bar {
         border-radius: 50%;
     }
 
-    /* Shrink header on scroll for mobile */
-    .main-header.scrolled {
-        padding: 8px 0;
-    }
-
+    /* Mobile-specific scrolled state - shrink further */
     .main-header.scrolled h1 {
         font-size: 16px;
     }
