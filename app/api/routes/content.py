@@ -739,11 +739,12 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/proxy/image")
-async def image_proxy(url: str):
-    """Proxy remote images to avoid mixed-content/CORS issues."""
+async def image_proxy(url: str, w: int = Query(None, ge=1, le=1200), h: int = Query(None, ge=1, le=1200)):
+    """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
     import httpx  # pyright: ignore[reportMissingImports]
     import logging
     from urllib.parse import urlparse
+    from io import BytesIO
 
     logger = logging.getLogger("uvicorn.error")
 
@@ -813,8 +814,37 @@ async def image_proxy(url: str):
             resp = await client.get(url)
             resp.raise_for_status()
             content_type = resp.headers.get("content-type", "image/jpeg")
+            image_data = resp.content
+
+            # Resize image if dimensions specified
+            if (w or h) and content_type.startswith("image/"):
+                try:
+                    from PIL import Image
+                    
+                    img = Image.open(BytesIO(image_data))
+                    
+                    # Default dimensions for feed display
+                    target_w = w or img.width
+                    target_h = h or img.height
+                    
+                    # Maintain aspect ratio
+                    img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
+                    
+                    # Save optimized image
+                    output = BytesIO()
+                    # Use JPEG for smaller file size, PNG for transparency
+                    save_format = "PNG" if img.mode in ("RGBA", "LA") else "JPEG"
+                    save_kwargs = {"optimize": True, "quality": 85} if save_format == "JPEG" else {"optimize": True}
+                    img.save(output, format=save_format, **save_kwargs)
+                    image_data = output.getvalue()
+                    content_type = f"image/{save_format.lower()}"
+                except Exception as e:
+                    logger.warning(f"Image resize failed: {e}, returning original")
+                    # Return original if resize fails
+                    pass
+
             return StreamingResponse(
-                iter([resp.content]), 
+                iter([image_data]), 
                 media_type=content_type,
                 headers={
                     "Cache-Control": "public, max-age=2592000",  # 30 days
