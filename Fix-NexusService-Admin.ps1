@@ -49,14 +49,14 @@ try {
 }
 
 Write-Host "[4/5] Verifying service is gone..." -ForegroundColor Cyan
-$service = Get-Service -Name "NexusServer" -ErrorAction SilentlyContinue
-if ($service) {
+try {
+    $service = Get-Service -Name "NexusServer" -ErrorAction Stop
     Write-Host "   WARNING: Service still exists" -ForegroundColor Yellow
     Write-Host "   Forcing final deletion..." -ForegroundColor Yellow
     & cmd.exe /c "sc.exe config NexusServer binPath= `"`"C:\Nexus\venv\Scripts\pythonw.exe`" `"C:\Nexus\nexus_service.py`"`"" 2>&1 | Out-Null
     & cmd.exe /c "sc.exe delete NexusServer" 2>&1 | Out-Null
     Start-Sleep -Seconds 2
-} else {
+} catch {
     Write-Host "   Service successfully removed" -ForegroundColor Green
 }
 
@@ -66,8 +66,8 @@ cd C:\Nexus
 
 Start-Sleep -Seconds 1
 
-$service = Get-Service -Name "NexusServer" -ErrorAction SilentlyContinue
-if ($service) {
+try {
+    $service = Get-Service -Name "NexusServer" -ErrorAction Stop
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
     Write-Host "SUCCESS: Service installed!" -ForegroundColor Green
@@ -79,7 +79,7 @@ if ($service) {
     Write-Host "  3. Check status: Get-Service -Name NexusServer"
     Write-Host "  4. View logs: Get-Content C:\Nexus\logs\service.log -Tail 50"
     Write-Host ""
-} else {
+} catch {
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Red
     Write-Host "ERROR: Service installation failed!" -ForegroundColor Red
