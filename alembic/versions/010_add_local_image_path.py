@@ -4,6 +4,7 @@ Revision ID: 010
 Revises: 009, add_is_admin_to_users
 Create Date: 2025-12-09
 """
+
 from alembic import op
 import sqlalchemy as sa
 
