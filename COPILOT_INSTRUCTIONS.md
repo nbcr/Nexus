@@ -1,25 +1,17 @@
 # Nexus Project – Copilot Instructions
 
 ## Context
-- FastAPI app in `c:\Users\Yot\Documents\GitHub Projects\Nexus\Nexus`
+- FastAPI app: `c:\Nexus`
 - Main branch: `main`
-- SSH config: `C:\Users\Yot\.ssh\config-nexus` (alias: `nexus-server`)
-- Server logs: `/home/nexus/nexus/logs/`
-
-## Recent Work
-- Fixed circular import between `app/main.py` and `app/api/routes/logged_out.py`:
-  - `logged_out.py` now uses `APIRouter` and imports `templates` directly.
-  - `main.py` imports and includes the router.
-- Changes committed: `Refactor logged_out route to use APIRouter and fix circular import with main.py`
-- No errors in affected files.
+- Server: Local (Windows-based, running on localhost)
+- Server logs: `c:\Nexus\logs\`
 
 ## Server Access
-- SSH:  
-  `ssh -F $env:USERPROFILE\.ssh\config-nexus nexus-server`
-- Check logs (example):  
-  `ssh -F $env:USERPROFILE\.ssh\config-nexus nexus-server "tail -50 /home/nexus/nexus/logs/error.log"`
+- Local server runs via `python run_server.py`
+- API accessible at `http://localhost:8000`
+- Check logs: `Get-Content c:\Nexus\logs\error.log -Tail 50`
 
 ## Next Steps
-- Check server logs as needed.
-- Restart server to apply changes if deploying.
-- Run `git push` if you need to push changes to remote.
+- Test changes locally before committing
+- Kill and restart server when needed: `taskkill /F /IM python.exe` then `python run_server.py`
+- Run `git push` to commit changes
