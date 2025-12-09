@@ -310,6 +310,20 @@ async def _scrape_and_store_article(
     if article_data.get("published_date"):
         content.source_metadata["published_date"] = article_data["published_date"]
 
+    # Download and optimize image during scraping
+    if article_data.get("image_url"):
+        try:
+            local_image_path = await asyncio.to_thread(
+                article_scraper.download_and_optimize_image,
+                article_data["image_url"],
+                content.id
+            )
+            if local_image_path:
+                content.local_image_path = local_image_path
+                print(f"✅ Stored optimized image for content {content.id}: {local_image_path}")
+        except Exception as e:
+            print(f"⚠️ Failed to optimize image: {e}")
+
     await db.commit()
 
     # Generate snippet from facts
