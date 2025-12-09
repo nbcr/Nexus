@@ -112,12 +112,12 @@ class FeedRenderer {
         const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
 
         if (imageUrl) {
-            return `<div class="feed-item-image">
-            <img src="${imageUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'">
+            return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
+            <img src="${imageUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
         } else {
-            return `<div class="feed-item-image">
-            <img src="/static/img/placeholder.png" alt="No image" loading="lazy">
+            return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
+            <img src="/static/img/placeholder.png" alt="No image" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
         }
     }
