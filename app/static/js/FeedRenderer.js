@@ -110,15 +110,10 @@ class FeedRenderer {
 
     buildImageHtml(item) {
         const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
-        const proxiedImageUrl = imageUrl ? FeedUtils.buildProxyUrl(imageUrl) : null;
 
-        if (proxiedImageUrl) {
+        if (imageUrl) {
             return `<div class="feed-item-image">
-            <img src="${proxiedImageUrl}" alt="${item.title}" loading="lazy">
-        </div>`;
-        } else if (imageUrl) {
-            return `<div class="feed-item-image">
-            <img src="${imageUrl}" alt="${item.title}" loading="lazy">
+            <img src="${imageUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'">
         </div>`;
         } else {
             return `<div class="feed-item-image">
