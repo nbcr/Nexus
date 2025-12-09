@@ -286,7 +286,6 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
                     "tags": topic.tags,
-                    "related_items": [],
                 }
             )
 
@@ -430,7 +429,6 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                     "updated_at": content.updated_at.isoformat(),
                     "tags": topic.tags,
-                    "related_items": [],
                 }
             )
         return items

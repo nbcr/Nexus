@@ -140,11 +140,7 @@ class FeedArticleModal {
                 body.appendChild(continueReadingBtn);
             }
 
-            // Display related items if available
-            if (article.related_items && article.related_items.length > 0) {
-                this.renderRelatedItems(article.related_items, relatedItems);
-                relatedSection.style.display = 'block';
-            }
+            // Related items removed for performance
 
             // 📊 Track scroll depth for "article_read_complete" (only if content loaded successfully)
             const articleBody = document.querySelector('.article-modal-content');
