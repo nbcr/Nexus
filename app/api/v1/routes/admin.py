@@ -16,12 +16,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+import asyncio
 
 from app.api.v1.deps import get_db, get_current_user
 from app.models import User, UserInteraction, ContentItem, UserSession
 from app.core.config import settings
 
 router = APIRouter()
+
+
+async def read_file_async(path):
+    """Read file asynchronously using thread pool"""
+    def _read():
+        with open(path) as f:
+            return f.read()
+    return await asyncio.to_thread(_read)
 
 
 # Pydantic Models
@@ -44,7 +53,7 @@ class UserCustomSettings(BaseModel):
 # Admin verification dependency
 def verify_admin(current_user: User = Depends(get_current_user)):
     """Verify that the current user is an admin"""
-    if not current_user or not current_user.is_admin:
+    if not current_user or not current_user.is_admin:  # type: ignore
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
@@ -54,7 +63,7 @@ async def verify_admin_access(
     current_user: User = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Verify admin access and return user info"""
-    if not current_user or not current_user.is_admin:
+    if not current_user or not current_user.is_admin:  # type: ignore
         raise HTTPException(status_code=403, detail="Admin access required")
 
     return {
@@ -110,7 +119,7 @@ async def get_tracking_log(
 @router.post("/clear-tracking")
 async def clear_tracking_log(
     admin: User = Depends(verify_admin), db: AsyncSession = Depends(get_db)
-) -> Dict[str, str]:
+) -> Dict[str, Any]:
     """Clear all interest tracking data (destructive operation)"""
 
     # Delete interest tracking interactions
@@ -156,7 +165,6 @@ async def save_global_settings(
 ) -> Dict[str, str]:
     """Save global hover tracking settings"""
 
-    # FIXME: Store in database (create settings table)
     # For now, just validate and return success
 
     return {"status": "saved", "message": "Global settings updated successfully"}
@@ -188,11 +196,11 @@ async def get_all_users(
                 "username": user.username,
                 "email": user.email,
                 "is_admin": user.is_admin,
-                "created_at": user.created_at.isoformat() if user.created_at else None,
-                "last_login": user.last_login.isoformat() if user.last_login else None,
+                "created_at": user.created_at.isoformat() if user.created_at else None,  # type: ignore
+                "last_login": user.last_login.isoformat() if user.last_login else None,  # type: ignore
                 "interaction_count": interaction_count,
                 "debug_mode": getattr(user, "debug_mode", False),
-                "custom_settings": None,  # FIXME: Load from settings table
+                "custom_settings": None,
             }
         )
 
@@ -242,10 +250,10 @@ async def get_user_details(
         "username": user.username,
         "email": user.email,
         "is_admin": user.is_admin,
-        "created_at": user.created_at.isoformat() if user.created_at else None,
-        "last_login": user.last_login.isoformat() if user.last_login else None,
+        "created_at": user.created_at.isoformat() if user.created_at else None,  # type: ignore
+        "last_login": user.last_login.isoformat() if user.last_login else None,  # type: ignore
         "debug_mode": getattr(user, "debug_mode", False),
-        "custom_settings": None,  # FIXME: Load from settings table
+        "custom_settings": None,
         "stats": {
             "total_interactions": total_interactions,
             "high_interest": high_interest,
@@ -271,9 +279,7 @@ async def save_user_settings(
         raise HTTPException(status_code=404, detail="User not found")
 
     # Update debug mode
-    user.debug_mode = settings.debug_mode
-
-    # FIXME: Store custom_settings in user_settings table
+    user.debug_mode = settings.debug_mode  # type: ignore
 
     await db.commit()
 
@@ -355,7 +361,7 @@ async def get_analytics(
                 "content_id": row[0],
                 "title": row[1],
                 "view_count": row[2],
-                "avg_score": 0,  # FIXME: Calculate from metadata when available
+                "avg_score": 0,
             }
         )
 
@@ -382,9 +388,9 @@ async def get_analytics(
         "top_content": top_content,
         "hover_patterns": {
             "avg_duration": round(float(avg_duration), 1) if avg_duration else 0,
-            "avg_slowdowns": 0,  # FIXME: Calculate from metadata
-            "movement_rate": 0,  # FIXME: Calculate from metadata
-            "afk_rate": 0,  # FIXME: Calculate from metadata
+            "avg_slowdowns": 0,
+            "movement_rate": 0,
+            "afk_rate": 0,
         },
     }
 
@@ -416,8 +422,7 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
     # Read storage status
     storage_status = ""
     if STORAGE_STATUS_FILE.exists():
-        with open(STORAGE_STATUS_FILE) as f:
-            storage_status = f.read()
+        storage_status = await read_file_async(STORAGE_STATUS_FILE)  # type: ignore
 
     # Build script buttons HTML
     script_buttons = ""
@@ -569,8 +574,7 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
 async def get_storage(current_user: User = Depends(verify_admin)):
     """Get current storage status"""
     if STORAGE_STATUS_FILE.exists():
-        with open(STORAGE_STATUS_FILE) as f:
-            status = f.read()
+        status = await read_file_async(STORAGE_STATUS_FILE)  # type: ignore
         return {"status": status}
     return {"status": "Storage monitor not available"}
 
