@@ -11,7 +11,7 @@ load_dotenv()
 
 # Parse DATABASE_URL to extract components
 db_url = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+    "DATABASE_URL", "postgresql://user:pass@localhost:5432/nexus"
 )
 
 # Remove protocol prefix
@@ -23,7 +23,7 @@ if "@" in db_url:
     user, password = auth.split(":")
 else:
     user = "postgres"
-    password = "***REMOVED***"
+    password = os.environ.get("DB_PASSWORD", "password")
     host_db = db_url
 
 if "/" in host_db:

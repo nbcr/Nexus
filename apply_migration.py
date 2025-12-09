@@ -6,14 +6,13 @@ from alembic.config import Config
 from alembic import command
 
 # Set database URL
-os.environ["DATABASE_URL"] = (
-    "postgresql+asyncpg://postgres:***REMOVED***@localhost:5432/nexus"
-)
+database_url = os.environ.get("DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/nexus")
+os.environ["DATABASE_URL"] = database_url
 
 # Create alembic config
 alembic_cfg = Config("alembic.ini")
 alembic_cfg.set_main_option(
-    "sqlalchemy.url", "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+    "sqlalchemy.url", database_url.replace("+asyncpg", "")
 )
 
 # Run upgrade

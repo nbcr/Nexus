@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Parse DATABASE_URL
-db_url = "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+db_url = os.environ.get("DATABASE_URL", "postgresql://user:pass@localhost:5432/nexus")
 
 try:
     conn = psycopg2.connect(db_url)
