@@ -826,7 +826,7 @@ async def image_proxy(
         raise HTTPException(status_code=400, detail="Invalid URL format")
 
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=10) as client:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
             safe_url = url.replace("\n", "").replace("\r", "")
             logger.info(f"Image proxy fetch: {safe_url}")
             resp = await client.get(url)
@@ -848,18 +848,12 @@ async def image_proxy(
                     # Maintain aspect ratio
                     img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
 
-                    # Save optimized image
+                    # Save optimized image as WebP for better compression
                     output = BytesIO()
-                    # Use JPEG for smaller file size, PNG for transparency
-                    save_format = "PNG" if img.mode in ("RGBA", "LA") else "JPEG"
-                    save_kwargs = (
-                        {"optimize": True, "quality": 85}
-                        if save_format == "JPEG"
-                        else {"optimize": True}
-                    )
-                    img.save(output, format=save_format, **save_kwargs)
+                    save_kwargs = {"quality": 80, "method": 6}
+                    img.save(output, format="WEBP", **save_kwargs)
                     image_data = output.getvalue()
-                    content_type = f"image/{save_format.lower()}"
+                    content_type = "image/webp"
                 except Exception as e:
                     logger.warning(f"Image resize failed: {e}, returning original")
                     # Return original if resize fails

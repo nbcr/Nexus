@@ -1,6 +1,12 @@
 /* stylelint-disable comment-empty-line-before */
 /* Infinite Scroll Feed Styles */
 
+/* Shimmer animation for image loading placeholder */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
 #feed-container {
     max-width: 800px;
     margin: 0 auto;

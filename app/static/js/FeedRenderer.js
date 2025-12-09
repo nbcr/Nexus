@@ -115,7 +115,7 @@ class FeedRenderer {
         if (imageUrl) {
             // If it's a local path, use it directly; otherwise use proxy for remote images
             const imageSrc = imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
-            return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
+            return `<div class="feed-item-image" style="aspect-ratio: 16/9; background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%); background-size: 200% 100%; animation: shimmer 2s infinite;">
             <img src="${imageSrc}" alt="${item.title}" loading="lazy" decoding="async" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
         } else {
