@@ -35,36 +35,6 @@ app = FastAPI(
 from fastapi.responses import FileResponse
 
 
-@app.get("/login", include_in_schema=False)
-async def login_page():
-    from fastapi import Request
-    from fastapi.responses import RedirectResponse, FileResponse
-    from app.core.auth import verify_token
-
-    async def _login_page(request: Request):
-        # Check if user has a valid token by trying to verify it
-        token = request.cookies.get("access_token")
-        if not token:
-            auth_header = request.headers.get("Authorization")
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header.split(" ", 1)[1]
-
-        # Only redirect if token exists AND is valid
-        if token:
-            username = verify_token(token)
-            if username:
-                # Token is valid, redirect to home
-                return RedirectResponse(url="/")
-            # Token is invalid/expired, clear it and show login page
-            response = FileResponse("app/static/login.html")
-            response.delete_cookie("access_token", path="/")
-            return response
-        # No token, show login page
-        return FileResponse("app/static/login.html")
-
-    return await _login_page
-
-
 @app.get("/register", include_in_schema=False)
 async def register_page():
     return FileResponse("app/static/register.html")
