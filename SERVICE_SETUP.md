@@ -130,10 +130,14 @@ type C:\Nexus\logs\service.log
 - Verify port 8000 is free: `netstat -aon | findstr 8000`
 - Verify PostgreSQL is running: `Get-Service postgresql*`
 
-**Service installation fails / Service marked for deletion**
-- Run `Fix-NexusService-Admin.bat` (easiest - auto-elevates to admin)
-- Or run `Fix-NexusService-Admin.ps1` in admin PowerShell
-- This will force-clean the corrupted service and reinstall fresh
+**Service installation fails with "marked for deletion" error**
+- This happens when a previous service installation/removal was interrupted
+- **Solution:**
+  1. Run `Fix-Service-Final.bat` in admin (will prompt to restart)
+  2. Choose option 1 to restart and auto-fix
+  3. OR manually restart Windows, then run `Fix-NexusService-Admin.bat`
+- The system cannot fully delete the service until after restart
+- Do not try to force-delete while the error persists
 
 **Access Denied errors**
 - Right-click PowerShell/CMD and select "Run as Administrator"
