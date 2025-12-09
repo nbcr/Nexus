@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import secrets
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status, BackgroundTasks
@@ -13,7 +14,9 @@ from app.models.user import BrevoEmailEvent
 logger = logging.getLogger("brevo_webhook")
 
 if not logger.handlers:
-    logs_dir = "/home/nexus/nexus/logs"
+    # Use relative path for cross-platform compatibility
+    PROJECT_ROOT = Path(__file__).parent.parent.parent
+    logs_dir = str(PROJECT_ROOT / "logs")
     os.makedirs(logs_dir, exist_ok=True)
     handler = logging.FileHandler(os.path.join(logs_dir, "brevo_webhook.log"))
     formatter = logging.Formatter(

@@ -1,0 +1,18 @@
+2025-12-08 17:20:07,343 - __main__ - INFO - ================================================================================
+2025-12-08 17:20:07,378 - __main__ - INFO - >> Nexus Server Starting - 2025-12-08 17:20:07
+2025-12-08 17:20:07,379 - __main__ - INFO - Host: 127.0.0.1:8000
+2025-12-08 17:20:07,379 - __main__ - INFO - Debug Mode: True
+2025-12-08 17:20:07,380 - __main__ - INFO - ================================================================================
+INFO:     Started server process [16436]
+INFO:     Waiting for application startup.
+INFO:     ================================================================================
+INFO:     ≡ƒÜÇ Nexus API Started - 2025-12-08 17:20:10
+INFO:     Version: 0.1.0
+INFO:     Environment: Development
+INFO:     ================================================================================
+Γ£à Configured 50 RSS feeds
+2025-12-08 17:20:10,943 - apscheduler.scheduler - INFO - Scheduler started
+2025-12-08 17:20:10,944 - app.services.scheduler_service - INFO - Γ£à Background scheduler started (content refresh handled by cron)
+INFO:     Γ£à Startup completed successfully
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)

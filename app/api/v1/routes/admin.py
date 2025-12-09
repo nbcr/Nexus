@@ -393,15 +393,19 @@ async def get_analytics(
 from pathlib import Path
 import subprocess
 import json
+import subprocess
+from pathlib import Path
 from fastapi.responses import HTMLResponse
 
-STORAGE_STATUS_FILE = Path("/home/nexus/nexus/STORAGE_STATUS.txt")
-STORAGE_HISTORY_FILE = Path("/home/nexus/nexus/storage_history.json")
+# Use relative paths for cross-platform compatibility
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+STORAGE_STATUS_FILE = PROJECT_ROOT / "STORAGE_STATUS.txt"
+STORAGE_HISTORY_FILE = PROJECT_ROOT / "storage_history.json"
 
 AVAILABLE_SCRIPTS = {
     "Storage Monitor": "python3 storage_monitor.py",
     "RSS Benchmark": "python3 benchmark_feeds.py",
-    "Check Logs": "tail -100 /home/nexus/nexus/logs/error.log",
+    "Check Logs": f"tail -100 {PROJECT_ROOT / 'logs' / 'error.log'}",
     "Database Stats": "psql -d nexus -c 'SELECT COUNT(*) as total_stories FROM content_items;'",
 }
 
@@ -590,7 +594,7 @@ async def run_script_endpoint(
             capture_output=True,
             text=True,
             timeout=30,
-            cwd="/home/nexus/nexus",
+            cwd=str(PROJECT_ROOT),
         )
         output = result.stdout + (result.stderr if result.returncode != 0 else "")
         return {"output": output[:5000]}  # Limit output
@@ -617,7 +621,7 @@ async def terminal_endpoint(
             capture_output=True,
             text=True,
             timeout=10,
-            cwd="/home/nexus/nexus",
+            cwd=str(PROJECT_ROOT),
         )
         output = result.stdout + (result.stderr if result.returncode != 0 else "")
         return {"output": output[:2000]}  # Limit output
