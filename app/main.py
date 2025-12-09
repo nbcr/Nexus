@@ -35,10 +35,6 @@ app = FastAPI(
 from fastapi.responses import FileResponse
 
 
-@app.get("/register", include_in_schema=False)
-async def register_page():
-    return FileResponse("app/static/register.html")
-
 
 @app.on_event("startup")
 async def startup_event():
@@ -175,7 +171,10 @@ async def login_page(request: Request):
 @app.get("/register", include_in_schema=False)
 async def register_page(request: Request):
     """Serve registration page"""
-    return templates.TemplateResponse("register.html", {"request": request})
+    try:
+        return templates.TemplateResponse("register.html", {"request": request})
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/forgot-password", include_in_schema=False)
