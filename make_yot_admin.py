@@ -14,7 +14,7 @@ from app.models.user import User
 from app.core.config import settings
 
 # Try with postgres user and no password (trusted)
-database_url_sync = "postgresql://postgres@localhost:5432/nexus"
+database_url_sync = "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
 
 try:
     # Create engine

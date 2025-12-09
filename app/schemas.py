@@ -113,9 +113,7 @@ class UserCreate(UserBase):
         if not re.search(r"\d", v):
             raise ValueError("Password must contain at least one number")
         if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", v):
-            raise ValueError(
-                "Password must contain at least one special character"
-            )
+            raise ValueError("Password must contain at least one special character")
         return v
 
 

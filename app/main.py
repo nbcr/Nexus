@@ -35,7 +35,6 @@ app = FastAPI(
 from fastapi.responses import FileResponse
 
 
-
 @app.on_event("startup")
 async def startup_event():
     """Start background scheduler on app startup"""
@@ -159,7 +158,7 @@ async def login_page(request: Request):
         except Exception:
             # Token is invalid/expired, clear it and show login page
             pass
-        
+
         response = templates.TemplateResponse("login.html", {"request": request})
         response.delete_cookie("access_token", path="/")
         return response
