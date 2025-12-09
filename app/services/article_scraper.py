@@ -911,7 +911,7 @@ class ArticleScraperService:
                 img = rgb_img
             
             # Resize to display size
-            img.thumbnail((743, 413), Image.Resampling.LANCZOS)
+            img.thumbnail((480, 270), Image.Resampling.LANCZOS)
             
             # Create storage directory
             image_dir = os.path.join(os.path.dirname(__file__), "..", "static", "images", "articles")
