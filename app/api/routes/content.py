@@ -813,7 +813,14 @@ async def image_proxy(url: str):
             resp = await client.get(url)
             resp.raise_for_status()
             content_type = resp.headers.get("content-type", "image/jpeg")
-            return StreamingResponse(iter([resp.content]), media_type=content_type)
+            return StreamingResponse(
+                iter([resp.content]), 
+                media_type=content_type,
+                headers={
+                    "Cache-Control": "public, max-age=2592000",  # 30 days
+                    "ETag": f'"{hash(url)}"',
+                }
+            )
     except HTTPException:
         raise
     except Exception:
