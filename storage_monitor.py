@@ -12,10 +12,12 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Configuration
-REPORT_FILE = Path("/home/nexus/nexus/storage_report.json")
-PREVIOUS_REPORT_FILE = Path("/home/nexus/nexus/storage_report_previous.json")
-DISPLAY_FILE = Path("/home/nexus/nexus/STORAGE_STATUS.txt")
-HISTORY_FILE = Path("/home/nexus/nexus/storage_history.json")
+# Use project root directory for file storage
+PROJECT_ROOT = Path(__file__).parent
+REPORT_FILE = PROJECT_ROOT / "storage_report.json"
+PREVIOUS_REPORT_FILE = PROJECT_ROOT / "storage_report_previous.json"
+DISPLAY_FILE = PROJECT_ROOT / "STORAGE_STATUS.txt"
+HISTORY_FILE = PROJECT_ROOT / "storage_history.json"
 
 # Database query
 DB_SIZE_QUERY = """SELECT pg_size_pretty(pg_database_size('nexus')) as size;"""

@@ -46,13 +46,19 @@ class SchedulerService:
             logger.warning("⚠️  Scheduler already running")
             return
 
-        # Content refresh is handled by cron (every 15 minutes)
-        # No need to schedule it here to avoid duplication
+        # Schedule content refresh every 15 minutes (cross-platform with APScheduler)
+        self.scheduler.add_job(
+            self.refresh_content_job,
+            trigger=IntervalTrigger(minutes=15),
+            id='content_refresh',
+            name='Content Refresh Job',
+            replace_existing=True
+        )
         
         self.scheduler.start()
         self.is_running = True
         logger.info(
-            "✅ Background scheduler started (content refresh handled by cron)"
+            "✅ Background scheduler started (content refresh scheduled every 15 minutes)"
         )
 
     def stop(self):

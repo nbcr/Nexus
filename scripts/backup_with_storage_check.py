@@ -27,8 +27,10 @@ from email.mime.multipart import MIMEMultipart
 # ============================================================================
 # Configuration
 # ============================================================================
-BACKUP_DIR = Path("/home/nexus/backups")
-NEXUS_DIR = Path("/home/nexus/nexus")
+# Use relative paths from project root for cross-platform compatibility
+PROJECT_ROOT = Path(__file__).parent.parent
+BACKUP_DIR = PROJECT_ROOT / "backups"
+NEXUS_DIR = PROJECT_ROOT
 LOG_FILE = NEXUS_DIR / "logs" / "backup.log"
 TOTAL_STORAGE_GB = 20
 SAFETY_MARGIN_GB = 0.5

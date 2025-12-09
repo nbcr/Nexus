@@ -35,7 +35,8 @@ TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
 TOGETHER_API_URL = "https://api.together.xyz/v1/chat/completions"
 
 # Rate limiting
-RATE_LIMIT_FILE = Path("/tmp/nexus_ai_requests.json")
+import tempfile
+RATE_LIMIT_FILE = Path(tempfile.gettempdir()) / "nexus_ai_requests.json"
 DAILY_LIMIT = 14000  # Stay under 14,400 Groq limit
 HOURLY_LIMIT = 600  # ~14,400 / 24
 
