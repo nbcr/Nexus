@@ -112,8 +112,11 @@ class FeedRenderer {
         const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url || null;
 
         if (imageUrl) {
+            // Use proxy with resize parameters for optimal display size
+            // Feed images are displayed at ~600px width on desktop, ~100% on mobile
+            const proxiedUrl = `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=800&h=600`;
             return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
-            <img src="${imageUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="${proxiedUrl}" alt="${item.title}" loading="lazy" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
         } else {
             return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
