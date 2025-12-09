@@ -10,7 +10,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Parse DATABASE_URL to extract components
-db_url = os.getenv("DATABASE_URL", "postgresql://postgres:***REMOVED***@localhost:5432/nexus")
+db_url = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+)
 
 # Remove protocol prefix
 db_url = db_url.replace("postgresql+asyncpg://", "").replace("postgresql://", "")
@@ -42,27 +44,25 @@ print(f"Connecting to {host}:{port}/{dbname} as {user}...")
 try:
     # Connect with psycopg2 (sync)
     conn = psycopg2.connect(
-        host=host,
-        port=port,
-        database=dbname,
-        user=user,
-        password=password
+        host=host, port=port, database=dbname, user=user, password=password
     )
-    
+
     cursor = conn.cursor()
-    
+
     # Add column if it doesn't exist
-    cursor.execute("""
+    cursor.execute(
+        """
         ALTER TABLE content_items
         ADD COLUMN IF NOT EXISTS local_image_path VARCHAR(255);
-    """)
-    
+    """
+    )
+
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     print("✓ Migration applied successfully!")
-    
+
 except Exception as e:
     print(f"✗ Error: {e}")
     exit(1)

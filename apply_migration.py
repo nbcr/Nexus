@@ -6,11 +6,15 @@ from alembic.config import Config
 from alembic import command
 
 # Set database URL
-os.environ["DATABASE_URL"] = "postgresql+asyncpg://postgres:***REMOVED***@localhost:5432/nexus"
+os.environ["DATABASE_URL"] = (
+    "postgresql+asyncpg://postgres:***REMOVED***@localhost:5432/nexus"
+)
 
 # Create alembic config
 alembic_cfg = Config("alembic.ini")
-alembic_cfg.set_main_option("sqlalchemy.url", "postgresql://postgres:***REMOVED***@localhost:5432/nexus")
+alembic_cfg.set_main_option(
+    "sqlalchemy.url", "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+)
 
 # Run upgrade
 try:
