@@ -340,7 +340,7 @@ class RSSFetcher:
         news_items = [
             {
                 "title": title,
-                "snippet": clean_snippet[:200] if clean_snippet else "",
+                "snippet": clean_snippet[:500] if clean_snippet else "",
                 "url": url,
                 "picture": image_url,
                 "source": source_name,
