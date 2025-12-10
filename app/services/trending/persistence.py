@@ -160,6 +160,57 @@ class TrendingPersistence:
                 print(f"  ✓ Created new content for '{title}'")
 
             await db.flush()
+            
+            # Scrape articles and download images after flush so content_item.id is set
+            for idx, news_item in enumerate(news_items):
+                title = news_item.get("title", "").strip()
+                if not title:
+                    continue
+                
+                # Find the content item we just created
+                slug = generate_slug(title) if title else None
+                if not slug:
+                    continue
+                    
+                try:
+                    result = await db.execute(
+                        select(ContentItem).where(ContentItem.slug == slug).order_by(ContentItem.id.desc()).limit(1)
+                    )
+                    content = result.scalar_one_or_none()
+                    if not content:
+                        continue
+                    
+                    url = news_item.get("url", "")
+                    if url:
+                        # Scrape article for content and image
+                        print(f"  📰 Scraping article for '{title}'...")
+                        article_data = article_scraper.fetch_article(url)
+                        if article_data:
+                            # Store scraped content
+                            content.content_text = article_data.get("content", "")
+                            content.facts = article_data.get("content", "")
+                            
+                            # Download and optimize image
+                            if article_data.get("image_url"):
+                                try:
+                                    local_path = article_scraper.download_and_optimize_image(
+                                        article_data["image_url"], content.id
+                                    )
+                                    if local_path:
+                                        content.local_image_path = local_path
+                                        print(f"  ✅ Downloaded image for '{title}': {local_path}")
+                                except Exception as e:
+                                    print(f"  ⚠️ Failed to download image: {e}")
+                            
+                            # Mark as scraped
+                            if not content.source_metadata:
+                                content.source_metadata = {}
+                            content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
+                            print(f"  ✅ Scraped content for '{title}'")
+                except Exception as e:
+                    print(f"  ⚠️ Error scraping article for '{title}': {e}")
+            
+            await db.commit()
             print(f"✅ Successfully processed news items for topic {topic_id}")
         except Exception as e:
             print(f"❌ Error updating news items for topic {topic_id}: {str(e)}")
