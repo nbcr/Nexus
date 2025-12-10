@@ -51,9 +51,7 @@ async def startup_event():
         logger.info(f"Version: {settings.VERSION}")
         logger.info(f"Environment: {'Development' if settings.debug else 'Production'}")
         logger.info("=" * 80)
-        # Scheduler disabled temporarily - causing immediate shutdown on Windows
-        # TODO: Fix AsyncIOScheduler event loop integration with Uvicorn
-        # scheduler_service.start()
+        scheduler_service.start()
         logger.info("[OK] Startup completed successfully")
     except Exception as e:
         logger.error(f"[ERROR] Error during startup: {e}")
@@ -73,8 +71,7 @@ async def shutdown_event():
         f"[STOP] Nexus API Shutting Down - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     logger.info("=" * 80)
-    # Scheduler disabled - see startup_event
-    # scheduler_service.stop()
+    scheduler_service.stop()
 
 
 # Configure CORS
