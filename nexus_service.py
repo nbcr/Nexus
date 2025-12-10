@@ -187,11 +187,12 @@ class NexusService(win32serviceutil.ServiceFramework):
                     try:
                         import socket
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         result = sock.connect_ex(('127.0.0.1', 8000))
                         sock.close()
                         if result == 0:
-                            self.logger.warning("Port 8000 still in use, waiting...")
-                            time.sleep(2)
+                            self.logger.warning("Port 8000 still in use, waiting longer...")
+                            time.sleep(5)  # Wait longer for graceful socket closure
                     except Exception as e:
                         self.logger.debug(f"Port check: {e}")
 
