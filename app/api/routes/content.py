@@ -317,6 +317,7 @@ async def _scrape_and_store_article(
 def _update_scraping_metadata(content: ContentItem) -> None:
     """Mark scraping as attempted."""
     from datetime import timezone
+
     if not content.source_metadata:
         content.source_metadata = {}
     content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
@@ -662,9 +663,7 @@ def _build_article_from_cache(content: ContentItem) -> dict:
         "title": content.title,
         "content": content.content_text,
         "author": (
-            content.source_metadata.get("author")
-            if content.source_metadata
-            else None
+            content.source_metadata.get("author") if content.source_metadata else None
         ),
         "published_date": (
             content.source_metadata.get("published_date")
@@ -682,7 +681,9 @@ def _build_article_from_cache(content: ContentItem) -> dict:
     }
 
 
-async def _scrape_article_content(content: ContentItem, content_id: int, db: AsyncSession) -> dict:
+async def _scrape_article_content(
+    content: ContentItem, content_id: int, db: AsyncSession
+) -> dict:
     """Scrape article content and save it."""
     source_url = _get_source_url(content)
     if not source_url:
@@ -754,11 +755,11 @@ def _check_thumbnail_cache(content_id: int, current_time: float) -> Optional[str
     return None
 
 
-async def _get_content_for_thumbnail(content_id: int, db: AsyncSession, current_time: float) -> Optional[ContentItem]:
+async def _get_content_for_thumbnail(
+    content_id: int, db: AsyncSession, current_time: float
+) -> Optional[ContentItem]:
     """Get content item for thumbnail, caching negative results."""
-    result = await db.execute(
-        select(ContentItem).where(ContentItem.id == content_id)
-    )
+    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
     content = result.scalar_one_or_none()
     if not content:
         _thumbnail_cache[content_id] = (None, current_time)
@@ -773,7 +774,9 @@ def _get_existing_picture_url(content: ContentItem) -> Optional[str]:
     return None
 
 
-async def _scrape_thumbnail(content: ContentItem, db: AsyncSession, current_time: float, logger) -> Optional[str]:
+async def _scrape_thumbnail(
+    content: ContentItem, db: AsyncSession, current_time: float, logger
+) -> Optional[str]:
     """Scrape article to get thumbnail URL."""
     if not content.source_urls or len(content.source_urls) == 0:
         _thumbnail_cache[content.id] = (None, current_time)
@@ -791,9 +794,7 @@ async def _scrape_thumbnail(content: ContentItem, db: AsyncSession, current_time
                 article_scraper.fetch_search_context, source_url
             )
         else:
-            data = await asyncio.to_thread(
-                article_scraper.fetch_article, source_url
-            )
+            data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
         if data and data.get("image_url"):
             if not content.source_metadata:
                 content.source_metadata = {}
@@ -828,7 +829,9 @@ async def image_proxy(
 
     try:
         image_data, content_type = await _fetch_image_data(url, logger)
-        image_data, content_type = _resize_image_if_needed(image_data, content_type, w, h, logger)
+        image_data, content_type = _resize_image_if_needed(
+            image_data, content_type, w, h, logger
+        )
 
         return StreamingResponse(
             iter([image_data]),
@@ -918,7 +921,9 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
         return resp.content, content_type
 
 
-def _resize_image_if_needed(image_data: bytes, content_type: str, w: Optional[int], h: Optional[int], logger) -> tuple[bytes, str]:
+def _resize_image_if_needed(
+    image_data: bytes, content_type: str, w: Optional[int], h: Optional[int], logger
+) -> tuple[bytes, str]:
     """Resize image if dimensions specified."""
     from io import BytesIO
 
