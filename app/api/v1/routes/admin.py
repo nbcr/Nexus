@@ -27,9 +27,11 @@ router = APIRouter()
 
 async def read_file_async(path):
     """Read file asynchronously using thread pool"""
+
     def _read():
         with open(path) as f:
             return f.read()
+
     return await asyncio.to_thread(_read)
 
 
