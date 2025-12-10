@@ -30,7 +30,9 @@ class ContentItem(Base):
     tags: Mapped[List[Any]] = mapped_column(JSON, default=list)
     content_type: Mapped[str] = mapped_column(String(50))
     content_text: Mapped[str] = mapped_column(Text)
-    facts: Mapped[str | None] = mapped_column(Text, nullable=True)  # Extracted key facts from scraped content
+    facts: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # Extracted key facts from scraped content
     ai_model_used: Mapped[str] = mapped_column(String(100))
     source_urls: Mapped[List[str]] = mapped_column(JSON, default=list)
     source_metadata: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict)
@@ -38,7 +40,9 @@ class ContentItem(Base):
         String(255), nullable=True
     )  # Path to locally stored optimized image
     is_published: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), onupdate=func.now()
     )

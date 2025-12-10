@@ -10,9 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Parse DATABASE_URL to extract components
-db_url = os.getenv(
-    "DATABASE_URL", "postgresql://user:pass@localhost:5432/nexus"
-)
+db_url = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/nexus")
 
 # Remove protocol prefix
 db_url = db_url.replace("postgresql+asyncpg://", "").replace("postgresql://", "")
