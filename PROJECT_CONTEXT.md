@@ -1410,3 +1410,55 @@ User reported no new stories were being fetched. Investigation revealed:
 - Verify new stories appear in `/api/v1/topics/` endpoint
 - Check WebSocket notifications are reaching clients when new content arrives
 
+---
+
+# 2025-12-10: Image Pipeline & Fact Display Fixes
+
+## Changes Made:
+
+### 1. Image Pipeline (Commit 326d0b6)
+- Added `local_image_path` to feed response so frontend can access pre-optimized images
+- Images now load in priority order: local_image_path → thumbnail_url → source_metadata.picture_url → placeholder
+
+### 2. RSS Image URL Fix (Commit 5c0b703)
+- Fixed persistence.py to check for `image_url` from RSS fetcher (was only checking `picture`)
+- Now properly stores RSS feed images to `source_metadata.picture_url`
+
+### 3. Background Article Scraping (Commit ef764d1)
+- Added synchronous article scraping immediately after RSS fetch
+- Downloads and optimizes images for every article, storing to `/static/images/articles/article_<id>.jpg`
+- Images stored in `local_image_path` field for instant feed load
+
+### 4. Async Scraping with Concurrency (Commit 916ef51)
+- Refactored to use `asyncio.gather()` with semaphore limiting concurrent scrapes to 3
+- RSS fetch returns immediately (fire-and-forget background task)
+- All articles scrape in parallel instead of sequentially
+- Prevents blocking and allows images to be ready by feed load time
+
+### 5. Fact Display Fix (Commit 8564c9c)
+- Fixed bullet point rendering in facts
+- Detects `•` characters and converts to proper HTML `<li>` list items
+- Wraps list items in `<ul>` with appropriate styling
+- Falls back to paragraph rendering for non-bulleted content
+- Applied to both initial render and dynamic snippet loading
+
+## Key System Flow:
+
+**Image Pipeline:**
+1. RSS fetch returns items with `image_url`
+2. Background scraper extracts images from article pages
+3. Images optimized/resized and stored locally
+4. Feed loads with pre-cached images (fast, multi-user friendly)
+
+**Fact Extraction:**
+1. Article scraper extracts key sentences ranked by importance
+2. Formats as bullet points with `• sentence` format
+3. Frontend detects bullets and renders as `<li>` list items
+4. Displays as proper formatted list instead of paragraph
+
+## Deployment Notes:
+- **DO NOT PUSH** – User handles all git pushes
+- Commit with `git add -A; git commit -m "message"` only
+- Changes will be pushed by user manually when ready
+
+```
