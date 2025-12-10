@@ -7,10 +7,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, and_
 from pydantic import BaseModel
 
-from app.db import get_db
+from app.api.v1.deps import get_db, get_current_session
 from app.models.user import ContentViewHistory, User
 from app.models.content import ContentItem
-from app.api.v1.deps import get_current_session
 
 
 router = APIRouter()

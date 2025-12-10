@@ -93,6 +93,10 @@ async def get_personalized_feed(
     Shows newest content first and prevents duplicates.
     Supports multi-category filtering via 'categories' param (comma-separated).
     """
+    import logging
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.info("[FEED] Endpoint called")
+    
     # Parse exclude_ids
     excluded_ids = []
     if exclude_ids:
@@ -113,10 +117,8 @@ async def get_personalized_feed(
     # Get session token for anonymous users
     session_token = nexus_session or request.cookies.get("nexus_session")
 
-    import logging
-
-    logger = logging.getLogger(LOGGER_NAME)
-
+    logger.info("[FEED] About to call recommendation_service.get_all_feed")
+    
     # Sanitize user input for logging to prevent log injection
     safe_category_list = (
         str(category_list).replace("\n", "").replace("\r", "")
@@ -129,6 +131,7 @@ async def get_personalized_feed(
     logger.info(
         f"Feed request: page={page}, categories={safe_category_list}, exclude_ids={safe_exclude_ids}, cursor={safe_cursor}"
     )
+    logger.info("[FEED] Calling get_all_feed...")
     # Feed selection - when no categories specified, show all feed (not personalized)
     if category_list and "all" in [c.lower() for c in category_list]:
         logger.info("Category 'All' selected: returning all items")
@@ -158,6 +161,8 @@ async def get_personalized_feed(
             cursor=cursor,
         )
 
+    logger.info("[FEED] get_all_feed returned, building response")
+    
     # Trigger background scraping for articles without content
     # This happens in parallel without blocking the response
     async def background_scrape_articles():
