@@ -44,7 +44,6 @@ if __name__ == "__main__":
             reload=False,
             log_level="info",
             timeout_keep_alive=5,  # Close idle connections faster
-            timeout_notify=10,  # Graceful shutdown timeout
         )
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
