@@ -51,7 +51,7 @@ class ProxyRequest(BaseModel):
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        return session
+        yield session
 
 
 @router.get("/categories", response_model=CategoriesResponse)
