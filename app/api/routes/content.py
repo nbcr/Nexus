@@ -291,19 +291,39 @@ async def _scrape_and_store_article(
     article_data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
 
     # Always mark scraping as attempted
-    if not content.source_metadata:
-        content.source_metadata = {}
-    content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
+    _update_scraping_metadata(content)
 
     if not article_data or not article_data.get("content"):
         await db.commit()
         return None
 
-    # Store full content in content_text and extracted facts in facts field
+    # Store content
     full_content = article_data["content"]
     content.content_text = full_content
-    content.facts = full_content  # Facts are the same as content (already extracted by _limit_to_excerpt)
+    content.facts = full_content
 
+    # Update metadata from article
+    _update_article_metadata(content, article_data)
+
+    # Download image
+    await _download_article_image(content, article_data)
+
+    await db.commit()
+
+    # Generate snippet
+    return _generate_snippet(content)
+
+
+def _update_scraping_metadata(content: ContentItem) -> None:
+    """Mark scraping as attempted."""
+    from datetime import timezone
+    if not content.source_metadata:
+        content.source_metadata = {}
+    content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
+
+
+def _update_article_metadata(content: ContentItem, article_data: dict) -> None:
+    """Update content metadata from scraped article."""
     if article_data.get("title"):
         content.title = article_data["title"]
     if article_data.get("author"):
@@ -311,7 +331,9 @@ async def _scrape_and_store_article(
     if article_data.get("published_date"):
         content.source_metadata["published_date"] = article_data["published_date"]
 
-    # Download and optimize image during scraping
+
+async def _download_article_image(content: ContentItem, article_data: dict) -> None:
+    """Download and optimize image for content."""
     if article_data.get("image_url"):
         try:
             local_image_path = await asyncio.to_thread(
@@ -327,17 +349,15 @@ async def _scrape_and_store_article(
         except Exception as e:
             print(f"⚠️ Failed to optimize image: {e}")
 
-    await db.commit()
 
-    # Generate snippet from facts
+def _generate_snippet(content: ContentItem) -> Optional[str]:
+    """Generate snippet from content facts."""
     if content.facts is not None:
-        if len(cast(str, content.facts)) > 800:
-            snippet = cast(str, content.facts)[:800]
-        else:
-            snippet = content.facts
-    else:
-        snippet = content.facts
-    return snippet
+        facts_str = cast(str, content.facts)
+        if len(facts_str) > 800:
+            return facts_str[:800]
+        return facts_str
+    return content.facts
 
 
 def _is_rate_limit_error(error: Exception) -> bool:
@@ -602,14 +622,32 @@ def _format_related_items(related_items: List[ContentItem]) -> List[dict]:
 @router.get("/article/{content_id}")
 async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db)):
     """Fetch and return the full article content for a content item."""
-    # Get content item from database
+    content = await _get_content_or_404(content_id, db)
+
+    if _has_scraped_content(content):
+        article_data = _build_article_from_cache(content)
+    else:
+        article_data = await _scrape_article_content(content, content_id, db)
+
+    # Find related content
+    related_items = await _get_related_items_safely(db, content)
+    article_data["related_items"] = _format_related_items(related_items)
+
+    return article_data
+
+
+async def _get_content_or_404(content_id: int, db: AsyncSession) -> ContentItem:
+    """Get content item or raise 404."""
     result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
     content = result.scalar_one_or_none()
     if not content:
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+    return content
 
-    # Check if we have valid cached content (must have been scraped, not just RSS description)
-    has_scraped_content = (
+
+def _has_scraped_content(content: ContentItem) -> bool:
+    """Check if content has valid scraped content."""
+    return bool(
         content.content_text
         and len(content.content_text) > 100
         and not content.content_text.startswith("Trending topic")
@@ -617,57 +655,56 @@ async def get_article_content(content_id: int, db: AsyncSession = Depends(get_db
         and content.source_metadata.get("scraped_at")
     )
 
-    if has_scraped_content:
-        # Use cached content - construct response from database
-        article_data = {
-            "title": content.title,
-            "content": content.content_text,
-            "author": (
-                content.source_metadata.get("author")
-                if content.source_metadata
-                else None
-            ),
-            "published_date": (
-                content.source_metadata.get("published_date")
-                if content.source_metadata
-                else None
-            ),
-            "image_url": (
-                content.source_metadata.get("picture_url")
-                if content.source_metadata
-                else None
-            ),
-            "domain": (
-                content.source_urls[0].split("/")[2] if content.source_urls else None
-            ),
-        }
-    else:
-        # Need to scrape - validate source URL
-        source_url = _get_source_url(content)
-        if not source_url:
-            raise HTTPException(status_code=404, detail="No source URL available")
 
-        # Scrape appropriate content based on URL type
-        article_data = await _fetch_article_by_type(source_url)
-        if not article_data:
-            raise HTTPException(
-                status_code=404, detail="Unable to fetch content from source"
-            )
+def _build_article_from_cache(content: ContentItem) -> dict:
+    """Build article data from cached content."""
+    return {
+        "title": content.title,
+        "content": content.content_text,
+        "author": (
+            content.source_metadata.get("author")
+            if content.source_metadata
+            else None
+        ),
+        "published_date": (
+            content.source_metadata.get("published_date")
+            if content.source_metadata
+            else None
+        ),
+        "image_url": (
+            content.source_metadata.get("picture_url")
+            if content.source_metadata
+            else None
+        ),
+        "domain": (
+            content.source_urls[0].split("/")[2] if content.source_urls else None
+        ),
+    }
 
-        # Save scraped content
-        await _save_scraped_content(content, article_data, content_id, db)
 
-    # Find related content items
+async def _scrape_article_content(content: ContentItem, content_id: int, db: AsyncSession) -> dict:
+    """Scrape article content and save it."""
+    source_url = _get_source_url(content)
+    if not source_url:
+        raise HTTPException(status_code=404, detail="No source URL available")
+
+    article_data = await _fetch_article_by_type(source_url)
+    if not article_data:
+        raise HTTPException(
+            status_code=404, detail="Unable to fetch content from source"
+        )
+
+    await _save_scraped_content(content, article_data, content_id, db)
+    return article_data
+
+
+async def _get_related_items_safely(db: AsyncSession, content: ContentItem) -> list:
+    """Get related items, handling errors."""
     try:
-        related_items = await find_related_content(db, content)
+        return await find_related_content(db, content)
     except Exception as e:
         print(f"❌ Error finding related content: {e}")
-        related_items = []
-
-    # Add related items to response
-    article_data["related_items"] = _format_related_items(related_items)
-
-    return article_data
+        return []
 
 
 @router.get("/thumbnail/{content_id}", response_model=ThumbnailResponse)
@@ -681,81 +718,100 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     logger = logging.getLogger(LOGGER_NAME)
 
     try:
-        # Check cache first
         current_time = time.time()
-        if content_id in _thumbnail_cache:
-            cached_url, timestamp = _thumbnail_cache[content_id]
-            if current_time - timestamp < _THUMBNAIL_CACHE_TTL:
-                return ThumbnailResponse(picture_url=cached_url)
-            else:
-                # Cache expired
-                del _thumbnail_cache[content_id]
+        cached_result = _check_thumbnail_cache(content_id, current_time)
+        if cached_result is not None:
+            return ThumbnailResponse(picture_url=cached_result)
 
-        result = await db.execute(
-            select(ContentItem).where(ContentItem.id == content_id)
-        )
-        content = result.scalar_one_or_none()
-        if not content:
-            # Cache negative result for 5 min to avoid repeated 404 queries
-            _thumbnail_cache[content_id] = (None, current_time)
-            raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+        content = await _get_content_for_thumbnail(content_id, db, current_time)
+        if content is None:
+            return ThumbnailResponse(picture_url=None)
 
-        # If already have a picture_url, cache and return it
-        pic = (
-            (content.source_metadata or {}).get("picture_url")
-            if content.source_metadata
-            else None
-        )
+        pic = _get_existing_picture_url(content)
         if pic:
             _thumbnail_cache[content_id] = (pic, current_time)
             return ThumbnailResponse(picture_url=pic)
 
-        # Try to scrape the article to get image_url
-        if not content.source_urls or len(content.source_urls) == 0:
-            _thumbnail_cache[content_id] = (None, current_time)
-            return ThumbnailResponse(picture_url=None)
+        # Try to scrape
+        pic = await _scrape_thumbnail(content, db, current_time, logger)
+        return ThumbnailResponse(picture_url=pic)
 
-        source_url = content.source_urls[0]
-        is_search_url = (
-            "duckduckgo.com" in source_url
-            or "google.com/search" in source_url
-            or "bing.com/search" in source_url
-        )
-        try:
-            if is_search_url:
-                data = await asyncio.to_thread(
-                    article_scraper.fetch_search_context, source_url
-                )
-            else:
-                data = await asyncio.to_thread(
-                    article_scraper.fetch_article, source_url
-                )
-            if data and data.get("image_url"):
-                if not content.source_metadata:
-                    content.source_metadata = {}
-                content.source_metadata["picture_url"] = data["image_url"]
-                content.source_metadata["scraped_at"] = datetime.now(
-                    timezone.utc
-                ).isoformat()
-                await db.commit()
-                _thumbnail_cache[content_id] = (data["image_url"], current_time)
-                return ThumbnailResponse(picture_url=data["image_url"])
-        except Exception:
-            await db.rollback()
-            # Still cache the failed attempt to avoid retrying immediately
-            _thumbnail_cache[content_id] = (None, current_time)
-            logger.exception(
-                "Thumbnail scrape failed",
-                extra={"content_id": content_id, "source_url": source_url},
-            )
-            return ThumbnailResponse(picture_url=None)
-
-        return ThumbnailResponse(picture_url=None)
     except HTTPException:
         raise
     except Exception:
         logger.exception("Thumbnail endpoint failed", extra={"content_id": content_id})
         raise HTTPException(status_code=500, detail="Failed to fetch thumbnail")
+
+
+def _check_thumbnail_cache(content_id: int, current_time: float) -> Optional[str]:
+    """Check if thumbnail is cached."""
+    if content_id in _thumbnail_cache:
+        cached_url, timestamp = _thumbnail_cache[content_id]
+        if current_time - timestamp < _THUMBNAIL_CACHE_TTL:
+            return cached_url
+        else:
+            del _thumbnail_cache[content_id]
+    return None
+
+
+async def _get_content_for_thumbnail(content_id: int, db: AsyncSession, current_time: float) -> Optional[ContentItem]:
+    """Get content item for thumbnail, caching negative results."""
+    result = await db.execute(
+        select(ContentItem).where(ContentItem.id == content_id)
+    )
+    content = result.scalar_one_or_none()
+    if not content:
+        _thumbnail_cache[content_id] = (None, current_time)
+        raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
+    return content
+
+
+def _get_existing_picture_url(content: ContentItem) -> Optional[str]:
+    """Get existing picture URL from metadata."""
+    if content.source_metadata:
+        return content.source_metadata.get("picture_url")
+    return None
+
+
+async def _scrape_thumbnail(content: ContentItem, db: AsyncSession, current_time: float, logger) -> Optional[str]:
+    """Scrape article to get thumbnail URL."""
+    if not content.source_urls or len(content.source_urls) == 0:
+        _thumbnail_cache[content.id] = (None, current_time)
+        return None
+
+    source_url = content.source_urls[0]
+    is_search_url = (
+        "duckduckgo.com" in source_url
+        or "google.com/search" in source_url
+        or "bing.com/search" in source_url
+    )
+    try:
+        if is_search_url:
+            data = await asyncio.to_thread(
+                article_scraper.fetch_search_context, source_url
+            )
+        else:
+            data = await asyncio.to_thread(
+                article_scraper.fetch_article, source_url
+            )
+        if data and data.get("image_url"):
+            if not content.source_metadata:
+                content.source_metadata = {}
+            content.source_metadata["picture_url"] = data["image_url"]
+            content.source_metadata["scraped_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
+            await db.commit()
+            _thumbnail_cache[content.id] = (data["image_url"], current_time)
+            return data["image_url"]
+    except Exception:
+        await db.rollback()
+        logger.exception(
+            "Thumbnail scrape failed",
+            extra={"content_id": content.id, "source_url": source_url},
+        )
+    _thumbnail_cache[content.id] = (None, current_time)
+    return None
 
 
 @router.get("/proxy/image")
@@ -765,25 +821,45 @@ async def image_proxy(
     """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
     import httpx  # pyright: ignore[reportMissingImports]
     import logging
-    from urllib.parse import urlparse
-    from io import BytesIO
 
     logger = logging.getLogger("uvicorn.error")
 
-    # Validate URL to prevent SSRF attacks
+    _validate_image_url(url)
+
+    try:
+        image_data, content_type = await _fetch_image_data(url, logger)
+        image_data, content_type = _resize_image_if_needed(image_data, content_type, w, h, logger)
+
+        return StreamingResponse(
+            iter([image_data]),
+            media_type=content_type,
+            headers={
+                "Cache-Control": "public, max-age=2592000",  # 30 days
+                "ETag": f'"{hash(url)}"',
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        safe_url = url.replace("\n", "").replace("\r", "")
+        logger.warning(f"Image proxy failed for URL: {safe_url}")
+        raise HTTPException(status_code=404, detail="Unable to fetch image")
+
+
+def _validate_image_url(url: str) -> None:
+    """Validate URL for security."""
+    from urllib.parse import urlparse
+
     try:
         parsed = urlparse(url)
 
-        # Only allow http and https schemes
         if parsed.scheme not in ("http", "https"):
             raise HTTPException(status_code=400, detail="Invalid URL scheme")
 
-        # Block private/internal IP ranges
         hostname = parsed.hostname
         if not hostname:
             raise HTTPException(status_code=400, detail="Invalid URL")
 
-        # Block localhost and private IP ranges
         blocked_hosts = [
             "localhost",
             "127.0.0.1",
@@ -818,7 +894,6 @@ async def image_proxy(
                 status_code=403, detail="Access to internal resources is forbidden"
             )
 
-        # Additional check for IPv6 localhost
         if hostname_lower in ("::1", "::ffff:127.0.0.1"):
             raise HTTPException(
                 status_code=403, detail="Access to internal resources is forbidden"
@@ -829,53 +904,43 @@ async def image_proxy(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid URL format")
 
-    try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
-            safe_url = url.replace("\n", "").replace("\r", "")
-            logger.info(f"Image proxy fetch: {safe_url}")
-            resp = await client.get(url)
-            resp.raise_for_status()
-            content_type = resp.headers.get("content-type", "image/jpeg")
-            image_data = resp.content
 
-            # Resize image if dimensions specified
-            if (w or h) and content_type.startswith("image/"):
-                try:
-                    from PIL import Image  # type: ignore
+async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
+    """Fetch image data from URL."""
+    import httpx
 
-                    img = Image.open(BytesIO(image_data))
-
-                    # Default dimensions for feed display
-                    target_w = w or img.width
-                    target_h = h or img.height
-
-                    # Maintain aspect ratio
-                    img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
-
-                    # Save optimized image as WebP for better compression
-                    output = BytesIO()
-                    save_kwargs = {"quality": 80, "method": 6}
-                    img.save(output, format="WEBP", **save_kwargs)
-                    image_data = output.getvalue()
-                    content_type = "image/webp"
-                except Exception as e:
-                    logger.warning(f"Image resize failed: {e}, returning original")
-                    # Return original if resize fails
-
-            return StreamingResponse(
-                iter([image_data]),
-                media_type=content_type,
-                headers={
-                    "Cache-Control": "public, max-age=2592000",  # 30 days
-                    "ETag": f'"{hash(url)}"',
-                },
-            )
-    except HTTPException:
-        raise
-    except Exception:
+    async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
         safe_url = url.replace("\n", "").replace("\r", "")
-        logger.warning(f"Image proxy failed for URL: {safe_url}")
-        raise HTTPException(status_code=404, detail="Unable to fetch image")
+        logger.info(f"Image proxy fetch: {safe_url}")
+        resp = await client.get(url)
+        resp.raise_for_status()
+        content_type = resp.headers.get("content-type", "image/jpeg")
+        return resp.content, content_type
+
+
+def _resize_image_if_needed(image_data: bytes, content_type: str, w: Optional[int], h: Optional[int], logger) -> tuple[bytes, str]:
+    """Resize image if dimensions specified."""
+    from io import BytesIO
+
+    if (w or h) and content_type.startswith("image/"):
+        try:
+            from PIL import Image  # type: ignore
+
+            img = Image.open(BytesIO(image_data))
+
+            target_w = w or img.width
+            target_h = h or img.height
+
+            img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
+
+            output = BytesIO()
+            save_kwargs = {"quality": 80, "method": 6}
+            img.save(output, format="WEBP", **save_kwargs)
+            return output.getvalue(), "image/webp"
+        except Exception as e:
+            logger.warning(f"Image resize failed: {e}, returning original")
+
+    return image_data, content_type
 
 
 def _extract_keywords(title: str) -> tuple[List[str], List[str]]:
