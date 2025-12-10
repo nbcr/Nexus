@@ -47,6 +47,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 // Check if user has admin access
 async function checkAdminAccess() {
     try {
+        // If we have a token but no user, fetch user first
+        if (authManager.token && !authManager.user) {
+            authManager.user = await authManager.getCurrentUser();
+            if (authManager.user) {
+                localStorage.setItem(CONFIG.USER_KEY, JSON.stringify(authManager.user));
+            }
+        }
+
         const response = await fetch('/api/v1/admin/verify', {
             credentials: 'include',
             headers: authManager.getAuthHeaders()
