@@ -14,4 +14,5 @@
 ## Next Steps
 - Test changes locally before committing
 - Kill and restart server when needed: `taskkill /F /IM python.exe` then `python run_server.py`
-- Run `git push` to commit changes
+- Make commits with `git add -A; git commit -m "message"` – user will handle pushing
+
