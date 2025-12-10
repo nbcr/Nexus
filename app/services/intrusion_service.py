@@ -35,6 +35,7 @@ class IntrusionDetectionService:
             
             # Determine log file path - try multiple common locations
             log_paths = [
+                'C:\\Nexus\\logs\\access.log',  # Primary - Nexus project logs
                 'C:\\nginx\\logs\\access.log',  # Nginx
                 'C:\\logs\\access.log',  # Custom logs
                 '/home/nexus/nexus/logs/access.log',  # Linux (if applicable)
