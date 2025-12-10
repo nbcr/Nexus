@@ -3,20 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession  # pyright: ignore[reportMissing
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
 from typing import List
 
-from app.db import AsyncSessionLocal
+from app.api.v1.deps import get_db
 from app.models import Topic, ContentItem
 from app.schemas import Topic as TopicSchema, TopicWithContent
 
 router = APIRouter()
-
-
-# Dependency to get database session
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
 
 
 @router.get("/", response_model=List[TopicSchema])

@@ -4,7 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from pydantic import BaseModel
 
-from app.db import AsyncSessionLocal, get_db
+from app.db import AsyncSessionLocal
+from app.api.v1.deps import get_db
 from app.services.session_service import (
     create_anonymous_session,
     track_content_interaction,

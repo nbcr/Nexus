@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 import sys
 
-from app.db import AsyncSessionLocal
+from app.api.v1.deps import get_db
 from app.schemas import Token, UserCreate, UserResponse, UserLogin, RegisterResponse
 from app.services.user_service import (
     create_user,
@@ -41,16 +41,6 @@ async def logout(response: Response):
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
-
-
-# Dependencies
-async def get_db():
-    """Dependency for database session management."""
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
 
 
 # --- Token Refresh Endpoint ---
