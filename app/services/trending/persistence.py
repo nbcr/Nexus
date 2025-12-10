@@ -135,7 +135,7 @@ class TrendingPersistence:
 
                 # Don't scrape during initial fetch - use RSS snippet only
                 # Scraping will be done on-demand when content is viewed
-                image_url = news_item.get("picture", None)
+                image_url = news_item.get("image_url", None) or news_item.get("picture", None)
 
                 content_item = ContentItem(
                     topic_id=topic_id,
