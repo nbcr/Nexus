@@ -1,0 +1,13 @@
+{
+  "threshold": 10,
+  "block_duration": 3600,
+  "whitelist": [
+    "127.0.0.1",
+    "::1"
+  ],
+  "log_types": ["access", "error"],
+  "alert_email": null,
+  "cloudflare_enabled": true,
+  "cloudflare_api_key": "",
+  "cloudflare_zone_id": ""
+}
