@@ -424,6 +424,7 @@ class ContentRecommendationService:
                     ),
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
+                    "local_image_path": getattr(content, "local_image_path", None),
                     "thumbnail_url": thumbnail_url,
                     "trend_score": topic.trend_score,
                     "created_at": content.created_at.isoformat(),
