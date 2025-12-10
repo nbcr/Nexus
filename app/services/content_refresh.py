@@ -26,8 +26,13 @@ class ContentRefreshService:
         """Check if we should refresh content (every 15 minutes for trends)"""
         from app.models import ContentItem
 
+        # Always check if 15+ minutes have passed since last refresh
+        now = datetime.now(timezone.utc)
+        if self.last_refresh and (now - self.last_refresh) < timedelta(minutes=15):
+            return False  # Not enough time has passed
+
+        # If we have no last_refresh, check the database
         if not self.last_refresh:
-            # Check the latest trending content in database
             result = await db.execute(
                 select(ContentItem).order_by(ContentItem.created_at.desc()).limit(1)
             )
@@ -37,10 +42,10 @@ class ContentRefreshService:
                 return True  # No content yet
 
             self.last_refresh = latest_content.created_at
+            # Check again if we should refresh
+            return (now - self.last_refresh) >= timedelta(minutes=15)
 
-        # Refresh if last refresh was more than 15 minutes ago
-        refresh_time = datetime.now(timezone.utc) - timedelta(minutes=15)
-        return self.last_refresh < refresh_time
+        return True
 
     async def refresh_content_if_needed(self):
         """Refresh trending content if it's stale"""
