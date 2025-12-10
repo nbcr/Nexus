@@ -7,6 +7,7 @@ from collections import defaultdict
 import json
 import os
 import logging
+from geoip_checker import geoip
 
 class IntrusionDetector:
     def __init__(self, log_path, config_path='config.json'):
@@ -108,6 +109,31 @@ class IntrusionDetector:
         # Extract User-Agent
         ua_match = re.search(r'"([^"]*)"\s*$', line)
         user_agent = ua_match.group(1) if ua_match else ""
+        
+        # INSTANT BLOCK: If IP is from Russia or China, block immediately (no threshold)
+        if geoip.is_blocked_country(ip):
+            country = geoip.get_country(ip)
+            severity = 10  # Maximum severity
+            attack_type = f'{country} IP - Geographic Block'
+            self.log_attack(ip, url, user_agent, attack_type, severity)
+            
+            # Check if already blocked
+            cursor = self.get_db_connection().cursor()
+            cursor.execute('SELECT is_blocked FROM suspicious_ips WHERE ip = ?', (ip,))
+            result = cursor.fetchone()
+            
+            if not result or not result[0]:
+                # Block immediately
+                self.block_ip(ip)
+            
+            return {
+                'ip': ip,
+                'url': url,
+                'attack_type': attack_type,
+                'severity': severity,
+                'timestamp': datetime.now(),
+                'auto_blocked': True
+            }
         
         # Check for suspicious patterns
         attack_type = self.detect_attack(url, user_agent, line)
