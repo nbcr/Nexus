@@ -99,6 +99,7 @@
                     <button class="tab-btn" data-tab="settings">⚙️ Global Settings</button>
                     <button class="tab-btn" data-tab="users">👥 User Management</button>
                     <button class="tab-btn" data-tab="analytics">📈 Analytics</button>
+                    <button class="tab-btn" data-tab="logs">📋 Logs</button>
                 </div>
 
                 <!-- Interest Tracking Tab -->
@@ -326,15 +327,36 @@
         </div>
     </div>
 
+    <!-- Logs Tab -->
+    <div id="tab-logs" class="tab-content">
+        <div class="section">
+            <h2>Server Logs</h2>
+            <div class="controls">
+                <button onclick="refreshLogs()" class="btn-refresh">🔄 Refresh</button>
+                <label>
+                    <input type="checkbox" id="auto-refresh-logs" checked> Auto-refresh (10s)
+                </label>
+                <select id="log-type" onchange="refreshLogs()">
+                    <option value="">Loading logs...</option>
+                </select>
+                <input type="number" id="log-lines" value="100" min="10" max="1000" step="10" placeholder="Lines" title="Number of lines to show">
+            </div>
+            <div id="log-content" class="log-viewer">
+                <pre id="log-text">Select a log file to view</pre>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Panel Modules (loaded in order) -->
-    <script src="/static/js/config.js?v=202512060200"></script>
-    <script src="/static/js/auth.js?v=202512072001"></script>
-    <script src="/static/js/AdminAuth.js?v=202512072001"></script>
-    <script src="/static/js/AdminSettings.js?v=202512072001"></script>
-    <script src="/static/js/AdminTabs.js?v=202512072001"></script>
-    <script src="/static/js/AdminTracking.js?v=202512072001"></script>
-    <script src="/static/js/admin.js?v=202512072001"></script>
-    <script src="/static/js/AdminUsers.js?v=202512072001"></script>
+    <script src="/static/js/config.js?v=202512100106"></script>
+    <script src="/static/js/auth.js?v=202512100106"></script>
+    <script src="/static/js/AdminAuth.js?v=202512100106"></script>
+    <script src="/static/js/AdminSettings.js?v=202512100106"></script>
+    <script src="/static/js/AdminTabs.js?v=202512100106"></script>
+    <script src="/static/js/AdminTracking.js?v=202512100106"></script>
+    <script src="/static/js/AdminLogs.js?v=202512100106"></script>
+    <script src="/static/js/admin.js?v=202512100106"></script>
+    <script src="/static/js/AdminUsers.js?v=202512100106"></script>
 </body>
 
 </html>

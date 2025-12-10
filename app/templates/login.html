@@ -185,7 +185,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Store access token in cookie and localStorage
                 const data = await res.json();
-                localStorage.setItem('access_token', data.access_token);
+                localStorage.setItem('nexus_token', data.access_token);
+                localStorage.setItem('access_token', data.access_token); // Keep for backwards compatibility
                 document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
                 
                 // Clear session storage after successful login
