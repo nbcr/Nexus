@@ -279,6 +279,7 @@ class ContentRecommendationService:
                     "facts": self._strip_images_from_html(
                         getattr(content, "facts", None)
                     ),  # Clean images from facts
+                    "local_image_path": content.local_image_path,  # Include local image path
                     "source_urls": content.source_urls,
                     "source_metadata": getattr(content, "source_metadata", {}),
                     "trend_score": topic.trend_score,
