@@ -10,6 +10,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 
 from app.db import AsyncSessionLocal
+from app.api.v1.deps import get_db
 from app.models import ContentItem, Topic
 from app.schemas import (
     ContentItem as ContentItemSchema,
@@ -47,11 +48,6 @@ class ThumbnailResponse(BaseModel):
 
 class ProxyRequest(BaseModel):
     url: str
-
-
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
 
 
 @router.get("/categories", response_model=CategoriesResponse)
