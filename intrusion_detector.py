@@ -48,10 +48,15 @@ class IntrusionDetector:
         self.init_database()
     
     def init_database(self):
-        self.conn = sqlite3.connect('intrusion_data.db')
-        cursor = self.conn.cursor()
+        # Don't initialize connection here - will be created per-thread
+        pass
+    
+    def get_db_connection(self):
+        """Get a fresh database connection (thread-safe)"""
+        conn = sqlite3.connect('intrusion_data.db')
+        cursor = conn.cursor()
         
-        # Create tables
+        # Create tables if they don't exist
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS suspicious_ips (
                 ip TEXT PRIMARY KEY,
@@ -76,7 +81,8 @@ class IntrusionDetector:
             )
         ''')
         
-        self.conn.commit()
+        conn.commit()
+        return conn
     
     def analyze_log_line(self, line):
         """Parse and analyze a single log line"""
@@ -163,7 +169,8 @@ class IntrusionDetector:
     
     def update_ip_stats(self, ip):
         """Update IP statistics in database"""
-        cursor = self.conn.cursor()
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
         now = datetime.now()
         
         cursor.execute('''
@@ -175,17 +182,19 @@ class IntrusionDetector:
                 ?)
         ''', (ip, ip, ip, now, now))
         
-        self.conn.commit()
+        conn.commit()
         
         # Check if IP should be blocked
         cursor.execute('SELECT count FROM suspicious_ips WHERE ip = ?', (ip,))
         result = cursor.fetchone()
         if result and result[0] > self.config['threshold']:
             self.block_ip(ip)
-    
+        
+        conn.close()
     def block_ip(self, ip):
         """Block the IP address"""
-        cursor = self.conn.cursor()
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
         block_until = datetime.now() + timedelta(seconds=self.config['block_duration'])
         
         cursor.execute('''
@@ -194,7 +203,8 @@ class IntrusionDetector:
             WHERE ip = ?
         ''', (block_until, ip))
         
-        self.conn.commit()
+        conn.commit()
+        conn.close()
         
         # Execute blocking actions (Cloudflare only on Windows)
         self.execute_block(ip)
@@ -251,7 +261,8 @@ class IntrusionDetector:
     
     def unblock_ip(self, ip):
         """Unblock an IP address"""
-        cursor = self.conn.cursor()
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
         cursor.execute('SELECT cloudflare_rule_id FROM suspicious_ips WHERE ip = ?', (ip,))
         result = cursor.fetchone()
         
@@ -265,7 +276,8 @@ class IntrusionDetector:
             WHERE ip = ?
         ''', (ip,))
         
-        self.conn.commit()
+        conn.commit()
+        conn.close()
         self.logger.info(f"[UNBLOCKED] IP {ip} unblocked")
     
     def unblock_cloudflare(self, ip, rule_id):
@@ -308,27 +320,32 @@ class IntrusionDetector:
         ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
         if ip_match:
             ip = ip_match.group(1)
-            cursor = self.conn.cursor()
+            conn = self.get_db_connection()
+            cursor = conn.cursor()
             cursor.execute('''
                 SELECT COUNT(*) FROM attack_logs 
                 WHERE ip = ? AND timestamp > datetime('now', '-1 minute')
             ''', (ip,))
             count = cursor.fetchone()[0]
+            conn.close()
             return count > 30  # More than 30 requests per minute
         return False
     
     def log_attack(self, ip, url, user_agent, attack_type, severity):
         """Log attack details to database"""
-        cursor = self.conn.cursor()
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO attack_logs (timestamp, ip, url, user_agent, attack_type, severity)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (datetime.now(), ip, url, user_agent, attack_type, severity))
-        self.conn.commit()
+        conn.commit()
+        conn.close()
     
     def check_block_expiry(self):
         """Check and unblock expired IP blocks"""
-        cursor = self.conn.cursor()
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
         now = datetime.now()
         
         cursor.execute('''
@@ -337,6 +354,8 @@ class IntrusionDetector:
         ''', (now,))
         
         expired_ips = cursor.fetchall()
+        conn.close()
+        
         for (ip,) in expired_ips:
             self.unblock_ip(ip)
     
