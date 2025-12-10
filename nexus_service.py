@@ -159,15 +159,16 @@ class NexusService(win32serviceutil.ServiceFramework):
 
     def _run_server(self):
         """Run the uvicorn server with auto-restart on crash"""
-        # Use venv python - ensures all dependencies are available
-        python_exe = PROJECT_ROOT / "venv" / "Scripts" / "python.exe"
+        # Use Program Files Python (where dependencies are installed globally)
+        python_exe = Path("C:\\Program Files\\Python312\\python.exe")
 
-        # Fallback to Program Files Python if venv doesn't exist
+        # Fallback to venv if Program Files doesn't exist
         if not python_exe.exists():
-            python_exe = Path("C:\\Program Files\\Python312\\python.exe")
+            python_exe = PROJECT_ROOT / "venv" / "Scripts" / "python.exe"
 
         if not python_exe.exists():
-            self.logger.error(f"Python executable not found: {python_exe}")
+            self.logger.error(f"Python executable not found at {python_exe}")
+            self.logger.error(f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}")
             return
 
         restart_count = 0
@@ -181,6 +182,11 @@ class NexusService(win32serviceutil.ServiceFramework):
                     f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}..."
                 )
 
+                # Set up environment for subprocess
+                env = os.environ.copy()
+                env["PYTHONPATH"] = str(PROJECT_ROOT)
+                env["PYTHONUNBUFFERED"] = "1"
+
                 # Start using run_server.py directly for better compatibility
                 self.server_process = subprocess.Popen(
                     [
@@ -188,6 +194,7 @@ class NexusService(win32serviceutil.ServiceFramework):
                         "run_server.py",
                     ],
                     cwd=str(PROJECT_ROOT),
+                    env=env,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
@@ -195,7 +202,7 @@ class NexusService(win32serviceutil.ServiceFramework):
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
                 )
 
-                self.logger.info(f"Server started with PID {self.server_process.pid}")
+                self.logger.info(f"Server started with PID {self.server_process.pid} using {python_exe}")
                 restart_count = 0  # Reset on successful start
 
                 # Log all output from server
