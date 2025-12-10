@@ -78,6 +78,22 @@ class IntrusionDetectionService:
     def _monitor_loop(self):
         """Run the monitoring loop (called in background thread)"""
         try:
+            # Setup logging for this thread
+            import logging.handlers
+            
+            # Add a file handler for this thread's logger
+            log_handler = logging.handlers.RotatingFileHandler(
+                'intrusion_detector.log',
+                maxBytes=10485760,  # 10MB
+                backupCount=5
+            )
+            log_handler.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            log_handler.setFormatter(formatter)
+            
+            thread_logger = logging.getLogger('intrusion_detector')
+            thread_logger.addHandler(log_handler)
+            
             self.detector.monitor_logs()
         except Exception as e:
             logger.error(f"[IDS] Monitor loop error: {e}")
