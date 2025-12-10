@@ -426,6 +426,39 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
     if STORAGE_STATUS_FILE.exists():
         storage_status = await read_file_async(STORAGE_STATUS_FILE)  # type: ignore
 
+    # Read system logs
+    error_log = ""
+    service_log = ""
+    try:
+        error_log_path = PROJECT_ROOT / "logs" / "error.log"
+        if error_log_path.exists():
+            error_log = await read_file_async(str(error_log_path))
+            # Show last 50 lines
+            error_log_lines = error_log.split("\n")[-50:]
+            error_log = "\n".join(error_log_lines).strip()
+    except:
+        error_log = "Error reading error.log"
+
+    try:
+        service_log_path = PROJECT_ROOT / "logs" / "service.log"
+        if service_log_path.exists():
+            service_log = await read_file_async(str(service_log_path))
+            # Show last 30 lines
+            service_log_lines = service_log.split("\n")[-30:]
+            service_log = "\n".join(service_log_lines).strip()
+    except:
+        service_log = "Error reading service.log"
+
+    # Calculate next RSS fetch time (every 15 minutes)
+    from datetime import datetime, timedelta
+
+    now = datetime.now()
+    # RSS fetches run every 15 minutes, so find the next 15-minute interval
+    minutes_since_epoch = (now - datetime(1970, 1, 1)).total_seconds() / 60
+    next_fetch_minutes = ((minutes_since_epoch // 15) + 1) * 15
+    next_fetch_time = datetime(1970, 1, 1) + timedelta(minutes=next_fetch_minutes)
+    seconds_until_next = int((next_fetch_time - now).total_seconds())
+
     # Build script buttons HTML
     script_buttons = ""
     for name in AVAILABLE_SCRIPTS.keys():
@@ -440,7 +473,7 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
         <style>
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
             body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d1117; color: #c9d1d9; }}
-            .container {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; }}
+            .container {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; }}
             .panel {{ background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; overflow: auto; }}
             .panel h2 {{ color: #58a6ff; margin-bottom: 15px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }}
             .storage-status {{ font-family: monospace; font-size: 12px; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }}
@@ -461,15 +494,47 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
             button:hover {{ background: #2ea043; }}
             .button-group {{ display: flex; gap: 8px; margin-top: 10px; }}
             .output {{ background: #010409; padding: 10px; border-radius: 4px; margin-top: 10px; max-height: 150px; overflow-y: auto; font-size: 11px; }}
+            .countdown {{ font-size: 24px; font-weight: bold; color: #58a6ff; text-align: center; margin: 20px 0; }}
+            .rss-status {{ text-align: center; }}
+            .rss-info {{ font-size: 14px; color: #8b949e; margin-top: 10px; }}
+            .logs-container {{ display: flex; gap: 20px; }}
+            .log-panel {{ flex: 1; }}
+            .log-content {{ font-family: monospace; font-size: 11px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; background: #010409; padding: 10px; border-radius: 4px; }}
+            .log-tabs {{ display: flex; margin-bottom: 10px; }}
+            .log-tab {{ padding: 8px 16px; background: #30363d; color: #c9d1d9; border: none; border-radius: 4px 4px 0 0; cursor: pointer; }}
+            .log-tab.active {{ background: #161b22; color: #58a6ff; }}
+            .log-tab:hover {{ background: #21262d; }}
         </style>
     </head>
     <body>
         <div class="container">
-            <!-- Storage Monitor -->
+            <!-- RSS Status -->
             <div class="panel">
-                <h2>📊 Storage Monitor</h2>
-                <div class="storage-status" id="storageStatus">{storage_status}</div>
-                <button onclick="refreshStorage()" style="width: 100%; margin-top: 10px;">Refresh Now</button>
+                <h2>📰 RSS Fetch Status</h2>
+                <div class="rss-status">
+                    <div>Next fetch in:</div>
+                    <div class="countdown" id="countdown">--:--:--</div>
+                    <div class="rss-info">
+                        RSS feeds update every 15 minutes<br>
+                        Last fetch: <span id="lastFetch">Checking...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Logs -->
+            <div class="panel">
+                <h2>📋 System Logs</h2>
+                <div class="log-tabs">
+                    <button class="log-tab active" onclick="showLog('error')">Error Log</button>
+                    <button class="log-tab" onclick="showLog('service')">Service Log</button>
+                </div>
+                <div class="logs-container">
+                    <div class="log-panel">
+                        <div id="error-log" class="log-content">{error_log}</div>
+                        <div id="service-log" class="log-content" style="display: none;">{service_log}</div>
+                    </div>
+                </div>
+                <button onclick="refreshLogs()" style="width: 100%; margin-top: 10px;">Refresh Logs</button>
             </div>
 
             <!-- Script Runner -->
@@ -507,6 +572,57 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
         </div>
 
         <script>
+            // RSS countdown timer
+            let countdownInterval;
+            const RSS_INTERVAL_MINUTES = 15;
+            
+            function startCountdown() {{
+                updateCountdown();
+                countdownInterval = setInterval(updateCountdown, 1000);
+            }}
+            
+            function updateCountdown() {{
+                const now = new Date();
+                const minutesSinceEpoch = (now - new Date(1970, 0, 1)) / (1000 * 60);
+                const nextFetchMinutes = Math.ceil(minutesSinceEpoch / RSS_INTERVAL_MINUTES) * RSS_INTERVAL_MINUTES;
+                const nextFetchTime = new Date(1970, 0, 1);
+                nextFetchTime.setMinutes(nextFetchMinutes);
+                
+                const timeDiff = nextFetchTime - now;
+                
+                if (timeDiff <= 0) {{
+                    // Fetch should be happening now, refresh in 5 seconds
+                    document.getElementById('countdown').textContent = '00:00:00';
+                    setTimeout(() => {{
+                        location.reload();
+                    }}, 5000);
+                    return;
+                }}
+                
+                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                
+                document.getElementById('countdown').textContent = 
+                    String(hours).padStart(2, '0') + ':' + 
+                    String(minutes).padStart(2, '0') + ':' + 
+                    String(seconds).padStart(2, '0');
+            }}
+            
+            // Update last fetch time
+            async function updateLastFetch() {{
+                try {{
+                    const response = await fetch('/api/v1/content/feed?limit=1');
+                    const data = await response.json();
+                    if (data.length > 0 && data[0].created_at) {{
+                        const lastFetch = new Date(data[0].created_at);
+                        document.getElementById('lastFetch').textContent = lastFetch.toLocaleString();
+                    }}
+                }} catch (e) {{
+                    document.getElementById('lastFetch').textContent = 'Unable to check';
+                }}
+            }}
+
             async function refreshStorage() {{
                 const response = await fetch('/api/v1/admin/storage');
                 const data = await response.json();
@@ -565,6 +681,49 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
                 messages.scrollTop = messages.scrollHeight;
                 input.value = '';
             }}
+            
+            // Initialize countdown and last fetch on page load
+            window.onload = function() {{
+                startCountdown();
+                updateLastFetch();
+            }};
+            
+            // Log tab switching
+            function showLog(logType) {{
+                const errorLog = document.getElementById('error-log');
+                const serviceLog = document.getElementById('service-log');
+                const errorTab = document.querySelector('.log-tab:nth-child(1)');
+                const serviceTab = document.querySelector('.log-tab:nth-child(2)');
+                
+                if (logType === 'error') {{
+                    errorLog.style.display = 'block';
+                    serviceLog.style.display = 'none';
+                    errorTab.classList.add('active');
+                    serviceTab.classList.remove('active');
+                }} else {{
+                    errorLog.style.display = 'none';
+                    serviceLog.style.display = 'block';
+                    errorTab.classList.remove('active');
+                    serviceTab.classList.add('active');
+                }}
+            }}
+            
+            // Refresh logs
+            async function refreshLogs() {{
+                try {{
+                    // Refresh error log
+                    const errorResponse = await fetch('/api/v1/admin/logs/error');
+                    const errorData = await errorResponse.json();
+                    document.getElementById('error-log').textContent = errorData.content;
+                    
+                    // Refresh service log
+                    const serviceResponse = await fetch('/api/v1/admin/logs/service');
+                    const serviceData = await serviceResponse.json();
+                    document.getElementById('service-log').textContent = serviceData.content;
+                }} catch (e) {{
+                    console.error('Failed to refresh logs:', e);
+                }}
+            }}
         </script>
     </body>
     </html>
@@ -572,13 +731,34 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
     )
 
 
-@router.get("/storage")
-async def get_storage(current_user: User = Depends(verify_admin)):
-    """Get current storage status"""
-    if STORAGE_STATUS_FILE.exists():
-        status = await read_file_async(STORAGE_STATUS_FILE)  # type: ignore
-        return {"status": status}
-    return {"status": "Storage monitor not available"}
+@router.get("/logs/error")
+async def get_error_log(current_user: User = Depends(verify_admin)):
+    """Get the last 50 lines of error.log"""
+    try:
+        error_log_path = PROJECT_ROOT / "logs" / "error.log"
+        if error_log_path.exists():
+            content = await read_file_async(str(error_log_path))
+            # Return last 50 lines
+            lines = content.split("\n")[-50:]
+            return {"content": "\n".join(lines).strip()}
+        return {"content": "error.log not found"}
+    except Exception as e:
+        return {"content": f"Error reading error.log: {str(e)}"}
+
+
+@router.get("/logs/service")
+async def get_service_log(current_user: User = Depends(verify_admin)):
+    """Get the last 30 lines of service.log"""
+    try:
+        service_log_path = PROJECT_ROOT / "logs" / "service.log"
+        if service_log_path.exists():
+            content = await read_file_async(str(service_log_path))
+            # Return last 30 lines
+            lines = content.split("\n")[-30:]
+            return {"content": "\n".join(lines).strip()}
+        return {"content": "service.log not found"}
+    except Exception as e:
+        return {"content": f"Error reading service.log: {str(e)}"}
 
 
 @router.post("/run-script")

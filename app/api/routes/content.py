@@ -176,7 +176,8 @@ async def get_personalized_feed(
 
             if articles_to_scrape:
                 async with AsyncSessionLocal() as bg_db:
-                    for item in articles_to_scrape[:5]:  # Limit to 5 per request
+                    # Limit to only 1 article per request to prevent overwhelming
+                    for item in articles_to_scrape[:1]:
                         try:
                             content = await bg_db.get(ContentItem, item["content_id"])
                             if content and (
@@ -188,9 +189,17 @@ async def get_personalized_feed(
                                     else None
                                 )
                                 if source_url:
-                                    await _scrape_and_store_article(
-                                        content, source_url, bg_db
+                                    # Add timeout to prevent hanging
+                                    await asyncio.wait_for(
+                                        _scrape_and_store_article(
+                                            content, source_url, bg_db
+                                        ),
+                                        timeout=15.0,  # 15 second timeout per article
                                     )
+                        except asyncio.TimeoutError:
+                            logger.debug(
+                                f"Background scrape timed out for {item['content_id']}"
+                            )
                         except Exception as e:
                             logger.debug(
                                 f"Background scrape error for {item['content_id']}: {e}"

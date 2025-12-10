@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://localhost:5432/nexus"
     database_url_sync: str = "postgresql://localhost:5432/nexus"
 
+    # Database connection components (for service checks)
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_USER: str = "postgres"
+    DB_PASS: str = "***REMOVED***"
+    DB_NAME: str = "nexus"
+
     # Redis (for Celery if needed)
     REDIS_URL: str = "redis://localhost:6379/0"
 

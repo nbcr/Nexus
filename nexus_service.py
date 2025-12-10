@@ -45,27 +45,26 @@ from threading import Thread
 class NexusService(win32serviceutil.ServiceFramework):
     """Windows Service for Nexus FastAPI Server"""
 
-    _svc_name_ = "NexusServer"
+    _svc_name_ = "Nexus"
     _svc_display_name_ = "Nexus AI News Platform"
-    _svc_description_ = "FastAPI server for Nexus AI news aggregation and personalization"
+    _svc_description_ = (
+        "FastAPI server for Nexus AI news aggregation and personalization"
+    )
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         self.is_alive = True
         self.server_process = None
-        
+
         # Setup logging
         self.log_file = PROJECT_ROOT / "logs" / "service.log"
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
-            handlers=[
-                logging.FileHandler(str(self.log_file)),
-                logging.StreamHandler()
-            ]
+            handlers=[logging.FileHandler(str(self.log_file)), logging.StreamHandler()],
         )
         self.logger = logging.getLogger("NexusService")
 
@@ -85,85 +84,140 @@ class NexusService(win32serviceutil.ServiceFramework):
                     self.server_process.kill()
         self.logger.info("Service stopped")
 
+    def _check_dependencies(self):
+        """Check if required services are running"""
+        # Check nginx
+        if not self._is_process_running("nginx.exe"):
+            self.logger.error("nginx is not running")
+            return False
+
+        # Check PostgreSQL
+        if not self._is_postgresql_running():
+            self.logger.error("PostgreSQL is not running")
+            return False
+
+        self.logger.info("All dependencies are running")
+        return True
+
+    def _is_process_running(self, process_name):
+        """Check if a process is running"""
+        try:
+            import psutil
+
+            for proc in psutil.process_iter(["name"]):
+                if proc.info["name"] == process_name:
+                    return True
+            return False
+        except ImportError:
+            self.logger.error("psutil not available for process check")
+            return False
+
+    def _is_postgresql_running(self):
+        """Check if PostgreSQL is accessible"""
+        try:
+            import psycopg2
+            from app.core.config import settings
+
+            conn = psycopg2.connect(
+                host=settings.DB_HOST,
+                port=settings.DB_PORT,
+                user=settings.DB_USER,
+                password=settings.DB_PASS,
+                database=settings.DB_NAME,
+                connect_timeout=5,
+            )
+            conn.close()
+            return True
+        except Exception as e:
+            self.logger.error(f"Cannot connect to PostgreSQL: {e}")
+            return False
+
     def SvcDoRun(self):
         """Run the service"""
         self.logger.info("=" * 80)
         self.logger.info("Nexus Service Starting")
         self.logger.info(f"Working directory: {PROJECT_ROOT}")
         self.logger.info("=" * 80)
-        
+
         servicemanager.LogMsg(
             servicemanager.EVENTLOG_INFORMATION_TYPE,
             servicemanager.PYS_SERVICE_STARTED,
-            (self._svc_name_, "")
+            (self._svc_name_, ""),
         )
-        
+
+        # Check dependencies
+        if not self._check_dependencies():
+            self.logger.error("Dependencies not met, service will not start")
+            self.ReportServiceStatus(win32service.SERVICE_STOPPED)
+            return
+
         # Change to project directory
         os.chdir(PROJECT_ROOT)
-        
+
         # Start server in a thread
         server_thread = Thread(target=self._run_server, daemon=True)
         server_thread.start()
-        
+
         # Give service time to fully start before waiting (prevents timeout)
         time.sleep(5)
-        
+
         # Wait for stop event
-        win32event.WaitForMultipleObjects(
-            [self.hWaitStop],
-            False,
-            win32event.INFINITE
-        )
+        win32event.WaitForMultipleObjects([self.hWaitStop], False, win32event.INFINITE)
 
     def _run_server(self):
         """Run the uvicorn server with auto-restart on crash"""
         python_exe = PROJECT_ROOT / "venv" / "Scripts" / "python.exe"
-        
+
         if not python_exe.exists():
             self.logger.error(f"Python executable not found: {python_exe}")
             return
-        
+
         restart_count = 0
         max_restarts = 10
         restart_window = 60  # seconds
         last_crash_time = None
-        
+
         while self.is_alive:
             try:
                 self.logger.info(
                     f"Starting Nexus server (attempt {restart_count + 1})..."
                 )
-                
+
                 self.server_process = subprocess.Popen(
                     [
                         str(python_exe),
                         "-m",
                         "uvicorn",
                         "app.main:app",
-                        "--host", "127.0.0.1",
-                        "--port", "8000",
-                        "--workers", "1",
-                        "--log-level", "info",
-                        "--timeout-keep-alive", "30",
+                        "--host",
+                        "127.0.0.1",
+                        "--port",
+                        "8000",
+                        "--workers",
+                        "1",
+                        "--log-level",
+                        "info",
+                        "--timeout-keep-alive",
+                        "30",
                     ],
                     cwd=str(PROJECT_ROOT),
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
                 )
-                
+
                 self.logger.info(f"Server started with PID {self.server_process.pid}")
                 restart_count = 0  # Reset on successful start
-                
+
                 # Wait for process to exit
                 self.server_process.wait()
-                
+
                 if self.is_alive:
                     exit_code = self.server_process.returncode
                     self.logger.warning(
                         f"Server exited with code {exit_code}, restarting..."
                     )
-                    
+
                     # Check restart frequency (crash loop protection)
                     now = time.time()
                     if last_crash_time and (now - last_crash_time) < restart_window:
@@ -176,14 +230,14 @@ class NexusService(win32serviceutil.ServiceFramework):
                             break
                     else:
                         restart_count = 1
-                    
+
                     last_crash_time = now
-                    
+
                     # Wait before restart
                     delay = min(30, restart_count * 5)  # Max 30 second wait
                     self.logger.info(f"Waiting {delay}s before restart...")
                     time.sleep(delay)
-                
+
             except Exception as e:
                 self.logger.error(f"Error running server: {e}")
                 if self.is_alive:
