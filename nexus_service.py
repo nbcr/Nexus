@@ -182,10 +182,24 @@ class NexusService(win32serviceutil.ServiceFramework):
                     f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}..."
                 )
 
+                # Clean up any stale processes on port 8000 before starting
+                if restart_count > 0:
+                    try:
+                        import socket
+                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        result = sock.connect_ex(('127.0.0.1', 8000))
+                        sock.close()
+                        if result == 0:
+                            self.logger.warning("Port 8000 still in use, waiting...")
+                            time.sleep(2)
+                    except Exception as e:
+                        self.logger.debug(f"Port check: {e}")
+
                 # Set up environment for subprocess
                 env = os.environ.copy()
                 env["PYTHONPATH"] = str(PROJECT_ROOT)
                 env["PYTHONUNBUFFERED"] = "1"
+                env["PYTHONIOENCODING"] = "utf-8"  # Force UTF-8 to handle emojis
 
                 # Start using run_server.py directly for better compatibility
                 self.server_process = subprocess.Popen(
@@ -198,6 +212,8 @@ class NexusService(win32serviceutil.ServiceFramework):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",  # Replace unencodable chars instead of failing
                     bufsize=1,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
                 )
