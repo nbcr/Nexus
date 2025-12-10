@@ -1461,4 +1461,51 @@ User reported no new stories were being fetched. Investigation revealed:
 - Commit with `git add -A; git commit -m "message"` only
 - Changes will be pushed by user manually when ready
 
+---
+
+# 2025-12-10: Intrusion Detection System (IDS) Integration
+
+## Overview
+Implemented Windows-native intrusion detection system that:
+- Monitors access logs for attack patterns (SQL injection, XSS, directory traversal, etc.)
+- Blocks malicious IPs via Cloudflare API (prevents bandwidth waste at edge)
+- Runs automatically on server startup as background service
+- Stores attack logs and IP statistics in SQLite database
+
+## Files Created
+1. **intrusion_detector.py** - Main IDS engine (pattern matching, blocking logic)
+2. **app/services/intrusion_service.py** - FastAPI integration (starts on app startup)
+3. **config_ids.json** - IDS configuration (thresholds, whitelist, Cloudflare settings)
+4. **INTRUSION_DETECTOR_SETUP.md** - Setup and usage documentation
+5. **test_ids.py** - Test script to verify Cloudflare API credentials
+6. **start-nexus-ids.bat** - Windows batch startup script
+7. **start-nexus-ids.ps1** - PowerShell startup script
+
+## Configuration
+- Cloudflare API key and Zone ID stored in `.env`:
+  - `CLOUDFLARE_API_KEY=WSuPSXZmyeBPvB4ZA1RNSW2pukdPgfsYfmmu2V2v`
+  - `CLOUDFLARE_ZONE_ID=9fe8b5977dd74032841d0f8c510139eb`
+- Config file: `config_ids.json` (threshold, block duration, whitelist)
+- Credentials loaded from environment on startup
+
+## How It Works
+1. Server starts → FastAPI startup event triggers `ids_service.start()`
+2. IDS service launches in background thread (non-blocking)
+3. Service monitors access log file (auto-detects common paths)
+4. Detects malicious patterns: SQL injection, XSS, traversal, etc.
+5. Blocks IP at Cloudflare after threshold exceeded (10 suspicious requests default)
+6. Auto-unblocks after block duration expires (1 hour default)
+7. Logs all attacks to `intrusion_data.db` SQLite database
+
+## Testing
+- Ran `test_ids.py` - all tests passed:
+  - ✓ Cloudflare API credentials verified
+  - ✓ Test block/unblock cycle completed successfully
+  - ✓ Attack pattern detection working
+
+## Logs
+- Server: `server.log`
+- IDS: `intrusion_detector.log`
+- Database: `intrusion_data.db` (SQLite)
+
 ```

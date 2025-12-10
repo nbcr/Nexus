@@ -17,6 +17,7 @@ from app.api.v1.routes import (
 )
 from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
+from app.services.intrusion_service import ids_service
 
 # Configure Jinja2 templates
 templates = Jinja2Templates(directory="app/templates")
@@ -37,7 +38,7 @@ from fastapi.responses import FileResponse
 
 @app.on_event("startup")
 async def startup_event():
-    """Start background scheduler on app startup"""
+    """Start background scheduler and IDS on app startup"""
     import logging
     import traceback
     from datetime import datetime
@@ -52,6 +53,7 @@ async def startup_event():
         logger.info(f"Environment: {'Development' if settings.debug else 'Production'}")
         logger.info("=" * 80)
         scheduler_service.start()
+        ids_service.start()
         logger.info("[OK] Startup completed successfully")
     except Exception as e:
         logger.error(f"[ERROR] Error during startup: {e}")
@@ -61,7 +63,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Stop background scheduler on app shutdown"""
+    """Stop background scheduler and IDS on app shutdown"""
     import logging
     from datetime import datetime
 
@@ -72,6 +74,7 @@ async def shutdown_event():
     )
     logger.info("=" * 80)
     scheduler_service.stop()
+    ids_service.stop()
 
 
 # Configure CORS
