@@ -29,8 +29,21 @@ class FeedRenderer {
             // Show scraped facts if available
             const cleanSummary = FeedUtils.cleanSnippet(item.facts);
             const paragraphs = cleanSummary.split('\n\n');
-            const factsContent = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
-            summaryHtml = `<div class="feed-item-summary">${factsContent}</div>`;
+            const factsContent = paragraphs.map(p => {
+                // Check if paragraph starts with bullet point
+                if (p.trim().startsWith('•')) {
+                    // Format as list item
+                    return `<li style="margin-bottom: 8px; line-height: 1.6;">${p.trim().substring(1).trim()}</li>`;
+                }
+                return `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`;
+            }).join('');
+            
+            // Check if we have list items
+            if (factsContent.includes('<li')) {
+                summaryHtml = `<div class="feed-item-summary"><ul style="margin: 0; padding-left: 20px; list-style-position: inside;">${factsContent}</ul></div>`;
+            } else {
+                summaryHtml = `<div class="feed-item-summary">${factsContent}</div>`;
+            }
         } else {
             // Always create summary element, even if empty (spinner will populate it on click)
             summaryHtml = '<div class="feed-item-summary"></div>';
@@ -197,8 +210,21 @@ class FeedRenderer {
         // Check if already has facts
         if (item.facts && item.facts.trim() && item.facts.length > 100) {
             const paragraphs = item.facts.split('\n\n');
-            const factsHtml = paragraphs.map(p => `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`).join('');
-            summaryEl.innerHTML = factsHtml;
+            const factsHtml = paragraphs.map(p => {
+                // Check if paragraph starts with bullet point
+                if (p.trim().startsWith('•')) {
+                    // Format as list item
+                    return `<li style="margin-bottom: 8px; line-height: 1.6;">${p.trim().substring(1).trim()}</li>`;
+                }
+                return `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`;
+            }).join('');
+            
+            // Check if we have list items
+            if (factsHtml.includes('<li')) {
+                summaryEl.innerHTML = `<ul style="margin: 0; padding-left: 20px; list-style-position: inside;">${factsHtml}</ul>`;
+            } else {
+                summaryEl.innerHTML = factsHtml;
+            }
             article.dataset.snippetLoaded = 'true';
             return;
         }
