@@ -211,7 +211,7 @@ async def get_personalized_feed(
     # Fire and forget - don't await
     asyncio.create_task(background_scrape_articles())
 
-    return {
+    response_data = {
         "page": page,
         "page_size": page_size,
         "items": result["items"],
@@ -219,6 +219,17 @@ async def get_personalized_feed(
         "has_more": result["has_more"],
         "is_personalized": session_token is not None,
     }
+    
+    # Return with cache headers for public feeds (no caching for personalized)
+    if session_token is None:
+        return JSONResponse(
+            content=response_data,
+            headers={
+                "Cache-Control": "public, max-age=60",  # Cache feed for 60 seconds
+                "Vary": "Accept-Encoding",
+            }
+        )
+    return response_data
 
 
 @router.get("/trending-feed")
@@ -949,7 +960,7 @@ def _resize_image_if_needed(
             img.thumbnail((target_w, target_h), Image.Resampling.LANCZOS)
 
             output = BytesIO()
-            save_kwargs = {"quality": 80, "method": 6}
+            save_kwargs = {"quality": 75, "method": 6}
             img.save(output, format="WEBP", **save_kwargs)
             return output.getvalue(), "image/webp"
         except Exception as e:
