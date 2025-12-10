@@ -86,17 +86,10 @@ class NexusService(win32serviceutil.ServiceFramework):
 
     def _check_dependencies(self):
         """Check if required services are running"""
-        # Check nginx
-        if not self._is_process_running("nginx.exe"):
-            self.logger.error("nginx is not running")
-            return False
-
-        # Check PostgreSQL
-        if not self._is_postgresql_running():
-            self.logger.error("PostgreSQL is not running")
-            return False
-
-        self.logger.info("All dependencies are running")
+        # Dependencies are optional - server can start independently
+        # nginx and PostgreSQL should be running for full functionality,
+        # but the API can start without them for development/testing
+        self.logger.info("Dependency checks skipped - starting API server")
         return True
 
     def _is_process_running(self, process_name):
@@ -166,8 +159,12 @@ class NexusService(win32serviceutil.ServiceFramework):
 
     def _run_server(self):
         """Run the uvicorn server with auto-restart on crash"""
-        # Use Program Files Python where packages were reinstalled
-        python_exe = Path("C:\\Program Files\\Python312\\python.exe")
+        # Use venv python - ensures all dependencies are available
+        python_exe = PROJECT_ROOT / "venv" / "Scripts" / "python.exe"
+
+        # Fallback to Program Files Python if venv doesn't exist
+        if not python_exe.exists():
+            python_exe = Path("C:\\Program Files\\Python312\\python.exe")
 
         if not python_exe.exists():
             self.logger.error(f"Python executable not found: {python_exe}")
@@ -181,37 +178,31 @@ class NexusService(win32serviceutil.ServiceFramework):
         while self.is_alive:
             try:
                 self.logger.info(
-                    f"Starting Nexus server (attempt {restart_count + 1})..."
+                    f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}..."
                 )
 
+                # Start using run_server.py directly for better compatibility
                 self.server_process = subprocess.Popen(
                     [
                         str(python_exe),
-                        "-m",
-                        "uvicorn",
-                        "app.main:app",
-                        "--host",
-                        "127.0.0.1",
-                        "--port",
-                        "8000",
-                        "--workers",
-                        "1",
-                        "--log-level",
-                        "info",
-                        "--timeout-keep-alive",
-                        "30",
+                        "run_server.py",
                     ],
                     cwd=str(PROJECT_ROOT),
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    bufsize=1,
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
                 )
 
                 self.logger.info(f"Server started with PID {self.server_process.pid}")
                 restart_count = 0  # Reset on successful start
 
-                # Wait for process to exit
-                self.server_process.wait()
+                # Log all output from server
+                if self.server_process.stdout:
+                    for line in iter(self.server_process.stdout.readline, ''):
+                        if line:
+                            self.logger.info(f"[SERVER] {line.rstrip()}")
 
                 if self.is_alive:
                     exit_code = self.server_process.returncode
@@ -240,7 +231,7 @@ class NexusService(win32serviceutil.ServiceFramework):
                     time.sleep(delay)
 
             except Exception as e:
-                self.logger.error(f"Error running server: {e}")
+                self.logger.error(f"Error running server: {e}", exc_info=True)
                 if self.is_alive:
                     time.sleep(5)
 

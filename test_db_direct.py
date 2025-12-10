@@ -19,7 +19,7 @@ async def test_connection():
         
         # Test session
         async with AsyncSessionLocal() as session:
-            result = await session.execute(text("SELECT COUNT(*) as count FROM content_item"))
+            result = await session.execute(text("SELECT COUNT(*) as count FROM content_items"))
             count = result.scalar()
             print(f"✓ Session connection successful, {count} items in DB")
         
