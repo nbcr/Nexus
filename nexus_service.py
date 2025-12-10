@@ -166,9 +166,8 @@ class NexusService(win32serviceutil.ServiceFramework):
 
     def _run_server(self):
         """Run the uvicorn server with auto-restart on crash"""
-        # Use nexus-venv if it exists, otherwise fall back to local venv
-        venv_path = Path("C:\\nexus-venv") if Path("C:\\nexus-venv").exists() else PROJECT_ROOT / "venv"
-        python_exe = venv_path / "Scripts" / "python.exe"
+        # Use Program Files Python where packages were reinstalled
+        python_exe = Path("C:\\Program Files\\Python312\\python.exe")
 
         if not python_exe.exists():
             self.logger.error(f"Python executable not found: {python_exe}")
