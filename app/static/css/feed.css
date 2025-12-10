@@ -127,6 +127,7 @@
     justify-content: center;
     position: relative;
     z-index: 2;
+    will-change: contents;
 }
 
 .feed-item-image img {
@@ -136,6 +137,7 @@
     border-radius: 12px;
     display: block;
     margin: 0 auto;
+    content-visibility: auto;
 }
 
 /* Feed Item Header Content */

@@ -345,37 +345,6 @@ class FeedRenderer {
                 }
             });
         }
-        // Always try to fetch a thumbnail if not present
-        if (!item.thumbnail_url && !item.source_metadata?.picture_url) {
-            (async () => {
-                try {
-                    const data = await this.api.fetchThumbnail(item.content_id);
-                    if (data?.picture_url) {
-                        const header = article.querySelector('.feed-item-header');
-                        let img = article.querySelector('.feed-item-image img');
-                        const proxyUrl = FeedUtils.buildProxyUrl(data.picture_url);
-                        const finalUrl = proxyUrl || data.picture_url;
-                        if (img) {
-                            img.src = finalUrl;
-                            if (proxyUrl) img.onerror = () => { img.src = data.picture_url; };
-                        } else if (header) {
-                            const container = article.querySelector('.feed-item-image') || document.createElement('div');
-                            container.className = 'feed-item-image';
-                            const imgEl = document.createElement('img');
-                            imgEl.src = finalUrl;
-                            if (proxyUrl) imgEl.onerror = () => { imgEl.src = data.picture_url; };
-                            imgEl.alt = item.title;
-                            imgEl.loading = 'lazy';
-                            container.innerHTML = '';
-                            container.appendChild(imgEl);
-                            if (!container.parentElement) header.insertBefore(container, header.firstChild);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error fetching thumbnail:', e);
-                }
-            })();
-        }
 
         // Extract dominant color from thumbnail for card background
         const img = article.querySelector('.feed-item-image img');
@@ -384,7 +353,8 @@ class FeedRenderer {
             img.addEventListener('load', () => {
                 FeedUtils.extractDominantColor(img, article);
             });
-            if (img.complete) {
+            // If image is already cached/loaded, extract color immediately
+            if (img.complete && img.naturalHeight !== 0) {
                 FeedUtils.extractDominantColor(img, article);
             }
         } else {
