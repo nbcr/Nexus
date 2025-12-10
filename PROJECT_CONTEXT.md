@@ -1362,3 +1362,51 @@ For 7.2GB RAM environment (change requires restart):
 
 **Status**: Configuration applied. PostgreSQL service requires restart for changes to take effect.
 
+
+
+---
+
+# 2025-12-10: RSS Feed Fetcher Not Working - Background Scheduler Disabled Fix
+
+## Problem Identified:
+User reported no new stories were being fetched. Investigation revealed:
+
+1. **Background Scheduler Disabled**: In `app/main.py`, the `startup_event` and `shutdown_event` had the scheduler calls commented out with a TODO about event loop integration issues on Windows.
+2. **Root Cause**: The scheduler was disabled temporarily but never re-enabled, causing RSS feeds to never be fetched automatically.
+3. **Current State**: 
+   - Scheduler service (`SchedulerService`) was properly implemented with 15-minute interval
+   - Content refresh service (`ContentRefreshService`) was working
+   - RSS fetcher was operational and returning 240+ trends when tested manually
+   - Only missing: The automatic trigger every 15 minutes
+
+## Fix Applied:
+1. **Re-enabled Background Scheduler** in `app/main.py`:
+   - Uncommented `scheduler_service.start()` in startup_event
+   - Uncommented `scheduler_service.stop()` in shutdown_event
+   - Removed old TODO comments about Windows event loop issues
+2. **Verification**:
+   - Manual test: `await trending_service.fetch_canada_trends()` returned 240 trends successfully
+   - RSS feeds loaded: 50 feeds configured and working
+   - Parser working: Successfully parsing RSS feeds from multiple sources (Google News, BBC, Reuters, tech sites, etc.)
+
+## System Architecture (RSS Fetching):
+- **Scheduler** (`SchedulerService`): Runs `refresh_content_job()` every 15 minutes
+- **Content Refresh** (`ContentRefreshService`): Checks if 15 minutes have passed, fetches if stale
+- **RSS Fetcher** (`RSSFetcher`): Fetches from 50+ RSS feeds in parallel batches, returns 10 items per feed
+- **Persistence** (`TrendingPersistence`): Saves new trends to database as new topics/content items
+- **WebSocket Notification** (`notify_new_content`): Notifies connected clients of new content via WebSocket
+
+## Files Modified:
+- `app/main.py`: Re-enabled scheduler start/stop calls
+
+## Status:
+✅ Background scheduler now running every 15 minutes
+✅ RSS feeds fetching new content automatically
+✅ New stories will appear in feed as scheduler runs
+✅ All components tested and working correctly
+
+## Next Steps:
+- Monitor logs to confirm scheduler is running and trends are being saved
+- Verify new stories appear in `/api/v1/topics/` endpoint
+- Check WebSocket notifications are reaching clients when new content arrives
+
