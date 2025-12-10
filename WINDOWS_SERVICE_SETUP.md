@@ -49,11 +49,33 @@ Get-Content C:\Nexus\server.log -Tail 50
 curl http://localhost:8000/api/v1/content/feed
 ```
 
+### 4. Uninstall the Service (No Reboot Required)
+
+**Option 1: PowerShell (Recommended)**
+```powershell
+# Run as Administrator
+powershell -ExecutionPolicy Bypass -File C:\Nexus\uninstall-service.ps1
+```
+
+**Option 2: Batch File**
+```cmd
+# Run as Administrator
+C:\Nexus\uninstall-service.bat
+```
+
+**Option 3: Manual Command**
+```powershell
+# Run as Administrator
+sc.exe delete Nexus
+```
+
+All options remove the service immediately with no reboot needed.
+
 ## Troubleshooting
 
 ### Service won't start
 1. Check `C:\Nexus\logs\service.log` for errors
-2. Ensure Python venv is intact: `C:\Nexus\venv\Scripts\python.exe --version`
+2. Ensure Python is installed: `"C:\Program Files\Python312\python.exe" --version`
 3. Verify port 8000 is not in use: `netstat -ano | findstr :8000`
 
 ### Feed is stuck loading
