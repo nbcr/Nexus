@@ -27,7 +27,8 @@ if ($service) {
         try {
             Stop-Service -Name $serviceName -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 1
-        } catch {
+        }
+        catch {
             Write-Host "Service stop failed or already stopped" -ForegroundColor Gray
         }
     }
@@ -42,7 +43,8 @@ if ($exitCode -eq 0 -or $output -match "marked for deletion") {
     Write-Host "No reboot required - service is gone" -ForegroundColor Green
     Write-Host "`nTo reinstall the service later, run:" -ForegroundColor Cyan
     Write-Host "`  `"C:\Program Files\Python312\python.exe`" C:\Nexus\nexus_service.py install" -ForegroundColor Gray
-} else {
+}
+else {
     Write-Host "`n✗ ERROR: Failed to remove service" -ForegroundColor Red
     Write-Host "Output: $output" -ForegroundColor Red
     exit 1

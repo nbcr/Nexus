@@ -40,6 +40,10 @@ function switchTab(tabName) {
         refreshUsers();
     } else if (tabName === 'analytics') {
         loadAnalytics();
+    } else if (tabName === 'logs') {
+        if (typeof initLogs === 'function') {
+            initLogs();
+        }
     }
 }
 

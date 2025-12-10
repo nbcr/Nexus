@@ -834,3 +834,108 @@ async def chat_endpoint(
     return {
         "response": f"[{agent_descriptions.get(agent, 'Assistant')}] I received: '{message}'. Real Copilot API integration coming soon!"
     }
+
+
+@router.get("/logs/list")
+async def list_logs(
+    admin: User = Depends(verify_admin),
+) -> Dict[str, Any]:
+    """List available log files in the logs directory"""
+    import os
+
+    log_dir = os.path.join(os.getcwd(), "logs")
+    
+    if not os.path.exists(log_dir):
+        return {"logs": []}
+    
+    try:
+        # Get all .log files
+        log_files = []
+        for filename in os.listdir(log_dir):
+            if filename.endswith('.log'):
+                filepath = os.path.join(log_dir, filename)
+                if os.path.isfile(filepath):
+                    size = os.path.getsize(filepath)
+                    log_files.append({
+                        "name": filename.replace('.log', ''),
+                        "filename": filename,
+                        "size": size
+                    })
+        
+        # Sort by filename
+        log_files.sort(key=lambda x: x['filename'])
+        return {"logs": log_files}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing logs: {str(e)}")
+
+
+@router.get("/logs/list")
+async def list_logs(admin: User = Depends(verify_admin)) -> Dict[str, Any]:
+    """List all available log files in the logs directory"""
+    import os
+    import glob
+
+    log_dir = os.path.join(os.getcwd(), "logs")
+    
+    if not os.path.exists(log_dir):
+        return {"logs": []}
+    
+    try:
+        # Find all .log files in the logs directory
+        log_files = []
+        for file in os.listdir(log_dir):
+            if file.endswith('.log'):
+                file_path = os.path.join(log_dir, file)
+                # Get file size
+                size = os.path.getsize(file_path)
+                log_files.append({
+                    "name": file,
+                    "key": file.replace('.log', ''),  # Remove .log extension for the API key
+                    "size": size
+                })
+        
+        # Sort by modification time, newest first
+        log_files.sort(key=lambda x: os.path.getmtime(os.path.join(log_dir, x['name'])), reverse=True)
+        
+        return {"logs": log_files}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing log files: {str(e)}")
+
+
+@router.get("/logs/{log_type}")
+async def get_logs(
+    log_type: str,
+    lines: int = Query(100, ge=10, le=1000),
+    admin: User = Depends(verify_admin),
+) -> Dict[str, Any]:
+    """Get server logs (any .log file in the logs directory)"""
+    import os
+
+    log_dir = os.path.join(os.getcwd(), "logs")
+    
+    # Construct the filename - if log_type doesn't end with .log, add it
+    if not log_type.endswith('.log'):
+        log_file = os.path.join(log_dir, f"{log_type}.log")
+    else:
+        log_file = os.path.join(log_dir, log_type)
+    
+    # Security: prevent directory traversal
+    if not os.path.abspath(log_file).startswith(os.path.abspath(log_dir)):
+        raise HTTPException(status_code=400, detail="Invalid log file path")
+    
+    try:
+        if not os.path.exists(log_file):
+            return {"content": f"Log file not found: {log_file}"}
+        
+        # Read last N lines efficiently
+        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+            all_lines = f.readlines()
+            last_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+            content = ''.join(last_lines)
+        
+        return {"content": content, "lines": len(last_lines)}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading log file: {str(e)}")

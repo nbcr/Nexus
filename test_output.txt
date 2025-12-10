@@ -1,0 +1,30 @@
+2025-12-10 02:17:26,682 - __main__ - INFO - ================================================================================
+2025-12-10 02:17:26,708 - __main__ - INFO - >> Nexus Server Starting - 2025-12-10 02:17:26
+2025-12-10 02:17:26,709 - __main__ - INFO - Host: 127.0.0.1:8000
+2025-12-10 02:17:26,734 - __main__ - INFO - Debug Mode: True
+2025-12-10 02:17:26,734 - __main__ - INFO - ================================================================================
+INFO:     Started server process [11212]
+INFO:     Waiting for application startup.
+INFO:     ================================================================================
+INFO:     [START] Nexus API Started - 2025-12-10 02:17:30
+INFO:     Version: 0.1.0
+INFO:     Environment: Development
+INFO:     ================================================================================
+[OK] Configured 50 RSS feeds
+2025-12-10 02:17:30,642 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-12-10 02:17:30,646 - apscheduler.scheduler - INFO - Added job "Content Refresh Job" to job store "default"
+2025-12-10 02:17:30,646 - apscheduler.scheduler - INFO - Scheduler started
+2025-12-10 02:17:30,646 - app.services.scheduler_service - INFO - [OK] Background scheduler started (content refresh scheduled every 15 minutes)
+INFO:     [OK] Startup completed successfully
+INFO:     Application startup complete.
+ERROR:    [Errno 10048] error while attempting to bind on address ('127.0.0.1', 8000): only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     ================================================================================
+INFO:     [STOP] Nexus API Shutting Down - 2025-12-10 02:17:30
+INFO:     ================================================================================
+2025-12-10 02:17:30,649 - app.services.scheduler_service - INFO - [STOP] Background scheduler stopped
+2025-12-10 02:17:30,649 - apscheduler.scheduler - INFO - Scheduler has been shut down
+INFO:     Application shutdown complete.
+2025-12-10 02:17:30,650 - __main__ - INFO - ================================================================================
+2025-12-10 02:17:30,651 - __main__ - INFO - >> Nexus Server Stopped - 2025-12-10 02:17:30
+2025-12-10 02:17:30,651 - __main__ - INFO - ================================================================================

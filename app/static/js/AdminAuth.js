@@ -37,8 +37,6 @@ if (cookieToken && cookieToken !== localToken) {
 const authManager = globalThis.authManager || new AuthManager();
 globalThis.authManager = authManager;
 
-let currentUser = null;
-
 // Authentication check on page load
 document.addEventListener('DOMContentLoaded', async function () {
     await checkAdminAccess();
