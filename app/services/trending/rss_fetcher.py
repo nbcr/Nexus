@@ -24,7 +24,7 @@ class FeedFailureTracker:
         self.failures[feed_name] = self.failures.get(feed_name, 0) + 1
         if self.failures[feed_name] >= self.max_failures:
             self.disabled_feeds.add(feed_name)
-            print(f"🚫 Disabled feed '{feed_name}' after {self.max_failures} failures")
+            print(f"[DISABLED] {feed_name} disabled after {self.max_failures} failures")
 
     def record_success(self, feed_name: str):
         """Record a success for a feed (reset failure count)"""
@@ -38,7 +38,7 @@ class FeedFailureTracker:
     def reset_if_needed(self):
         """Reset failure tracking once per day"""
         if datetime.now(timezone.utc) - self.last_reset > timedelta(days=1):
-            print("🔄 Resetting feed failure tracking")
+            print("[RESET] Resetting feed failure tracking")
             self.failures.clear()
             self.disabled_feeds.clear()
             self.last_reset = datetime.now(timezone.utc)
@@ -97,10 +97,10 @@ class RSSFetcher:
                         }
         except FileNotFoundError:
             print(
-                f"⚠️ RSS feeds file not found: {self.feeds_file}, using empty feed list"
+                f"[WARN] RSS feeds file not found: {self.feeds_file}, using empty feed list"
             )
         except Exception as e:
-            print(f"❌ Error loading RSS feeds from file: {e}")
+            print(f"[ERROR] Error loading RSS feeds from file: {e}")
 
         return feeds
 
@@ -124,10 +124,10 @@ class RSSFetcher:
             with open(self.feeds_file, "a", encoding="utf-8") as f:
                 category_str = category_hint if category_hint else "None"
                 f.write(f"\n{feed_name}|{url}|{category_str}|{priority}")
-            print(f"✅ Added feed '{feed_name}' to {self.feeds_file}")
+            print(f"[OK] Added feed '{feed_name}' to {self.feeds_file}")
             return True
         except Exception as e:
-            print(f"❌ Error adding feed to file: {e}")
+            print(f"[ERROR] Error adding feed to file: {e}")
             return False
 
     async def fetch_all_rss_feeds(self) -> List[Dict]:
@@ -138,7 +138,7 @@ class RSSFetcher:
         feeds_to_fetch = []
         for feed_name, feed_config in self.rss_feeds.items():
             if self.failure_tracker.is_disabled(feed_name):
-                print(f"⏭️ Skipping disabled feed: {feed_name}")
+                print(f"[SKIP] Skipping disabled feed: {feed_name}")
                 continue
             feeds_to_fetch.append((feed_name, feed_config))
 
@@ -149,14 +149,14 @@ class RSSFetcher:
         for batch_num, i in enumerate(range(0, total_feeds, self.batch_size)):
             batch = feeds_to_fetch[i : i + self.batch_size]
             print(
-                f"\n📦 Batch {batch_num + 1}: Processing {len(batch)} feeds (items_per_feed={self.items_per_feed})..."
+                f"[BATCH {batch_num + 1}] Processing {len(batch)} feeds (items_per_feed={self.items_per_feed})..."
             )
 
             tasks = []
             feed_names = []
 
             for feed_name, feed_config in batch:
-                print(f"  📡 {feed_name}: {feed_config['url']}")
+                print(f"  [{feed_name}] {feed_config['url']}")
                 task = self._fetch_single_feed_with_timeout(
                     feed_name,
                     feed_config["url"],
@@ -170,15 +170,15 @@ class RSSFetcher:
 
             for feed_name, result in zip(feed_names, results):
                 if isinstance(result, Exception):
-                    print(f"  ⚠️ Error fetching {feed_name}: {result}")
+                    print(f"  [ERROR] {feed_name}: {result}")
                     self.failure_tracker.record_failure(feed_name)
                 elif isinstance(result, list):
                     all_trends.extend(result)
-                    print(f"  ✅ {feed_name}: {len(result)} items")
+                    print(f"  [OK] {feed_name}: {len(result)} items")
                     self.failure_tracker.record_success(feed_name)
-            else:
-                print(f"⚠️ Unexpected result from {feed_name}")
-                self.failure_tracker.record_failure(feed_name)
+                else:
+                    print(f"  [WARN] Unexpected result from {feed_name}")
+                    self.failure_tracker.record_failure(feed_name)
 
         return all_trends
 
@@ -196,10 +196,10 @@ class RSSFetcher:
             )
             return self._process_feed_entries(feed, feed_url, category_hint, feed_name)
         except asyncio.TimeoutError:
-            print(f"⏱️ Timeout fetching {feed_name} after {timeout}s")
+            print(f"[TIMEOUT] {feed_name} after {timeout}s")
             raise TimeoutError(f"Feed {feed_name} timed out")
         except Exception as e:
-            print(f"❌ Error in {feed_name}: {e}")
+            print(f"[ERROR] {feed_name}: {e}")
             raise
 
     def _process_feed_entries(
@@ -224,7 +224,7 @@ class RSSFetcher:
             return trends
 
         except Exception as e:
-            print(f"❌ Error fetching RSS from {feed_url}: {e}")
+            print(f"[ERROR] Error fetching RSS from {feed_url}: {e}")
             return []
 
     def _process_single_entry(
