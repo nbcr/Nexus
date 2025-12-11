@@ -1,6 +1,6 @@
 # Copilot Instructions for Nexus
 
-> - GitHub Actions handles pulling files and restarting `nexus` service automatically
+> - User handles pushing files and restarting `nexus` service. If you require the server restarted ask and set a wait for 30 seconds for it to complete.
 
 > **CRITICAL: Response Protocol:**
 >

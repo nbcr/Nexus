@@ -16,7 +16,7 @@ import logging
 if sys.platform == "win32":
     REBOOT_FILE = Path(os.path.join(os.path.expanduser("~"), ".nexus_reboot_request"))
 else:
-    REBOOT_FILE = Path("/tmp/nexus_reboot_request")
+    REBOOT_FILE = Path("/temp/nexus_reboot_request")
 
 logger = logging.getLogger(__name__)
 
