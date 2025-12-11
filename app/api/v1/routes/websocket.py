@@ -11,6 +11,7 @@ from typing import Set
 import asyncio
 import json
 from datetime import datetime
+from app.services.reboot_manager import reboot_manager
 
 router = APIRouter()
 
@@ -25,12 +26,14 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.add(websocket)
+        reboot_manager.register_connection()
         print(
             f"✅ WebSocket connected. Total connections: {len(self.active_connections)}"
         )
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections.discard(websocket)
+        reboot_manager.unregister_connection()
         print(
             f"❌ WebSocket disconnected. Total connections: {len(self.active_connections)}"
         )

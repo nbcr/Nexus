@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles  # type: ignore
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, RedirectResponse
 import os
+import asyncio
 
 from app.api.routes import topics, content, users, session, webhooks
 
@@ -18,6 +19,7 @@ from app.api.v1.routes import (
 from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
 from app.services.intrusion_service import ids_service
+from app.services.reboot_manager import reboot_manager
 
 # Configure Jinja2 templates
 templates = Jinja2Templates(directory="app/templates")
@@ -54,6 +56,11 @@ async def startup_event():
         logger.info("=" * 80)
         scheduler_service.start()
         ids_service.start()
+        reboot_manager.start()
+        
+        # Start reboot monitor as background task
+        asyncio.create_task(reboot_manager.monitor_reboot_requests())
+        
         logger.info("[OK] Startup completed successfully")
     except Exception as e:
         logger.error(f"[ERROR] Error during startup: {e}")
@@ -75,6 +82,7 @@ async def shutdown_event():
     logger.info("=" * 80)
     scheduler_service.stop()
     ids_service.stop()
+    reboot_manager.stop()
 
 
 # Configure CORS
