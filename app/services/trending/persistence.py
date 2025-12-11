@@ -31,7 +31,7 @@ class TrendingPersistence:
         if not url:
             return False
 
-        print(f"  🔍 Testing scrape for '{title}' from {url}")
+        print(f"  Testing scrape for '{title}' from {url}")
         try:
             article_data = article_scraper.fetch_article(url)
             if (
@@ -39,15 +39,15 @@ class TrendingPersistence:
                 and article_data.get("content")
                 and len(article_data.get("content", "")) > 50
             ):
-                print(f"  ✅ Scrape successful ({len(article_data['content'])} chars)")
+                print(f"  [OK] Scrape successful ({len(article_data['content'])} chars)")
                 return True
             else:
-                print(f"  ⚠️ Scrape got no useful content")
+                print(f"  [WARN] Scrape got no useful content")
                 # Track this bad feed
                 self.bad_feeds[source_url] = self.bad_feeds.get(source_url, 0) + 1
                 return False
         except Exception as e:
-            print(f"  ❌ Scrape failed: {e}")
+            print(f"  [ERROR] Scrape failed: {e}")
             self.bad_feeds[source_url] = self.bad_feeds.get(source_url, 0) + 1
             return False
 
@@ -66,7 +66,7 @@ class TrendingPersistence:
                 url = news_item.get("url", "")
 
                 if not title and not url:
-                    print("  ⊘ Skipping news item with no title or URL")
+                    print("  [SKIP] Skipping news item with no title or URL")
                     continue
 
                 if not title:
@@ -75,7 +75,7 @@ class TrendingPersistence:
                 # Skip items with empty or trivial descriptions
                 snippet = news_item.get("snippet", "").strip()
                 if not snippet or snippet.lower() in ("comments", ""):
-                    print(f"  ⊘ Skipping item '{title}' - empty or trivial description")
+                    print(f"  [SKIP] Skipping item '{title}' - empty or trivial description")
                     # Try to scrape to see if we can salvage it
                     source_url = news_item.get("source", "unknown")
                     self._test_scrape_item(title, url, source_url)
@@ -84,14 +84,14 @@ class TrendingPersistence:
                 existing = await deduplication_service.find_duplicate(db, title, url)
 
                 if existing:
-                    print(f"  ⚠️ Duplicate found for '{title}' - linking as related")
+                    print(f"  [LINK] Duplicate found for '{title}' - linking as related")
 
                     # If existing item hasn't been scraped yet, scrape it now
                     if url and not (
                         existing.source_metadata
                         and existing.source_metadata.get("scraped_at")
                     ):
-                        print(f"  📰 Scraping unscraped existing article: {url}")
+                        print(f"  [SCRAPE] Scraping unscraped existing article: {url}")
                         article_data = article_scraper.fetch_article(url)
                         if article_data:
                             existing.content_text = article_data.get("content")
@@ -107,10 +107,10 @@ class TrendingPersistence:
                                     "image_url"
                                 ]
                             print(
-                                f"  ✅ Scraped and updated existing item with {len(article_data.get('content', ''))} chars"
+                                f"  [OK] Scraped and updated existing item with {len(article_data.get('content', ''))} chars"
                             )
                         else:
-                            print(f"  ⚠️ Scraping failed for existing item")
+                            print(f"  [WARN] Scraping failed for existing item")
 
                     await deduplication_service.link_as_related(
                         db, existing.id, topic_id
@@ -124,7 +124,7 @@ class TrendingPersistence:
                     select(ContentItem).where(ContentItem.slug == slug)
                 )
                 if result.scalar_one_or_none():
-                    print(f"  ⚠️ Slug already exists for '{title}' - skipping")
+                    print(f"  [SKIP] Slug already exists for '{title}' - skipping")
                     continue
 
                 created_time = base_time + timedelta(microseconds=idx * 1000)
@@ -157,15 +157,15 @@ class TrendingPersistence:
                     },
                 )
                 db.add(content_item)
-                print(f"  ✓ Created new content for '{title}'")
+                print(f"  [OK] Created new content for '{title}'")
 
             await db.commit()
-            print(f"✅ Successfully processed news items for topic {topic_id}")
+            print(f"[OK] Successfully processed news items for topic {topic_id}")
             
             # Fire and forget: scrape articles in background with concurrency limit
             asyncio.create_task(self._scrape_all_new_articles(news_items))
         except Exception as e:
-            print(f"❌ Error updating news items for topic {topic_id}: {str(e)}")
+            print(f"[ERROR] Error updating news items for topic {topic_id}: {str(e)}")
             print("Detailed error:", e.__class__.__name__, str(e))
             raise
 
@@ -189,7 +189,7 @@ class TrendingPersistence:
             if google_trends_tag not in tags:
                 filtered_trends.append(trend)
             else:
-                print(f"⊘ Skipping trend with google_trends tag: {trend.get('title')}")
+                print(f"[SKIP] Skipping trend with google_trends tag: {trend.get('title')}")
 
         trends = filtered_trends
         if not trends:
