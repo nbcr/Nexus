@@ -98,19 +98,21 @@ class RebootManager:
                 if await self.check_reboot_request():
                     if not self.reboot_requested:
                         self.reboot_requested = True
-                        logger.warning("[REBOOT] Reboot requested - initiating graceful shutdown...")
-                        
+                        logger.warning(
+                            "[REBOOT] Reboot requested - initiating graceful shutdown..."
+                        )
+
                         # Wait for safe conditions
                         await self.wait_for_safe_reboot()
-                        
+
                         # Clear the request file
                         await self.clear_reboot_request()
-                        
+
                         # Trigger shutdown
                         logger.info("[REBOOT] Triggering application shutdown...")
                         import signal
                         import sys
-                        
+
                         if sys.platform == "win32":
                             # Windows: Use SystemExit
                             raise SystemExit(0)
