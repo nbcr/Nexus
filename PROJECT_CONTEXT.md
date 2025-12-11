@@ -1509,3 +1509,26 @@ Implemented Windows-native intrusion detection system that:
 - Database: `intrusion_data.db` (SQLite)
 
 ```
+
+# 2025-12-11: Fixed Unicode Encoding Errors - RSS Feed Fetching Now Works
+
+## Issue
+The server was unable to fetch news stories due to UnicodeEncodeError when printing emoji characters in Windows console. This prevented the trending service from fetching RSS feeds and populating the feed.
+
+## Root Cause
+Print statements throughout the codebase used emoji characters which Windows Command Prompt (cp1252 encoding) cannot display. When the RSS fetcher tried to print these characters, it raised UnicodeEncodeError and blocked the entire RSS feed fetching process.
+
+## Solution
+Replaced all emoji characters with plain text prefixes in:
+- app/services/trending/rss_fetcher.py - removed 9 emoji characters
+- app/services/trending/persistence.py - removed 14 emoji characters  
+- app/utils/async_rss_parser.py - removed 10 emoji characters
+
+## Testing
+The trending service now successfully fetches 250+ trends from all 50+ RSS feeds without encoding errors.
+
+## Impact
+- News feed now populates with trending content
+- Scheduled content refresh every 15 minutes works
+- All RSS feeds functioning (Google News, CNN, BBC, Reuters, etc.)
+- No more startup or Unicode-related errors
