@@ -57,10 +57,10 @@ async def startup_event():
         scheduler_service.start()
         ids_service.start()
         reboot_manager.start()
-        
+
         # Start reboot monitor as background task
         asyncio.create_task(reboot_manager.monitor_reboot_requests())
-        
+
         logger.info("[OK] Startup completed successfully")
     except Exception as e:
         logger.error(f"[ERROR] Error during startup: {e}")
