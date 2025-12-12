@@ -20,7 +20,8 @@ class ArticleScraperService:
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        self.timeout = 10
+        self.timeout = 15  # Increased from 10 to 15 seconds for slower sites
+        self.max_retries = 2  # Retry failed requests up to 2 times
         # AdSense Compliance: Limit content to excerpts only (not full articles)
         self.MAX_EXCERPT_WORDS = 300  # Safe limit for copyright and AdSense compliance
         self.MAX_EXCERPT_CHARS = 2000  # Fallback character limit
@@ -98,9 +99,33 @@ class ArticleScraperService:
             # Validate URL to prevent SSRF
             self._validate_url(url)
 
-            # Fetch the page
-            response = requests.get(url, headers=self.headers, timeout=self.timeout)
-            response.raise_for_status()
+            # Attempt fetch with retries
+            response = None
+            last_error = None
+            for attempt in range(1, self.max_retries + 2):  # +2 for initial + retries
+                try:
+                    response = requests.get(url, headers=self.headers, timeout=self.timeout)
+                    response.raise_for_status()
+                    break  # Success, exit retry loop
+                except requests.Timeout:
+                    last_error = f"Timeout after {self.timeout}s"
+                    if attempt <= self.max_retries:
+                        print(f"  [RETRY {attempt}/{self.max_retries}] {last_error}")
+                        continue
+                    raise
+                except requests.RequestException as e:
+                    last_error = str(e)
+                    if "429" in str(e) or "403" in str(e) or "401" in str(e):
+                        # Rate limit or auth error - don't retry
+                        raise
+                    if attempt <= self.max_retries:
+                        print(f"  [RETRY {attempt}/{self.max_retries}] {last_error}")
+                        continue
+                    raise
+
+            if not response:
+                print(f"❌ Failed to fetch after {self.max_retries + 1} attempts: {last_error}")
+                return None
 
             # Parse HTML
             soup = BeautifulSoup(response.content, "html.parser")
@@ -151,8 +176,16 @@ class ArticleScraperService:
                     return article_data
                 return None
 
+        except requests.exceptions.ConnectionError as e:
+            print(f"❌ Connection error scraping article: {e}")
+            return None
+        except requests.exceptions.Timeout:
+            print(f"❌ Timeout scraping article after {self.timeout}s")
+            return None
         except Exception as e:
             print(f"❌ Error scraping article: {e}")
+            import traceback
+            print(f"   Exception type: {type(e).__name__}")
             return None
 
     def _limit_to_excerpt(self, content: str, domain: str) -> str:
