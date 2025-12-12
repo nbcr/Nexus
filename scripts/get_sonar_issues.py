@@ -91,39 +91,65 @@ def format_issue(issue):
     }
 
 def generate_markdown_report(project_key, all_issues, js_issues, feedrenderer_issues):
-    """Generate markdown report of issues"""
+    """Generate markdown report of issues organized by severity"""
     md_content = f"# SonarQube Issues Report\n\n"
     md_content += f"**Project:** {project_key}\n\n"
     md_content += f"**Total Issues:** {len(all_issues)}\n\n"
     md_content += f"**JavaScript Issues:** {len(js_issues)}\n\n"
     
-    if feedrenderer_issues:
-        md_content += f"## FeedRenderer.js Issues ({len(feedrenderer_issues)})\n\n"
-        for issue in feedrenderer_issues:
-            formatted = format_issue(issue)
-            md_content += f"### Line {formatted['line']}: {formatted['severity']}\n\n"
-            md_content += f"**Message:** {formatted['message']}\n\n"
-            md_content += f"**Rule:** `{formatted['rule']}`\n\n"
-            md_content += f"**Type:** {formatted['type']}\n\n"
-            md_content += "---\n\n"
-    
     if js_issues:
-        md_content += f"## All JavaScript Issues ({len(js_issues)})\n\n"
+        # Group by severity
+        severity_groups = {"CRITICAL": [], "BLOCKER": [], "MAJOR": [], "MINOR": [], "INFO": []}
+        severity_icons = {"CRITICAL": "🔴", "BLOCKER": "🟠", "MAJOR": "🟡", "MINOR": "🔵", "INFO": "⚪"}
         
-        # Group by file
-        files = {}
         for issue in js_issues:
             formatted = format_issue(issue)
-            file_path = formatted['file']
-            if file_path not in files:
-                files[file_path] = []
-            files[file_path].append(formatted)
+            severity = formatted['severity']
+            if severity in severity_groups:
+                severity_groups[severity].append(formatted)
         
-        for file_path, file_issues in files.items():
-            md_content += f"### {file_path} ({len(file_issues)} issues)\n\n"
-            for issue in file_issues:
-                md_content += f"- **Line {issue['line']}:** [{issue['severity']}] {issue['message']} (`{issue['rule']}`)\n"
-            md_content += "\n"
+        md_content += "## Issues by Severity\n\n"
+        
+        for severity in ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"]:
+            issues = severity_groups[severity]
+            if not issues:
+                continue
+                
+            icon = severity_icons[severity]
+            md_content += f"### {icon} {severity} Issues ({len(issues)})\n\n"
+            
+            # Group by file within severity
+            files = {}
+            for issue in issues:
+                file_path = issue['file']
+                if file_path not in files:
+                    files[file_path] = []
+                files[file_path].append(issue)
+            
+            for file_path, file_issues in sorted(files.items()):
+                md_content += f"#### {file_path}\n"
+                for issue in file_issues:
+                    md_content += f"- **Line {issue['line']}:** {issue['message']} (`{issue['rule']}`)\n"
+                md_content += "\n"
+            
+            md_content += "---\n\n"
+        
+        # Add summary
+        md_content += "## Summary by Priority\n\n"
+        for severity in ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"]:
+            count = len(severity_groups[severity])
+            if count > 0:
+                icon = severity_icons[severity]
+                priority_text = {
+                    "CRITICAL": "Address immediately: Complex functions need refactoring",
+                    "BLOCKER": "Fix next: Missing variable declarations", 
+                    "MAJOR": "Schedule soon: Code quality improvements",
+                    "MINOR": "Address gradually: Style and best practice improvements",
+                    "INFO": "Optional: Informational suggestions"
+                }
+                md_content += f"{len([s for s in ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"] if len(severity_groups[s]) > 0 and ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"].index(s) <= ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"].index(severity)])}. **{icon} {severity} ({count} issues)** - {priority_text[severity]}\n"
+        
+        md_content += "\n## All JavaScript Issues ({})\n\n".format(len(js_issues))
     
     return md_content
 

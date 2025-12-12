@@ -6,67 +6,151 @@
 
 **JavaScript Issues:** 134
 
-## FeedRenderer.js Issues (6)
+## Issues by Severity
 
-### Line 12: CRITICAL
+### 🔴 CRITICAL Issues (5)
 
-**Message:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
+#### app/static/js/FeedRenderer.js
+- **Line 12:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
+- **Line 216:** Refactor this function to reduce its Cognitive Complexity from 28 to the 15 allowed. (`javascript:S3776`)
 
-**Rule:** `javascript:S3776`
+#### app/static/js/HeaderAuth.js
+- **Line 15:** Refactor this function to reduce its Cognitive Complexity from 56 to the 15 allowed. (`javascript:S3776`)
 
-**Type:** CODE_SMELL
+#### app/static/js/HeaderDarkMode.js
+- **Line 45:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
 
----
-
-### Line 28: MAJOR
-
-**Message:** Prefer using an optional chain expression instead, as it's more concise and easier to read.
-
-**Rule:** `javascript:S6582`
-
-**Type:** CODE_SMELL
+#### app/static/js/InfiniteFeed.js
+- **Line 47:** Refactor this asynchronous operation outside of the constructor. (`javascript:S7059`)
 
 ---
 
-### Line 114: MAJOR
+### 🟠 BLOCKER Issues (2)
 
-**Message:** Prefer using an optional chain expression instead, as it's more concise and easier to read.
+#### app/static/js/AdminAuth.js
+- **Line 72:** Add the "let", "const" or "var" keyword to this declaration of "currentUser" to make it explicit. (`javascript:S2703`)
 
-**Rule:** `javascript:S6582`
-
-**Type:** CODE_SMELL
-
----
-
-### Line 216: CRITICAL
-
-**Message:** Refactor this function to reduce its Cognitive Complexity from 28 to the 15 allowed.
-
-**Rule:** `javascript:S3776`
-
-**Type:** CODE_SMELL
+#### app/static/js/FeedArticleModal.js
+- **Line 122:** Add the "let", "const" or "var" keyword to this declaration of "adsbygoogle" to make it explicit. (`javascript:S2703`)
 
 ---
 
-### Line 224: MAJOR
+### 🟡 MAJOR Issues (12)
 
-**Message:** Prefer using an optional chain expression instead, as it's more concise and easier to read.
+#### app/static/js/FeedRenderer.js
+- **Line 28:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
+- **Line 114:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
+- **Line 224:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
+- **Line 248:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
 
-**Rule:** `javascript:S6582`
+#### app/static/js/FeedArticleModal.js
+- **Line 75:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
+- **Line 122:** Extract the assignment of "adsbygoogle" from this expression. (`javascript:S1121`)
 
-**Type:** CODE_SMELL
+#### app/static/js/HeaderPreferences.js
+- **Line 165:** Remove this useless assignment to variable "lastScrollTop". (`javascript:S1854`)
+
+#### app/static/js/HoverTracker.js
+- **Line 389:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
 
 ---
 
-### Line 248: MAJOR
+### 🔵 MINOR Issues (115)
 
-**Message:** Prefer using an optional chain expression instead, as it's more concise and easier to read.
+#### app/static/auth.js
+- **Line 122:** Unexpected negated condition. (`javascript:S7735`)
 
-**Rule:** `javascript:S6582`
+#### app/static/js/FeedArticleModal.js
+- **Line 122:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 235:** Prefer `globalThis` over `window`. (`javascript:S7764`)
 
-**Type:** CODE_SMELL
+#### app/static/js/FeedObservers.js
+- **Line 54:** Prefer `Number.parseInt` over `parseInt`. (`javascript:S7773`)
+- **Line 128:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/FeedUtils.js
+- **Line 212:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/GlobalScrollTracker.js
+- **Line 84:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/HeaderAuth.js
+- **Line 19:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
+- **Line 21:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 126:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 162:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 169:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 170:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 171:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 172:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/HeaderDarkMode.js
+- **Line 114:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 115:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/HeaderMenu.js
+- **Line 76:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 77:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/HeaderPreferences.js
+- **Line 17:** Prefer `Number.parseInt` over `parseInt`. (`javascript:S7773`)
+- **Line 108:** Prefer `Number.parseInt` over `parseInt`. (`javascript:S7773`)
+- **Line 172:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 182:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 183:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 184:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/HeaderSession.js
+- **Line 13:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
+- **Line 16:** '(from: number, length?: number): string' is deprecated. (`javascript:S1874`)
+- **Line 44:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 45:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 46:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/HoverTracker.js
+- **Line 42:** Don't use a zero fraction in the number. (`javascript:S7748`)
+- **Line 117:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 147:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 158:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 172:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 181:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 265:** Prefer `.at(…)` over `[….length - index]`. (`javascript:S7755`)
+- **Line 280:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 297:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 353:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 385:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 389:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 394:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 474:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/InfiniteFeed.js
+- **Line 55:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 57:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 66:** Prefer `globalThis` over `window`. (`javascript:S7764`) (2 instances)
+- **Line 67:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 168:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 169:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 193:** Prefer `Number.parseInt` over `parseInt`. (`javascript:S7773`)
+- **Line 306:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+
+#### app/static/js/config.js
+- **Line 3:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 51:** '(from: number, length?: number): string' is deprecated. (`javascript:S1874`)
+
+#### app/static/js/feed-notifier.js
+- **Line 12:** Prefer class field declaration over `this` assignment in constructor for static values. (`javascript:S7757`)
+- **Line 26:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
+- **Line 29:** '(from: number, length?: number): string' is deprecated. (`javascript:S1874`)
+- **Line 121:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
 
 ---
+
+## Summary by Priority
+
+1. **🔴 CRITICAL (5 issues)** - Address immediately: Complex functions need refactoring
+2. **🟠 BLOCKER (2 issues)** - Fix next: Missing variable declarations
+3. **🟡 MAJOR (12 issues)** - Schedule soon: Code quality improvements
+4. **🔵 MINOR (115 issues)** - Address gradually: Style and best practice improvements
 
 ## All JavaScript Issues (134)
 

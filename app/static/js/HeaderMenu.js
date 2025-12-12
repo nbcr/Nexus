@@ -73,5 +73,5 @@ function initHamburgerMenu() {
 }
 
 // Export namespace and global functions
-window.HeaderMenu = { initHamburgerMenu };
-window.initHamburgerMenu = initHamburgerMenu;
+globalThis.HeaderMenu = { initHamburgerMenu };
+globalThis.initHamburgerMenu = initHamburgerMenu;

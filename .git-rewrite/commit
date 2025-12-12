@@ -1,6 +1,0 @@
-tree 22f2a32dc3dae711f4fbe91e306e9ffed39e3ca5
-parent 9b65e192a2477dbc15f6233598d529f9fce78c9d
-author nbcr <840382+nbcr@users.noreply.github.com> 1765142714 -0500
-committer nbcr <840382+nbcr@users.noreply.github.com> 1765142714 -0500
-
-Fix: mark snippet as loaded when facts already present to prevent loadSnippet from overwriting facts with description

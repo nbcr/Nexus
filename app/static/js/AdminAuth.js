@@ -69,7 +69,7 @@ async function checkAdminAccess() {
             return;
         }
 
-        let currentUser = data.user;
+        const currentUser = data.user;
         showAdminContent();
         document.getElementById('admin-welcome').textContent = `Admin: ${currentUser.username}`;
 

@@ -10,10 +10,11 @@
 // Set persistent visitor_id cookie if not present
 function setVisitorIdCookie() {
     let visitorId = null;
-    const match = document.cookie.match(/(?:^|; )visitor_id=([^;]*)/);
+    const regex = /(?:^|; )visitor_id=([^;]*)/;
+    const match = regex.exec(document.cookie);
     if (match) visitorId = match[1];
     if (!visitorId) {
-        visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substr(2, 16) + Date.now());
+        visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2, 18) + Date.now());
         const expires = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toUTCString(); // 2 years
         document.cookie = `visitor_id=${visitorId}; expires=${expires}; path=/; SameSite=Lax`;
     }
@@ -41,6 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Export namespace and global functions
-window.HeaderSession = { setVisitorIdCookie, initHeader };
-window.initHeader = initHeader;
-window.setVisitorIdCookie = setVisitorIdCookie;
+globalThis.HeaderSession = { setVisitorIdCookie, initHeader };
+globalThis.initHeader = initHeader;
+globalThis.setVisitorIdCookie = setVisitorIdCookie;

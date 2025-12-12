@@ -14,13 +14,7 @@ let currentUser = null;
  */
 async function checkAuthStatus() {
     try {
-        // Get access token from cookie or localStorage
-        let accessToken = null;
-        const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
-        if (match) accessToken = match[1];
-        if (!accessToken && window.localStorage) {
-            accessToken = localStorage.getItem('access_token');
-        }
+        const accessToken = getAccessToken();
         const headers = accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {};
         const response = await fetch('/api/v1/auth/me', {
             credentials: 'include',
@@ -29,92 +23,102 @@ async function checkAuthStatus() {
 
         if (response.ok) {
             currentUser = await response.json();
-            const welcomeEl = document.getElementById('user-welcome');
-            const authBtn = document.getElementById('auth-btn');
-            const authBtnMobile = document.getElementById('auth-btn-mobile');
-            if (welcomeEl) {
-                welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
-                welcomeEl.style.display = 'inline';
-            }
-            
-            // Show admin link if user is admin
-            if (currentUser.is_admin) {
-                const adminLink = document.getElementById('admin-link');
-                if (adminLink) {
-                    adminLink.style.display = 'flex';
-                }
-            }
-            
-            if (authBtn) {
-                const label = authBtn.querySelector('.menu-label');
-                const icon = authBtn.querySelector('.menu-icon');
-                if (label) label.textContent = 'Logout';
-                if (icon) icon.textContent = '🚪';
-                authBtn.href = '#';
-                authBtn.onclick = function (e) {
-                    e.preventDefault();
-                    handleLogout();
-                };
-                authBtn.style.display = 'flex';
-            }
-            if (authBtnMobile) {
-                const label = authBtnMobile.querySelector('.menu-label');
-                const icon = authBtnMobile.querySelector('.menu-icon');
-                if (label) label.textContent = 'Logout';
-                if (icon) icon.textContent = '🚪';
-                authBtnMobile.href = '#';
-                authBtnMobile.onclick = function (e) {
-                    e.preventDefault();
-                    handleLogout();
-                };
-                authBtnMobile.style.display = 'flex';
-            }
-            const registerBtn = document.getElementById('register-btn');
-            const registerBtnMobile = document.getElementById('register-btn-mobile');
-            if (registerBtn) {
-                registerBtn.style.display = 'none';
-            }
-            if (registerBtnMobile) {
-                registerBtnMobile.style.display = 'none';
-            }
+            updateAuthenticatedUI();
         } else {
-            // User not authenticated - show login and register buttons
-            const welcomeEl = document.getElementById('user-welcome');
-            if (welcomeEl) {
-                welcomeEl.style.display = 'none';
-            }
-            const authBtn = document.getElementById('auth-btn');
-            const authBtnMobile = document.getElementById('auth-btn-mobile');
-            if (authBtn) {
-                const label = authBtn.querySelector('.menu-label');
-                const icon = authBtn.querySelector('.menu-icon');
-                if (label) label.textContent = 'Login';
-                if (icon) icon.textContent = '🔐';
-                authBtn.href = '/login';
-                authBtn.onclick = null;
-                authBtn.style.display = 'flex';
-            }
-            if (authBtnMobile) {
-                const label = authBtnMobile.querySelector('.menu-label');
-                const icon = authBtnMobile.querySelector('.menu-icon');
-                if (label) label.textContent = 'Login';
-                if (icon) icon.textContent = '🔐';
-                authBtnMobile.href = '/login';
-                authBtnMobile.onclick = null;
-                authBtnMobile.style.display = 'flex';
-            }
-            const registerBtn = document.getElementById('register-btn');
-            const registerBtnMobile = document.getElementById('register-btn-mobile');
-            if (registerBtn) {
-                registerBtn.style.display = 'flex';
-            }
-            if (registerBtnMobile) {
-                registerBtnMobile.style.display = 'flex';
-            }
+            updateUnauthenticatedUI();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
     }
+}
+
+function getAccessToken() {
+    const regex = /(?:^|; )access_token=([^;]*)/;
+    const match = regex.exec(document.cookie);
+    if (match) return match[1];
+    if (globalThis.localStorage) {
+        return localStorage.getItem('access_token');
+    }
+    return null;
+}
+
+function updateAuthenticatedUI() {
+    updateWelcomeMessage();
+    showAdminLinkIfAdmin();
+    configureAuthButtons(true);
+    hideRegisterButtons();
+}
+
+function updateUnauthenticatedUI() {
+    hideWelcomeMessage();
+    configureAuthButtons(false);
+    showRegisterButtons();
+}
+
+function updateWelcomeMessage() {
+    const welcomeEl = document.getElementById('user-welcome');
+    if (welcomeEl) {
+        welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
+        welcomeEl.style.display = 'inline';
+    }
+}
+
+function hideWelcomeMessage() {
+    const welcomeEl = document.getElementById('user-welcome');
+    if (welcomeEl) {
+        welcomeEl.style.display = 'none';
+    }
+}
+
+function showAdminLinkIfAdmin() {
+    if (currentUser.is_admin) {
+        const adminLink = document.getElementById('admin-link');
+        if (adminLink) {
+            adminLink.style.display = 'flex';
+        }
+    }
+}
+
+function configureAuthButtons(isAuthenticated) {
+    const authBtn = document.getElementById('auth-btn');
+    const authBtnMobile = document.getElementById('auth-btn-mobile');
+    
+    [authBtn, authBtnMobile].forEach(btn => {
+        if (!btn) return;
+        
+        const label = btn.querySelector('.menu-label');
+        const icon = btn.querySelector('.menu-icon');
+        
+        if (isAuthenticated) {
+            if (label) label.textContent = 'Logout';
+            if (icon) icon.textContent = '🚪';
+            btn.href = '#';
+            btn.onclick = (e) => {
+                e.preventDefault();
+                handleLogout();
+            };
+        } else {
+            if (label) label.textContent = 'Login';
+            if (icon) icon.textContent = '🔐';
+            btn.href = '/login';
+            btn.onclick = null;
+        }
+        btn.style.display = 'flex';
+    });
+}
+
+function hideRegisterButtons() {
+    const registerBtn = document.getElementById('register-btn');
+    const registerBtnMobile = document.getElementById('register-btn-mobile');
+    if (registerBtn) registerBtn.style.display = 'none';
+    if (registerBtnMobile) registerBtnMobile.style.display = 'none';
+}
+
+function showRegisterButtons() {
+    const registerBtn = document.getElementById('register-btn');
+    const registerBtnMobile = document.getElementById('register-btn-mobile');
+    if (registerBtn) registerBtn.style.display = 'flex';
+    if (registerBtnMobile) registerBtnMobile.style.display = 'flex';
 }
 
 /**
@@ -159,14 +163,14 @@ async function handleLogout() {
         }
 
         // Redirect to dedicated logged out page
-        window.location.href = "/logged-out.html";
+        globalThis.location.href = "/logged-out.html";
     } catch (error) {
         console.error('Logout error:', error);
     }
 }
 
 // Export namespace and global functions
-window.HeaderAuth = { checkAuthStatus, handleAuth, handleLogout };
-window.checkAuthStatus = checkAuthStatus;
-window.handleAuth = handleAuth;
-window.handleLogout = handleLogout;
+globalThis.HeaderAuth = { checkAuthStatus, handleAuth, handleLogout };
+globalThis.checkAuthStatus = checkAuthStatus;
+globalThis.handleAuth = handleLogout;
+globalThis.handleLogout = handleLogout;

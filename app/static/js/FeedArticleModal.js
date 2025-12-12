@@ -63,7 +63,7 @@ class FeedArticleModal {
         relatedItems.innerHTML = '';
 
         // Set source link for error fallback
-        if (item.source_urls && item.source_urls.length > 0) {
+        if (item.source_urls?.length > 0) {
             sourceLink.href = item.source_urls[0];
         }
 
@@ -187,7 +187,7 @@ class FeedArticleModal {
                     <h4 class="related-item-title">${item.title}</h4>
                     ${item.description ? `<p class="related-item-description">${item.description}</p>` : ''}
                     <div class="related-item-actions">
-                        ${item.source_urls && item.source_urls.length > 0 ? `
+                        ${item.source_urls?.length > 0 ? `
                             <a href="${item.source_urls[0]}" target="_blank" rel="noopener" class="btn-related-source">
                                 ${FeedUtils.getSourceButtonTextForUrl(item.source_urls[0], item.tags || [])}
                             </a>

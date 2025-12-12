@@ -82,34 +82,39 @@ function removeFeedItemSummaryColors() {
  * Toggle between dark mode (default) and light mode (toggled on)
  */
 function toggleDarkMode() {
-    // Check if light mode is currently active
     const isCurrentlyLight = document.documentElement.classList.contains('light-mode');
     const willBeLight = !isCurrentlyLight;
 
     console.log('Toggle: Currently light?', isCurrentlyLight, '-> Will be light?', willBeLight);
 
-    // Toggle light-mode class (dark mode is default, no class needed)
-    if (willBeLight) {
-        document.documentElement.classList.add('light-mode');
-    } else {
-        document.documentElement.classList.remove('light-mode');
-    }
-
-    // Save preference to localStorage
-    localStorage.setItem('darkMode', String(!willBeLight));
-
-    // Update UI
-    const toggleBtn = document.getElementById('dark-mode-toggle');
-    const toggleLabel = document.getElementById('dark-mode-label');
-    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
-    updateDarkModeUI(!willBeLight, toggleBtn, toggleLabel, toggleMenuBtn);
-
-    // If switching to dark mode, remove any inline colors
+    applyModeChange(willBeLight);
+    savePreference(willBeLight);
+    updateUIElements(willBeLight);
+    
     if (!willBeLight) {
         removeFeedItemSummaryColors();
     }
 }
 
+function applyModeChange(willBeLight) {
+    if (willBeLight) {
+        document.documentElement.classList.add('light-mode');
+    } else {
+        document.documentElement.classList.remove('light-mode');
+    }
+}
+
+function savePreference(willBeLight) {
+    localStorage.setItem('darkMode', String(!willBeLight));
+}
+
+function updateUIElements(willBeLight) {
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+    const toggleLabel = document.getElementById('dark-mode-label');
+    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
+    updateDarkModeUI(!willBeLight, toggleBtn, toggleLabel, toggleMenuBtn);
+}
+
 // Export namespace and global functions
-window.HeaderDarkMode = { initDarkMode, toggleDarkMode };
-window.toggleDarkMode = toggleDarkMode;
+globalThis.HeaderDarkMode = { initDarkMode, toggleDarkMode };
+globalThis.toggleDarkMode = toggleDarkMode;

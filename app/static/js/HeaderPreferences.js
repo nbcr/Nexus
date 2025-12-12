@@ -14,7 +14,7 @@ function initTextSize() {
     const baseSize = 16; // Base font size in pixels
     const minSize = 12;
     const maxSize = 24;
-    let currentSize = savedSize ? parseInt(savedSize, 10) : baseSize;
+    let currentSize = savedSize ? Number.parseInt(savedSize, 10) : baseSize;
 
     function applyTextSize(size) {
         // Clamp size between min and max
@@ -105,7 +105,7 @@ function initTextSize() {
 
     // Restore saved size
     if (savedSize) {
-        applyTextSize(parseInt(savedSize, 10));
+        applyTextSize(Number.parseInt(savedSize, 10));
     }
 
     // Set up increase button
@@ -147,11 +147,10 @@ function initScrollHeader() {
 
     if (!header || !headerTitle) return;
 
-    let lastScrollTop = 0;
     let isScrolled = false;
 
     function handleScroll() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollTop = globalThis.pageYOffset || document.documentElement.scrollTop;
 
         // Trigger shrink after scrolling down 50px
         if (scrollTop > 50 && !isScrolled) {
@@ -161,15 +160,13 @@ function initScrollHeader() {
             header.classList.remove('scrolled');
             isScrolled = false;
         }
-
-        lastScrollTop = scrollTop;
     }
 
     // Throttle scroll events for performance
     let ticking = false;
-    window.addEventListener('scroll', function () {
+    globalThis.addEventListener('scroll', function () {
         if (!ticking) {
-            window.requestAnimationFrame(function () {
+            globalThis.requestAnimationFrame(function () {
                 handleScroll();
                 ticking = false;
             });
@@ -179,6 +176,6 @@ function initScrollHeader() {
 }
 
 // Export namespace and global functions
-window.HeaderPreferences = { initTextSize, initScrollHeader };
-window.initTextSize = initTextSize;
-window.initScrollHeader = initScrollHeader;
+globalThis.HeaderPreferences = { initTextSize, initScrollHeader };
+globalThis.initTextSize = initTextSize;
+globalThis.initScrollHeader = initScrollHeader;

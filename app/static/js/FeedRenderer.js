@@ -11,22 +11,28 @@ class FeedRenderer {
 
     renderContentItem(item, container, onContentClick) {
         const article = this.createArticleElement(item);
+        this.populateArticleContent(article, item);
+        this.setupArticleInteractions(article, item, onContentClick);
+        container.appendChild(article);
+    }
+
+    populateArticleContent(article, item) {
         const imageHtml = this.buildImageHtml(item);
         const summaryHtml = this.buildSummaryHtml(item);
         const readMoreButton = this.buildReadMoreButton(item);
         
         article.innerHTML = this.buildArticleHTML(item, imageHtml, summaryHtml, readMoreButton);
         
-        if (item.facts && item.facts.trim()) {
+        if (item.facts?.trim()) {
             article.dataset.snippetLoaded = 'true';
         }
+    }
 
+    setupArticleInteractions(article, item, onContentClick) {
         const isNewsArticle = FeedUtils.isNewsArticle(item);
         const isSearchQuery = FeedUtils.isSearchQuery(item);
         this.setupCardEventHandlers(article, item, isNewsArticle, isSearchQuery, onContentClick);
         this.setupCardImage(article, item);
-
-        container.appendChild(article);
     }
 
     createArticleElement(item) {
@@ -114,14 +120,14 @@ class FeedRenderer {
     }
 
     buildTagsHtml(item) {
-        if (item.tags && item.tags.length > 0) {
+        if (item.tags?.length > 0) {
             return `<div class="feed-item-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`;
         }
         return '';
     }
 
     buildRelatedQueriesHtml(item) {
-        if (item.related_queries && item.related_queries.length > 0) {
+        if (item.related_queries?.length > 0) {
             const queriesHtml = item.related_queries.map(query => 
                 `<a href="${query.url}" target="_blank" rel="noopener" class="related-query">${query.title}</a>`
             ).join('');
@@ -169,23 +175,33 @@ class FeedRenderer {
         if (!header) return;
 
         header.addEventListener('click', async (e) => {
-            if (e.target.closest('.feed-item-image') || e.target.closest('.btn-read-more') || e.target.closest('.btn-source')) return;
+            if (this.shouldIgnoreHeaderClick(e)) return;
 
             const wasExpanded = article.classList.contains('expanded');
             article.classList.toggle('expanded');
 
             if (!wasExpanded) {
-                this.emitCardOpenedEvent(item.content_id);
-                
-                if (!article.dataset.snippetLoaded && isNewsArticle) {
-                    await this.loadSnippet(article, item);
-                }
-                
-                if (!article.dataset.relatedLoaded) {
-                    await this.loadRelatedContent(article, item);
-                }
+                await this.handleCardExpansion(article, item, isNewsArticle);
             }
         });
+    }
+
+    shouldIgnoreHeaderClick(e) {
+        return e.target.closest('.feed-item-image') || 
+               e.target.closest('.btn-read-more') || 
+               e.target.closest('.btn-source');
+    }
+
+    async handleCardExpansion(article, item, isNewsArticle) {
+        this.emitCardOpenedEvent(item.content_id);
+        
+        if (!article.dataset.snippetLoaded && isNewsArticle) {
+            await this.loadSnippet(article, item);
+        }
+        
+        if (!article.dataset.relatedLoaded) {
+            await this.loadRelatedContent(article, item);
+        }
     }
 
     setupReadMoreHandler(article, item) {
@@ -199,8 +215,8 @@ class FeedRenderer {
             this.emitCardOpenedEvent(item.content_id);
             this.trackClick(article, item);
 
-            if (item.source_urls && item.source_urls.length > 0) {
-                window.open(item.source_urls[0], '_blank', 'noopener');
+            if (item.source_urls?.length > 0) {
+                globalThis.open(item.source_urls[0], '_blank', 'noopener');
             }
         });
     }

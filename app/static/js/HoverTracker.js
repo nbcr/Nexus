@@ -114,7 +114,7 @@ class HoverTracker {
     handleClick(e) {
         this.state.clicksDetected++;
         this.state.interestScore += 30; // Clicks are strong interest signals
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log(`🖱️ Click detected on card ${this.contentId}. Interest score: ${this.state.interestScore}`);
         }
         this.reportInterest('click');
@@ -144,7 +144,7 @@ class HoverTracker {
         this.state.movementDetected = false;
 
         // Add visual indicator only in debug mode
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             this.element.classList.add('tracking-interest');
             this.addDebugOverlay();
         }
@@ -155,7 +155,7 @@ class HoverTracker {
         // Start AFK checking
         this.startAfkChecking();
 
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log(`👆 Hover started on card ${this.contentId}`);
         }
     }
@@ -169,7 +169,7 @@ class HoverTracker {
 
         // Remove visual indicator and debug overlay
         this.element.classList.remove('tracking-interest');
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             this.removeDebugOverlay();
         }
 
@@ -178,7 +178,7 @@ class HoverTracker {
         // Calculate final interest score
         this.calculateInterestScore();
 
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log(`👋 Hover ended on card ${this.contentId}. Duration: ${hoverDuration}ms, Total: ${this.state.totalHoverTime}ms, Interest Score: ${this.state.interestScore}`);
         }
 
@@ -277,7 +277,7 @@ class HoverTracker {
         if (velocity < this.config.slowdownVelocityThreshold && this.state.movementDetected) {
             this.state.slowdownsDetected++;
             this.state.interestScore += 5; // Slowdowns indicate reading/interest
-            if (window.nexusDebugMode) {
+            if (globalThis.nexusDebugMode) {
                 console.log(`🐌 Slowdown detected on card ${this.contentId}. Velocity: ${velocity.toFixed(3)} px/ms`);
             }
         }
@@ -294,7 +294,7 @@ class HoverTracker {
             if (!this.state.isAfk) {
                 this.state.isAfk = true;
                 this.state.afkStartTime = now;
-                if (window.nexusDebugMode) {
+                if (globalThis.nexusDebugMode) {
                     console.log(`😴 AFK detected on card ${this.contentId}`);
                 }
 
@@ -350,7 +350,7 @@ class HoverTracker {
             velocity < this.config.scrollSlowdownThreshold) {
             this.state.scrollSlowdowns++;
             this.state.interestScore += 3;
-            if (window.nexusDebugMode) {
+            if (globalThis.nexusDebugMode) {
                 console.log(`📜 Scroll slowdown detected near card ${this.contentId}. Interest score: ${this.state.interestScore}`);
             }
         }
@@ -382,16 +382,16 @@ class HoverTracker {
             });
 
             if (response.ok) {
-                if (window.nexusDebugMode) {
+                if (globalThis.nexusDebugMode) {
                     console.log(`✅ Interest reported for card ${this.contentId}:`, data);
                 }
             } else {
-                if (window.nexusDebugMode) {
+                if (globalThis.nexusDebugMode) {
                     console.warn(`⚠️ Failed to report interest for card ${this.contentId}`);
                 }
             }
         } catch (error) {
-            if (window.nexusDebugMode) {
+            if (globalThis.nexusDebugMode) {
                 console.error(`❌ Error reporting interest for card ${this.contentId}:`, error);
             }
         }
@@ -471,4 +471,4 @@ class HoverTracker {
 }
 
 // Export
-window.HoverTracker = HoverTracker;
+globalThis.HoverTracker = HoverTracker;

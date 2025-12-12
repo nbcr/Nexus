@@ -44,7 +44,8 @@ class InfiniteFeed {
         // Callbacks
         this.onContentClick = options.onContentClick || this.defaultContentClick.bind(this);
 
-        this.init();
+        // Initialize asynchronously to avoid constructor async operations
+        setTimeout(() => this.init(), 0);
     }
 
     async init() {
@@ -52,9 +53,9 @@ class InfiniteFeed {
 
         // Fetch user settings (including debug mode)
         const settings = await this.api.fetchUserSettings();
-        window.nexusDebugMode = settings.debugMode || false;
+        globalThis.nexusDebugMode = settings.debugMode || false;
 
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log('%c🔍 DEBUG MODE ENABLED', 'background: #00ff88; color: #000; padding: 4px 8px; font-weight: bold;');
             console.log('Interest tracking data will be visible and logged.');
         }
@@ -63,8 +64,8 @@ class InfiniteFeed {
         this.tracking.initGlobalScrollTracker();
 
         // Initialize history tracker if available
-        if (window.historyTracker && typeof window.historyTracker.init === 'function') {
-            window.historyTracker.init();
+        if (globalThis.historyTracker && typeof globalThis.historyTracker.init === 'function') {
+            globalThis.historyTracker.init();
         }
 
         // Setup observers
@@ -165,8 +166,8 @@ class InfiniteFeed {
             this.observers.observeCard(article);
 
             // Observe card for history tracking
-            if (window.historyTracker) {
-                window.historyTracker.observeCard(article);
+            if (globalThis.historyTracker) {
+                globalThis.historyTracker.observeCard(article);
             }
         }
     }
@@ -220,7 +221,7 @@ class InfiniteFeed {
         }
 
         // Scroll to top smoothly
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        globalThis.scrollTo({ top: 0, behavior: 'smooth' });
 
         console.log(`✅ Feed refreshed - removed ${cardsToRemove.length} cards, kept ${keepCount}`);
     }
@@ -303,7 +304,7 @@ class InfiniteFeed {
 }
 
 // Export for use in other scripts
-window.InfiniteFeed = InfiniteFeed;
+globalThis.InfiniteFeed = InfiniteFeed;
 
 // Setup modal controls on page load
 document.addEventListener('DOMContentLoaded', function () {
