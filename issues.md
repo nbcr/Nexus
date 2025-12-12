@@ -2,18 +2,15 @@
 
 **Project:** nbcr_Nexus
 
-**Total Issues:** 213
+**Total Issues:** 195
 
-**JavaScript Issues:** 67
+**JavaScript Issues:** 60
 
 ## Issues by Severity
 
-### 🔴 CRITICAL Issues (25)
+### 🔴 CRITICAL Issues (17)
 
-#### alembic/env.py
-- **Line 37:** Define a constant instead of duplicating this literal "sqlalchemy.url" 3 times. (`python:S1192`)
-- **Line 45:** Specify an exception class to catch or reraise the exception (`python:S5754`)
-- **Line 24:** Import only needed names or import the module and then use its members. (`python:S2208`)
+
 
 #### app/core/input_validation.py
 - **Line 281:** Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed. (`python:S3776`)
@@ -26,7 +23,6 @@
 
 #### app/static/js/header.js
 - **Line 223:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
-- **Line 282:** Remove this use of the "void" operator. (`javascript:S3735`)
 - **Line 43:** Refactor this function to reduce its Cognitive Complexity from 51 to the 15 allowed. (`javascript:S3776`)
 
 #### app/templates/register.html
@@ -34,13 +30,11 @@
 
 #### app/utils/async_rss_parser.py
 - **Line 53:** Refactor this function to reduce its Cognitive Complexity from 36 to the 15 allowed. (`python:S3776`)
-- **Line 17:** Define a constant instead of duplicating this literal "#text" 4 times. (`python:S1192`)
 
 #### block_china_russia.py
 - **Line 127:** Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed. (`python:S3776`)
 
-#### geoip_checker.py
-- **Line 97:** Specify an exception class to catch or reraise the exception (`python:S5754`)
+
 
 #### nexus_service.py
 - **Line 200:** Refactor this function to reduce its Cognitive Complexity from 36 to the 15 allowed. (`python:S3776`)
@@ -50,16 +44,11 @@
 
 #### scripts/get_sonar_issues.py
 - **Line 93:** Refactor this function to reduce its Cognitive Complexity from 31 to the 15 allowed. (`python:S3776`)
-- **Line 28:** Specify an exception class to catch or reraise the exception (`python:S5754`)
 
 #### scripts/update_cache_bust.py
 - **Line 119:** Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed. (`python:S3776`)
 
-#### storage_monitor.py
-- **Line 237:** Specify an exception class to catch or reraise the exception (`python:S5754`)
-- **Line 280:** Specify an exception class to catch or reraise the exception (`python:S5754`)
-- **Line 91:** Specify an exception class to catch or reraise the exception (`python:S5754`)
-- **Line 196:** Specify an exception class to catch or reraise the exception (`python:S5754`)
+
 
 #### test_fetch_performance.py
 - **Line 51:** Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed. (`python:S3776`)
@@ -69,29 +58,15 @@
 
 ---
 
-### 🟠 BLOCKER Issues (5)
+### 🟠 BLOCKER Issues (0)
 
-#### app/db.py
-- **Line 10:** Make sure this PostgreSQL database password gets changed and removed from the code. (`secrets:S6698`)
-
-#### app/static/js/trending.js
-- **Line 86:** Add a "return" statement to this callback. (`javascript:S3796`)
-
-#### scripts/find_blank_titles.py
-- **Line 7:** Make sure this PostgreSQL database password gets changed and removed from the code. (`secrets:S6698`)
-
-#### scripts/find_orphaned_history.py
-- **Line 8:** Make sure this PostgreSQL database password gets changed and removed from the code. (`secrets:S6698`)
-
-#### scripts/get_sonar_issues.py
-- **Line 13:** Make sure this SonarQube token gets revoked, changed, and removed from the code. (`secrets:S6702`)
+*All BLOCKER issues have been resolved.*
 
 ---
 
 ### 🟡 MAJOR Issues (95)
 
-#### add_content_fields.sql
-- **Line 15:** Remove this commented out code. (`plsql:S125`)
+
 
 #### app/api/v1/routes/settings.py
 - **Line 30:** Take the required action to fix the issue indicated by this "FIXME" comment. (`python:S1134`)
@@ -130,9 +105,7 @@
 - **Line 50:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 - **Line 114:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 
-#### app/static/js/FeedRenderer.js
-- **Line 48:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
-- **Line 124:** Refactor this code to not use nested template literals. (`javascript:S4624`)
+
 
 #### app/static/js/HeaderAuth.js
 - **Line 175:** Promise-returning function provided to variable where a void return was expected. (`javascript:S6544`)
@@ -140,17 +113,14 @@
 #### app/static/js/HoverTracker.js
 - **Line 389:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
 
-#### app/static/js/header.js
-- **Line 402:** Remove this useless assignment to variable "lastScrollTop". (`javascript:S1854`)
+
 
 #### app/static/js/hover-tracker.js
 - **Line 399:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
 
-#### app/static/js/trending.js
-- **Line 86:** Remove this useless assignment to variable "trendsHtml". (`javascript:S1854`)
 
-#### app/static/js/ui.js
-- **Line 40:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
+
+
 
 #### app/templates/admin.html
 - **Line 244:** A form label must be associated with a control. (`Web:S6853`)
