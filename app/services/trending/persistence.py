@@ -45,7 +45,7 @@ class TrendingPersistence:
                 )
                 return True
             else:
-                print(f"  [WARN] Scrape got no useful content")
+                print("  [WARN] Scrape got no useful content")
                 # Track this bad feed
                 self.bad_feeds[source_url] = self.bad_feeds.get(source_url, 0) + 1
                 return False
@@ -54,183 +54,159 @@ class TrendingPersistence:
             self.bad_feeds[source_url] = self.bad_feeds.get(source_url, 0) + 1
             return False
 
-    async def update_topic_news_items(
-        self, db: AsyncSession, topic_id: int, news_items: List[Dict]
-    ) -> None:
+    async def _process_existing_item(self, db: AsyncSession, existing: ContentItem, url: str, topic_id: int) -> None:
+        """Process existing duplicate item"""
+        if url and not (existing.source_metadata and existing.source_metadata.get("scraped_at")):
+            print(f"  [SCRAPE] Scraping unscraped existing article: {url}")
+            article_data = article_scraper.fetch_article(url)
+            if article_data:
+                existing.content_text = article_data.get("content") or ""
+                if not existing.source_metadata:
+                    existing.source_metadata = {}
+                existing.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
+                if article_data.get("image_url") and not existing.source_metadata.get("picture_url"):
+                    existing.source_metadata["picture_url"] = article_data["image_url"]
+                print(f"  [OK] Scraped and updated existing item with {len(article_data.get('content', ''))} chars")
+            else:
+                print("  [WARN] Scraping failed for existing item")
+        await deduplication_service.link_as_related(db, existing.id, topic_id)
+
+    def _should_skip_item(self, title: str, url: str, snippet: str) -> bool:
+        """Check if item should be skipped"""
+        if not title and not url:
+            print("  [SKIP] Skipping news item with no title or URL")
+            return True
+        if not snippet or snippet.lower() in ("comments", ""):
+            print(f"  [SKIP] Skipping item '{title}' - empty or trivial description")
+            source_url = url or "unknown"
+            self._test_scrape_item(title, url, source_url)
+            return True
+        return False
+
+    def _create_content_item(self, news_item: Dict, topic_id: int, title: str, slug: str, created_time: datetime) -> ContentItem:
+        """Create new content item"""
+        snippet = news_item.get("snippet", "")
+        category_text = f"{title} {snippet}"
+        category = self.categorizer.categorize_text(category_text)
+        image_url = news_item.get("image_url") or news_item.get("picture")
+        
+        return ContentItem(
+            topic_id=topic_id,
+            title=title,
+            slug=slug,
+            description=snippet,
+            category=category,
+            content_type="news_update",
+            content_text=snippet or "",
+            ai_model_used="google_trends_news_v1",
+            source_urls=[news_item.get("url", "")],
+            is_published=True,
+            created_at=created_time,
+            source_metadata={
+                "source": news_item.get("source", "News"),
+                "picture_url": image_url,
+                "title": title,
+                "scraped_at": None,
+            },
+        )
+
+    async def update_topic_news_items(self, db: AsyncSession, topic_id: int, news_items: List[Dict]) -> None:
         """Update a topic's news items in the database with deduplication"""
         try:
             print(f"Updating news items for topic {topic_id}")
             print(f"Number of news items to add: {len(news_items)}")
-
             base_time = datetime.now(timezone.utc)
 
             for idx, news_item in enumerate(news_items):
-                title = news_item.get("title", "").strip()
+                title = news_item.get("title", "").strip() or news_item.get("url", "").split("/")[-1][:100] or "News Update"
                 url = news_item.get("url", "")
-
-                if not title and not url:
-                    print("  [SKIP] Skipping news item with no title or URL")
-                    continue
-
-                if not title:
-                    title = url.split("/")[-1][:100] or "News Update"
-
-                # Skip items with empty or trivial descriptions
                 snippet = news_item.get("snippet", "").strip()
-                if not snippet or snippet.lower() in ("comments", ""):
-                    print(
-                        f"  [SKIP] Skipping item '{title}' - empty or trivial description"
-                    )
-                    # Try to scrape to see if we can salvage it
-                    source_url = news_item.get("source", "unknown")
-                    self._test_scrape_item(title, url, source_url)
+
+                if self._should_skip_item(title, url, snippet):
                     continue
 
                 existing = await deduplication_service.find_duplicate(db, title, url)
-
                 if existing:
-                    print(
-                        f"  [LINK] Duplicate found for '{title}' - linking as related"
-                    )
-
-                    # If existing item hasn't been scraped yet, scrape it now
-                    if url and not (
-                        existing.source_metadata
-                        and existing.source_metadata.get("scraped_at")
-                    ):
-                        print(f"  [SCRAPE] Scraping unscraped existing article: {url}")
-                        article_data = article_scraper.fetch_article(url)
-                        if article_data:
-                            existing.content_text = article_data.get("content")
-                            if not existing.source_metadata:
-                                existing.source_metadata = {}
-                            existing.source_metadata["scraped_at"] = datetime.now(
-                                timezone.utc
-                            ).isoformat()
-                            if article_data.get(
-                                "image_url"
-                            ) and not existing.source_metadata.get("picture_url"):
-                                existing.source_metadata["picture_url"] = article_data[
-                                    "image_url"
-                                ]
-                            print(
-                                f"  [OK] Scraped and updated existing item with {len(article_data.get('content', ''))} chars"
-                            )
-                        else:
-                            print(f"  [WARN] Scraping failed for existing item")
-
-                    await deduplication_service.link_as_related(
-                        db, existing.id, topic_id
-                    )
+                    print(f"  [LINK] Duplicate found for '{title}' - linking as related")
+                    await self._process_existing_item(db, existing, url, topic_id)
                     continue
 
                 slug = generate_slug(title) if title else generate_slug_from_url(url)
-
-                # Check if slug already exists
-                result = await db.execute(
-                    select(ContentItem).where(ContentItem.slug == slug)
-                )
+                result = await db.execute(select(ContentItem).where(ContentItem.slug == slug))
                 if result.scalar_one_or_none():
                     print(f"  [SKIP] Slug already exists for '{title}' - skipping")
                     continue
 
                 created_time = base_time + timedelta(microseconds=idx * 1000)
-
-                snippet = news_item.get("snippet", "")
-                category_text = f"{title} {snippet}"
-                category = self.categorizer.categorize_text(category_text)
-
-                # Don't scrape during initial fetch - use RSS snippet only
-                # Scraping will be done on-demand when content is viewed
-                image_url = news_item.get("image_url", None) or news_item.get(
-                    "picture", None
-                )
-
-                content_item = ContentItem(
-                    topic_id=topic_id,
-                    title=title,
-                    slug=slug,
-                    description=snippet,
-                    category=category,
-                    content_type="news_update",
-                    content_text=snippet or "",  # Just use snippet for now
-                    ai_model_used="google_trends_news_v1",
-                    source_urls=[url],
-                    is_published=True,
-                    created_at=created_time,
-                    source_metadata={
-                        "source": news_item.get("source", "News"),
-                        "picture_url": image_url,
-                        "title": title,
-                        "scraped_at": None,  # Mark as not scraped yet
-                    },
-                )
+                content_item = self._create_content_item(news_item, topic_id, title, slug, created_time)
                 db.add(content_item)
                 print(f"  [OK] Created new content for '{title}'")
 
             await db.commit()
             print(f"[OK] Successfully processed news items for topic {topic_id}")
-
-            # Fire and forget: scrape articles in background with concurrency limit
             asyncio.create_task(self._scrape_all_new_articles(news_items))
         except Exception as e:
             print(f"[ERROR] Error updating news items for topic {topic_id}: {str(e)}")
             print("Detailed error:", e.__class__.__name__, str(e))
             raise
 
-    async def save_trends_to_database(
-        self, db: AsyncSession, trends: List[Dict], google_trends_tag: str
-    ) -> tuple:
-        """Save or update trends in database. Returns (saved_topics, new_content_count)"""
-        print("Starting save_trends_to_database...")
-        print(f"Processing {len(trends)} trends for database storage")
-        saved_topics = []
-        new_content_count = 0
-
-        if not trends:
-            print("Warning: No trends to save")
-            return [], 0
-
-        # Filter out any trends with google trends tag to prevent them from being created
+    def _filter_trends(self, trends: List[Dict], google_trends_tag: str) -> List[Dict]:
+        """Filter out trends with google trends tag"""
         filtered_trends = []
         for trend in trends:
             tags = trend.get("tags", [])
             if google_trends_tag not in tags:
                 filtered_trends.append(trend)
             else:
-                print(
-                    f"[SKIP] Skipping trend with google_trends tag: {trend.get('title')}"
-                )
+                print(f"[SKIP] Skipping trend with google_trends tag: {trend.get('title')}")
+        return filtered_trends
 
-        trends = filtered_trends
+    async def _process_single_trend(self, db: AsyncSession, trend_data: Dict, google_trends_tag: str) -> tuple:
+        """Process a single trend. Returns (topic, is_new)"""
+        normalized_title = trend_data["title"].lower().replace(" ", "_")[:190]
+        print(f"Processing trend: {trend_data['title']}")
+
+        result = await db.execute(select(Topic).where(Topic.normalized_title == normalized_title))
+        existing_topic = result.scalar_one_or_none()
+
+        if existing_topic:
+            await self._update_existing_topic(db, existing_topic, trend_data, google_trends_tag)
+            return existing_topic, False
+        else:
+            new_topic = await self._create_new_topic(db, trend_data, normalized_title, google_trends_tag)
+            return new_topic, True
+
+    def _report_bad_feeds(self) -> None:
+        """Report detected bad feeds"""
+        if self.bad_feeds:
+            print("\n⚠️ Bad feeds detected (consistently providing empty/trivial content):")
+            for feed_url, count in sorted(self.bad_feeds.items(), key=lambda x: x[1], reverse=True):
+                print(f"  - {feed_url}: {count} bad items")
+            print("Consider removing these feeds from rss_feeds.txt")
+
+    async def save_trends_to_database(self, db: AsyncSession, trends: List[Dict], google_trends_tag: str) -> tuple:
+        """Save or update trends in database. Returns (saved_topics, new_content_count)"""
+        print("Starting save_trends_to_database...")
+        print(f"Processing {len(trends)} trends for database storage")
+        
         if not trends:
-            print(
-                "Warning: All trends were filtered out (all contained google_trends tag)"
-            )
+            print("Warning: No trends to save")
             return [], 0
 
-        for trend_data in trends:
+        filtered_trends = self._filter_trends(trends, google_trends_tag)
+        if not filtered_trends:
+            print("Warning: All trends were filtered out (all contained google_trends tag)")
+            return [], 0
+
+        saved_topics = []
+        new_content_count = 0
+
+        for trend_data in filtered_trends:
             try:
-                normalized_title = trend_data["title"].lower().replace(" ", "_")[:190]
-                print(f"Processing trend: {trend_data['title']}")
-
-                result = await db.execute(
-                    select(Topic).where(Topic.normalized_title == normalized_title)
-                )
-                existing_topic = result.scalar_one_or_none()
-
-                if existing_topic:
-                    await self._update_existing_topic(
-                        db, existing_topic, trend_data, google_trends_tag
-                    )
-                    saved_topics.append(existing_topic)
-                else:
-                    new_topic = await self._create_new_topic(
-                        db, trend_data, normalized_title, google_trends_tag
-                    )
-                    saved_topics.append(new_topic)
+                topic, is_new = await self._process_single_trend(db, trend_data, google_trends_tag)
+                saved_topics.append(topic)
+                if is_new:
                     new_content_count += 1
-
             except Exception as e:
                 print(f"❌ Error saving trend '{trend_data['title']}': {e}")
                 continue
@@ -243,21 +219,8 @@ class TrendingPersistence:
                 await db.refresh(topic)
                 print(f"✅ Refreshed topic: {topic.title}")
 
-            print(
-                f"🎯 Total trends saved/updated in database: {len(saved_topics)} (New: {new_content_count})"
-            )
-
-            # Report any bad feeds detected
-            if self.bad_feeds:
-                print(
-                    "\n⚠️ Bad feeds detected (consistently providing empty/trivial content):"
-                )
-                for feed_url, count in sorted(
-                    self.bad_feeds.items(), key=lambda x: x[1], reverse=True
-                ):
-                    print(f"  - {feed_url}: {count} bad items")
-                print("Consider removing these feeds from rss_feeds.txt")
-
+            print(f"🎯 Total trends saved/updated in database: {len(saved_topics)} (New: {new_content_count})")
+            self._report_bad_feeds()
             return saved_topics, new_content_count
 
         except Exception as e:
@@ -282,9 +245,10 @@ class TrendingPersistence:
         topic.trend_score = trend_data.get("trend_score", 0.7)
         topic.tags = trend_data.get("tags", ["trending", "canada", google_trends_tag])
         await db.flush()
+        await db.refresh(topic)
 
         if trend_data.get("news_items"):
-            await self.update_topic_news_items(db, topic.id, trend_data["news_items"])
+            await self.update_topic_news_items(db, topic.id, trend_data["news_items"]) # type: ignore
 
         print(
             f"🔄 Updated trend: {trend_data['title']} (Source: {trend_data['source']})"
@@ -314,9 +278,10 @@ class TrendingPersistence:
         )
         db.add(topic)
         await db.flush()
+        await db.refresh(topic)
 
         if trend_data.get("news_items"):
-            await self.update_topic_news_items(db, topic.id, trend_data["news_items"])
+            await self.update_topic_news_items(db, topic.id, trend_data["news_items"]) # type: ignore
 
         print(
             f"✅ Saved new trend: {trend_data['title']} (Source: {trend_data['source']})"
