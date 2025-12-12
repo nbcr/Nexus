@@ -961,6 +961,8 @@ async def image_proxy(
     """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
     logger = logging.getLogger("uvicorn.error")
 
+    # Validate URL parameter to prevent path traversal and SSRF
+    url = InputValidator.validate_xss_safe(url)
     _validate_image_url(url)
 
     try:
@@ -1032,8 +1034,11 @@ def _validate_scraping_url(url: str) -> None:
 
 
 def _validate_image_url(url: str) -> None:
-    """Validate URL for security against SSRF attacks."""
+    """Validate URL for security against SSRF attacks and path traversal."""
     try:
+        # First validate with InputValidator to prevent path traversal
+        url = InputValidator.validate_path_safe(url)
+        
         parsed = urlparse(url)
 
         if parsed.scheme not in ("http", "https"):
@@ -1042,6 +1047,10 @@ def _validate_image_url(url: str) -> None:
         hostname = parsed.hostname
         if not hostname:
             raise HTTPException(status_code=400, detail=ERROR_INVALID_URL)
+
+        # Validate path component for traversal attacks
+        if parsed.path and ("../" in parsed.path or "..\\" in parsed.path):
+            raise HTTPException(status_code=400, detail="Path traversal detected")
 
         # Check for IP addresses and validate they're not private/internal
         try:
