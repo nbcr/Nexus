@@ -1603,4 +1603,13 @@ The reboot manager service monitors this file and removes it once reboot is init
 ## Commits
 - ad4fa83: fix: rss_fetcher.py - remove timeout parameter, unused feed_url, reduce complexity
 - 447764d: fix: reduce cognitive complexity and extract nested conditionals in article_scraper and rss_fetcher
+- 442d11c: fix: reboot manager to use temp/nexus_reboot_request on Windows
+- ff25bf7: feat: add graceful RSS fetcher support to reboot manager
+
+## Graceful Reboot for RSS Fetcher
+Added interrupt handling so the reboot manager waits for the RSS fetcher to complete its current batch before rebooting:
+- Fetcher calls `reboot_manager.set_rss_fetcher_active(True)` when starting batch processing
+- Reboot manager checks `rss_fetcher_active` flag every 5 seconds (max 5 minutes wait)
+- Fetcher calls `reboot_manager.set_rss_fetcher_active(False)` in finally block when batch completes
+- Reboot proceeds only when all safe conditions met: no active connections, no content refresh, no fetcher active
 
