@@ -14,7 +14,7 @@ import logging
 
 # Reboot request file location
 if sys.platform == "win32":
-    REBOOT_FILE = Path(os.path.join(os.path.expanduser("~"), ".nexus_reboot_request"))
+    REBOOT_FILE = Path(os.path.join(os.path.dirname(__file__), "..", "..", "temp", "nexus_reboot_request"))
 else:
     REBOOT_FILE = Path("/temp/nexus_reboot_request")
 
