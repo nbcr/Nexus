@@ -11,7 +11,7 @@ from sqlalchemy import inspect
 
 
 async def verify_migrations_match_db():
-    async with AsyncSessionLocal() as db:
+    async with AsyncSessionLocal():
         print("=" * 70)
         print("MIGRATION vs DATABASE INTEGRITY CHECK")
         print("=" * 70)
@@ -41,7 +41,7 @@ async def verify_migrations_match_db():
 
                 # Check defaults
                 if col.default:
-                    col_def += f" [DEFAULT]"
+                    col_def += " [DEFAULT]"
 
                 print(col_def)
 

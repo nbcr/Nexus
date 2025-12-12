@@ -1,8 +1,15 @@
 import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-# Use sync URL from .env
-db_url = "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+load_dotenv()
+
+# Use database URL from .env
+db_url = os.getenv("DATABASE_URL")
+if not db_url:
+    print("ERROR: DATABASE_URL not found in .env")
+    exit(1)
+
 engine = create_engine(db_url)
 
 try:

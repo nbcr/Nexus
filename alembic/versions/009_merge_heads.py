@@ -16,8 +16,10 @@ depends_on = None
 
 
 def upgrade():
+    # Merge heads - no operations needed
     pass
 
 
 def downgrade():
+    # Merge heads - no operations needed
     pass
