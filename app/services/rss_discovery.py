@@ -513,68 +513,45 @@ class RSSDiscoveryService:
             score += 0.05
         return score
 
-    async def auto_discover_feeds_for_user(
-        self,
-        db: AsyncSession,
-        user_id: Optional[int],
-        session_token: Optional[str],
-        max_feeds: int = 10,
-    ) -> List[Dict]:
-        """
-        Automatically discover new RSS feeds based on user's preferences.
-        Searches for feeds matching user's top keywords and categories.
-
-        Returns:
-            List of newly discovered feeds with quality scores
-        """
-        # Get user preferences
-        preferences = await self.analyze_user_preferences(db, user_id, session_token)
-
-        # Get search terms from keywords and categories
+    def _get_search_terms(self, preferences: Dict) -> List[str]:
+        """Extract and deduplicate search terms from user preferences"""
         search_terms = []
         search_terms.extend(preferences["keywords"][:5])  # Top 5 keywords
         search_terms.extend(
             [cat.lower() for cat in preferences["top_categories"][:3]]
         )  # Top 3 categories
+        return list(set(search_terms))
 
-        # Remove duplicates
-        search_terms = list(set(search_terms))
-
-        # Search for feeds
-        all_discovered = []
+    async def _search_feeds_parallel(self, search_terms: List[str]) -> List[Dict]:
+        """Search for feeds in parallel and combine results"""
         tasks = []
-
         for term in search_terms[:5]:  # Search top 5 terms
             tasks.append(self.search_feeds_by_keyword(term, max_results=3))
 
-        # Execute searches in parallel
         results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # Combine results
+        
+        all_discovered = []
         for result in results:  # type: ignore
             if isinstance(result, list):
                 all_discovered.extend(result)
-            elif isinstance(result, Exception):
-                # Skip exceptions from failed searches
-                continue
+        return all_discovered
 
-        # Remove duplicates by URL
+    def _remove_duplicate_feeds(self, feeds: List[Dict]) -> List[Dict]:
+        """Remove duplicate feeds by URL"""
         seen_urls = set()
         unique_feeds = []
-        for feed in all_discovered:
+        for feed in feeds:
             if feed["url"] not in seen_urls:
                 seen_urls.add(feed["url"])
                 unique_feeds.append(feed)
+        return unique_feeds
 
-        # Sort by quality score
-        unique_feeds.sort(key=lambda x: x["quality_score"], reverse=True)
-
-        # Filter out feeds we already have in curated list and rss_feeds.txt
+    async def _get_existing_urls(self) -> set:
+        """Get URLs of existing feeds from curated list and file"""
         existing_urls = set()
         for feeds in self.CURATED_FEEDS.values():
             existing_urls.update(feeds)
 
-        # Also check rss_feeds.txt
         def _read_rss_feeds_file():
             urls = set()
             try:
@@ -592,9 +569,33 @@ class RSSDiscoveryService:
         
         file_urls = await asyncio.to_thread(_read_rss_feeds_file)
         existing_urls.update(file_urls)
+        return existing_urls
 
+    async def auto_discover_feeds_for_user(
+        self,
+        db: AsyncSession,
+        user_id: Optional[int],
+        session_token: Optional[str],
+        max_feeds: int = 10,
+    ) -> List[Dict]:
+        """
+        Automatically discover new RSS feeds based on user's preferences.
+        Searches for feeds matching user's top keywords and categories.
+
+        Returns:
+            List of newly discovered feeds with quality scores
+        """
+        preferences = await self.analyze_user_preferences(db, user_id, session_token)
+        search_terms = self._get_search_terms(preferences)
+        all_discovered = await self._search_feeds_parallel(search_terms)
+        unique_feeds = self._remove_duplicate_feeds(all_discovered)
+        
+        # Sort by quality score
+        unique_feeds.sort(key=lambda x: x["quality_score"], reverse=True)
+        
+        existing_urls = await self._get_existing_urls()
         new_feeds = [f for f in unique_feeds if f["url"] not in existing_urls]
-
+        
         return new_feeds[:max_feeds]
 
 
