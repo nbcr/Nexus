@@ -184,6 +184,9 @@ async def get_personalized_feed(
         )
 
     logger.info("[FEED] get_all_feed returned, building response")
+    
+    # Get logger for nested functions
+    bg_logger = logging.getLogger(LOGGER_NAME)
 
     def _find_articles_to_scrape(items: list) -> list:
         """Find articles that need content scraping."""
@@ -205,9 +208,10 @@ async def get_personalized_feed(
                         timeout=SCRAPE_TIMEOUT
                     )
         except asyncio.TimeoutError:
-            logger.debug(f"Background scrape timed out for {item['content_id']}")
+            logger.debug("Background scrape timed out for %s", item['content_id'])
         except Exception as e:
-            logger.debug(f"Background scrape error for {item['content_id']}: {e}")
+            safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.debug("Background scrape error for %s: %s", item['content_id'], safe_error)
 
     async def background_scrape_articles():
         """Background scraping task - runs in separate worker"""
@@ -217,7 +221,7 @@ async def get_personalized_feed(
                 async with AsyncSessionLocal() as bg_db:
                     # Limit to only 1 article per request to prevent overwhelming
                     for item in articles_to_scrape[:1]:
-                        await _scrape_single_article(item, bg_db, logger)
+                        await _scrape_single_article(item, bg_db, bg_logger)
         except Exception as e:
             logger.debug(f"Background scraping task failed: {e}")
 
@@ -536,7 +540,8 @@ async def get_content_snippet_priority(
         if _is_rate_limit_error(e):
             return _get_rate_limit_response()
         logger = logging.getLogger(LOGGER_NAME)
-        logger.debug(f"Priority scrape error for {content_id}: {e}")
+        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.debug("Priority scrape error for %s: %s", content_id, safe_error)
         # Return failed status when scraping fails
         return {
             "snippet": None,
@@ -843,9 +848,10 @@ async def _scrape_thumbnail(
             return data["image_url"]
     except Exception:
         await db.rollback()
+        safe_source_url = ''.join(c for c in source_url[:200] if c.isprintable() and c not in '\n\r\t')
         logger.exception(
             "Thumbnail scrape failed",
-            extra={"content_id": content.id, "source_url": source_url},
+            extra={"content_id": content.id, "source_url": safe_source_url},
         )
     _thumbnail_cache[content.id] = (None, current_time)
     return None
@@ -945,8 +951,8 @@ async def image_proxy(
     except HTTPException:
         raise
     except Exception:
-        safe_url = url.replace("\n", "").replace("\r", "")
-        logger.warning(f"Image proxy failed for URL: {safe_url}")
+        safe_url = ''.join(c for c in url[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.warning("Image proxy failed for URL: %s", safe_url)
         raise HTTPException(status_code=404, detail=ERROR_UNABLE_TO_FETCH_IMAGE)
 
 
@@ -1043,8 +1049,9 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
     import httpx
 
     async with httpx.AsyncClient(follow_redirects=False, timeout=5.0) as client:
-        safe_url = url.replace("\n", "").replace("\r", "")
-        logger.info(f"Image proxy fetch: {safe_url}")
+        # Sanitize URL for logging to prevent log injection
+        safe_url = ''.join(c for c in url[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.info("Image proxy fetch: %s", safe_url)
         resp = await client.get(url)
         resp.raise_for_status()
         
