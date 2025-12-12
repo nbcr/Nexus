@@ -2,7 +2,7 @@
 
 **Project:** nbcr_Nexus
 
-**Total Issues:** 70
+**Total Issues:** 46
 
 **JavaScript Issues:** 45
 
@@ -20,70 +20,11 @@
 
 ---
 
-### 🟡 MAJOR Issues (70)
+### 🟡 MAJOR Issues (0)
 
-#### app/static/css/admin.css
-- **Line 407:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 510:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
+*All MAJOR issues have been resolved.*
 
-#### app/static/css/auth.css
-- **Line 297:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-
-#### app/static/css/feed.css
-- **Line 361:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 191:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-
-#### app/static/css/trending.css
-- **Line 225:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 50:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 114:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-
-#### app/static/js/HeaderAuth.js
-- **Line 175:** Promise-returning function provided to variable where a void return was expected. (`javascript:S6544`)
-
-#### app/templates/history.html
-- **Line 187:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 194:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 413:** Extract this nested ternary operation into an independent statement. (`javascript:S3358`)
-- **Line 566:** Prefer top-level await over an async function `loadHistory` call. (`javascript:S7785`)
-
-#### nginx/404.html
-- **Line 67:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
-
-#### nginx/500.html
-- **Line 67:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
-
-#### nginx/502.html
-- **Line 67:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
-
-#### scripts/check_categorization.py
-- **Line 297:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 303:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### scripts/fetch_content.py
-- **Line 23:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 26:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### scripts/remove_google_trends.py
-- **Line 85:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### storage_monitor.py
-- **Line 400:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 421:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### test_betakit.py
-- **Line 38:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 43:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### test_ids.py
-- **Line 56:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 106:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 110:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 118:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### test_instant_block.py
-- **Line 17:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 19:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
+---
 
 ---
 
