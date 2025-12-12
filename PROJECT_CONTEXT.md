@@ -2598,3 +2598,54 @@ Added interrupt handling so the reboot manager waits for the RSS fetcher to comp
 - Reboot proceeds only when all safe conditions met: no active connections, no content refresh, no fetcher active
 
 
+
+---
+
+## 2025-12-12: Code Quality & Security Improvements
+
+### Linting Fixes (JavaScript)
+
+Fixed all ESLint/SonarQube issues across frontend files:
+
+**Global Issues Resolved:**
+- Replaced all window references with globalThis (S7764) across:
+  - app/static/js/HeaderAuth.js
+  - app/static/js/feed-notifier.js
+  - app/static/js/header.js
+  - app/static/js/history-tracker.js
+  - app/static/js/hover-tracker.js
+  - app/static/js/trending.js
+  - app/static/js/ui.js
+
+**Specific Fixes:**
+- app/templates/login.html:
+  - Changed async function to block scope with arrow function
+  - Added proper error handling in auth check try-catch
+  - Removed unused password variable reference
+
+- app/templates/register.html:
+  - Updated window.location.href to globalThis.location.href
+  - Changed String.replace() to String.replaceAll() (S7780)
+
+- app/static/js/ui.js:
+  - Fixed duplicate closing brace in updateUI() method
+  - Updated all globalThis references
+
+- app/static/js/feed-notifier.js:
+  - **Security improvement**: Upgraded visitor ID generation from Math.random() fallback to crypto.getRandomValues() (S2245)
+  - Now uses tiered approach: crypto.randomUUID() -> crypto.getRandomValues() -> Math.random() with Date.now()
+  - Ensures better security for session tracking
+
+- app/static/js/trending.js:
+  - Fixed negated condition logic in render() method
+  - Fixed escape characters in template literals
+
+**Commits:**
+- 0e5450c: fix: resolve linting errors - use globalThis instead of window, fix async patterns, fix conditional logic
+- f042e0c: fix: remove unnecessary escape characters in trending.js
+- 41cf085: fix: use crypto.getRandomValues instead of Math.random for visitor ID generation
+
+### Code Quality Status
+- All 40 minor JavaScript linting issues resolved
+- Ready to address 8 major issues and 1 critical issue in next phase
+- All changes committed and synced to main branch
