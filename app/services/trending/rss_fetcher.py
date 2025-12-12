@@ -132,6 +132,8 @@ class RSSFetcher:
 
     async def fetch_all_rss_feeds(self) -> List[Dict]:
         """Fetch from all configured RSS feeds in batches with timeout"""
+        from app.services.reboot_manager import reboot_manager
+
         self.failure_tracker.reset_if_needed()
 
         # Build list of feeds to fetch
@@ -145,41 +147,45 @@ class RSSFetcher:
         all_trends = []
         total_feeds = len(feeds_to_fetch)
 
-        # Process feeds in batches
-        for batch_num, i in enumerate(range(0, total_feeds, self.batch_size)):
-            batch = feeds_to_fetch[i : i + self.batch_size]
-            print(
-                f"[BATCH {batch_num + 1}] Processing {len(batch)} feeds (items_per_feed={self.items_per_feed})..."
-            )
-
-            tasks = []
-            feed_names = []
-
-            for feed_name, feed_config in batch:
-                print(f"  [{feed_name}] {feed_config['url']}")
-                task = self._fetch_single_feed_with_timeout(
-                    feed_name,
-                    feed_config["url"],
-                    feed_config.get("category_hint"),
+        try:
+            reboot_manager.set_rss_fetcher_active(True)
+            # Process feeds in batches
+            for batch_num, i in enumerate(range(0, total_feeds, self.batch_size)):
+                batch = feeds_to_fetch[i : i + self.batch_size]
+                print(
+                    f"[BATCH {batch_num + 1}] Processing {len(batch)} feeds (items_per_feed={self.items_per_feed})..."
                 )
-                tasks.append(task)
-                feed_names.append(feed_name)
 
-            results = await asyncio.gather(*tasks, return_exceptions=True)
+                tasks = []
+                feed_names = []
 
-            for feed_name, result in zip(feed_names, results):
-                if isinstance(result, Exception):
-                    print(f"  [ERROR] {feed_name}: {result}")
-                    self.failure_tracker.record_failure(feed_name)
-                elif isinstance(result, list):
-                    all_trends.extend(result)
-                    print(f"  [OK] {feed_name}: {len(result)} items")
-                    self.failure_tracker.record_success(feed_name)
-                else:
-                    print(f"  [WARN] Unexpected result from {feed_name}")
-                    self.failure_tracker.record_failure(feed_name)
+                for feed_name, feed_config in batch:
+                    print(f"  [{feed_name}] {feed_config['url']}")
+                    task = self._fetch_single_feed_with_timeout(
+                        feed_name,
+                        feed_config["url"],
+                        feed_config.get("category_hint"),
+                    )
+                    tasks.append(task)
+                    feed_names.append(feed_name)
 
-        return all_trends
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+
+                for feed_name, result in zip(feed_names, results):
+                    if isinstance(result, Exception):
+                        print(f"  [ERROR] {feed_name}: {result}")
+                        self.failure_tracker.record_failure(feed_name)
+                    elif isinstance(result, list):
+                        all_trends.extend(result)
+                        print(f"  [OK] {feed_name}: {len(result)} items")
+                        self.failure_tracker.record_success(feed_name)
+                    else:
+                        print(f"  [WARN] Unexpected result from {feed_name}")
+                        self.failure_tracker.record_failure(feed_name)
+
+            return all_trends
+        finally:
+            reboot_manager.set_rss_fetcher_active(False)
 
     async def _fetch_single_feed_with_timeout(
         self,

@@ -31,6 +31,7 @@ class RebootManager:
         self.reboot_requested = False
         self.active_connections = 0
         self.content_refresh_in_progress = False
+        self.rss_fetcher_active = False
 
     async def check_reboot_request(self):
         """Check if reboot has been requested"""
@@ -77,7 +78,7 @@ class RebootManager:
             except Exception:
                 is_refreshing = False
 
-            if self.active_connections == 0 and not is_refreshing:
+            if self.active_connections == 0 and not is_refreshing and not self.rss_fetcher_active:
                 logger.info("[REBOOT] Safe conditions met - proceeding with reboot")
                 return True
 
@@ -87,6 +88,8 @@ class RebootManager:
                 )
             if is_refreshing:
                 logger.info("[REBOOT] Waiting for content refresh to complete...")
+            if self.rss_fetcher_active:
+                logger.info("[REBOOT] Waiting for RSS fetcher to complete current batch...")
 
             await asyncio.sleep(check_interval)
 
@@ -156,6 +159,10 @@ class RebootManager:
     def unregister_connection(self):
         """Unregister a user connection"""
         self.active_connections = max(0, self.active_connections - 1)
+
+    def set_rss_fetcher_active(self, active: bool):
+        """Set RSS fetcher active status"""
+        self.rss_fetcher_active = active
 
 
 # Global instance
