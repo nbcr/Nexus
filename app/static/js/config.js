@@ -1,6 +1,6 @@
 // Configuration
 const CONFIG = {
-    API_BASE_URL: window.location.origin,
+    API_BASE_URL: globalThis.location.origin,
     SESSION_KEY: 'nexus_session',
     TOKEN_KEY: 'nexus_token',
     USER_KEY: 'nexus_user'
@@ -48,7 +48,7 @@ const Utils = {
 
     // Generate session token
     generateSessionToken() {
-        return 'session_' + Math.random().toString(36).substr(2, 9);
+        return 'session_' + Math.random().toString(36).substring(2, 11);
     },
 
     // Show/hide elements

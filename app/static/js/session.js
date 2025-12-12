@@ -46,7 +46,7 @@ class SessionManager {
     updateSessionWarning() {
         const warningElement = document.getElementById('session-warning');
         if (warningElement) {
-            if (window.auth && !window.auth.isLoggedIn()) {
+            if (globalThis.auth && !globalThis.auth.isLoggedIn()) {
                 warningElement.style.display = 'block';
             } else {
                 warningElement.style.display = 'none';

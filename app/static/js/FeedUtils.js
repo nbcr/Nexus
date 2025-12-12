@@ -209,4 +209,4 @@ class FeedUtils {
     }
 }
 
-window.FeedUtils = FeedUtils;
+globalThis.FeedUtils = FeedUtils;

@@ -18,11 +18,11 @@ class GlobalScrollTracker {
     }
 
     attachListener() {
-        window.addEventListener('scroll', this.handleScroll, { passive: true });
+        globalThis.addEventListener('scroll', this.handleScroll, { passive: true });
     }
 
     detachListener() {
-        window.removeEventListener('scroll', this.handleScroll);
+        globalThis.removeEventListener('scroll', this.handleScroll);
         if (this.throttleTimeout) {
             clearTimeout(this.throttleTimeout);
         }
@@ -40,7 +40,7 @@ class GlobalScrollTracker {
 
     updateScrollVelocity() {
         const now = Date.now();
-        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollTop = globalThis.scrollY || document.documentElement.scrollTop;
 
         const timeDelta = now - this.lastScrollTime;
         const distanceDelta = Math.abs(scrollTop - this.lastScrollTop);
@@ -81,4 +81,4 @@ class GlobalScrollTracker {
 }
 
 // Export
-window.GlobalScrollTracker = GlobalScrollTracker;
+globalThis.GlobalScrollTracker = GlobalScrollTracker;

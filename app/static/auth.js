@@ -119,10 +119,10 @@ function initAuthManager() {
 }
 
 // Try to initialize immediately, but will retry if CONFIG not ready
-if (typeof CONFIG === 'undefined') {
-    document.addEventListener('DOMContentLoaded', initAuthManager);
-} else {
+if (typeof CONFIG !== 'undefined') {
     auth = new AuthManager();
+} else {
+    document.addEventListener('DOMContentLoaded', initAuthManager);
 }
 
 // Auth form handlers

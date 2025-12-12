@@ -10,70 +10,81 @@ class FeedRenderer {
     }
 
     renderContentItem(item, container, onContentClick) {
+        const article = this.createArticleElement(item);
+        const imageHtml = this.buildImageHtml(item);
+        const summaryHtml = this.buildSummaryHtml(item);
+        const readMoreButton = this.buildReadMoreButton(item);
+        
+        article.innerHTML = this.buildArticleHTML(item, imageHtml, summaryHtml, readMoreButton);
+        
+        if (item.facts && item.facts.trim()) {
+            article.dataset.snippetLoaded = 'true';
+        }
+
+        const isNewsArticle = FeedUtils.isNewsArticle(item);
+        const isSearchQuery = FeedUtils.isSearchQuery(item);
+        this.setupCardEventHandlers(article, item, isNewsArticle, isSearchQuery, onContentClick);
+        this.setupCardImage(article, item);
+
+        container.appendChild(article);
+    }
+
+    createArticleElement(item) {
         const article = document.createElement('article');
         article.className = 'feed-item';
         article.dataset.contentId = item.content_id;
         article.dataset.contentSlug = item.slug || `content-${item.content_id}`;
         article.dataset.topicId = item.topic_id;
+        return article;
+    }
 
-        // Build image HTML
-        const imageHtml = this.buildImageHtml(item);
-
-        const source = item.source_metadata?.source || 'News';
-        const isNewsArticle = FeedUtils.isNewsArticle(item);
-        
-        // Build summary HTML for expanded content
-        // Show facts if available, otherwise empty (spinner will show on click)
-        let summaryHtml;
-        if (item.facts && item.facts.trim()) {
-            // Show scraped facts if available
-            const cleanSummary = FeedUtils.cleanSnippet(item.facts);
-            const paragraphs = cleanSummary.split('\n\n');
-            const factsContent = paragraphs.map(p => {
-                // Check if paragraph starts with bullet point
-                if (p.trim().startsWith('•')) {
-                    // Format as list item
-                    return `<li style="margin-bottom: 8px; line-height: 1.6;">${p.trim().substring(1).trim()}</li>`;
-                }
-                return `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`;
-            }).join('');
-            
-            // Check if we have list items
-            if (factsContent.includes('<li')) {
-                summaryHtml = `<div class="feed-item-summary"><ul style="margin: 0; padding-left: 20px; list-style-position: inside;">${factsContent}</ul></div>`;
-            } else {
-                summaryHtml = `<div class="feed-item-summary">${factsContent}</div>`;
-            }
-        } else {
-            // Always create summary element, even if empty (spinner will populate it on click)
-            summaryHtml = '<div class="feed-item-summary"></div>';
+    buildSummaryHtml(item) {
+        if (!item.facts || !item.facts.trim()) {
+            return '<div class="feed-item-summary"></div>';
         }
 
+        const cleanSummary = FeedUtils.cleanSnippet(item.facts);
+        const paragraphs = cleanSummary.split('\n\n');
+        const factsContent = paragraphs.map(p => {
+            if (p.trim().startsWith('•')) {
+                return `<li style="margin-bottom: 8px; line-height: 1.6;">${p.trim().substring(1).trim()}</li>`;
+            }
+            return `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`;
+        }).join('');
+        
+        if (factsContent.includes('<li')) {
+            return `<div class="feed-item-summary"><ul style="margin: 0; padding-left: 20px; list-style-position: inside;">${factsContent}</ul></div>`;
+        }
+        return `<div class="feed-item-summary">${factsContent}</div>`;
+    }
+
+    buildReadMoreButton(item) {
+        const isNewsArticle = FeedUtils.isNewsArticle(item);
         const isSearchQuery = FeedUtils.isSearchQuery(item);
         
-        let readMoreButton = '';
         if (isNewsArticle) {
-            readMoreButton = `<button class="btn-read-more" data-content-id="${item.content_id}">
-                                Visit site for full story
-                            </button>`;
-        } else if (isSearchQuery) {
-            readMoreButton = `<button class="btn-read-more" data-content-id="${item.content_id}">
-                                Show Search Context
-                            </button>`;
+            return `<button class="btn-read-more" data-content-id="${item.content_id}">Visit site for full story</button>`;
         }
+        if (isSearchQuery) {
+            return `<button class="btn-read-more" data-content-id="${item.content_id}">Show Search Context</button>`;
+        }
+        return '';
+    }
 
-        article.innerHTML = `
+    buildArticleHTML(item, imageHtml, summaryHtml, readMoreButton) {
+        const source = item.source_metadata?.source || 'News';
+        const relevanceHtml = this.buildRelevanceHtml(item);
+        const tagsHtml = this.buildTagsHtml(item);
+        const relatedQueriesHtml = this.buildRelatedQueriesHtml(item);
+
+        return `
         <div class="feed-item-content">
             <div class="feed-item-header">
                 ${imageHtml}
                 <div class="feed-item-header-content">
                     <div class="feed-item-meta">
                         <span class="feed-item-category">${item.category || 'Trending'}</span>
-                        ${item.relevance_score && globalThis.nexusDebugMode ? `
-                            <span class="feed-item-relevance" title="Relevance to your interests">
-                                ${Math.round(item.relevance_score * 100)}% match
-                            </span>
-                        ` : ''}
+                        ${relevanceHtml}
                         <span class="feed-item-source">${source}</span>
                     </div>
                     <h2 class="feed-item-title">${item.title}</h2>
@@ -88,317 +99,327 @@ class FeedRenderer {
                         ${readMoreButton}
                         <span class="feed-item-time">${FeedUtils.formatTime(item.created_at)}</span>
                     </div>
-                    ${item.tags && item.tags.length > 0 ? `
-                        <div class="feed-item-tags">
-                            ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                        </div>
-                    ` : ''}
-                    ${item.related_queries && item.related_queries.length > 0 ? `
-                        <div class="feed-item-related">
-                            <h4 class="related-title">🔍 Related Searches:</h4>
-                            <div class="related-queries">
-                                ${item.related_queries.map(query => `
-                                    <a href="${query.url}" target="_blank" rel="noopener" class="related-query">
-                                        ${query.title}
-                                    </a>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
+                    ${tagsHtml}
+                    ${relatedQueriesHtml}
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
+    }
 
-        // Mark as loaded if facts already present
-        if (item.facts && item.facts.trim()) {
-            article.dataset.snippetLoaded = 'true';
+    buildRelevanceHtml(item) {
+        if (item.relevance_score && globalThis.nexusDebugMode) {
+            return `<span class="feed-item-relevance" title="Relevance to your interests">${Math.round(item.relevance_score * 100)}% match</span>`;
         }
+        return '';
+    }
 
-        this.setupCardEventHandlers(article, item, isNewsArticle, isSearchQuery, onContentClick);
-        this.setupCardImage(article, item);
+    buildTagsHtml(item) {
+        if (item.tags && item.tags.length > 0) {
+            return `<div class="feed-item-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`;
+        }
+        return '';
+    }
 
-        container.appendChild(article);
+    buildRelatedQueriesHtml(item) {
+        if (item.related_queries && item.related_queries.length > 0) {
+            const queriesHtml = item.related_queries.map(query => 
+                `<a href="${query.url}" target="_blank" rel="noopener" class="related-query">${query.title}</a>`
+            ).join('');
+            return `<div class="feed-item-related"><h4 class="related-title">🔍 Related Searches:</h4><div class="related-queries">${queriesHtml}</div></div>`;
+        }
+        return '';
     }
 
     buildImageHtml(item) {
-        // Prefer stored database image (via new endpoint), fallback to local path, then thumbnails
-        let imageUrl = null;
-        let imageSrc = null;
-
-        // If we have a content_id, use the new image endpoint for stored WebP images
-        if (item.content_id) {
-            imageSrc = `/api/v1/content/${item.content_id}/image?size=800`;
-        } else if (item.local_image_path) {
-            // Fallback to local image path
-            imageSrc = item.local_image_path.startsWith("/") ? item.local_image_path : `/api/v1/content/proxy/image?url=${encodeURIComponent(item.local_image_path)}&w=743&h=413`;
-        } else {
-            // Fallback to thumbnail or picture URL from metadata
-            imageUrl = item.thumbnail_url || item.source_metadata?.picture_url;
-            if (imageUrl) {
-                imageSrc = imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
-            }
-        }
-
+        const imageSrc = this.getImageSrc(item);
+        
         if (imageSrc) {
             return `<div class="feed-item-image" style="aspect-ratio: 16/9; background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%); background-size: 200% 100%; animation: shimmer 2s infinite;">
             <img src="${imageSrc}" alt="${item.title}" loading="lazy" decoding="async" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
-        } else {
-            return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
+        }
+        return `<div class="feed-item-image" style="aspect-ratio: 16/9;">
             <img src="/static/img/placeholder.png" alt="No image" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
+    }
+
+    getImageSrc(item) {
+        if (item.content_id) {
+            return `/api/v1/content/${item.content_id}/image?size=800`;
         }
+        if (item.local_image_path) {
+            return item.local_image_path.startsWith("/") ? item.local_image_path : `/api/v1/content/proxy/image?url=${encodeURIComponent(item.local_image_path)}&w=743&h=413`;
+        }
+        
+        const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url;
+        if (imageUrl) {
+            return imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
+        }
+        return null;
     }
 
     setupCardEventHandlers(article, item, isNewsArticle, isSearchQuery, onContentClick) {
+        this.setupHeaderClickHandler(article, item, isNewsArticle);
+        this.setupReadMoreHandler(article, item);
+        this.setupSourceButtonHandler(article, item);
+    }
+
+    setupHeaderClickHandler(article, item, isNewsArticle) {
         const header = article.querySelector('.feed-item-header');
-        if (header) {
-            header.addEventListener('click', async (e) => {
-                if (e.target.closest('.feed-item-image') || e.target.closest('.btn-read-more') || e.target.closest('.btn-source')) return;
+        if (!header) return;
 
-                const wasExpanded = article.classList.contains('expanded');
-                article.classList.toggle('expanded');
+        header.addEventListener('click', async (e) => {
+            if (e.target.closest('.feed-item-image') || e.target.closest('.btn-read-more') || e.target.closest('.btn-source')) return;
 
-                // Emit card opened event for RSS source tracking
-                if (!wasExpanded) {
-                    const event = new CustomEvent('cardOpened', { detail: { contentId: item.content_id } });
-                    document.dispatchEvent(event);
-                }
+            const wasExpanded = article.classList.contains('expanded');
+            article.classList.toggle('expanded');
 
-                if (!wasExpanded && !article.dataset.snippetLoaded && isNewsArticle) {
+            if (!wasExpanded) {
+                this.emitCardOpenedEvent(item.content_id);
+                
+                if (!article.dataset.snippetLoaded && isNewsArticle) {
                     await this.loadSnippet(article, item);
                 }
-
-                if (!wasExpanded && !article.dataset.relatedLoaded) {
+                
+                if (!article.dataset.relatedLoaded) {
                     await this.loadRelatedContent(article, item);
                 }
-            });
-        }
+            }
+        });
+    }
 
-        // Add click handler for read more button - goes to source site
+    setupReadMoreHandler(article, item) {
         const readMoreBtn = article.querySelector('.btn-read-more');
-        if (readMoreBtn) {
-            readMoreBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+        if (!readMoreBtn) return;
 
-                // Emit card opened event for RSS source tracking
-                const event = new CustomEvent('cardOpened', { detail: { contentId: item.content_id } });
-                document.dispatchEvent(event);
+        readMoreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-                if (globalThis.historyTracker) {
-                    const slug = article.dataset.contentSlug;
-                    globalThis.historyTracker.recordClick(item.content_id, slug);
-                }
+            this.emitCardOpenedEvent(item.content_id);
+            this.trackClick(article, item);
 
-                // Go to source site instead of opening modal
-                if (item.source_urls && item.source_urls.length > 0) {
-                    window.open(item.source_urls[0], '_blank', 'noopener');
-                }
-            });
-        }
+            if (item.source_urls && item.source_urls.length > 0) {
+                window.open(item.source_urls[0], '_blank', 'noopener');
+            }
+        });
+    }
 
-        // Prevent source link from toggling card
+    setupSourceButtonHandler(article, item) {
         const sourceBtn = article.querySelector('.btn-source');
-        if (sourceBtn) {
-            sourceBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
+        if (!sourceBtn) return;
 
-                if (globalThis.historyTracker) {
-                    const slug = article.dataset.contentSlug;
-                    globalThis.historyTracker.recordClick(item.content_id, slug);
-                }
-            });
+        sourceBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.trackClick(article, item);
+        });
+    }
+
+    emitCardOpenedEvent(contentId) {
+        const event = new CustomEvent('cardOpened', { detail: { contentId } });
+        document.dispatchEvent(event);
+    }
+
+    trackClick(article, item) {
+        if (globalThis.historyTracker) {
+            const slug = article.dataset.contentSlug;
+            globalThis.historyTracker.recordClick(item.content_id, slug);
         }
     }
 
     async loadSnippet(article, item) {
         const summaryEl = article.querySelector('.feed-item-summary');
-        if (!summaryEl) return;
+        if (!summaryEl || article.dataset.snippetLoaded === 'true') return;
 
-        // If already loaded, don't reload
-        if (article.dataset.snippetLoaded === 'true') return;
-
-        // Check if already has facts
-        if (item.facts && item.facts.trim() && item.facts.length > 100) {
-            const paragraphs = item.facts.split('\n\n');
-            const factsHtml = paragraphs.map(p => {
-                // Check if paragraph starts with bullet point
-                if (p.trim().startsWith('•')) {
-                    // Format as list item
-                    return `<li style="margin-bottom: 8px; line-height: 1.6;">${p.trim().substring(1).trim()}</li>`;
-                }
-                return `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`;
-            }).join('');
-            
-            // Check if we have list items
-            if (factsHtml.includes('<li')) {
-                summaryEl.innerHTML = `<ul style="margin: 0; padding-left: 20px; list-style-position: inside;">${factsHtml}</ul>`;
-            } else {
-                summaryEl.innerHTML = factsHtml;
-            }
+        if (this.hasExistingFacts(item)) {
+            this.displayExistingFacts(summaryEl, item);
             article.dataset.snippetLoaded = 'true';
             return;
         }
 
-        const isNewsArticle = FeedUtils.isNewsArticle(item);
-
-        // For news articles without facts yet, show spinner and fetch
-        if (isNewsArticle && (!item.facts || !item.facts.trim())) {
-            // Show loading spinner
-            summaryEl.classList.add('loading-state');
-            summaryEl.innerHTML = `<div class="spinner"></div>
-                <p style="margin-top: 12px; color: #666;">Fetching story facts...</p>`;
-
-            try {
-                // Use priority endpoint for on-demand scraping with timeout
-                const response = await fetch(
-                    `/api/v1/content/snippet/${item.content_id}/priority?timeout=10`
-                );
-                const data = await response.json();
-
-                if (data.status === 'ready' && data.snippet) {
-                    // Facts ready - display them
-                    summaryEl.classList.remove('loading-state');
-                    summaryEl.innerHTML = `<p style="line-height: 1.8;">${data.snippet}</p>`;
-                    article.dataset.snippetLoaded = 'true';
-                } else if (data.status === 'loading') {
-                    // Still scraping - poll again with 1 second interval
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    await this.loadSnippet(article, item);
-                } else if (data.status === 'failed') {
-                    // Scraping failed - show error with button
-                    summaryEl.classList.remove('loading-state');
-                    const readMoreBtn = article.querySelector('.btn-read-more');
-                    const buttonText = readMoreBtn
-                        ? readMoreBtn.textContent.trim()
-                        : 'Visit site for full story';
-                    summaryEl.innerHTML = `
-                        <div style="text-align: center; padding: 20px;">
-                            <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">
-                                ⚠️ We couldn't fetch the story facts
-                            </p>
-                            <button class="btn-read-more" data-content-id="${item.content_id}" 
-                                style="background: #0078d4; color: white; border: none; padding: 10px 20px; 
-                                border-radius: 4px; cursor: pointer; font-weight: 500;">
-                                ${buttonText}
-                            </button>
-                        </div>
-                    `;
-                    // Re-attach click handler
-                    const newBtn = summaryEl.querySelector('.btn-read-more');
-                    if (newBtn) {
-                        newBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            const originalBtn = article.querySelector(
-                                '.feed-item-actions .btn-read-more'
-                            );
-                            if (originalBtn) originalBtn.click();
-                        });
-                    }
-                    article.dataset.snippetLoaded = 'true';
-                }
-            } catch (error) {
-                console.error('Error loading snippet:', error);
-                // Show error on network failure
-                summaryEl.classList.remove('loading-state');
-                const readMoreBtn = article.querySelector('.btn-read-more');
-                const buttonText = readMoreBtn
-                    ? readMoreBtn.textContent.trim()
-                    : 'Visit site for full story';
-                summaryEl.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">
-                            ⚠️ We couldn't fetch the story facts
-                        </p>
-                        <button class="btn-read-more" data-content-id="${item.content_id}" 
-                            style="background: #0078d4; color: white; border: none; padding: 10px 20px; 
-                            border-radius: 4px; cursor: pointer; font-weight: 500;">
-                            ${buttonText}
-                        </button>
-                    </div>
-                `;
-                // Re-attach click handler
-                const newBtn = summaryEl.querySelector('.btn-read-more');
-                if (newBtn) {
-                    newBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const originalBtn = article.querySelector(
-                            '.feed-item-actions .btn-read-more'
-                        );
-                        if (originalBtn) originalBtn.click();
-                    });
-                }
-                article.dataset.snippetLoaded = 'true';
-            }
+        if (this.shouldFetchSnippet(item)) {
+            await this.fetchAndDisplaySnippet(summaryEl, article, item);
         }
+    }
+
+    hasExistingFacts(item) {
+        return item.facts?.trim() && item.facts.length > 100;
+    }
+
+    shouldFetchSnippet(item) {
+        return FeedUtils.isNewsArticle(item) && !item.facts?.trim();
+    }
+
+    displayExistingFacts(summaryEl, item) {
+        const factsHtml = this.formatFactsContent(item.facts);
+        summaryEl.innerHTML = factsHtml.includes('<li') 
+            ? `<ul style="margin: 0; padding-left: 20px; list-style-position: inside;">${factsHtml}</ul>`
+            : factsHtml;
+    }
+
+    formatFactsContent(facts) {
+        return facts.split('\n\n').map(p => {
+            if (p.trim().startsWith('•')) {
+                return `<li style="margin-bottom: 8px; line-height: 1.6;">${p.trim().substring(1).trim()}</li>`;
+            }
+            return `<p style="line-height: 1.8; margin-bottom: 12px;">${p}</p>`;
+        }).join('');
+    }
+
+    async fetchAndDisplaySnippet(summaryEl, article, item) {
+        this.showLoadingState(summaryEl);
+
+        try {
+            const data = await this.fetchSnippetData(item.content_id);
+            await this.handleSnippetResponse(data, summaryEl, article, item);
+        } catch (error) {
+            console.error('Error loading snippet:', error);
+            this.displaySnippetError(summaryEl, article, item);
+        }
+    }
+
+    showLoadingState(summaryEl) {
+        summaryEl.classList.add('loading-state');
+        summaryEl.innerHTML = `<div class="spinner"></div><p style="margin-top: 12px; color: #666;">Fetching story facts...</p>`;
+    }
+
+    async fetchSnippetData(contentId) {
+        const response = await fetch(`/api/v1/content/snippet/${contentId}/priority?timeout=10`);
+        return response.json();
+    }
+
+    async handleSnippetResponse(data, summaryEl, article, item) {
+        if (data.status === 'ready' && data.snippet) {
+            this.displaySnippetSuccess(summaryEl, data.snippet, article);
+        } else if (data.status === 'loading') {
+            await this.retryAfterDelay(article, item);
+        } else {
+            this.displaySnippetError(summaryEl, article, item);
+        }
+    }
+
+    async retryAfterDelay(article, item) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await this.loadSnippet(article, item);
+    }
+
+    displaySnippetSuccess(summaryEl, snippet, article) {
+        summaryEl.classList.remove('loading-state');
+        summaryEl.innerHTML = `<p style="line-height: 1.8;">${snippet}</p>`;
+        article.dataset.snippetLoaded = 'true';
+    }
+
+    displaySnippetError(summaryEl, article, item) {
+        summaryEl.classList.remove('loading-state');
+        const buttonText = this.getErrorButtonText(article);
+        
+        summaryEl.innerHTML = this.buildErrorHTML(item.content_id, buttonText);
+        this.attachErrorButtonHandler(summaryEl, article);
+        article.dataset.snippetLoaded = 'true';
+    }
+
+    getErrorButtonText(article) {
+        const readMoreBtn = article.querySelector('.btn-read-more');
+        return readMoreBtn?.textContent?.trim() || 'Visit site for full story';
+    }
+
+    buildErrorHTML(contentId, buttonText) {
+        return `
+            <div style="text-align: center; padding: 20px;">
+                <p style="color: #d32f2f; font-weight: 500; margin-bottom: 16px;">⚠️ We couldn't fetch the story facts</p>
+                <button class="btn-read-more" data-content-id="${contentId}" 
+                    style="background: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    ${buttonText}
+                </button>
+            </div>
+        `;
+    }
+
+    attachErrorButtonHandler(summaryEl, article) {
+        const newBtn = summaryEl.querySelector('.btn-read-more');
+        newBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const originalBtn = article.querySelector('.feed-item-actions .btn-read-more');
+            originalBtn?.click();
+        });
     }
 
     async loadRelatedContent(article, item) {
         const contentInner = article.querySelector('.content-inner');
-        if (contentInner) {
-            try {
-                const data = await this.api.fetchRelated(item.content_id);
-                if (data.related_items && data.related_items.length > 0) {
-                    const relatedSection = document.createElement('div');
-                    relatedSection.className = 'related-stories-section';
-                    relatedSection.innerHTML = `
-                        <h4 class="related-stories-title">📰 Same Story From Other Sources:</h4>
-                        <div class="related-stories-list">
-                            ${data.related_items.map(related => `
-                                <div class="related-story-card">
-                                    <div class="related-story-source">${related.source || 'Unknown Source'}</div>
-                                    <div class="related-story-title">${related.title}</div>
-                                    ${related.source_urls && related.source_urls.length > 0 ? `
-                                        <a href="${related.source_urls[0]}" target="_blank" rel="noopener" class="related-story-link">
-                                            Read from this source →
-                                        </a>
-                                    ` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                    contentInner.appendChild(relatedSection);
-                }
-                article.dataset.relatedLoaded = 'true';
-            } catch (error) {
-                console.error('Error loading related content:', error);
-                article.dataset.relatedLoaded = 'error';
+        if (!contentInner) return;
+
+        try {
+            const data = await this.api.fetchRelated(item.content_id);
+            if (data.related_items && data.related_items.length > 0) {
+                this.appendRelatedSection(contentInner, data.related_items);
             }
+            article.dataset.relatedLoaded = 'true';
+        } catch (error) {
+            console.error('Error loading related content:', error);
+            article.dataset.relatedLoaded = 'error';
         }
     }
 
+    appendRelatedSection(contentInner, relatedItems) {
+        const relatedSection = document.createElement('div');
+        relatedSection.className = 'related-stories-section';
+        relatedSection.innerHTML = `
+            <h4 class="related-stories-title">📰 Same Story From Other Sources:</h4>
+            <div class="related-stories-list">
+                ${relatedItems.map(related => this.buildRelatedStoryCard(related)).join('')}
+            </div>
+        `;
+        contentInner.appendChild(relatedSection);
+    }
+
+    buildRelatedStoryCard(related) {
+        const linkHtml = related.source_urls && related.source_urls.length > 0 
+            ? `<a href="${related.source_urls[0]}" target="_blank" rel="noopener" class="related-story-link">Read from this source →</a>`
+            : '';
+        
+        return `
+            <div class="related-story-card">
+                <div class="related-story-source">${related.source || 'Unknown Source'}</div>
+                <div class="related-story-title">${related.title}</div>
+                ${linkHtml}
+            </div>
+        `;
+    }
+
     setupCardImage(article, item) {
-        // Add click handler to image to toggle card open/close
+        this.setupImageClickHandler(article, item);
+        this.setupImageColorExtraction(article);
+    }
+
+    setupImageClickHandler(article, item) {
         const imageEl = article.querySelector('.feed-item-image');
-        if (imageEl) {
-            imageEl.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const wasExpanded = article.classList.contains('expanded');
-                article.classList.toggle('expanded');
-                if (!wasExpanded && !article.dataset.snippetLoaded) {
-                    this.loadSnippet(article, item).catch(err => console.error('Error loading snippet:', err));
-                }
-            });
+        if (!imageEl) return;
+
+        imageEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasExpanded = article.classList.contains('expanded');
+            article.classList.toggle('expanded');
+            if (!wasExpanded && !article.dataset.snippetLoaded) {
+                this.loadSnippet(article, item).catch(err => console.error('Error loading snippet:', err));
+            }
+        });
+    }
+
+    setupImageColorExtraction(article) {
+        const img = article.querySelector('.feed-item-image img');
+        if (!img) {
+            article.style.setProperty('--card-color', 'rgb(100, 149, 237)');
+            return;
         }
 
-        // Extract dominant color from thumbnail for card background
-        const img = article.querySelector('.feed-item-image img');
-        if (img) {
-            img.crossOrigin = 'anonymous'; // Enable CORS for color extraction
-            img.addEventListener('load', () => {
-                FeedUtils.extractDominantColor(img, article);
-            });
-            // If image is already cached/loaded, extract color immediately
-            if (img.complete && img.naturalHeight !== 0) {
-                FeedUtils.extractDominantColor(img, article);
-            }
-        } else {
-            // If no image, set default color
-            article.style.setProperty('--card-color', 'rgb(100, 149, 237)');
+        img.crossOrigin = 'anonymous';
+        img.addEventListener('load', () => {
+            FeedUtils.extractDominantColor(img, article);
+        });
+        
+        if (img.complete && img.naturalHeight !== 0) {
+            FeedUtils.extractDominantColor(img, article);
         }
     }
 

@@ -8,7 +8,7 @@ class FeedObservers {
         this.feed = feed;
         this.scrollObserver = null;
         this.cardObserver = null;
-        this.lastScrollY = window.scrollY;
+        this.lastScrollY = globalThis.scrollY;
         this.scrollUpDistance = 0;
         this.scrollTimeout = null;
     }
@@ -51,7 +51,7 @@ class FeedObservers {
 
         this.cardObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                const contentId = parseInt(entry.target.dataset.contentId);
+                const contentId = Number.parseInt(entry.target.dataset.contentId, 10);
 
                 if (entry.isIntersecting) {
                     // Card became visible
@@ -84,7 +84,7 @@ class FeedObservers {
         const KEEP_CARDS_COUNT = 15; // Number of cards to keep after refresh
 
         const scrollHandler = () => {
-            const currentScrollY = window.scrollY;
+            const currentScrollY = globalThis.scrollY;
 
             // Only track upward scrolling near the top
             if (currentScrollY < this.lastScrollY && currentScrollY < 500) {
@@ -104,7 +104,7 @@ class FeedObservers {
         };
 
         // Throttle scroll events
-        window.addEventListener('scroll', () => {
+        globalThis.addEventListener('scroll', () => {
             if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
             this.scrollTimeout = setTimeout(scrollHandler, 50);
         });
@@ -125,4 +125,4 @@ class FeedObservers {
     }
 }
 
-window.FeedObservers = FeedObservers;
+globalThis.FeedObservers = FeedObservers;
