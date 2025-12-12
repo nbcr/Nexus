@@ -297,24 +297,23 @@ class FeedNotifier {
     }
 
     showTemporaryPopup(message) {
-        const popup = document.createElement('div');
-        popup.textContent = message;
-        popup.style.position = 'fixed';
-        popup.style.bottom = '30px';
-        popup.style.left = '50%';
-        popup.style.transform = 'translateX(-50%)';
-        popup.style.background = '#333';
-        popup.style.color = '#fff';
-        popup.style.padding = '12px 24px';
-        popup.style.borderRadius = '6px';
-        popup.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-        popup.style.zIndex = '9999';
-        popup.style.fontSize = '1rem';
-        popup.style.opacity = '0.95';
-        document.body.appendChild(popup);
+        // Use the same notification bar for consistency
+        const text = this.notificationBar.querySelector('.notification-text');
+        const badge = this.notificationBar.querySelector('.notification-badge');
+        
+        text.textContent = message;
+        badge.style.display = 'none'; // Hide badge for login message
+        
+        // Show notification
+        this.notificationBar.style.opacity = '1';
+        this.notificationBar.style.transform = 'translateX(-50%) translateY(0)';
+        
+        // Auto-hide after 3 seconds
         setTimeout(() => {
-            popup.remove();
-        }, 2000);
+            this.notificationBar.style.opacity = '0';
+            this.notificationBar.style.transform = 'translateX(-50%) translateY(-120%)';
+            badge.style.display = 'inline'; // Restore badge
+        }, 3000);
     }
 }
 
