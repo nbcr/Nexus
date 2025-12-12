@@ -149,100 +149,27 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 
-@router.get("/feed")
-async def get_feed(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=50),
-    category: Optional[str] = Query(None),
-    categories: Optional[str] = Query(None),  # New: comma-separated list
-    exclude_ids: Optional[str] = Query(None),
-    cursor: Optional[str] = Query(None),
-    nexus_session: Optional[str] = Cookie(default=None),
-):
-    """
-    Get personalized content feed with cursor-based pagination.
-    Shows newest content first and prevents duplicates.
-    Supports multi-category filtering via 'categories' param (comma-separated).
-    """
-    logger = logging.getLogger(LOGGER_NAME)
-    logger.info("[FEED] Endpoint called")
-
-    # Parse and validate parameters securely
+def _validate_feed_params(exclude_ids, categories, category, cursor):
+    """Validate and parse feed parameters."""
     excluded_ids = _parse_exclude_ids(exclude_ids)
     category_list = _parse_categories(categories, category)
-    
-    # Validate cursor parameter
     cursor = InputValidator.validate_cursor(cursor)
+    return excluded_ids, category_list, cursor
 
-    # Get session token for anonymous users
-    session_token = nexus_session or request.cookies.get("nexus_session")
-
-    logger.info("[FEED] About to call recommendation_service.get_all_feed")
-
-    # Sanitize user input for logging to prevent log injection
+def _log_feed_request(logger, page, category_list, exclude_ids, cursor):
+    """Log feed request with sanitized parameters."""
     safe_category_list = InputValidator.sanitize_for_logging(category_list)
     safe_exclude_ids = InputValidator.sanitize_for_logging(exclude_ids)
     safe_cursor = InputValidator.sanitize_for_logging(cursor)
-
+    
     logger.info(
         "Feed request: page=%d, categories=%s, exclude_ids=%s, cursor=%s",
         page, safe_category_list, safe_exclude_ids, safe_cursor
     )
-    logger.info("[FEED] Calling get_all_feed...")
-    # Get feed data
-    result = await _get_feed_data(db, page_size, excluded_ids, cursor, category_list, safe_category_list, logger)
 
-    logger.info("[FEED] get_all_feed returned, building response")
-    
-    # Get logger for nested functions
-    bg_logger = logging.getLogger(LOGGER_NAME)
-
-    def _find_articles_to_scrape(items: list) -> list:
-        """Find articles that need content scraping."""
-        return [
-            item for item in items
-            if (not item.get("facts") or not item.get("facts").strip())
-            and item.get("source_urls")
-        ]
-
-    async def _scrape_single_article(item: dict, bg_db: AsyncSession, logger) -> None:
-        """Scrape a single article with error handling."""
-        try:
-            content = await bg_db.get(ContentItem, item["content_id"])
-            if content and (not content.facts or not content.facts.strip()):
-                source_url = content.source_urls[0] if content.source_urls else None
-                if source_url:
-                    await asyncio.wait_for(
-                        _scrape_and_store_article(content, source_url, bg_db),
-                        timeout=SCRAPE_TIMEOUT
-                    )
-        except asyncio.TimeoutError:
-            logger.debug("Background scrape timed out for %s", item['content_id'])
-        except Exception as e:
-            safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
-            logger.debug("Background scrape error for %s: %s", item['content_id'], safe_error)
-
-    async def background_scrape_articles():
-        """Background scraping task - runs in separate worker"""
-        try:
-            articles_to_scrape = _find_articles_to_scrape(result["items"])
-            if articles_to_scrape:
-                async with AsyncSessionLocal() as bg_db:
-                    # Limit to only 1 article per request to prevent overwhelming
-                    for item in articles_to_scrape[:1]:
-                        await _scrape_single_article(item, bg_db, bg_logger)
-        except Exception as e:
-            safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
-            logger.debug("Background scraping task failed: %s", safe_error)
-
-    # Trigger background scraping for articles without content
-    # This happens in parallel without blocking the response
-    task = asyncio.create_task(background_scrape_articles())
-    task.add_done_callback(lambda t: None)  # Prevent garbage collection
-
-    response_data = {
+def _build_response_data(page, page_size, result, session_token):
+    """Build response data structure."""
+    return {
         "page": page,
         "page_size": page_size,
         "items": result["items"],
@@ -251,16 +178,88 @@ async def get_feed(
         "is_personalized": session_token is not None,
     }
 
-    # Return with cache headers for public feeds (no caching for personalized)
-    if session_token is None:
-        return JSONResponse(
-            content=response_data,
-            headers={
-                "Cache-Control": "public, max-age=60",  # Cache feed for 60 seconds
-                "Vary": "Accept-Encoding",
-            },
-        )
-    return response_data
+def _create_cached_response(response_data):
+    """Create cached JSON response for public feeds."""
+    return JSONResponse(
+        content=response_data,
+        headers={
+            "Cache-Control": "public, max-age=60",
+            "Vary": "Accept-Encoding",
+        },
+    )
+
+@router.get("/feed")
+async def get_feed(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    category: Optional[str] = Query(None),
+    categories: Optional[str] = Query(None),
+    exclude_ids: Optional[str] = Query(None),
+    cursor: Optional[str] = Query(None),
+    nexus_session: Optional[str] = Cookie(default=None),
+):
+    """Get personalized content feed with cursor-based pagination."""
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.info("[FEED] Endpoint called")
+
+    excluded_ids, category_list, cursor = _validate_feed_params(exclude_ids, categories, category, cursor)
+    session_token = nexus_session or request.cookies.get("nexus_session")
+    
+    _log_feed_request(logger, page, category_list, exclude_ids, cursor)
+    
+    result = await _get_feed_data(db, page_size, excluded_ids, cursor, category_list, 
+                                 InputValidator.sanitize_for_logging(category_list), logger)
+    
+    _trigger_background_scraping(result)
+    
+    response_data = _build_response_data(page, page_size, result, session_token)
+    
+    return _create_cached_response(response_data) if session_token is None else response_data
+
+def _find_articles_to_scrape(items: list) -> list:
+    """Find articles that need content scraping."""
+    return [
+        item for item in items
+        if (not item.get("facts") or not item.get("facts").strip())
+        and item.get("source_urls")
+    ]
+
+async def _scrape_single_article(item: dict, bg_db: AsyncSession, logger) -> None:
+    """Scrape a single article with error handling."""
+    try:
+        content = await bg_db.get(ContentItem, item["content_id"])
+        if content and (not content.facts or not content.facts.strip()):
+            source_url = content.source_urls[0] if content.source_urls else None
+            if source_url:
+                await asyncio.wait_for(
+                    _scrape_and_store_article(content, source_url, bg_db),
+                    timeout=SCRAPE_TIMEOUT
+                )
+    except asyncio.TimeoutError:
+        logger.debug("Background scrape timed out for %s", item['content_id'])
+    except Exception as e:
+        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.debug("Background scrape error for %s: %s", item['content_id'], safe_error)
+
+async def _background_scrape_articles(result):
+    """Background scraping task - runs in separate worker"""
+    logger = logging.getLogger(LOGGER_NAME)
+    try:
+        articles_to_scrape = _find_articles_to_scrape(result["items"])
+        if articles_to_scrape:
+            async with AsyncSessionLocal() as bg_db:
+                for item in articles_to_scrape[:1]:
+                    await _scrape_single_article(item, bg_db, logger)
+    except Exception as e:
+        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.debug("Background scraping task failed: %s", safe_error)
+
+def _trigger_background_scraping(result):
+    """Trigger background scraping for articles without content."""
+    task = asyncio.create_task(_background_scrape_articles(result))
+    task.add_done_callback(lambda t: None)
 
 
 @router.get("/trending-feed")
