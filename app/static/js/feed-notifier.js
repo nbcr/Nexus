@@ -320,8 +320,8 @@ class FeedNotifier {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        window.feedNotifier = new FeedNotifier();
+        globalThis.feedNotifier = new FeedNotifier();
     });
 } else {
-    window.feedNotifier = new FeedNotifier();
+    globalThis.feedNotifier = new FeedNotifier();
 }
