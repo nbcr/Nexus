@@ -88,7 +88,8 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
         categories.update([row[0] for row in result2.fetchall() if row[0]])
         return CategoriesResponse(categories=sorted(categories))
     except Exception as e:
-        logger.error(f"Error in /categories endpoint: {e}")
+        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        logger.error("Error in /categories endpoint: %s", safe_error)
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
 
@@ -951,8 +952,14 @@ async def image_proxy(
     except HTTPException:
         raise
     except Exception:
-        safe_url = ''.join(c for c in url[:200] if c.isprintable() and c not in '\n\r\t')
-        logger.warning("Image proxy failed for URL: %s", safe_url)
+        # Only log domain to prevent sensitive data exposure
+        from urllib.parse import urlparse
+        try:
+            parsed_url = urlparse(url)
+            safe_domain = parsed_url.netloc[:100] if parsed_url.netloc else "unknown"
+            logger.warning("Image proxy failed for domain: %s", safe_domain)
+        except Exception:
+            logger.warning("Image proxy failed for invalid URL")
         raise HTTPException(status_code=404, detail=ERROR_UNABLE_TO_FETCH_IMAGE)
 
 
@@ -1049,9 +1056,18 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
     import httpx
 
     async with httpx.AsyncClient(follow_redirects=False, timeout=5.0) as client:
-        # Sanitize URL for logging to prevent log injection
-        safe_url = ''.join(c for c in url[:200] if c.isprintable() and c not in '\n\r\t')
-        logger.info("Image proxy fetch: %s", safe_url)
+        # Validate and sanitize URL for logging to prevent malicious content
+        if len(url) > 2000:  # Reject extremely long URLs
+            raise HTTPException(status_code=400, detail="URL too long")
+        
+        # Only log domain part to prevent sensitive data exposure
+        from urllib.parse import urlparse
+        try:
+            parsed_url = urlparse(url)
+            safe_domain = parsed_url.netloc[:100] if parsed_url.netloc else "unknown"
+            logger.info("Image proxy fetch from domain: %s", safe_domain)
+        except Exception:
+            logger.info("Image proxy fetch from invalid URL")
         resp = await client.get(url)
         resp.raise_for_status()
         
