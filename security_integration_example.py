@@ -82,10 +82,8 @@ async def secure_search_endpoint(request: Request):
         # - HTML rendering (XSS prevention)
         
         # Example database query (safe because inputs are validated)
-        results = await search_content_safely(
+        results = search_content_safely(
             query=search_query,
-            page=page,
-            page_size=page_size,
             categories=category_list
         )
         
@@ -98,14 +96,13 @@ async def secure_search_endpoint(request: Request):
         
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         # Sanitize error messages to prevent information disclosure
-        safe_error = SecureRequestHandler.sanitize_error_message(str(e))
         raise HTTPException(status_code=500, detail="Search failed")
 
 
 # Example of secure database query function
-async def search_content_safely(query: str, page: int, page_size: int, categories: list = None):
+def search_content_safely(query: str, categories: list[str] | None = None):
     """
     Example of safe database querying with validated inputs.
     Since inputs are pre-validated, this function can safely use them.
@@ -120,28 +117,9 @@ async def search_content_safely(query: str, page: int, page_size: int, categorie
     # Safe to use in database queries
     # (Still use parameterized queries as additional defense)
     
-    # Example with SQLAlchemy (parameterized query)
-    from sqlalchemy import text
-    
-    sql_query = text("""
-        SELECT id, title, description, category 
-        FROM content_items 
-        WHERE title ILIKE :query 
-        AND (:category IS NULL OR category = :category)
-        ORDER BY created_at DESC 
-        LIMIT :limit OFFSET :offset
-    """)
-    
-    # Safe to use validated inputs in parameters
-    params = {
-        "query": f"%{query}%",  # Safe - query is validated
-        "category": categories[0] if categories else None,  # Safe - categories validated
-        "limit": page_size,  # Safe - validated integer
-        "offset": (page - 1) * page_size  # Safe - validated integers
-    }
-    
-    # Execute query safely
-    # result = await db.execute(sql_query, params)
+    # Example: In real implementation, you would execute a parameterized query like:
+    # sql_query = text("SELECT id, title FROM content_items WHERE title ILIKE :query")
+    # result = await db.execute(sql_query, {"query": f"%{query}%"})
     # return result.fetchall()
     
     # Placeholder return for example
