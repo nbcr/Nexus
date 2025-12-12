@@ -12,9 +12,15 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.models.user import User
 from app.core.config import settings
+from dotenv import load_dotenv
 
-# Try with postgres user and no password (trusted)
-database_url_sync = "postgresql://postgres:***REMOVED***@localhost:5432/nexus"
+# Load environment variables
+load_dotenv()
+
+# Get database URL from environment
+database_url_sync = os.getenv("DATABASE_URL_SYNC")
+if not database_url_sync:
+    raise ValueError("DATABASE_URL_SYNC not found in .env file")
 
 try:
     # Create engine
@@ -43,10 +49,10 @@ try:
         )
         session.add(yot)
         session.commit()
-        print(f"✅ Created user 'yot' with admin=True")
+        print("✅ Created user 'yot' with admin=True")
     else:
         # Update existing user to admin
-        yot.is_admin = True
+        session.query(User).filter(User.id == yot.id).update({"is_admin": True})
         session.commit()
         print(f"✅ Updated user 'yot' to admin=True (id={yot.id})")
 
