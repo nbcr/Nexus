@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Set
 import feedparser
 import aiohttp
+import aiofiles
 from sqlalchemy import text, func
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -116,49 +117,65 @@ async def get_user_category_preferences() -> Dict[str, int]:
         return preferences
 
 
+def _is_entry_recent(entry, week_ago: datetime) -> bool:
+    """Check if entry is from the last 7 days"""
+    if not (hasattr(entry, "published_parsed") and entry.published_parsed):
+        return False
+    
+    try:
+        time_tuple = entry.published_parsed[:6]
+        if (time_tuple and len(time_tuple) >= 6 and 
+            all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in time_tuple)):
+            pub_date = datetime(
+                int(time_tuple[0]), int(time_tuple[1]), int(time_tuple[2]),  # type: ignore
+                int(time_tuple[3]), int(time_tuple[4]), int(time_tuple[5]),  # type: ignore
+                tzinfo=timezone.utc
+            )
+            return pub_date > week_ago
+    except (TypeError, ValueError, IndexError):
+        pass
+    return False
+
+def _has_images(entry) -> bool:
+    """Check if entry has images"""
+    return (
+        hasattr(entry, "media_content")
+        or hasattr(entry, "media_thumbnail")
+        or hasattr(entry, "enclosures")
+    )
+
+def _calculate_feed_score(total_items: int, recent_items: int, has_images: int) -> int:
+    """Calculate quality score for feed"""
+    score = 0
+    if total_items >= 10:
+        score += 30
+    if recent_items >= 5:
+        score += 40
+    if has_images >= 5:
+        score += 30
+    return score
+
 async def test_feed_quality(feed_url: str) -> Dict:
     """Test an RSS feed for quality metrics"""
     try:
-        feed = feedparser.parse(feed_url)
-
+        feed = await asyncio.to_thread(feedparser.parse, feed_url)
+        
         if not feed.entries:
             return {"valid": False, "reason": "No entries found"}
-
-        # Check freshness - at least one item from last 7 days
-        recent_items = 0
-        has_images = 0
+        
         week_ago = datetime.now(timezone.utc) - timedelta(days=7)
-
-        for entry in feed.entries[:10]:
-            # Check if recent
-            if hasattr(entry, "published_parsed") and entry.published_parsed:
-                pub_date = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
-                if pub_date > week_ago:
-                    recent_items += 1
-
-            # Check for images
-            if (
-                hasattr(entry, "media_content")
-                or hasattr(entry, "media_thumbnail")
-                or hasattr(entry, "enclosures")
-            ):
-                has_images += 1
-
-        score = 0
-        if len(feed.entries) >= 10:
-            score += 30
-        if recent_items >= 5:
-            score += 40
-        if has_images >= 5:
-            score += 30
-
+        recent_items = sum(1 for entry in feed.entries[:10] if _is_entry_recent(entry, week_ago))
+        has_images = sum(1 for entry in feed.entries[:10] if _has_images(entry))
+        
+        score = _calculate_feed_score(len(feed.entries), recent_items, has_images)
+        
         return {
             "valid": True,
             "score": score,
             "total_items": len(feed.entries),
             "recent_items": recent_items,
             "items_with_images": has_images,
-            "title": feed.feed.get("title", "Unknown"),
+            "title": getattr(feed.feed, "title", "Unknown") if hasattr(feed, "feed") else "Unknown",
         }
     except Exception as e:
         return {"valid": False, "reason": str(e)}
@@ -207,8 +224,8 @@ async def get_current_feeds() -> Set[str]:
     """Get currently configured feeds from rss_feeds.txt"""
     feeds = set()
     try:
-        with open("rss_feeds.txt", "r", encoding="utf-8") as f:
-            for line in f:
+        async with aiofiles.open("rss_feeds.txt", "r", encoding="utf-8") as f:
+            async for line in f:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
@@ -230,8 +247,8 @@ async def add_feed_to_config(feed_url: str, category: str, feed_name: str):
         category_str = category if category else "None"
 
         # Append to rss_feeds.txt
-        with open("rss_feeds.txt", "a", encoding="utf-8") as f:
-            f.write(f"\n{feed_key}|{feed_url}|{category_str}|medium")
+        async with aiofiles.open("rss_feeds.txt", "a", encoding="utf-8") as f:
+            await f.write(f"\n{feed_key}|{feed_url}|{category_str}|medium")
 
         print(f"✅ Added {feed_name} to rss_feeds.txt")
         return True
@@ -277,7 +294,7 @@ async def main():
                     new_feeds_added += 1
                     current_feeds.add(feed["url"])
 
-    print(f"\n✅ Discovery complete!")
+    print("\n✅ Discovery complete!")
     print(f"   Added {new_feeds_added} new feeds")
     print(f"   Total feeds now: {len(current_feeds) + new_feeds_added}")
 
