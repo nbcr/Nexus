@@ -4,6 +4,7 @@ import logging
 import secrets
 import ipaddress
 import httpx
+import re
 from typing import cast, List, Optional
 from datetime import datetime, timezone
 from urllib.parse import urlparse
@@ -27,6 +28,7 @@ from app.services.content_recommendation import recommendation_service
 from app.services.article_scraper import article_scraper
 from app.services.deduplication import deduplication_service
 from app.services.rss_discovery import rss_discovery_service
+from app.core.input_validation import InputValidator, validate_request_data, get_safe_user_input
 
 router = APIRouter()
 
@@ -77,24 +79,21 @@ class ProxyRequest(BaseModel):
 
 
 def _parse_exclude_ids(exclude_ids: Optional[str]) -> list[int]:
-    """Parse comma-separated exclude_ids parameter."""
-    excluded_ids = []
-    if exclude_ids:
-        try:
-            excluded_ids = [
-                int(id.strip()) for id in exclude_ids.split(",") if id.strip()
-            ]
-        except ValueError:
-            raise HTTPException(status_code=400, detail=ERROR_INVALID_EXCLUDE_IDS)
-    return excluded_ids
+    """Parse comma-separated exclude_ids parameter with security validation."""
+    return InputValidator.validate_exclude_ids(exclude_ids)
 
 
 def _parse_categories(categories: Optional[str], category: Optional[str]) -> Optional[list[str]]:
-    """Parse categories parameter with multi-select support."""
+    """Parse categories parameter with multi-select support and security validation."""
     if categories:
-        return [cat.strip() for cat in categories.split(",") if cat.strip()]
+        return InputValidator.validate_category_list(categories)
     elif category:
-        return [category]
+        # Validate single category
+        validated_category = InputValidator.validate_xss_safe(category)
+        validated_category = InputValidator.validate_sql_safe(validated_category)
+        if not re.match(r'^[a-zA-Z0-9\s\-_]+$', validated_category):
+            raise HTTPException(status_code=400, detail="Invalid category name")
+        return [validated_category]
     return None
 
 
@@ -151,7 +150,7 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/feed")
-async def get_personalized_feed(
+async def get_feed(
     request: Request,
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
@@ -170,9 +169,12 @@ async def get_personalized_feed(
     logger = logging.getLogger(LOGGER_NAME)
     logger.info("[FEED] Endpoint called")
 
-    # Parse parameters
+    # Parse and validate parameters securely
     excluded_ids = _parse_exclude_ids(exclude_ids)
     category_list = _parse_categories(categories, category)
+    
+    # Validate cursor parameter
+    cursor = InputValidator.validate_cursor(cursor)
 
     # Get session token for anonymous users
     session_token = nexus_session or request.cookies.get("nexus_session")
@@ -180,17 +182,9 @@ async def get_personalized_feed(
     logger.info("[FEED] About to call recommendation_service.get_all_feed")
 
     # Sanitize user input for logging to prevent log injection
-    def _sanitize_for_log(value) -> str:
-        """Sanitize input for safe logging."""
-        if value is None:
-            return "None"
-        safe_str = str(value)[:200]  # Limit length
-        # Remove control characters and newlines
-        return ''.join(c for c in safe_str if c.isprintable() and c not in '\n\r\t')
-    
-    safe_category_list = _sanitize_for_log(category_list)
-    safe_exclude_ids = _sanitize_for_log(exclude_ids)
-    safe_cursor = _sanitize_for_log(cursor)
+    safe_category_list = InputValidator.sanitize_for_logging(category_list)
+    safe_exclude_ids = InputValidator.sanitize_for_logging(exclude_ids)
+    safe_cursor = InputValidator.sanitize_for_logging(cursor)
 
     logger.info(
         "Feed request: page=%d, categories=%s, exclude_ids=%s, cursor=%s",

@@ -17,6 +17,7 @@ from sqlalchemy import select, func, and_
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 import asyncio
+from app.core.input_validation import InputValidator
 
 from app.api.v1.deps import get_db, get_current_user
 from app.models import User, UserInteraction, ContentItem, UserSession
@@ -216,6 +217,8 @@ async def get_user_details(
     db: AsyncSession = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get detailed information about a specific user"""
+    # Validate user_id
+    user_id = InputValidator.validate_integer(user_id, min_val=1, max_val=999999999)
 
     # Get user
     result = await db.execute(select(User).where(User.id == user_id))
@@ -817,7 +820,7 @@ async def chat_endpoint(
     }
 
     # Sanitize message for safe response
-    safe_message = ''.join(c for c in message[:200] if c.isprintable() and c not in '\n\r\t')
+    safe_message = InputValidator.sanitize_for_logging(message, max_length=200)
     
     return {
         "response": f"[{agent_descriptions.get(agent, 'Assistant')}] I received: '{safe_message}'. Real Copilot API integration coming soon!"
@@ -881,7 +884,7 @@ async def get_logs(
     try:
         if not os.path.exists(log_file):
             # Sanitize log_type for safe error message
-            safe_log_type = ''.join(c for c in log_type[:50] if c.isalnum() or c in '.-_')
+            safe_log_type = InputValidator.sanitize_for_logging(log_type, max_length=50)
             return {"content": f"Log file not found: {safe_log_type}.log"}
         
         # Read last N lines efficiently

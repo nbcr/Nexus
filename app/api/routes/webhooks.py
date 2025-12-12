@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status, BackgroundTasks
+from app.core.input_validation import InputValidator
 
 from app.core.config import settings
 from app.models.user import BrevoEmailEvent
@@ -108,6 +109,10 @@ async def _store_brevo_events(events):
                 
                 # Only track events that indicate email problems
                 if email and event_type in ("invalid_email", "bounce", "complaint", "unsubscribe", "hard_bounce"):
+                    # Validate email and event_type
+                    email = InputValidator.validate_xss_safe(email)
+                    event_type = InputValidator.validate_xss_safe(event_type)
+                    
                     event_str = json.dumps(event, default=str)
                     brevo_event = BrevoEmailEvent(
                         email=email,

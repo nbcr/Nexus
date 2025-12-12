@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 import sys
+from app.core.input_validation import InputValidator
 
 from app.api.v1.deps import get_db
 from app.schemas import Token, UserCreate, UserResponse, UserLogin, RegisterResponse
@@ -140,6 +141,10 @@ async def register(
     Raises:
         HTTPException: If username or email is already registered
     """
+    # Validate user input
+    user_data.username = InputValidator.validate_xss_safe(user_data.username)
+    user_data.email = InputValidator.validate_xss_safe(user_data.email)
+    
     # Check if username exists
     if await get_user_by_username(db, username=user_data.username):
         raise HTTPException(
@@ -369,7 +374,7 @@ async def forgot_password(
     request: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)
 ):
     """Send password reset email to user"""
-    username_or_email = request.username_or_email.strip()
+    username_or_email = InputValidator.validate_xss_safe(request.username_or_email.strip())
 
     if not username_or_email:
         raise HTTPException(status_code=400, detail="Username or email required")
@@ -425,7 +430,7 @@ async def reset_password(
     request: ResetPasswordRequest, db: AsyncSession = Depends(get_db)
 ):
     """Reset password using reset token"""
-    token = request.token.strip()
+    token = InputValidator.validate_xss_safe(request.token.strip())
     new_password = request.new_password.strip()
 
     if not token or not new_password:
