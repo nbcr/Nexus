@@ -99,7 +99,7 @@ echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo sys
 
 - **Environment Variables**: Stored in `C:\Nexus\.env` locally
 
-  - Database credentials: `nexus_user:***REMOVED***@localhost:5432/nexus`
+  - Database credentials: `nexus_user:RdkV6Q$!@localhost:5432/nexus`
 
   - Email/SMTP: Brevo relay (`smtp-relay.brevo.com:587`)
 

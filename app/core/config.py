@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_USER: str = "postgres"
-    DB_PASS: str = "***REMOVED***"
+    DB_PASS: str = "RdkV6Q$!"
     DB_NAME: str = "nexus"
 
     # Redis (for Celery if needed)
