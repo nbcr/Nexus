@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 import re
 from html import unescape
+import aiofiles
 
 from app.utils.async_rss_parser import get_async_rss_parser
 
@@ -59,7 +60,11 @@ class RSSFetcher:
         self.feeds_file = feeds_file
         self.items_per_feed = items_per_feed  # How many items to fetch per feed
         self.batch_size = batch_size  # How many feeds to process in parallel
-        self.rss_feeds = self._load_feeds_from_file()
+        self.rss_feeds = {}
+
+    async def initialize(self):
+        """Initialize the RSS fetcher by loading feeds from file"""
+        self.rss_feeds = await self._load_feeds_from_file()
 
     def _clean_html_description(self, description: str) -> str:
         """Remove HTML tags and decode entities from RSS description."""
@@ -73,12 +78,12 @@ class RSSFetcher:
         clean = re.sub(r"\s+", " ", clean).strip()
         return clean
 
-    def _load_feeds_from_file(self) -> Dict:
+    async def _load_feeds_from_file(self) -> Dict:
         """Load RSS feeds from plaintext file"""
         feeds = {}
         try:
-            with open(self.feeds_file, "r", encoding="utf-8") as f:
-                for line in f:
+            async with aiofiles.open(self.feeds_file, "r", encoding="utf-8") as f:
+                async for line in f:
                     line = line.strip()
                     # Skip comments and empty lines
                     if not line or line.startswith("#"):
@@ -104,7 +109,7 @@ class RSSFetcher:
 
         return feeds
 
-    def add_feed(
+    async def add_feed(
         self,
         feed_name: str,
         url: str,
@@ -121,9 +126,9 @@ class RSSFetcher:
 
         # Append to file
         try:
-            with open(self.feeds_file, "a", encoding="utf-8") as f:
+            async with aiofiles.open(self.feeds_file, "a", encoding="utf-8") as f:
                 category_str = category_hint if category_hint else "None"
-                f.write(f"\n{feed_name}|{url}|{category_str}|{priority}")
+                await f.write(f"\n{feed_name}|{url}|{category_str}|{priority}")
             print(f"[OK] Added feed '{feed_name}' to {self.feeds_file}")
             return True
         except Exception as e:
@@ -133,6 +138,10 @@ class RSSFetcher:
     async def fetch_all_rss_feeds(self) -> List[Dict]:
         """Fetch from all configured RSS feeds in batches with timeout"""
         from app.services.reboot_manager import reboot_manager
+
+        # Ensure feeds are loaded
+        if not self.rss_feeds:
+            await self.initialize()
 
         self.failure_tracker.reset_if_needed()
 

@@ -9,6 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import asyncio
 import re
+import aiofiles
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -29,10 +30,10 @@ def generate_slug(title):
     slug = re.sub(r'[^a-z0-9]+', '-', title.lower())
     return slug.strip('-')[:50]
 
-def read_first_feed(feeds_file):
+async def read_first_feed(feeds_file):
     """Read first valid feed from feeds file"""
-    with open(feeds_file, 'r') as f:
-        for line in f:
+    async with aiofiles.open(feeds_file, 'r') as f:
+        async for line in f:
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
@@ -94,7 +95,7 @@ async def fetch_and_add_items():
             print(f"RSS feeds file not found: {feeds_file}")
             return
         
-        feed_name, feed_url = await asyncio.to_thread(read_first_feed, feeds_file)
+        feed_name, feed_url = await read_first_feed(feeds_file)
         if not feed_url or not feed_name:
             print("No RSS feeds found")
             return
