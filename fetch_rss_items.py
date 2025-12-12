@@ -24,6 +24,8 @@ from app.utils.async_rss_parser import AsyncRSSParser
 
 # Use sync connection
 DATABASE_URL = os.getenv("DATABASE_URL_SYNC")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL_SYNC environment variable not set")
 
 def generate_slug(title):
     """Generate URL-safe slug from title"""

@@ -33,6 +33,7 @@ def init_database():
     print("Creating database tables (sync)...")
     
     # Create sync engine
+    assert DATABASE_URL is not None  # Type hint for static analysis
     engine = create_engine(DATABASE_URL, echo=False)
     
     try:
