@@ -124,7 +124,7 @@ async def register(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     nexus_session: Optional[str] = Cookie(default=None),
-) -> User:
+) -> RegisterResponse:
     """
     Register a new user and migrate any anonymous session data.
 
@@ -156,10 +156,10 @@ async def register(
     user = await create_user(db, user_data)
 
     # Migrate anonymous session data if session token exists
-    await _migrate_anonymous_session(db, request, nexus_session, int(user.id))
+    await _migrate_anonymous_session(db, request, nexus_session, user.id)  # type: ignore
 
     email_status, email_error = await _send_registration_email(
-        db, user_data.email, user.username
+        db, user_data.email, user.username  # type: ignore
     )
 
     access_token_expires = timedelta(minutes=30)
@@ -270,7 +270,7 @@ async def login(
     session_token = nexus_session or request.cookies.get("nexus_session")
     if session_token:
         try:
-            migrated_count = await migrate_session_to_user(db, session_token, int(user.id))
+            migrated_count = await migrate_session_to_user(db, session_token, user.id)  # type: ignore
             if migrated_count > 0:
                 print(
                     f"Migrated {migrated_count} interactions from anonymous session to user {user.id}"
@@ -350,7 +350,7 @@ async def check_email_status(email: str, db: AsyncSession = Depends(get_db)):
 
 # === Password Reset Flow ===
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import asyncio
 from pydantic import BaseModel
 
@@ -379,17 +379,17 @@ async def forgot_password(
         db, username_or_email
     )
 
-    if not user or not user.email:
+    if not user or not user.email:  # type: ignore
         # Return generic message for security (don't reveal if account exists)
         return {"detail": "If account exists, reset link sent to email"}
 
     # Generate reset token (expires in 1 hour)
     reset_token = secrets.token_urlsafe(32)
-    reset_expires = datetime.utcnow() + timedelta(hours=1)
+    reset_expires = datetime.now(timezone.utc) + timedelta(hours=1)
 
     # Store reset token in user record
-    user.password_reset_token = reset_token
-    user.password_reset_expires = reset_expires
+    user.password_reset_token = reset_token  # type: ignore
+    user.password_reset_expires = reset_expires  # type: ignore
     db.add(user)
     await db.commit()
 
@@ -407,9 +407,9 @@ async def forgot_password(
     """
 
     try:
-        result = await asyncio.to_thread(
+        await asyncio.to_thread(
             email_service.send_email,
-            recipient=user.email,
+            recipient=user.email,  # type: ignore
             subject=subject,
             body_html=html_content,
         )
@@ -441,7 +441,7 @@ async def reset_password(
 
     stmt = select(User).where(
         User.password_reset_token == token,
-        User.password_reset_expires > datetime.utcnow(),
+        User.password_reset_expires > datetime.now(timezone.utc),
     )
     result = await db.execute(stmt)
     user = result.scalars().first()
@@ -452,9 +452,9 @@ async def reset_password(
     # Update password
     from app.core.auth import get_password_hash
 
-    user.hashed_password = get_password_hash(new_password)
-    user.password_reset_token = None
-    user.password_reset_expires = None
+    user.hashed_password = get_password_hash(new_password)  # type: ignore
+    user.password_reset_token = None  # type: ignore
+    user.password_reset_expires = None  # type: ignore
     db.add(user)
     await db.commit()
 
@@ -470,9 +470,9 @@ async def reset_password(
     try:
         await asyncio.to_thread(
             email_service.send_email,
-            to=user.email,
+            recipient=user.email,  # type: ignore
             subject=subject,
-            html_content=html_content,
+            body_html=html_content,
         )
     except Exception as e:
         print(f"Failed to send confirmation email: {e}")
