@@ -141,7 +141,6 @@ def calculate_projections(
         current_report["database"]["size_bytes"]
         - previous_report["database"]["size_bytes"]
     )
-    db_growth_per_day = db_growth_bytes / time_delta_days if time_delta_days > 0 else 0
 
     disk_used_growth = (
         current_report["disk"]["used_bytes"] - previous_report["disk"]["used_bytes"]

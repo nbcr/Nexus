@@ -428,7 +428,7 @@
 
         // Change page size
         function changePageSize(type, newSize) {
-            pageSize[type] = parseInt(newSize);
+            pageSize[type] = Number.parseInt(newSize);
             currentPage[type] = 1; // Reset to first page when changing size
             loadHistory(type, 1);
         }

@@ -17,11 +17,6 @@ async def test_fetch_with_limit(
     Test RSS fetching with a specific items per feed limit
     Returns (items_per_feed, total_time, success)
     """
-    # Temporarily patch the limit
-    original_limit = 1
-
-    # Find and patch the limit in rss_fetcher
-    fetcher = trending_service.rss_fetcher
 
     print(f"\n{'='*60}")
     print(f"Testing with {items_per_feed} items per feed")

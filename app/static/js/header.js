@@ -40,7 +40,7 @@ let currentUser = null;
 function getAccessToken() {
     const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
     if (match) return match[1];
-    return window.localStorage?.getItem('access_token') || null;
+    return globalThis.localStorage?.getItem('access_token') || null;
 }
 
 function setupAuthButton(btn, isLoggedIn) {
@@ -407,7 +407,7 @@ function initTextSize() {
     const baseSize = 16; // Base font size in pixels
     const minSize = 12;
     const maxSize = 24;
-    let currentSize = savedSize ? parseInt(savedSize, 10) : baseSize;
+    let currentSize = savedSize ? Number.parseInt(savedSize, 10) : baseSize;
 
     function applyTextSize(size) {
         // Clamp size between min and max
@@ -498,7 +498,7 @@ function initTextSize() {
 
     // Restore saved size
     if (savedSize) {
-        applyTextSize(parseInt(savedSize, 10));
+        applyTextSize(Number.parseInt(savedSize, 10));
     }
 
     // Set up increase button

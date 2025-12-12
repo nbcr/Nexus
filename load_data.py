@@ -46,7 +46,6 @@ def load_feeds():
                 
                 parts = line.split('|')
                 if len(parts) >= 3:
-                    feed_name = parts[0]
                     category = parts[2]
                     
                     if category not in categories:

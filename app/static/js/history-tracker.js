@@ -80,7 +80,7 @@ class HistoryTracker {
      * @param {HTMLElement} cardElement - The visible card element
      */
     async handleCardVisible(cardElement) {
-        const contentId = parseInt(cardElement.dataset.contentId);
+        const contentId = Number.parseInt(cardElement.dataset.contentId);
         const contentSlug = cardElement.dataset.contentSlug;
 
         if (!contentId || !contentSlug) {

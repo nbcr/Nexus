@@ -46,7 +46,7 @@ def create_test_log_entries():
         with open(log_file, 'a') as f:
             for ip in russian_ips:
                 # Create multiple attack attempts from each IP (to exceed threshold of 10)
-                for i in range(15):
+                for _ in range(15):
                     timestamp = datetime.now().strftime("%d/%b/%Y:%H:%M:%S +0000")
                     attack = random.choice(attack_patterns)
                     user_agent = random.choice(user_agents)
