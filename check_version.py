@@ -13,17 +13,18 @@ try:
         if current:
             print(f"Current version in DB: {current[0]}")
 
-            # Update if it's '011', revert to 'add_image_data'
-            if current[0] == "011":
+            # Update to new version 011
+            if current[0] != "011":
                 conn.execute(
                     text(
-                        "UPDATE alembic_version SET version_num = 'add_image_data' WHERE version_num = '011'"
-                    )
+                        "UPDATE alembic_version SET version_num = '011' WHERE version_num = :old_ver"
+                    ),
+                    {"old_ver": current[0]},
                 )
                 conn.commit()
-                print("Updated version to add_image_data")
+                print(f"Updated version from {current[0]} to 011")
             else:
-                print(f"Version is already {current[0]}")
+                print("Version is already 011")
         else:
             print("No version found")
 except Exception as e:

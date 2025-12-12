@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = "010"
-down_revision = ("009", "add_is_admin_to_users")
+down_revision = "009"
 branch_labels = None
 depends_on = None
 
