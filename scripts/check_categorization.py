@@ -297,13 +297,13 @@ async def check_recent_categorization(hours: int = 24, limit: int = 20):
             # Small delay to respect rate limits
             await asyncio.sleep(0.1)
         
-        print(f"\n📊 Summary:")
+        print("\n📊 Summary:")
         print(f"   Total checked: {len(items)}")
         print(f"   Mismatches: {len(mismatches)}")
         print(f"   Accuracy: {((len(items) - len(mismatches)) / len(items) * 100):.1f}%")
         
         if mismatches:
-            print(f"\n⚠️ Items that may need recategorization:")
+            print("\n⚠️ Items that may need recategorization:")
             for item in mismatches:
                 print(f"   UPDATE topics SET category = '{item['suggested']}' WHERE id = (SELECT topic_id FROM content_items WHERE id = {item['id']});")
 

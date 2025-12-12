@@ -133,10 +133,10 @@ function handleAuth() {
 /**
  * Handle user logout
  */
-function handleLogout() {
+async function handleLogout() {
     try {
         // Call backend logout endpoint
-        fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
+        await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
 
         // Clear cookies
         document.cookie.split(';').forEach(function (c) {

@@ -107,7 +107,7 @@ def test_blocking_simulation():
                 logger.info(f"  Rule ID: {rule_id}")
                 
                 # Clean up - delete the test rule
-                logger.info("\nCleaning up test rule...")
+                logger.info("Cleaning up test rule...")
                 delete_response = requests.delete(
                     f'https://api.cloudflare.com/client/v4/zones/{zone_id}/firewall/access_rules/rules/{rule_id}',
                     headers=headers,

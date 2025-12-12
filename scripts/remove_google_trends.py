@@ -82,7 +82,7 @@ async def remove_google_trends_content():
                     )
                 )
                 await db.commit()
-                print(f"Deleted view history for google trends content items")
+                print("Deleted view history for google trends content items")
 
             # Delete content items linked to google trends topics (via topic_id)
             if indirect_count > 0 or content_count > 0:

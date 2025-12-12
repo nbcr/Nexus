@@ -418,7 +418,7 @@ def main():
         f.write(display_text)
 
     print(display_text)
-    print(f"\n✅ Reports saved:")
+    print("\n✅ Reports saved:")
     print(f"   JSON: {REPORT_FILE}")
     print(f"   Text: {DISPLAY_FILE}")
 

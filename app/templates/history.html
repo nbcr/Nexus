@@ -410,12 +410,15 @@
                 currentTab = type || 'all';
 
                 let contentId;
-                if (type === 'seen') {
-                    contentId = 'seen-content';
-                } else if (type === 'clicked') {
-                    contentId = 'clicked-content';
-                } else {
-                    contentId = 'all-content';
+                switch (type) {
+                    case 'seen':
+                        contentId = 'seen-content';
+                        break;
+                    case 'clicked':
+                        contentId = 'clicked-content';
+                        break;
+                    default:
+                        contentId = 'all-content';
                 }
                 document.getElementById(contentId).classList.add('active');
 
@@ -568,10 +571,12 @@
             return date.toLocaleDateString();
         }
 
-        // Load initial history
-        (async () => {
+        // Load initial history on page load
+        async function initHistory() {
             await loadHistory('seen', 1);
-        })();
+        }
+
+        initHistory();
     </script>
 </body>
 

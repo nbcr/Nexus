@@ -13,10 +13,10 @@ with open(log_file, 'a') as f:
     log_line = f'{new_russian_ip} - - [{timestamp}] "GET /test.php HTTP/1.1" 404 0 "-" "Mozilla/5.0"\n'
     f.write(log_line)
     
-print(f'Added test log from {new_russian_ip}')
+print('Added test log from {new_russian_ip}')
 print('IDS should instantly block this IP (no threshold wait)')
 print()
-print(f'Check intrusion_detector.log for:')
+print('Check intrusion_detector.log for:')
 print(f'  [ALERT] Russia IP - Geographic Block from {new_russian_ip}')
 print(f'  [BLOCKED] IP {new_russian_ip} blocked')
 print()
