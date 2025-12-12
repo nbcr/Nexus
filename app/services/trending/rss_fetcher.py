@@ -161,7 +161,6 @@ class RSSFetcher:
                     feed_name,
                     feed_config["url"],
                     feed_config.get("category_hint"),
-                    timeout=8,
                 )
                 tasks.append(task)
                 feed_names.append(feed_name)
@@ -187,9 +186,9 @@ class RSSFetcher:
         feed_name: str,
         feed_url: str,
         category_hint: Optional[str] = None,
-        timeout: int = 8,
     ) -> List[Dict]:
         """Fetch a single RSS feed with timeout using async parser"""
+        timeout = 8
         try:
             feed = await asyncio.wait_for(
                 get_async_rss_parser().parse_feed(feed_url), timeout=timeout
@@ -216,7 +215,7 @@ class RSSFetcher:
 
             for entry in feed.get("entries", [])[: self.items_per_feed]:
                 trend_data = self._process_single_entry(
-                    entry, is_google_trends, feed_url, category_hint, source_name
+                    entry, is_google_trends, category_hint, source_name
                 )
                 if trend_data:
                     trends.append(trend_data)
@@ -224,14 +223,13 @@ class RSSFetcher:
             return trends
 
         except Exception as e:
-            print(f"[ERROR] Error fetching RSS from {feed_url}: {e}")
+            print(f"[ERROR] Error fetching RSS: {e}")
             return []
 
     def _process_single_entry(
         self,
         entry,
         is_google_trends: bool,
-        feed_url: str,
         category_hint: Optional[str],
         source_name: str,
     ) -> Optional[Dict]:
@@ -291,48 +289,51 @@ class RSSFetcher:
             "news_items": news_items,
         }
 
+    def _get_url_from_data(self, data, url_key: str = "url") -> Optional[str]:
+        """Safely extract URL from data structure"""
+        if not data:
+            return None
+        if isinstance(data, list):
+            return data[0].get(url_key) if data and isinstance(data[0], dict) else None
+        if isinstance(data, dict):
+            return data.get(url_key)
+        return None
+
+    def _extract_image_from_dict_entry(self, entry: Dict) -> Optional[str]:
+        """Extract image URL from dict-based entry"""
+        url = self._get_url_from_data(entry.get("media_content"))
+        url = url or self._get_url_from_data(entry.get("media_thumbnail"))
+        
+        if not url and entry.get("enclosures"):
+            enclosures = entry.get("enclosures")
+            enclosures = enclosures if isinstance(enclosures, list) else [enclosures] if enclosures else []
+            for enc in enclosures:
+                if isinstance(enc, dict) and "image" in enc.get("type", ""):
+                    return enc.get("url")
+        
+        return url
+
+    def _extract_image_from_object_entry(self, entry) -> Optional[str]:
+        """Extract image URL from object-based entry"""
+        url = None
+        if hasattr(entry, "media_content") and entry.media_content:
+            url = self._get_url_from_data(entry.media_content)
+        if not url and hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+            url = self._get_url_from_data(entry.media_thumbnail)
+        if not url and hasattr(entry, "enclosures") and entry.enclosures:
+            for enc in entry.enclosures:
+                if "image" in enc.get("type", ""):
+                    return enc.get("href")
+        return url
+
     def _extract_standard_data(
         self, entry, source_name: str, title: str, description: str, url: str
     ) -> tuple:
         """Extract data from standard RSS entry"""
-        image_url = None
-
-        # Handle both dict and object-based entries
         if isinstance(entry, dict):
-            if entry.get("media_content"):
-                media = entry.get("media_content")
-                if isinstance(media, list) and media:
-                    image_url = (
-                        media[0].get("url") if isinstance(media[0], dict) else None
-                    )
-                elif isinstance(media, dict):
-                    image_url = media.get("url")
-            elif entry.get("media_thumbnail"):
-                thumb = entry.get("media_thumbnail")
-                if isinstance(thumb, list) and thumb:
-                    image_url = (
-                        thumb[0].get("url") if isinstance(thumb[0], dict) else None
-                    )
-                elif isinstance(thumb, dict):
-                    image_url = thumb.get("url")
-            elif entry.get("enclosures"):
-                enclosures = entry.get("enclosures")
-                if not isinstance(enclosures, list):
-                    enclosures = [enclosures] if enclosures else []
-                for enc in enclosures:
-                    if isinstance(enc, dict) and "image" in enc.get("type", ""):
-                        image_url = enc.get("url")
-                        break
+            image_url = self._extract_image_from_dict_entry(entry)
         else:
-            if hasattr(entry, "media_content") and entry.media_content:
-                image_url = entry.media_content[0].get("url")
-            elif hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
-                image_url = entry.media_thumbnail[0].get("url")
-            elif hasattr(entry, "enclosures") and entry.enclosures:
-                for enc in entry.enclosures:
-                    if "image" in enc.get("type", ""):
-                        image_url = enc.get("href")
-                        break
+            image_url = self._extract_image_from_object_entry(entry)
 
         # Clean HTML from snippet
         clean_snippet = self._clean_html_description(description)
