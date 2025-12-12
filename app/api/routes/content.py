@@ -499,7 +499,8 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
             logger.error(f"Background scrape failed for content {content_id}: {e}")
 
     # Fire and forget - don't await
-    asyncio.create_task(background_scrape())
+    task = asyncio.create_task(background_scrape())
+    task.add_done_callback(lambda t: None)  # Prevent garbage collection
 
     # Return description immediately while scraping happens in background
     return {
