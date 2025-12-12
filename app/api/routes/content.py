@@ -43,6 +43,19 @@ STATUS_READY = "ready"
 STATUS_LOADING = "loading"
 STATUS_FAILED = "failed"
 STATUS_FETCHING = "fetching"
+ERROR_INVALID_EXCLUDE_IDS = "Invalid exclude_ids format"
+ERROR_INVALID_URL_SCHEME = "Invalid URL scheme"
+ERROR_INVALID_URL = "Invalid URL"
+ERROR_INVALID_URL_FORMAT = "Invalid URL format"
+ERROR_INTERNAL_ACCESS_FORBIDDEN = "Access to internal resources is forbidden"
+ERROR_INVALID_CONTENT_TYPE = "Invalid content type"
+ERROR_IMAGE_TOO_LARGE = "Image too large"
+ERROR_IMAGE_NOT_FOUND = "Image not found"
+ERROR_NO_SOURCE_URL = "No source URL available"
+ERROR_UNABLE_TO_FETCH = "Unable to fetch content from source"
+ERROR_UNABLE_TO_FETCH_IMAGE = "Unable to fetch image"
+ERROR_FAILED_TO_SERVE_IMAGE = "Failed to serve image"
+ERROR_FAILED_TO_FETCH_THUMBNAIL = "Failed to fetch thumbnail"
 
 
 class CategoriesResponse(BaseModel):
@@ -109,7 +122,7 @@ async def get_personalized_feed(
                 int(id.strip()) for id in exclude_ids.split(",") if id.strip()
             ]
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid exclude_ids format")
+            raise HTTPException(status_code=400, detail=ERROR_INVALID_EXCLUDE_IDS)
 
     # Parse categories (multi-select support)
     category_list = None
@@ -289,8 +302,8 @@ def _get_cached_content(content: ContentItem) -> Optional[dict]:
         and not content.content_text.startswith("Trending topic")
     ):
         snippet = (
-            content.content_text[:800]
-            if len(content.content_text) > 800
+            content.content_text[:SNIPPET_LENGTH]
+            if len(content.content_text) > SNIPPET_LENGTH
             else content.content_text
         )
         return {"snippet": snippet, "full_content_available": True}
@@ -482,12 +495,12 @@ async def get_content_snippet_priority(
 
     # Check if already scraped
     if content.facts and content.facts.strip():
-        snippet = content.facts[:800] if len(content.facts) > 800 else content.facts
+        snippet = content.facts[:SNIPPET_LENGTH] if len(content.facts) > SNIPPET_LENGTH else content.facts
         return {
             "snippet": snippet,
             "full_content_available": True,
             "rate_limited": False,
-            "status": "ready",
+            "status": STATUS_READY,
         }
 
     # Validate source URL
@@ -496,7 +509,7 @@ async def get_content_snippet_priority(
         return {
             "snippet": content.description or None,
             "rate_limited": False,
-            "status": "ready",
+            "status": STATUS_READY,
         }
 
     # Try to scrape immediately with timeout
@@ -517,7 +530,7 @@ async def get_content_snippet_priority(
         return {
             "snippet": None,
             "rate_limited": False,
-            "status": "loading",
+            "status": STATUS_LOADING,
         }
     except Exception as e:
         if _is_rate_limit_error(e):
@@ -528,14 +541,14 @@ async def get_content_snippet_priority(
         return {
             "snippet": None,
             "rate_limited": False,
-            "status": "failed",
+            "status": STATUS_FAILED,
         }
 
     # Fallback to description
     return {
         "snippet": content.description or None,
         "rate_limited": False,
-        "status": "ready",
+        "status": STATUS_READY,
     }
 
 
@@ -709,12 +722,12 @@ async def _scrape_article_content(
     """Scrape article content and save it."""
     source_url = _get_source_url(content)
     if not source_url:
-        raise HTTPException(status_code=404, detail="No source URL available")
+        raise HTTPException(status_code=404, detail=ERROR_NO_SOURCE_URL)
 
     article_data = await _fetch_article_by_type(source_url)
     if not article_data:
         raise HTTPException(
-            status_code=404, detail="Unable to fetch content from source"
+            status_code=404, detail=ERROR_UNABLE_TO_FETCH
         )
 
     await _save_scraped_content(content, article_data, content_id, db)
@@ -761,7 +774,7 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
         raise
     except Exception:
         logger.exception("Thumbnail endpoint failed", extra={"content_id": content_id})
-        raise HTTPException(status_code=500, detail="Failed to fetch thumbnail")
+        raise HTTPException(status_code=500, detail=ERROR_FAILED_TO_FETCH_THUMBNAIL)
 
 
 def _check_thumbnail_cache(content_id: int, current_time: float) -> Optional[str]:
@@ -862,7 +875,7 @@ async def get_content_image(
         content = result.scalar_one_or_none()
 
         if not content or not content.image_data:
-            raise HTTPException(status_code=404, detail="Image not found")
+            raise HTTPException(status_code=404, detail=ERROR_IMAGE_NOT_FOUND)
 
         # If size matches or is smaller than original, return as-is
         if size <= 600:
@@ -900,7 +913,7 @@ async def get_content_image(
         raise
     except Exception as e:
         print(f"❌ Failed to serve image for content {content_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to serve image")
+        raise HTTPException(status_code=500, detail=ERROR_FAILED_TO_SERVE_IMAGE)
 
 
 @router.get("/proxy/image")
@@ -934,7 +947,7 @@ async def image_proxy(
     except Exception:
         safe_url = url.replace("\n", "").replace("\r", "")
         logger.warning(f"Image proxy failed for URL: {safe_url}")
-        raise HTTPException(status_code=404, detail="Unable to fetch image")
+        raise HTTPException(status_code=404, detail=ERROR_UNABLE_TO_FETCH_IMAGE)
 
 
 def _validate_scraping_url(url: str) -> None:
@@ -957,7 +970,7 @@ def _validate_scraping_url(url: str) -> None:
             ip = ipaddress.ip_address(hostname)
             if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
                 raise HTTPException(
-                    status_code=403, detail="Access to internal resources is forbidden"
+                    status_code=403, detail=ERROR_INTERNAL_ACCESS_FORBIDDEN
                 )
         except ValueError:
             # Not an IP address, check hostname patterns
@@ -972,13 +985,13 @@ def _validate_scraping_url(url: str) -> None:
             
             if any(pattern in hostname_lower for pattern in blocked_patterns):
                 raise HTTPException(
-                    status_code=403, detail="Access to internal resources is forbidden"
+                    status_code=403, detail=ERROR_INTERNAL_ACCESS_FORBIDDEN
                 )
 
     except HTTPException:
         raise
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid URL format")
+        raise HTTPException(status_code=400, detail=ERROR_INVALID_URL_FORMAT)
 
 
 def _validate_image_url(url: str) -> None:
@@ -990,18 +1003,18 @@ def _validate_image_url(url: str) -> None:
         parsed = urlparse(url)
 
         if parsed.scheme not in ("http", "https"):
-            raise HTTPException(status_code=400, detail="Invalid URL scheme")
+            raise HTTPException(status_code=400, detail=ERROR_INVALID_URL_SCHEME)
 
         hostname = parsed.hostname
         if not hostname:
-            raise HTTPException(status_code=400, detail="Invalid URL")
+            raise HTTPException(status_code=400, detail=ERROR_INVALID_URL)
 
         # Check for IP addresses and validate they're not private/internal
         try:
             ip = ipaddress.ip_address(hostname)
             if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
                 raise HTTPException(
-                    status_code=403, detail="Access to internal resources is forbidden"
+                    status_code=403, detail=ERROR_INTERNAL_ACCESS_FORBIDDEN
                 )
         except ValueError:
             # Not an IP address, check hostname patterns
@@ -1016,13 +1029,13 @@ def _validate_image_url(url: str) -> None:
             
             if any(pattern in hostname_lower for pattern in blocked_patterns):
                 raise HTTPException(
-                    status_code=403, detail="Access to internal resources is forbidden"
+                    status_code=403, detail=ERROR_INTERNAL_ACCESS_FORBIDDEN
                 )
 
     except HTTPException:
         raise
     except Exception:
-        raise HTTPException(status_code=400, detail="Invalid URL format")
+        raise HTTPException(status_code=400, detail=ERROR_INVALID_URL_FORMAT)
 
 
 async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
@@ -1037,11 +1050,11 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
         
         # Limit response size to prevent DoS
         if int(resp.headers.get("content-length", 0)) > MAX_IMAGE_SIZE:
-            raise HTTPException(status_code=413, detail="Image too large")
+            raise HTTPException(status_code=413, detail=ERROR_IMAGE_TOO_LARGE)
             
         content_type = resp.headers.get("content-type", "image/jpeg")
         if not content_type.startswith("image/"):
-            raise HTTPException(status_code=400, detail="Invalid content type")
+            raise HTTPException(status_code=400, detail=ERROR_INVALID_CONTENT_TYPE)
             
         return resp.content, content_type
 
@@ -1066,7 +1079,7 @@ def _resize_image_if_needed(
             output = BytesIO()
             save_kwargs = {"quality": 75, "method": 6}
             img.save(output, format="WEBP", **save_kwargs)
-            return output.getvalue(), "image/webp"
+            return output.getvalue(), IMAGE_WEBP
         except Exception as e:
             logger.warning(f"Image resize failed: {e}, returning original")
 
