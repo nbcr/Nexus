@@ -1318,6 +1318,58 @@ Complete audit of spinner display, article scraping, and facts extraction across
 ✅ System fully audited and working correctly:
 - Spinner displays when scraping (CSS fixed)
 - Frontend shows facts or spinner or error (no double description)
+
+---
+
+# 2025-12-11: Image Storage Migration & Database Schema Update
+
+## Changes Made
+
+### 1. Database Schema
+- Added `image_data` column (LargeBinary/BYTEA) to `content_items` table
+- Images now stored as binary WebP data in database instead of files
+- Migration: `alembic/versions/2025_12_11_add_image_data_column.py`
+- Migration properly linked to revision 010 with error handling for existing column
+
+### 2. Image Processing
+- **Size**: 600px width stored in DB, upscaled on-demand via endpoint
+- **Format**: WebP at quality 75 (40-60KB per image vs 150-200KB JPEG)
+- **Serving**: New endpoint `/api/v1/content/{id}/image?size=<width>` 
+  - Size param: 400-1600px (default 800)
+  - Dynamic upscaling with LANCZOS resampling
+  - Cache-Control headers added (86400s)
+
+### 3. Scraper Updates
+- `article_scraper.py`: `download_and_optimize_image()` now returns binary WebP data
+- `persistence.py`: Stores binary data in `image_data` column instead of `local_image_path`
+- `content.py` routes: Updated `_download_article_image()` to store binary data
+
+### 4. Frontend Changes
+- `FeedRenderer.js`: Updated `buildImageHtml()` to prioritize database images
+  - Uses `/api/v1/content/{id}/image?size=800` when content_id available
+  - Falls back to local_image_path, then metadata URLs
+  - Proper fallback to placeholder if no image
+
+### 5. Old Image Files
+- Cleanup: `app/static/images/articles/` contains 49 old JPG files from previous system
+- Can be safely removed once new images are scraped and stored in DB
+- Recommendation: Keep for backward compatibility during transition
+
+## Migration Notes
+
+**Important**: The migration history had multiple branched heads from revision 001:
+- `add_is_admin_to_users`, `add_bio_to_uip`, `add_bio_to_uip_short` - merged via `merge_heads_20251124a`
+- Linear chain: 002 → 010
+- New migration: 010 → add_image_data
+
+Database was stamped with `add_image_data` since column already existed in schema.
+
+Future migrations: Always ensure `down_revision` points to previous head (currently `add_image_data`).
+
+## Testing
+- Server restart via reboot manager will activate new code
+- New articles will be scraped and stored in DB with WebP images
+- Existing articles with old `local_image_path` will still work via fallback logic
 - Backend scrapes on-demand and in background
 - `scraped_at` field tracks scraping attempts
 - Memory-efficient (background scraping doesn't block, timeout enforced on-demand)
