@@ -96,7 +96,7 @@ class AsyncRSSParser:
         try:
             parsed = json.loads(content)
             if isinstance(parsed, dict):
-                result = self._extract_json_entries(parsed, feed_url)
+                result = self._extract_json_entries(parsed)
                 if result:
                     return result
             print(f"[WARN] JSON feed {feed_url} has no recognized entries field")
