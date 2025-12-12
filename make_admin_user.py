@@ -14,8 +14,8 @@ def make_admin(username: str):
     """Make a user an admin"""
     # Create database engine
     engine = create_engine(settings.database_url_sync, echo=False)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = SessionLocal()
+    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = session_local()
 
     try:
         # Find user by username
@@ -25,12 +25,12 @@ def make_admin(username: str):
             print(f"❌ User '{username}' not found")
             return False
 
-        if user.is_admin:
+        if user.is_admin is True:
             print(f"ℹ️ User '{username}' is already an admin")
             return True
 
         # Set user as admin
-        user.is_admin = True
+        user.is_admin = True # type: ignore
         db.commit()
 
         print(f"✅ User '{username}' is now an admin")
