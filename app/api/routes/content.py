@@ -698,6 +698,22 @@ def _has_scraped_content(content: ContentItem) -> bool:
     )
 
 
+def _get_safe_domain(url: str) -> Optional[str]:
+    """Safely extract domain from URL without exposing user-controlled data."""
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        if parsed.netloc:
+            # Only return domain, sanitized and length-limited
+            domain = parsed.netloc.lower()[:100]
+            # Remove any suspicious characters
+            safe_domain = ''.join(c for c in domain if c.isalnum() or c in '.-')
+            return safe_domain if safe_domain else None
+    except Exception:
+        pass
+    return None
+
+
 def _build_article_from_cache(content: ContentItem) -> dict:
     """Build article data from cached content."""
     return {
@@ -716,9 +732,7 @@ def _build_article_from_cache(content: ContentItem) -> dict:
             if content.source_metadata
             else None
         ),
-        "domain": (
-            content.source_urls[0].split("/")[2] if content.source_urls else None
-        ),
+        "domain": _get_safe_domain(content.source_urls[0]) if content.source_urls else None,
     }
 
 
@@ -849,10 +863,11 @@ async def _scrape_thumbnail(
             return data["image_url"]
     except Exception:
         await db.rollback()
-        safe_source_url = ''.join(c for c in source_url[:200] if c.isprintable() and c not in '\n\r\t')
+        # Safely extract domain for logging to prevent taint vulnerability
+        safe_domain = _get_safe_domain(source_url) or "unknown"
         logger.exception(
             "Thumbnail scrape failed",
-            extra={"content_id": content.id, "source_url": safe_source_url},
+            extra={"content_id": content.id, "domain": safe_domain},
         )
     _thumbnail_cache[content.id] = (None, current_time)
     return None
