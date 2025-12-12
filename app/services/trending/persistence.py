@@ -144,7 +144,7 @@ class TrendingPersistence:
 
             await db.commit()
             print(f"[OK] Successfully processed news items for topic {topic_id}")
-            asyncio.create_task(self._scrape_all_new_articles(news_items))
+            _scrape_task = asyncio.create_task(self._scrape_all_new_articles(news_items))
         except Exception as e:
             print(f"[ERROR] Error updating news items for topic {topic_id}: {str(e)}")
             print("Detailed error:", e.__class__.__name__, str(e))
