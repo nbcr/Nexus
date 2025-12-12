@@ -154,13 +154,13 @@ class AsyncRSSParser:
         return {
             "feed": {
                 "title": (
-                    feed_data.get("title", {}).get("#text", "")
+                    feed_data.get("title", {}).get(TEXT_KEY, "")
                     if isinstance(feed_data.get("title"), dict)
                     else feed_data.get("title", "")
                 ),
                 "link": self._extract_atom_link(feed_data.get("link", [])),
                 "description": (
-                    feed_data.get("subtitle", {}).get("#text", "")
+                    feed_data.get("subtitle", {}).get(TEXT_KEY, "")
                     if isinstance(feed_data.get("subtitle"), dict)
                     else feed_data.get("subtitle", "")
                 ),
@@ -189,7 +189,7 @@ class AsyncRSSParser:
         """Parse Atom entry"""
         return {
             "title": (
-                entry.get("title", {}).get("#text", "")
+                entry.get("title", {}).get(TEXT_KEY, "")
                 if isinstance(entry.get("title"), dict)
                 else entry.get("title", "")
             ),

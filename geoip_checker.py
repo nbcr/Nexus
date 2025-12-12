@@ -94,7 +94,7 @@ class GeoIPChecker:
         """Extract first octet from IP"""
         try:
             return int(ip.split('.')[0])
-        except:
+        except (ValueError, IndexError) as e:
             return None
     
     def is_blocked_country(self, ip):

@@ -83,10 +83,7 @@ class TrendingManager {
             return;
         }
         
-        const trendsHtml = this.enhancedTrends.map(trend => {
-            // Existing trend rendering code...
-        }).join('');
-
+        // Render trends directly without intermediate variable
         // ...existing code...
         
         container.innerHTML = this.enhancedTrends.map(trend => {

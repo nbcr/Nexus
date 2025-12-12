@@ -88,7 +88,7 @@ def get_db_stats() -> Dict[str, Any]:
                 value = float(value)
                 unit_map = {"B": 1, "kB": 1024, "MB": 1024**2, "GB": 1024**3}
                 size_bytes = int(value * unit_map.get(unit, 1))
-            except:
+            except (ValueError, IndexError) as e:
                 pass
 
         # Get item count
@@ -193,7 +193,7 @@ def generate_report() -> Dict[str, Any]:
         try:
             with open(REPORT_FILE) as f:
                 previous_report = json.load(f)
-        except:
+        except (FileNotFoundError, json.JSONDecodeError) as e:
             pass
 
     # Calculate projections
@@ -234,7 +234,7 @@ def update_history(report: Dict[str, Any]) -> None:
         try:
             with open(HISTORY_FILE) as f:
                 history = json.load(f)
-        except:
+        except (FileNotFoundError, json.JSONDecodeError) as e:
             pass
 
     # Add today's data
@@ -277,7 +277,7 @@ def calculate_statistics() -> Dict[str, Any]:
     try:
         with open(HISTORY_FILE) as f:
             history = json.load(f)
-    except:
+    except (FileNotFoundError, json.JSONDecodeError) as e:
         return stats
 
     if len(history) < 2:

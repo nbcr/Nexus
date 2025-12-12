@@ -7,10 +7,11 @@ Retrieves code quality issues from SonarQube Cloud
 import requests
 import json
 import sys
+import os
 from urllib.parse import quote
 
 # SonarQube Cloud configuration
-SONAR_TOKEN = "7446306b783cc3bde3f82cd32a87cd5899bf14d0"
+SONAR_TOKEN = os.getenv("SONAR_TOKEN", "<sonar_token>")
 SONAR_URL = "https://sonarcloud.io"
 
 def get_project_key():
@@ -25,7 +26,7 @@ def check_project_exists(project_key):
         if response.status_code == 200:
             data = response.json()
             return any(p["key"] == project_key for p in data.get("components", []))
-    except:
+    except requests.exceptions.RequestException as e:
         pass
     return False
 
@@ -91,18 +92,18 @@ def format_issue(issue):
     }
 
 def generate_markdown_report(project_key, all_issues, js_issues, feedrenderer_issues):
-    """Generate markdown report of issues organized by severity"""
+    """Generate markdown report of all issues organized by severity"""
     md_content = f"# SonarQube Issues Report\n\n"
     md_content += f"**Project:** {project_key}\n\n"
     md_content += f"**Total Issues:** {len(all_issues)}\n\n"
     md_content += f"**JavaScript Issues:** {len(js_issues)}\n\n"
     
-    if js_issues:
+    if all_issues:
         # Group by severity
         severity_groups = {"CRITICAL": [], "BLOCKER": [], "MAJOR": [], "MINOR": [], "INFO": []}
         severity_icons = {"CRITICAL": "🔴", "BLOCKER": "🟠", "MAJOR": "🟡", "MINOR": "🔵", "INFO": "⚪"}
         
-        for issue in js_issues:
+        for issue in all_issues:
             formatted = format_issue(issue)
             severity = formatted['severity']
             if severity in severity_groups:
@@ -149,7 +150,10 @@ def generate_markdown_report(project_key, all_issues, js_issues, feedrenderer_is
                 }
                 md_content += f"{len([s for s in ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"] if len(severity_groups[s]) > 0 and ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"].index(s) <= ["CRITICAL", "BLOCKER", "MAJOR", "MINOR", "INFO"].index(severity)])}. **{icon} {severity} ({count} issues)** - {priority_text[severity]}\n"
         
-        md_content += "\n## All JavaScript Issues ({})\n\n".format(len(js_issues))
+        md_content += "\n## All Issues ({})\n\n".format(len(all_issues))
+        
+        if js_issues:
+            md_content += f"### JavaScript Issues ({len(js_issues)})\n\n"
     
     return md_content
 

@@ -11,7 +11,8 @@ ALTER TABLE content_items ADD COLUMN IF NOT EXISTS tags JSON DEFAULT '[]';
 UPDATE content_items SET title = 'Untitled' WHERE title IS NULL;
 UPDATE content_items SET tags = '[]' WHERE tags IS NULL;
 
--- Make title NOT NULL (optional, comment out if you want it nullable)
+-- Make title NOT NULL if needed
+-- Uncomment the line below if you want title to be required:
 -- ALTER TABLE content_items ALTER COLUMN title SET NOT NULL;
 
 -- Verify the changes

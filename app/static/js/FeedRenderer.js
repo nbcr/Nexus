@@ -128,9 +128,9 @@ class FeedRenderer {
 
     buildRelatedQueriesHtml(item) {
         if (item.related_queries?.length > 0) {
-            const queriesHtml = item.related_queries.map(query => 
-                `<a href="${query.url}" target="_blank" rel="noopener" class="related-query">${query.title}</a>`
-            ).join('');
+            const queriesHtml = item.related_queries.map(query => {
+                return `<a href="${query.url}" target="_blank" rel="noopener" class="related-query">${query.title}</a>`;
+            }).join('');
             return `<div class="feed-item-related"><h4 class="related-title">🔍 Related Searches:</h4><div class="related-queries">${queriesHtml}</div></div>`;
         }
         return '';

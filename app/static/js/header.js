@@ -279,7 +279,7 @@ function toggleDarkMode() {
     }
 
     // Force repaint to ensure background color updates
-    void document.documentElement.offsetHeight;
+    document.documentElement.offsetHeight;
 
     console.log('After toggle - html classes:', document.documentElement.className);
     console.log('After toggle - body classes:', document.body.className);
@@ -399,7 +399,7 @@ function initScrollHeader() {
             isScrolled = false;
         }
 
-        lastScrollTop = scrollTop;
+        // lastScrollTop = scrollTop; // Removed unused assignment
     }
 
     // Throttle scroll events for performance

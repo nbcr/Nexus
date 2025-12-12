@@ -37,7 +37,7 @@ class UIManager {
     }
 
     updateUI() {
-        if (window.auth && window.auth.isLoggedIn()) {
+        if (window.auth?.isLoggedIn()) {
             Utils.hideElement('auth-section');
             Utils.showElement('user-section');
             Utils.setHTML('user-info', `Welcome, ${window.auth.user.username}!`);

@@ -7,6 +7,9 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# Constants
+SQLALCHEMY_URL_KEY = "sqlalchemy.url"
+
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -34,16 +37,16 @@ if database_url:
     # Convert async URL to sync URL for Alembic
     if "postgresql+asyncpg://" in database_url:
         database_url = database_url.replace("postgresql+asyncpg://", "postgresql://")
-    config.set_main_option("sqlalchemy.url", database_url)
+    config.set_main_option(SQLALCHEMY_URL_KEY, database_url)
 else:
     # Try to get from app config
     try:
         from app.core.config import settings
 
         sync_url = settings.database_url_sync
-        config.set_main_option("sqlalchemy.url", sync_url)
-    except:
-        pass
+        config.set_main_option(SQLALCHEMY_URL_KEY, sync_url)
+    except ImportError as e:
+        print(f"Warning: Could not import settings: {e}")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -74,7 +77,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option(SQLALCHEMY_URL_KEY)
     context.configure(
         url=url,
         target_metadata=target_metadata,
