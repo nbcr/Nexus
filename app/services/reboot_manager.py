@@ -37,7 +37,7 @@ class RebootManager:
         self.content_refresh_in_progress = False
         self.rss_fetcher_active = False
 
-    async def check_reboot_request(self):
+    def check_reboot_request(self):
         """Check if reboot has been requested"""
         if REBOOT_FILE.exists():
             try:
@@ -48,7 +48,7 @@ class RebootManager:
                 logger.error(f"[ERROR] Failed to read reboot request file: {e}")
         return False
 
-    async def clear_reboot_request(self):
+    def clear_reboot_request(self):
         """Clear the reboot request file contents"""
         try:
             if REBOOT_FILE.exists():
@@ -121,36 +121,34 @@ class RebootManager:
         logger.warning(
             f"[REBOOT] Timeout reached after {timeout_seconds}s, forcing reboot"
         )
-        return True
+        return False
 
     async def monitor_reboot_requests(self):
         """Monitor for reboot requests every minute"""
         while self.is_running:
             try:
-                if await self.check_reboot_request():
-                    if not self.reboot_requested:
-                        self.reboot_requested = True
-                        logger.warning(
-                            "[REBOOT] Reboot requested - initiating graceful shutdown..."
-                        )
+                if self.check_reboot_request() and not self.reboot_requested:
+                    self.reboot_requested = True
+                    logger.warning(
+                        "[REBOOT] Reboot requested - initiating graceful shutdown..."
+                    )
 
-                        # Wait for safe conditions
-                        await self.wait_for_safe_reboot()
+                    # Wait for safe conditions
+                    await self.wait_for_safe_reboot()
 
-                        # Clear the request file
-                        await self.clear_reboot_request()
+                    # Clear the request file
+                    self.clear_reboot_request()
 
-                        # Trigger shutdown
-                        logger.info("[REBOOT] Triggering application shutdown...")
-                        import signal
-                        import sys
+                    # Trigger shutdown
+                    logger.info("[REBOOT] Triggering application shutdown...")
+                    import signal
 
-                        if sys.platform == "win32":
-                            # Windows: Use SystemExit
-                            raise SystemExit(0)
-                        else:
-                            # Unix: Use SIGTERM
-                            os.kill(os.getpid(), signal.SIGTERM)
+                    if sys.platform == "win32":
+                        # Windows: Use SystemExit
+                        raise SystemExit(0)
+                    else:
+                        # Unix: Use SIGTERM
+                        os.kill(os.getpid(), signal.SIGTERM)
 
             except SystemExit:
                 raise

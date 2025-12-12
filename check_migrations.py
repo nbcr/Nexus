@@ -72,9 +72,7 @@ async def verify_migrations_match_db():
         print("✅ 008: facts column added to content_items")
         print("✅ 009: Merge point (merges branches 004, 008)")
         print("✅ 010: local_image_path column added to content_items")
-        print(
-            "✅ add_image_data: image_data column (BLOB/BYTEA) added to content_items"
-        )
+        print("✅ 011: image_data column (BLOB/BYTEA) added to content_items")
 
         print("\n" + "=" * 70)
         print("RECOVERY PROCEDURE (if DB corrupted):")
