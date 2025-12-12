@@ -20,6 +20,7 @@ from app.core.config import settings
 from app.services.scheduler_service import scheduler_service
 from app.services.intrusion_service import ids_service
 from app.services.reboot_manager import reboot_manager
+from app.middleware.security_middleware import SecurityMiddleware
 
 # Configure Jinja2 templates
 templates = Jinja2Templates(directory="app/templates")
@@ -85,6 +86,9 @@ async def shutdown_event():
     ids_service.stop()
     reboot_manager.stop()
 
+
+# Add security middleware first
+app.add_middleware(SecurityMiddleware)
 
 # Configure CORS
 app.add_middleware(

@@ -3,6 +3,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from pydantic import BaseModel
+from app.core.input_validation import InputValidator
+from app.core.secure_request_handler import SecureRequestHandler
 
 from app.db import AsyncSessionLocal
 from app.api.v1.deps import get_db
@@ -107,6 +109,8 @@ async def track_content_view(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
+    # Validate content_id
+    content_id = InputValidator.validate_integer(content_id, min_val=1, max_val=999999999)
     """Track when a user views content"""
     session_token = get_session_token(request)
 

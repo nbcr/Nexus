@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends  # type: ignore
 from sqlalchemy.ext.asyncio import AsyncSession  # pyright: ignore[reportMissingImports]
 from sqlalchemy import select  # pyright: ignore[reportMissingImports]
 from typing import List
+from app.core.input_validation import InputValidator
 
 from app.api.v1.deps import get_db
 from app.models import Topic, ContentItem
@@ -23,6 +24,9 @@ async def get_topics(
 @router.get("/{topic_id}", response_model=TopicWithContent)
 async def get_topic(topic_id: int, db: AsyncSession = Depends(get_db)):
     """Get a specific topic with its content"""
+    # Validate topic_id
+    topic_id = InputValidator.validate_integer(topic_id, min_val=1, max_val=999999999)
+    
     result = await db.execute(select(Topic).where(Topic.id == topic_id))
     topic = result.scalar_one_or_none()
 
@@ -35,12 +39,16 @@ async def get_topic(topic_id: int, db: AsyncSession = Depends(get_db)):
 @router.post("/", response_model=TopicSchema)
 async def create_topic(topic_data: dict, db: AsyncSession = Depends(get_db)):
     """Create a new topic"""
-    # Simple create endpoint - we'll enhance this later
+    # Validate input data
+    title = InputValidator.validate_xss_safe(topic_data.get("title", ""))
+    description = InputValidator.validate_xss_safe(topic_data.get("description", ""))
+    category = InputValidator.validate_xss_safe(topic_data.get("category", ""))
+    
     topic = Topic(
-        title=topic_data.get("title"),
-        normalized_title=topic_data.get("title").lower().replace(" ", "_"),
-        description=topic_data.get("description"),
-        category=topic_data.get("category"),
+        title=title,
+        normalized_title=title.lower().replace(" ", "_"),
+        description=description,
+        category=category,
         trend_score=topic_data.get("trend_score", 0.0),
         tags=topic_data.get("tags", []),
     )

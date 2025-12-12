@@ -4,6 +4,7 @@ from app.schemas import UserCreate
 from app.services.user_service import create_user, get_user_by_email
 from app.services.email_service import email_service
 from app.api.v1.deps import get_db
+from app.core.input_validation import InputValidator
 
 router = APIRouter()
 
@@ -15,6 +16,10 @@ async def get_users():
 
 @router.post("/")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    # Validate user input
+    user.email = InputValidator.validate_xss_safe(user.email)
+    user.username = InputValidator.validate_xss_safe(user.username)
+    
     # Check if user already exists
     existing = await get_user_by_email(db, user.email)
     if existing:
