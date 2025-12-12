@@ -96,7 +96,6 @@ echo "" | plink -batch admin@ec2-35-172-220-70.compute-1.amazonaws.com "sudo sys
   ssh -F C:\Users\Yot\.ssh\config-nexus nexus-server "cat /path/to/file"
   ```
 
-
 - **Environment Variables**: Stored in `C:\Nexus\.env` locally
 
   - Database credentials: `nexus_user:RdkV6Q$!@localhost:5432/nexus`
@@ -200,7 +199,6 @@ This file should be updated after every significant change, fix, or troubleshoot
 > **Append new updates below, newest at the bottom. Do not rewrite previous entries.**
 
 ### 2025-11-24 22:00:00 UTC: Logout Flow and Auth Button Fixes
-
 
 - Created a dedicated `logged-out.html` page that displays a logout confirmation and auto-redirects to the homepage after a short delay.
 
@@ -378,14 +376,12 @@ Testing webhook with sudo permissions
 1. **Flask Missing**: Webhook listener was crash-looping with `ModuleNotFoundError: No module named 'flask'`
    - Solution: Installed Flask and python-dotenv in the venv
 
-
 2. **Sudo Permission Error**: Webhook could pull code but couldn't restart service due to `pam_unix(sudo:auth): conversation failed`
    - Solution: Added `/etc/sudoers.d/nexus-webhook` with NOPASSWD for systemctl commands:
 
      ```bash
      nexus ALL=(ALL) NOPASSWD: /bin/systemctl restart nexus.service, /bin/systemctl is-active nexus.service
      ```
-
 
 3. **Indentation Error in app/main.py**: Service was crashing with exit code 3 after deployment
    - Solution: Fixed indentation on line 42 (return statement after if username check)
@@ -811,12 +807,10 @@ Testing webhook with sudo permissions
 
    - Created `ANALYTICS_TROUBLESHOOTING.md` comprehensive guide
 
-
 2. **Git Commit & Push**:
    - Committed changes with message: "fix: Update cache-busting version parameters for Google Analytics tracking"
 
    - Pushed to `origin/main`
-
 
 3. **Automatic Deployment**:
    - GitHub webhook automatically triggered deployment
@@ -1369,7 +1363,6 @@ Both dark and light modes now load instantly with no flash on page refresh.
 
 ---
 
-
 ## 2025-12-02: AI-Powered RSS Feed Discovery & Content Personalization
 
 ## RSS Discovery Service Implementation
@@ -1436,7 +1429,6 @@ GET /api/v1/content/rss/content?max_items=20
 GET /api/v1/content/suggestions/topics
 ```
 
-
 ## Enhanced News Categorization (Same Update)
 
 - **Expanded Categories**: From 6 to 13 distinct categories
@@ -1476,13 +1468,11 @@ curl -s 'http://localhost:8000/api/v1/content/suggestions/topics' | python3 -m j
 
 ```
 
-
 ## Status: ✅ Complete
 
 AI recommendation system is live and learning from user behavior to discover relevant RSS feeds.
 
 ---
-
 
 ---
 
@@ -1532,7 +1522,6 @@ AI recommendation system is live and learning from user behavior to discover rel
 
 Topics are now updating correctly! The background scheduler runs every 15 minutes and checks if content refresh is needed (every 4 hours). Fresh Canadian trending topics from Google Trends RSS feed are now being saved to the database successfully.
 
-
 ## 2025-12-04: Crash Sentinel for nexus.service
 
 - Updated `/etc/systemd/system/nexus.service` to refuse start if `/home/nexus/nexus/run/clean_shutdown.flag` is missing or not `OK`, and send an alert to `webmaster@comdat.ca` before exiting.
@@ -1565,7 +1554,7 @@ Topics are now updating correctly! The background scheduler runs every 15 minute
 
 ## 2025-12-04: Brevo webhook authentication and email validation
 
-- Fixed webhook 401 errors: nginx wasn't forwarding Authorization header, and Brevo sends "Authorization: bearer <token>" not custom headers.
+- Fixed webhook 401 errors: nginx wasn't forwarding Authorization header, and Brevo sends "Authorization: bearer token" not custom headers.
 
 - Updated nginx config (`/api/v1/` location) to forward Authorization and X-Brevo-* headers.
 
@@ -2235,8 +2224,6 @@ For 7.2GB RAM environment (change requires restart):
 
 **Status**: Configuration applied. PostgreSQL service requires restart for changes to take effect.
 
-
-
 ---
 
 ## 2025-12-10: RSS Feed Fetcher Not Working - Background Scheduler Disabled Fix
@@ -2447,7 +2434,7 @@ Implemented Windows-native intrusion detection system that:
 
 - Database: `intrusion_data.db` (SQLite)
 
-```
+```text
 
 
 ## 2025-12-11: Fixed Unicode Encoding Errors - RSS Feed Fetching Now Works
@@ -2564,7 +2551,6 @@ echo "reboot" > temp/nexus_reboot_request
 
 ```
 
-
 The reboot manager service monitors this file and removes it once reboot is initiated. Wait ~10 seconds and verify the file is empty to confirm reboot was started.
 
 ## Code Quality Fixes
@@ -2597,8 +2583,6 @@ Added interrupt handling so the reboot manager waits for the RSS fetcher to comp
 
 - Reboot proceeds only when all safe conditions met: no active connections, no content refresh, no fetcher active
 
-
-
 ---
 
 ## 2025-12-12: Code Quality & Security Improvements
@@ -2608,6 +2592,7 @@ Added interrupt handling so the reboot manager waits for the RSS fetcher to comp
 Fixed all ESLint/SonarQube issues across frontend files:
 
 **Global Issues Resolved:**
+
 - Replaced all window references with globalThis (S7764) across:
   - app/static/js/HeaderAuth.js
   - app/static/js/feed-notifier.js
@@ -2618,6 +2603,7 @@ Fixed all ESLint/SonarQube issues across frontend files:
   - app/static/js/ui.js
 
 **Specific Fixes:**
+
 - app/templates/login.html:
   - Changed async function to block scope with arrow function
   - Added proper error handling in auth check try-catch
@@ -2641,11 +2627,13 @@ Fixed all ESLint/SonarQube issues across frontend files:
   - Fixed escape characters in template literals
 
 **Commits:**
+
 - 0e5450c: fix: resolve linting errors - use globalThis instead of window, fix async patterns, fix conditional logic
 - f042e0c: fix: remove unnecessary escape characters in trending.js
 - 41cf085: fix: use crypto.getRandomValues instead of Math.random for visitor ID generation
 
 ### Code Quality Status
+
 - All 40 minor JavaScript linting issues resolved
 - Ready to address 8 major issues and 1 critical issue in next phase
 - All changes committed and synced to main branch
