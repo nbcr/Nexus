@@ -10,6 +10,7 @@ from app.models import Topic, ContentItem
 from app.services.deduplication import deduplication_service
 from app.services.article_scraper import article_scraper
 from app.utils.slug import generate_slug, generate_slug_from_url
+from app.db import AsyncSessionLocal
 
 
 class TrendingPersistence:
@@ -39,7 +40,9 @@ class TrendingPersistence:
                 and article_data.get("content")
                 and len(article_data.get("content", "")) > 50
             ):
-                print(f"  [OK] Scrape successful ({len(article_data['content'])} chars)")
+                print(
+                    f"  [OK] Scrape successful ({len(article_data['content'])} chars)"
+                )
                 return True
             else:
                 print(f"  [WARN] Scrape got no useful content")
@@ -75,7 +78,9 @@ class TrendingPersistence:
                 # Skip items with empty or trivial descriptions
                 snippet = news_item.get("snippet", "").strip()
                 if not snippet or snippet.lower() in ("comments", ""):
-                    print(f"  [SKIP] Skipping item '{title}' - empty or trivial description")
+                    print(
+                        f"  [SKIP] Skipping item '{title}' - empty or trivial description"
+                    )
                     # Try to scrape to see if we can salvage it
                     source_url = news_item.get("source", "unknown")
                     self._test_scrape_item(title, url, source_url)
@@ -84,7 +89,9 @@ class TrendingPersistence:
                 existing = await deduplication_service.find_duplicate(db, title, url)
 
                 if existing:
-                    print(f"  [LINK] Duplicate found for '{title}' - linking as related")
+                    print(
+                        f"  [LINK] Duplicate found for '{title}' - linking as related"
+                    )
 
                     # If existing item hasn't been scraped yet, scrape it now
                     if url and not (
@@ -135,7 +142,9 @@ class TrendingPersistence:
 
                 # Don't scrape during initial fetch - use RSS snippet only
                 # Scraping will be done on-demand when content is viewed
-                image_url = news_item.get("image_url", None) or news_item.get("picture", None)
+                image_url = news_item.get("image_url", None) or news_item.get(
+                    "picture", None
+                )
 
                 content_item = ContentItem(
                     topic_id=topic_id,
@@ -161,7 +170,7 @@ class TrendingPersistence:
 
             await db.commit()
             print(f"[OK] Successfully processed news items for topic {topic_id}")
-            
+
             # Fire and forget: scrape articles in background with concurrency limit
             asyncio.create_task(self._scrape_all_new_articles(news_items))
         except Exception as e:
@@ -189,7 +198,9 @@ class TrendingPersistence:
             if google_trends_tag not in tags:
                 filtered_trends.append(trend)
             else:
-                print(f"[SKIP] Skipping trend with google_trends tag: {trend.get('title')}")
+                print(
+                    f"[SKIP] Skipping trend with google_trends tag: {trend.get('title')}"
+                )
 
         trends = filtered_trends
         if not trends:
@@ -323,79 +334,85 @@ class TrendingPersistence:
                     title = news_item.get("title", "").strip()
                     if url and title:
                         tasks.append(self._scrape_and_store_article(title, url, db))
-                
+
                 if not tasks:
                     return
-                
+
                 # Run all scrapes in parallel with semaphore to limit concurrency
                 print(f"📰 Starting background scrape of {len(tasks)} articles...")
                 semaphore = asyncio.Semaphore(3)  # Max 3 concurrent scrapes
-                
+
                 async def bounded_scrape(task):
                     async with semaphore:
                         return await task
-                
+
                 results = await asyncio.gather(
-                    *[bounded_scrape(task) for task in tasks],
-                    return_exceptions=True
+                    *[bounded_scrape(task) for task in tasks], return_exceptions=True
                 )
-                
+
                 # Count successes
-                successes = sum(1 for r in results if r and not isinstance(r, Exception))
-                print(f"✅ Background scraping complete: {successes}/{len(tasks)} articles scraped")
-                
+                successes = sum(
+                    1 for r in results if r and not isinstance(r, Exception)
+                )
+                print(
+                    f"✅ Background scraping complete: {successes}/{len(tasks)} articles scraped"
+                )
+
         except Exception as e:
             print(f"❌ Background scraping failed: {e}")
-    
+
     async def _scrape_and_store_article(
         self, title: str, url: str, db: AsyncSession
     ) -> bool:
         """Scrape single article and store content + image"""
         try:
             # Fetch article content and image
-            article_data = await asyncio.to_thread(
-                article_scraper.fetch_article, url
-            )
-            
+            article_data = await asyncio.to_thread(article_scraper.fetch_article, url)
+
             if not article_data or not article_data.get("content"):
                 return False
-            
+
             # Find the content item
             slug = generate_slug(title)
             result = await db.execute(
-                select(ContentItem).where(ContentItem.slug == slug).order_by(ContentItem.id.desc()).limit(1)
+                select(ContentItem)
+                .where(ContentItem.slug == slug)
+                .order_by(ContentItem.id.desc())
+                .limit(1)
             )
             content = result.scalar_one_or_none()
-            
+
             if not content:
                 return False
-            
+
             # Store scraped content
             content.content_text = article_data.get("content", "")
             content.facts = article_data.get("content", "")
-            
+
             # Download and optimize image
             if article_data.get("image_url"):
                 try:
                     local_path = await asyncio.to_thread(
                         article_scraper.download_and_optimize_image,
                         article_data["image_url"],
-                        content.id
+                        content.id,
                     )
                     if local_path:
                         content.local_image_path = local_path
                         print(f"  ✅ Scraped & stored image for '{title}'")
                 except Exception as e:
                     print(f"  ⚠️ Image download failed for '{title}': {e}")
-            
+
             # Mark as scraped
             if not content.source_metadata:
                 content.source_metadata = {}
-            content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
-            
+            content.source_metadata["scraped_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
+
             await db.commit()
             return True
-            
+
         except Exception as e:
             print(f"  ⚠️ Scrape failed for '{title}': {e}")
             return False
