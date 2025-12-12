@@ -7,7 +7,7 @@ Uses BeautifulSoup to parse HTML and extract main content.
 
 import requests
 from bs4 import BeautifulSoup
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 import re
 from urllib.parse import urlparse
 from fastapi import HTTPException
@@ -165,7 +165,7 @@ class ArticleScraperService:
                 return None
 
             # Parse HTML
-            soup = BeautifulSoup(response.content, "html.parser")
+            soup = BeautifulSoup(response.text, "html.parser")
             return self._process_scraped_article(soup, url)
 
         except requests.exceptions.ConnectionError as e:
@@ -193,59 +193,65 @@ class ArticleScraperService:
         Returns:
             Condensed key facts as bullet points or summarized excerpt
         """
-        # For all articles, extract important sentences and condense them
         sentences = re.split(r"(?<=[.!?])\s+", content)
-
-        # If very short content, return as-is
+        
         if len(sentences) <= 3:
             return content
 
-        # Score each sentence for importance
+        scored_sentences = self._score_all_sentences(sentences)
+        extracted_facts = self._select_important_facts(scored_sentences)
+        ordered_facts = self._maintain_narrative_order(sentences, extracted_facts)
+        
+        return self._format_facts_or_fallback(ordered_facts, content)
+
+    def _score_all_sentences(self, sentences: List[str]) -> List[Tuple[float, str]]:
+        """Score all sentences for importance"""
         scored_sentences = []
         for sentence in sentences:
-            if len(sentence.strip()) < 20:  # Skip very short sentences
-                continue
-
-            score = self._score_sentence_importance(sentence)
-            scored_sentences.append((score, sentence.strip()))
-
-        # Sort by score and extract top facts
+            if len(sentence.strip()) >= 20:
+                score = self._score_sentence_importance(sentence)
+                scored_sentences.append((score, sentence.strip()))
+        
         scored_sentences.sort(reverse=True, key=lambda x: x[0])
+        return scored_sentences
 
-        # Extract enough facts to reach ~300 words, prioritizing importance
+    def _select_important_facts(self, scored_sentences: List[Tuple[float, str]]) -> List[str]:
+        """Select facts based on importance and word count targets"""
         extracted_facts = []
         word_count = 0
         target_words = 300
 
         for score, sentence in scored_sentences:
             sentence_words = len(sentence.split())
-            # Allow going over if it's an important sentence and we're under 400 words
-            if word_count < target_words or (score > 1.5 and word_count < 400):
+            
+            if self._should_include_sentence(score, word_count, target_words):
                 extracted_facts.append(sentence)
                 word_count += sentence_words
-            elif word_count >= target_words:
-                # Once we exceed target, only add very high-scoring facts
-                if score > 3.0 and word_count < 450:
-                    extracted_facts.append(sentence)
-                    word_count += sentence_words
-                else:
-                    break
+            elif word_count >= target_words and not self._is_high_value_sentence(score, word_count):
+                break
+                
+        return extracted_facts
 
-        # Re-sort by original order in document (maintain narrative flow)
+    def _should_include_sentence(self, score: float, word_count: int, target_words: int) -> bool:
+        """Determine if sentence should be included based on score and word count"""
+        return word_count < target_words or (score > 1.5 and word_count < 400)
+
+    def _is_high_value_sentence(self, score: float, word_count: int) -> bool:
+        """Check if sentence is high value and should be included despite word count"""
+        return score > 3.0 and word_count < 450
+
+    def _maintain_narrative_order(self, sentences: List[str], extracted_facts: List[str]) -> List[str]:
+        """Re-sort facts by original document order to maintain narrative flow"""
         fact_sentences_set = set(extracted_facts)
-        ordered_facts = []
-        for sentence in sentences:
-            if sentence.strip() in fact_sentences_set:
-                ordered_facts.append(sentence.strip())
+        return [sentence.strip() for sentence in sentences if sentence.strip() in fact_sentences_set]
 
-        # Format as bullet points
+    def _format_facts_or_fallback(self, ordered_facts: List[str], content: str) -> str:
+        """Format facts as bullet points or return fallback content"""
         if ordered_facts:
-            facts_text = "\n\n".join([f"• {fact}" for fact in ordered_facts])
-            return facts_text
-
-        # Fallback to first 300 words if extraction fails
+            return "\n\n".join([f"• {fact}" for fact in ordered_facts])
+        
         words = content.split()
-        return " ".join(words[: self.MAX_EXCERPT_WORDS])
+        return " ".join(words[:self.MAX_EXCERPT_WORDS])
 
     def _score_sentence_importance(self, sentence: str) -> float:
         """
@@ -693,45 +699,43 @@ class ArticleScraperService:
 
         return None
 
-    def _extract_search_results(self, soup: BeautifulSoup) -> list:
+    def _extract_search_results_list(self, soup: BeautifulSoup) -> list:
         """Extract search results from DuckDuckGo page"""
         results = []
+        result_divs = self._find_result_elements(soup)
 
-        # DuckDuckGo result selectors (may need adjustment)
-        result_divs = soup.find_all("article", {"data-testid": re.compile("result")})
-        if not result_divs:
-            result_divs = soup.find_all("div", class_=re.compile("result"))
-
-        for result_div in result_divs[:10]:  # Get top 10
+        for result_div in result_divs[:10]:
             try:
-                # Extract title
-                title_elem = result_div.find("h2") or result_div.find(
-                    "a", class_=re.compile("result__a")
-                )
-                title = title_elem.get_text().strip() if title_elem else ""
-
-                # Extract snippet/description
-                snippet_elem = result_div.find(
-                    "div", class_=re.compile("snippet|result__snippet")
-                )
-                if not snippet_elem:
-                    # Try finding any div with text
-                    snippet_elem = result_div.find(
-                        "span", class_=re.compile("result__snippet")
-                    )
-                snippet = snippet_elem.get_text().strip() if snippet_elem else ""
-
-                # Extract URL
-                link_elem = result_div.find("a", href=True)
-                link = link_elem["href"] if link_elem else ""
-
-                if title:  # Only add if we have at least a title
-                    results.append({"title": title, "snippet": snippet, "url": link})
+                result_data = self._parse_single_result(result_div)
+                if result_data["title"]:
+                    results.append(result_data)
             except Exception as e:
                 print(f"⚠️ Error parsing individual result: {e}")
                 continue
 
         return results
+
+    def _find_result_elements(self, soup: BeautifulSoup):
+        """Find result elements using various selectors"""
+        result_divs = soup.find_all("article", {"data-testid": re.compile("result")})
+        if not result_divs:
+            result_divs = soup.find_all("div", class_=re.compile("result"))
+        return result_divs
+
+    def _parse_single_result(self, result_div) -> Dict[str, str]:
+        """Parse a single search result element"""
+        title_elem = result_div.find("h2") or result_div.find("a", class_=re.compile("result__a"))
+        title = title_elem.get_text().strip() if title_elem else ""
+
+        snippet_elem = result_div.find("div", class_=re.compile("snippet|result__snippet"))
+        if not snippet_elem:
+            snippet_elem = result_div.find("span", class_=re.compile("result__snippet"))
+        snippet = snippet_elem.get_text().strip() if snippet_elem else ""
+
+        link_elem = result_div.find("a", href=True)
+        link = link_elem["href"] if link_elem else ""
+
+        return {"title": title, "snippet": snippet, "url": link}
 
     def _extract_title(self, soup: BeautifulSoup) -> str:
         """Extract article title"""
@@ -912,7 +916,7 @@ class ArticleScraperService:
         return self._extract_image_from_article_body(soup, base_url)
 
     def download_and_optimize_image(
-        self, image_url: str, content_id: int
+        self, image_url: str
     ) -> Optional[bytes]:
         """
         Download image from URL and optimize it for database storage.
@@ -920,7 +924,6 @@ class ArticleScraperService:
 
         Args:
             image_url: URL of the image to download
-            content_id: ID of the content item (for reference only)
 
         Returns:
             Binary WebP image data if successful, None otherwise
@@ -940,7 +943,7 @@ class ArticleScraperService:
 
             # Convert RGBA to RGB if needed
             if img.mode in ("RGBA", "LA", "P"):
-                rgb_img = Image.new("RGB", img.size, (255, 255, 255))
+                rgb_img = Image.new("RGB", img.size, "white")  # type: ignore
                 rgb_img.paste(
                     img, mask=img.split()[-1] if img.mode in ("RGBA", "LA") else None
                 )

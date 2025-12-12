@@ -76,7 +76,7 @@ class ContentRecommendationService:
 
     async def _fetch_related_candidates(
         self, db: AsyncSession, base_content: ContentItem, base_topic: Topic
-    ) -> List[tuple]:
+    ):
         """Fetch candidate related content items"""
         filters = [
             ContentItem.id != base_content.id,
@@ -96,8 +96,8 @@ class ContentRecommendationService:
         return result.all()
 
     def _score_and_sort_candidates(
-        self, candidates: List[tuple], base_content: ContentItem, base_topic: Topic
-    ) -> List[tuple]:
+        self, candidates, base_content: ContentItem, base_topic: Topic
+    ):
         """Score candidates by tag overlap and title similarity"""
 
         def score(c: ContentItem, t: Topic) -> float:
@@ -147,12 +147,22 @@ class ContentRecommendationService:
 
     def _extract_tags(self, content: ContentItem, topic: Topic) -> set:
         """Extract all tags from content and topic"""
-        tags = set(topic.tags or [])
+        tags = set()
+        
+        # Handle topic tags - check if it's a list/iterable, not a SQLAlchemy Column
+        if hasattr(topic, 'tags') and topic.tags is not None:
+            try:
+                # Only proceed if it's actually a list/iterable
+                if isinstance(topic.tags, (list, tuple)):
+                    tags = set(topic.tags)
+            except (TypeError, AttributeError):
+                pass
+        
         if content.source_metadata:
             tags.update(content.source_metadata.get("tags", []))
         return tags
 
-    def _format_related_items(self, scored: List[tuple], limit: int) -> List[Dict]:
+    def _format_related_items(self, scored, limit: int) -> List[Dict]:
         """Format scored candidates into related item dictionaries"""
         related = []
         for content, topic in scored[:limit]:
@@ -165,9 +175,7 @@ class ContentRecommendationService:
                     "created_at": content.created_at.isoformat(),
                 }
             )
-
-            return related
-        """Service for generating personalized content recommendations"""
+        return related
 
     async def get_personalized_feed(
         self,
@@ -176,7 +184,7 @@ class ContentRecommendationService:
         session_token: Optional[str] = None,
         page: int = 1,
         page_size: int = 20,
-        exclude_ids: List[int] = None,
+        exclude_ids: Optional[List[int]] = None,
         cursor: Optional[str] = None,
     ) -> Dict:
         """
@@ -206,14 +214,17 @@ class ContentRecommendationService:
         all_excluded = set(exclude_ids + viewed_content_ids)
 
         # Build query - Show items with meaningful content
+        where_clauses = [
+            ContentItem.is_published == True,
+            Topic.category != "Reference",
+        ]
+        if all_excluded:
+            where_clauses.append(ContentItem.id.notin_(all_excluded))
+        
         query = (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
-            .where(
-                ContentItem.is_published == True,
-                Topic.category != "Reference",
-                ContentItem.id.notin_(all_excluded) if all_excluded else True,
-            )
+            .where(*where_clauses)
         )
 
         # FIXME: Future filtering by user_categories can be added here
@@ -302,7 +313,7 @@ class ContentRecommendationService:
         db: AsyncSession,
         page_size: int = 20,
         category: Optional[str] = None,
-        exclude_ids: List[int] = None,
+        exclude_ids: Optional[List[int]] = None,
         cursor: Optional[str] = None,
     ) -> Dict:
         """Deprecated: Use get_all_feed instead."""
@@ -318,7 +329,7 @@ class ContentRecommendationService:
         self,
         db: AsyncSession,
         page_size: int = 20,
-        exclude_ids: List[int] = None,
+        exclude_ids: Optional[List[int]] = None,
         cursor: Optional[str] = None,
         category: Optional[str] = None,
         categories: Optional[List[str]] = None,
@@ -328,6 +339,8 @@ class ContentRecommendationService:
 
         query = self._build_base_feed_query(exclude_ids)
         query = self._apply_category_filters(query, category, categories)
+        if query is None:
+            return {"items": [], "next_cursor": None, "has_more": False}
         query = self._apply_cursor_filter(query, cursor)
         query = query.order_by(desc(ContentItem.created_at)).limit(page_size + 1)
 
@@ -338,7 +351,7 @@ class ContentRecommendationService:
         if has_more:
             rows = rows[:page_size]
 
-        items = await self._build_feed_items(db, rows)
+        items = self._build_feed_items(rows)
 
         next_cursor = None
         if items and has_more:
@@ -388,8 +401,8 @@ class ContentRecommendationService:
 
         return query
 
-    async def _build_feed_items(
-        self, db: AsyncSession, rows: List[tuple]
+    def _build_feed_items(
+        self, rows
     ) -> List[Dict]:
         """Build feed item dictionaries from query results"""
         items = []
@@ -476,8 +489,8 @@ class ContentRecommendationService:
             return []
 
         profile = await db.get(UserInterestProfile, user_id)
-        if profile and profile.interests:
-            return profile.interests
+        if profile and profile.interests is not None:
+            return profile.interests if isinstance(profile.interests, list) else []
 
         return []
 
@@ -540,7 +553,7 @@ class ContentRecommendationService:
 
         for topic in all_queries:
             # Check if any tag matches key terms from the parent keyword
-            if topic.tags:
+            if topic.tags is not None and isinstance(topic.tags, (list, tuple)) and len(topic.tags) > 0:
                 for tag in topic.tags:
                     tag_lower = str(tag).lower()
                     # Match if any key term is in the tag
@@ -578,8 +591,8 @@ class ContentRecommendationService:
         score = 0.5  # Base score
 
         # Category match
-        if topic.category in user_categories:
-            category_position = user_categories.index(topic.category)
+        if topic.category is not None and str(topic.category) in user_categories:
+            category_position = user_categories.index(str(topic.category))
             # Higher score for top categories
             score += 0.3 * (1 - category_position / len(user_categories))
 
@@ -593,14 +606,15 @@ class ContentRecommendationService:
                 score += 0.2 * min(matching_interests / len(user_interests), 1.0)
 
         # Tag match
-        if user_interests and topic.tags:
+        if user_interests and topic.tags is not None and isinstance(topic.tags, (list, tuple)) and len(topic.tags) > 0:
             matching_tags = sum(
                 1
                 for tag in topic.tags
                 if any(interest.lower() in tag.lower() for interest in user_interests)
             )
             if matching_tags > 0:
-                score += 0.1 * min(matching_tags / len(topic.tags), 1.0)
+                tag_count = len(topic.tags)
+                score += 0.1 * min(matching_tags / tag_count, 1.0)
 
         # Recency bonus
         age_hours = (

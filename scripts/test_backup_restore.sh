@@ -8,7 +8,7 @@ echo "Starting at: $(date)"
 # Find latest backup
 LATEST_BACKUP=$(ls -t /home/nexus/backups/nexus_db_*.sql.gz | head -1)
 
-if [ -z "$LATEST_BACKUP" ]; then
+if [[ -z "$LATEST_BACKUP" ]]; then
     echo "❌ ERROR: No backup files found"
     exit 1
 fi
@@ -27,7 +27,7 @@ sudo -u postgres psql -c "CREATE DATABASE nexus_test;"
 echo "Restoring backup to test database..."
 gunzip -c $LATEST_BACKUP | sudo -u postgres psql nexus_test > /dev/null 2>&1
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
     echo "✅ Restore successful"
     
     # Check table counts

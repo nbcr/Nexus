@@ -145,7 +145,7 @@ body.dark-mode .form-row-inline input.flash-success {
 .password-requirements {
     margin: 8px auto var(--spacing-md, 16px) auto;
     font-size: var(--font-size-sm, 12px);
-    color: var(--text-secondary, #666);
+    color: var(--text-secondary, #999);
     max-width: 500px;
     padding-left: 136px;
 }
@@ -197,7 +197,7 @@ body.dark-mode .form-row-inline input.flash-success {
 }
 
 .login-btn {
-    background: var(--accent, #0078d7);
+    background: var(--accent, #005a9e);
     color: #fff;
 }
 
@@ -206,7 +206,7 @@ body.dark-mode .form-row-inline input.flash-success {
 }
 
 .register-btn {
-    background: var(--bg-tertiary, #666);
+    background: var(--bg-tertiary, #555);
     color: #fff;
 }
 
@@ -277,13 +277,13 @@ body.dark-mode .form-row-inline input.flash-success {
 
 /* Social Button Colors */
 .microsoft-btn {
-    background: #2F2F2F;
+    background: #0078d4;
     color: #fff;
 }
 
 .google-btn {
     background: #fff;
-    color: #4285F4;
+    color: #1a73e8;
     border: 1px solid #ddd;
 }
 
@@ -293,17 +293,17 @@ body.dark-mode .form-row-inline input.flash-success {
 }
 
 .facebook-btn {
-    background: #1877F3;
+    background: #1877f2;
     color: #fff;
 }
 
 .x-btn {
-    background: #14171A;
+    background: #000;
     color: #fff;
 }
 
 .instagram-btn {
-    background: linear-gradient(45deg, #fd1d1d, #fcb045, #833ab4);
+    background: linear-gradient(45deg, #c62828, #e65100, #6a1b9a);
     color: #fff;
 }
 
@@ -369,35 +369,20 @@ body.dark-mode .form-row-inline input.flash-success {
 
 .forgot-password-subtitle {
     text-align: center;
-    color: var(--text-secondary, #ccc);
+    color: var(--text-secondary, #ddd);
     margin-bottom: 24px;
     font-size: var(--font-size-sm, 13px);
 }
 
 .login-success {
     padding: 12px 16px;
-    background: rgb(76 175 80 / 15%);
+    background: #4caf50;
     border: 1px solid rgb(76 175 80 / 40%);
     border-radius: var(--border-radius, 6px);
-    color: rgb(76 175 80);
+    color: #000;
     font-size: var(--font-size-sm, 13px);
     margin-bottom: 16px;
     display: none;
     text-align: center;
-}
-
-/* Animate success message */
-@keyframes slide-in {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.login-success {
-    animation: slide-in 0.3s ease;
+    transition: opacity 0.3s ease;
 }

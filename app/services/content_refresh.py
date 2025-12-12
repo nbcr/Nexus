@@ -19,6 +19,8 @@ else:
 
 
 class ContentRefreshService:
+    LOCK_MESSAGE = ">> Content refresh already running (locked by another process)"
+    
     def __init__(self):
         self.last_refresh = None
 
@@ -47,73 +49,62 @@ class ContentRefreshService:
 
         return True
 
+    def _acquire_lock(self):
+        """Acquire platform-specific lock. Returns (success, lock_fd)"""
+        platform = sys.platform
+        if platform == "win32":
+            if LOCK_FILE.exists():
+                return False, None
+            try:
+                LOCK_FILE.touch()
+                return True, None
+            except Exception:
+                return False, None
+        else:
+            try:
+                import fcntl
+                lock_fd = open(LOCK_FILE, "w")  # noqa: SIM115,ASYNC230
+                fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)  # type: ignore
+                return True, lock_fd
+            except (IOError, ImportError):
+                return False, None
+
+    def _release_lock(self, lock_fd):
+        """Release platform-specific lock"""
+        if sys.platform == "win32":
+            try:
+                LOCK_FILE.unlink()
+            except Exception:
+                pass
+        else:
+            try:
+                import fcntl
+                if lock_fd:
+                    fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)  # type: ignore
+                    lock_fd.close()
+            except Exception:
+                pass
+
     async def refresh_content_if_needed(self):
         """Refresh trending content if it's stale"""
-        # Try to acquire lock (non-blocking, Windows-safe)
-        lock_acquired = False
-        lock_fd = None
+        lock_acquired, lock_fd = self._acquire_lock()
+        if not lock_acquired:
+            print(self.LOCK_MESSAGE)
+            return 0
 
         try:
-            if sys.platform == "win32":
-                # Windows: simple file existence check
-                if LOCK_FILE.exists():
-                    print(
-                        ">> Content refresh already running (locked by another process)"
-                    )
-                    return 0
-                try:
-                    LOCK_FILE.touch()
-                    lock_acquired = True
-                except Exception:
-                    print(
-                        ">> Content refresh already running (locked by another process)"
-                    )
-                    return 0
-            else:
-                # Unix: fcntl-based locking
-                try:
-                    import fcntl
-
-                    lock_fd = open(LOCK_FILE, "w")
-                    fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    lock_acquired = True
-                except (IOError, ImportError):
-                    print(
-                        ">> Content refresh already running (locked by another process)"
-                    )
-                    return 0
-
             async with AsyncSessionLocal() as db:
                 if await self.should_refresh_content(db):
                     print(">> Refreshing trending content from Google Trends...")
-                    topics, new_content_count = (
-                        await trending_service.save_trends_to_database(db)
-                    )
+                    _, new_content_count = await trending_service.save_trends_to_database(db)
                     self.last_refresh = datetime.now(timezone.utc)
-                    print(
-                        f">> Trending content refresh completed! Added {new_content_count} new items"
-                    )
+                    print(f">> Trending content refresh completed! Added {new_content_count} new items")
                     return new_content_count
                 else:
                     print(">> Content is still fresh, skipping refresh")
                     return 0
         finally:
-            # Release lock
-            if lock_acquired:
-                if sys.platform == "win32":
-                    try:
-                        LOCK_FILE.unlink()
-                    except Exception:
-                        pass
-                else:
-                    try:
-                        import fcntl
-
-                        if lock_fd:
-                            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
-                            lock_fd.close()
-                    except Exception:
-                        pass
+            self._release_lock(lock_fd)
 
 
 # Global instance
