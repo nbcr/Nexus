@@ -1,7 +1,3 @@
-def upgrade():
-    pass
-
-
 """
 Add is_admin column to users table
 """
@@ -13,3 +9,11 @@ revision = "add_is_admin_to_users"
 down_revision = "001"
 branch_labels = None
 depends_on = None
+
+
+def upgrade():
+    pass
+
+
+def downgrade():
+    pass
