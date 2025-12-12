@@ -8,6 +8,7 @@ import json
 import sys
 import requests
 from pathlib import Path
+from datetime import datetime
 from dotenv import load_dotenv
 
 # Load environment variables from project root
@@ -63,12 +64,17 @@ def get_security_hotspots():
             print(f"   Message: {hotspot.get('message', 'N/A')}")
             print()
         
-        # Save to file
-        output_file = os.path.join(os.path.dirname(__file__), "..", "security_hotspots.json")
-        with open(output_file, "w") as f:
+        # Save to JSON file
+        json_file = os.path.join(os.path.dirname(__file__), "..", "security_hotspots.json")
+        with open(json_file, "w") as f:
             json.dump(hotspots, f, indent=2)
         
-        print(f"💾 Results saved to: {output_file}")
+        # Save to markdown file
+        md_file = os.path.join(os.path.dirname(__file__), "..", "hotspots.md")
+        save_hotspots_to_markdown(hotspots, md_file)
+        
+        print(f"💾 JSON saved to: {json_file}")
+        print(f"📄 Markdown saved to: {md_file}")
         
         return hotspots
         
@@ -98,6 +104,62 @@ def get_hotspot_details(hotspot_key):
         print(f"❌ Error fetching hotspot details: {e}")
     
     return None
+
+
+def save_hotspots_to_markdown(hotspots, md_file):
+    """Save security hotspots to a markdown file"""
+    with open(md_file, "w") as f:
+        f.write("# Security Hotspots Report\n\n")
+        f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(f"**Total Hotspots:** {len(hotspots)}\n\n")
+        
+        # Group by category
+        by_category = {}
+        for hotspot in hotspots:
+            category = hotspot.get("securityCategory", "Unknown")
+            if category not in by_category:
+                by_category[category] = []
+            by_category[category].append(hotspot)
+        
+        # Group by risk level
+        by_risk = {}
+        for hotspot in hotspots:
+            risk = hotspot.get("vulnerabilityProbability", "Unknown")
+            if risk not in by_risk:
+                by_risk[risk] = []
+            by_risk[risk].append(hotspot)
+        
+        # Summary by risk
+        f.write("## Summary by Risk Level\n\n")
+        for risk in ["HIGH", "MEDIUM", "LOW"]:
+            count = len(by_risk.get(risk, []))
+            if count > 0:
+                f.write(f"- **{risk}:** {count}\n")
+        f.write("\n")
+        
+        # Details by category
+        f.write("## Hotspots by Category\n\n")
+        for category in sorted(by_category.keys()):
+            items = by_category[category]
+            f.write(f"### {category} ({len(items)})\n\n")
+            for i, hotspot in enumerate(items, 1):
+                f.write(f"#### {i}. {hotspot.get('message', 'N/A')}\n\n")
+                f.write(f"- **File:** `{hotspot.get('component', 'N/A')}`\n")
+                f.write(f"- **Line:** {hotspot.get('line', 'N/A')}\n")
+                f.write(f"- **Risk Level:** {hotspot.get('vulnerabilityProbability', 'N/A')}\n")
+                f.write(f"- **Status:** {hotspot.get('status', 'N/A')}\n")
+                f.write("\n")
+        
+        # Details by risk level
+        f.write("## Hotspots by Risk Level\n\n")
+        for risk in ["HIGH", "MEDIUM", "LOW"]:
+            items = by_risk.get(risk, [])
+            if items:
+                f.write(f"### {risk} Risk ({len(items)})\n\n")
+                for i, hotspot in enumerate(items, 1):
+                    f.write(f"{i}. **{hotspot.get('securityCategory', 'Unknown')}** - {hotspot.get('message', 'N/A')}\n")
+                    f.write(f"   - File: `{hotspot.get('component', 'N/A')}:{hotspot.get('line', '?')}`\n")
+                    f.write(f"   - Status: {hotspot.get('status', 'N/A')}\n\n")
 
 
 if __name__ == "__main__":
