@@ -202,10 +202,12 @@ class NexusService(win32serviceutil.ServiceFramework):
         python_exe = Path("C:\\Program Files\\Python312\\python.exe")
         if not python_exe.exists():
             python_exe = PROJECT_ROOT / "venv" / "Scripts" / "python.exe"
-        
+
         if not python_exe.exists():
             self.logger.error(f"Python executable not found at {python_exe}")
-            self.logger.error(f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}")
+            self.logger.error(
+                f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}"
+            )
             return None
         return python_exe
 
@@ -213,6 +215,7 @@ class NexusService(win32serviceutil.ServiceFramework):
         """Clean up stale processes on port 8000"""
         try:
             import socket
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             result = sock.connect_ex(("127.0.0.1", 8000))
@@ -243,7 +246,9 @@ class NexusService(win32serviceutil.ServiceFramework):
             creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
         )
 
-    def _handle_server_crash(self, restart_count, last_crash_time, max_restarts, restart_window):
+    def _handle_server_crash(
+        self, restart_count, last_crash_time, max_restarts, restart_window
+    ):
         """Handle server crash and determine restart behavior"""
         exit_code = self.server_process.returncode
         self.logger.warning(f"Server exited with code {exit_code}, restarting...")
@@ -268,7 +273,9 @@ class NexusService(win32serviceutil.ServiceFramework):
     def _start_server_process(self, python_exe):
         """Start the server and handle initialization"""
         self.server_process = self._create_server_process(python_exe)
-        self.logger.info(f"Server started with PID {self.server_process.pid} using {python_exe}")
+        self.logger.info(
+            f"Server started with PID {self.server_process.pid} using {python_exe}"
+        )
 
     def _log_server_output(self):
         """Log server output from stdout"""
@@ -290,7 +297,9 @@ class NexusService(win32serviceutil.ServiceFramework):
 
         while self.is_alive:
             try:
-                self.logger.info(f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}...")
+                self.logger.info(
+                    f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}..."
+                )
 
                 if restart_count > 0:
                     self._cleanup_port()
@@ -300,8 +309,10 @@ class NexusService(win32serviceutil.ServiceFramework):
                 self._log_server_output()
 
                 if self.is_alive:
-                    restart_count, last_crash_time, should_continue = self._handle_server_crash(
-                        restart_count, last_crash_time, max_restarts, restart_window
+                    restart_count, last_crash_time, should_continue = (
+                        self._handle_server_crash(
+                            restart_count, last_crash_time, max_restarts, restart_window
+                        )
                     )
                     if not should_continue:
                         break

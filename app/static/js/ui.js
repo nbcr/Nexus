@@ -2,9 +2,6 @@
 class UIManager {
     currentView = 'home';
 
-    constructor() {
-    }
-
     initializeUI() {
         this.renderAuthSection();
         this.updateUI();

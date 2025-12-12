@@ -45,6 +45,7 @@ async def test_fetch_with_limit(
 
 def create_patched_process(items_limit):
     """Create a patched process function with specific items_limit"""
+
     def patched_process(
         feed, feed_url, category_hint=None, source_name="RSS", limit=items_limit
     ):
@@ -54,7 +55,7 @@ def create_patched_process(items_limit):
 
         for entry in feed.get("entries", [])[:limit]:
             trend_data = trending_service.rss_fetcher._process_single_entry(
-                entry, is_google_trends, feed_url, category_hint, source_name
+                entry, is_google_trends, feed_url, source_name
             )
             if trend_data:
                 trends.append(trend_data)
@@ -62,6 +63,7 @@ def create_patched_process(items_limit):
         return trends
 
     return patched_process
+
 
 def print_performance_summary(results, target_time):
     """Print the performance test summary and recommendations"""
@@ -93,6 +95,7 @@ def print_performance_summary(results, target_time):
     else:
         print("   Even 1 item/feed is too slow!")
 
+
 async def run_performance_test():
     """Run incremental performance test"""
     print("🚀 RSS Fetch Performance Test")
@@ -105,7 +108,9 @@ async def run_performance_test():
 
     while items_limit <= max_limit:
         original_code = trending_service.rss_fetcher._process_feed_entries
-        trending_service.rss_fetcher._process_feed_entries = create_patched_process(items_limit)
+        trending_service.rss_fetcher._process_feed_entries = create_patched_process(
+            items_limit
+        )
 
         items_per_feed, elapsed, success = await test_fetch_with_limit(items_limit)
         results.append((items_per_feed, elapsed, success))

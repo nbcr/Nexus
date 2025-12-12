@@ -91,7 +91,7 @@
             lowercase: /[a-z]/.test(password),
             uppercase: /[A-Z]/.test(password),
             number: /\d/.test(password),
-            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(password)
+            special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
         };
 
         // Update UI for each requirement
@@ -123,86 +123,60 @@
         setTimeout(() => element.classList.remove('flash-success'), 600);
     }
 
+    // Clear form errors
+    function clearFormErrors(errorDiv, inputs) {
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+        inputs.forEach(input => input.classList.remove('flash-error', 'flash-success'));
+    }
+
+    // Validate password requirements
+    function validatePasswordReqs(password, errorDiv, passwordInput) {
+        const reqs = checkPasswordRequirements(password);
+        if (!Object.values(reqs).every(Boolean)) {
+            flashRed(passwordInput);
+            const failedReqs = [];
+            if (!reqs.length) failedReqs.push('at least 8 characters');
+            if (!reqs.lowercase) failedReqs.push('lowercase letter');
+            if (!reqs.uppercase) failedReqs.push('uppercase letter');
+            if (!reqs.number) failedReqs.push('number');
+            if (!reqs.special) failedReqs.push('special character (@$!%*?&#:"\')');
+            errorDiv.textContent = `Password missing: ${failedReqs.join(', ')}`;
+            errorDiv.style.display = 'block';
+            return false;
+        }
+        return true;
+    }
+
+    // Handle success response
+    function handleSuccessResponse(data, inputs) {
+        inputs.forEach(input => flashGreen(input));
+        if (data.access_token) {
+            localStorage.setItem('access_token', data.access_token);
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
+        }
+        sessionStorage.removeItem('register_username');
+        sessionStorage.removeItem('register_email');
+        window.location.href = '/';
+    }
+
+    // Handle error response
+    function handleErrorResponse(errorDiv, inputs, message) {
+        inputs.forEach(input => flashRed(input));
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+
+    // Summarize error message
+    function summarizeErrorMessage(msg) {
+        if (!msg) return 'Email delivery failed. Please try again.';
+        const clean = String(msg).replace(/\s+/g, ' ').trim();
+        return clean.length > 220 ? clean.slice(0, 220) + '…' : clean;
+    }
+
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', function () {
         restoreRegisterFormData();
-
-        function summarizeErrorMessage(msg) {
-            if (!msg) return 'Email delivery failed. Please try again.';
-            const clean = String(msg).replace(/\s+/g, ' ').trim();
-            return clean.length > 220 ? clean.slice(0, 220) + '…' : clean;
-        }
-
-        // Save form data as user types
-        const usernameInput = document.getElementById('username');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-
-        if (usernameInput) {
-            usernameInput.addEventListener('input', saveRegisterFormData);
-            usernameInput.addEventListener('blur', saveRegisterFormData);
-        }
-        if (emailInput) {
-            emailInput.addEventListener('input', saveRegisterFormData);
-            emailInput.addEventListener('blur', saveRegisterFormData);
-        }
-
-        // Real-time password validation
-        if (passwordInput) {
-            passwordInput.addEventListener('input', function () {
-                checkPasswordRequirements(this.value);
-            });
-            passwordInput.addEventListener('keyup', function () {
-                checkPasswordRequirements(this.value);
-            });
-        }
-
-        const registerForm = document.getElementById('register-form');
-        if (!registerForm) {
-            console.error('Register form not found');
-            return;
-        }
-
-        // Helper functions for form submission
-        function clearFormErrors(errorDiv, inputs) {
-            errorDiv.style.display = 'none';
-            errorDiv.textContent = '';
-            inputs.forEach(input => input.classList.remove('flash-error', 'flash-success'));
-        }
-
-        function validatePasswordReqs(password, errorDiv, passwordInput) {
-            const reqs = checkPasswordRequirements(password);
-            if (!Object.values(reqs).every(v => v)) {
-                flashRed(passwordInput);
-                const failedReqs = [];
-                if (!reqs.length) failedReqs.push('at least 8 characters');
-                if (!reqs.lowercase) failedReqs.push('lowercase letter');
-                if (!reqs.uppercase) failedReqs.push('uppercase letter');
-                if (!reqs.number) failedReqs.push('number');
-                if (!reqs.special) failedReqs.push('special character (@$!%*?&#:"\')');
-                errorDiv.textContent = `Password missing: ${failedReqs.join(', ')}`;
-                errorDiv.style.display = 'block';
-                return false;
-            }
-            return true;
-        }
-
-        function handleSuccessResponse(data, inputs) {
-            inputs.forEach(input => flashGreen(input));
-            if (data.access_token) {
-                localStorage.setItem('access_token', data.access_token);
-                document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
-            }
-            sessionStorage.removeItem('register_username');
-            sessionStorage.removeItem('register_email');
-            window.location.href = '/';
-        }
-
-        function handleErrorResponse(errorDiv, inputs, message) {
-            inputs.forEach(input => flashRed(input));
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-        }
 
         registerForm.addEventListener('submit', async function (e) {
             e.preventDefault();

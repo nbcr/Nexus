@@ -1,6 +1,6 @@
 {
   "project_key": "nbcr_Nexus",
-  "total_issues": 116,
+  "total_issues": 111,
   "js_issues": [
     {
       "file": "app/static/js/FeedRenderer.js",
@@ -414,16 +414,16 @@
     }
   ],
   "raw_data": {
-    "total": 116,
+    "total": 111,
     "p": 1,
     "ps": 500,
     "paging": {
       "pageIndex": 1,
       "pageSize": 500,
-      "total": 116
+      "total": 111
     },
-    "effortTotal": 674,
-    "debtTotal": 674,
+    "effortTotal": 578,
+    "debtTotal": 578,
     "issues": [
       {
         "key": "AZsSj9ACY155RdFNmAEi",
@@ -1319,44 +1319,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZsSbnyJ3cIrTWdxmKaf",
-        "rule": "python:S1481",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:scripts/get_sonar_issues.py",
-        "project": "nbcr_Nexus",
-        "line": 29,
-        "hash": "e811c0c22150bd1b213a49cf674ba9ad",
-        "textRange": {
-          "startLine": 29,
-          "endLine": 29,
-          "startOffset": 51,
-          "endOffset": 52
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the unused local variable \"e\".",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZsSbn5a3cIrTWdxmKah",
         "rule": "python:S1481",
         "severity": "MINOR",
@@ -1575,44 +1537,6 @@
         "type": "CODE_SMELL",
         "organization": "nbcr",
         "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSX5p73cIrTWdxlfZK",
-        "rule": "python:S3457",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:scripts/get_sonar_issues.py",
-        "project": "nbcr_Nexus",
-        "line": 151,
-        "hash": "4faab1505a47db8e9a3f3a84ca44caa2",
-        "textRange": {
-          "startLine": 151,
-          "endLine": 151,
-          "startOffset": 17,
-          "endOffset": 49
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Add replacement fields or use a normal string instead of an f-string.",
-        "effort": "1min",
-        "debt": "1min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "confusing"
-        ],
-        "creationDate": "2025-12-12T11:33:42+0000",
-        "updateDate": "2025-12-12T11:42:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "LOGICAL",
         "cleanCodeAttributeCategory": "INTENTIONAL",
         "impacts": [
           {
@@ -3153,120 +3077,6 @@
           {
             "softwareQuality": "MAINTAINABILITY",
             "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPby7kXnx3O3DGNa0",
-        "rule": "secrets:S6698",
-        "severity": "BLOCKER",
-        "component": "nbcr_Nexus:app/db.py",
-        "project": "nbcr_Nexus",
-        "line": 10,
-        "hash": "42a8eb61aea0e42efab1776cbc3e137f",
-        "textRange": {
-          "startLine": 10,
-          "endLine": 10,
-          "startOffset": 53,
-          "endOffset": 63
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Make sure this PostgreSQL database password gets changed and removed from the code.",
-        "effort": "30min",
-        "debt": "30min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe"
-        ],
-        "creationDate": "2025-12-02T19:52:40+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "VULNERABILITY",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "TRUSTWORTHY",
-        "cleanCodeAttributeCategory": "RESPONSIBLE",
-        "impacts": [
-          {
-            "softwareQuality": "SECURITY",
-            "severity": "BLOCKER"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbotkXnx3O3DGNW5",
-        "rule": "secrets:S6698",
-        "severity": "BLOCKER",
-        "component": "nbcr_Nexus:scripts/find_blank_titles.py",
-        "project": "nbcr_Nexus",
-        "line": 7,
-        "hash": "b3570276d72fcad1995d2b6ac7328a5b",
-        "textRange": {
-          "startLine": 7,
-          "endLine": 7,
-          "startOffset": 54,
-          "endOffset": 64
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Make sure this PostgreSQL database password gets changed and removed from the code.",
-        "effort": "30min",
-        "debt": "30min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe"
-        ],
-        "creationDate": "2025-12-02T19:52:40+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "VULNERABILITY",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "TRUSTWORTHY",
-        "cleanCodeAttributeCategory": "RESPONSIBLE",
-        "impacts": [
-          {
-            "softwareQuality": "SECURITY",
-            "severity": "BLOCKER"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPblmkXnx3O3DGNW1",
-        "rule": "secrets:S6698",
-        "severity": "BLOCKER",
-        "component": "nbcr_Nexus:scripts/find_orphaned_history.py",
-        "project": "nbcr_Nexus",
-        "line": 8,
-        "hash": "b3570276d72fcad1995d2b6ac7328a5b",
-        "textRange": {
-          "startLine": 8,
-          "endLine": 8,
-          "startOffset": 54,
-          "endOffset": 64
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Make sure this PostgreSQL database password gets changed and removed from the code.",
-        "effort": "30min",
-        "debt": "30min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe"
-        ],
-        "creationDate": "2025-12-02T19:52:40+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "VULNERABILITY",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "TRUSTWORTHY",
-        "cleanCodeAttributeCategory": "RESPONSIBLE",
-        "impacts": [
-          {
-            "softwareQuality": "SECURITY",
-            "severity": "BLOCKER"
           }
         ],
         "issueStatus": "OPEN",
@@ -5702,16 +5512,6 @@
       },
       {
         "organization": "nbcr",
-        "key": "nbcr_Nexus:scripts/find_blank_titles.py",
-        "uuid": "AZrsPbNlkXnx3O3DGNUd",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "find_blank_titles.py",
-        "longName": "scripts/find_blank_titles.py",
-        "path": "scripts/find_blank_titles.py"
-      },
-      {
-        "organization": "nbcr",
         "key": "nbcr_Nexus:nginx/404.html",
         "uuid": "AZrsPbNlkXnx3O3DGNWf",
         "enabled": true,
@@ -5862,16 +5662,6 @@
       },
       {
         "organization": "nbcr",
-        "key": "nbcr_Nexus:app/db.py",
-        "uuid": "AZrsPbNlkXnx3O3DGNVS",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "db.py",
-        "longName": "app/db.py",
-        "path": "app/db.py"
-      },
-      {
-        "organization": "nbcr",
         "key": "nbcr_Nexus:app/static/css/trending.css",
         "uuid": "AZrsPbNlkXnx3O3DGNUt",
         "enabled": true,
@@ -5948,16 +5738,6 @@
         "name": "storage_monitor.py",
         "longName": "storage_monitor.py",
         "path": "storage_monitor.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:scripts/get_sonar_issues.py",
-        "uuid": "AZsSX4483cIrTWdxlfZG",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "get_sonar_issues.py",
-        "longName": "scripts/get_sonar_issues.py",
-        "path": "scripts/get_sonar_issues.py"
       },
       {
         "organization": "nbcr",
@@ -6071,16 +5851,6 @@
       },
       {
         "organization": "nbcr",
-        "key": "nbcr_Nexus:scripts/find_orphaned_history.py",
-        "uuid": "AZrsPbNlkXnx3O3DGNUW",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "find_orphaned_history.py",
-        "longName": "scripts/find_orphaned_history.py",
-        "path": "scripts/find_orphaned_history.py"
-      },
-      {
-        "organization": "nbcr",
         "key": "nbcr_Nexus:nexus_service.py",
         "uuid": "AZsBxm39Xm1SJ0fKenlR",
         "enabled": true,
@@ -6102,23 +5872,23 @@
         "values": [
           {
             "val": "MINOR",
-            "count": 53
+            "count": 52
           },
           {
             "val": "MAJOR",
-            "count": 52
+            "count": 51
           },
           {
             "val": "CRITICAL",
             "count": 6
           },
           {
-            "val": "BLOCKER",
-            "count": 3
-          },
-          {
             "val": "INFO",
             "count": 2
+          },
+          {
+            "val": "BLOCKER",
+            "count": 0
           }
         ]
       },
@@ -6127,7 +5897,7 @@
         "values": [
           {
             "val": "CODE_SMELL",
-            "count": 110
+            "count": 108
           },
           {
             "val": "BUG",
@@ -6135,7 +5905,7 @@
           },
           {
             "val": "VULNERABILITY",
-            "count": 3
+            "count": 0
           }
         ]
       }
