@@ -172,5 +172,5 @@ async function handleLogout() {
 // Export namespace and global functions
 globalThis.HeaderAuth = { checkAuthStatus, handleAuth, handleLogout };
 globalThis.checkAuthStatus = checkAuthStatus;
-globalThis.handleAuth = handleLogout;
+globalThis.handleAuth = handleAuth;
 globalThis.handleLogout = handleLogout;

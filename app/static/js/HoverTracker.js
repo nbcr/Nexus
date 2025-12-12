@@ -385,15 +385,11 @@ class HoverTracker {
                 if (globalThis.nexusDebugMode) {
                     console.log(`✅ Interest reported for card ${this.contentId}:`, data);
                 }
-            } else {
-                if (globalThis.nexusDebugMode) {
-                    console.warn(`⚠️ Failed to report interest for card ${this.contentId}`);
-                }
+            } else if (globalThis.nexusDebugMode) {
+                console.warn(`⚠️ Failed to report interest for card ${this.contentId}`);
             }
         } catch (error) {
-            if (globalThis.nexusDebugMode) {
-                console.error(`❌ Error reporting interest for card ${this.contentId}:`, error);
-            }
+            if (globalThis.nexusDebugMode) console.error(`❌ Error reporting interest for card ${this.contentId}:`, error);
         }
     }
 

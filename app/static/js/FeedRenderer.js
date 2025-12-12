@@ -120,21 +120,16 @@ class FeedRenderer {
     }
 
     buildTagsHtml(item) {
-        if (item.tags?.length > 0) {
-            const tagsStr = item.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-            return `<div class="feed-item-tags">${tagsStr}</div>`;
-        }
-        return '';
+        if (!item.tags?.length) return '';
+        const tagsHtml = item.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        return `<div class="feed-item-tags">${tagsHtml}</div>`;
     }
 
     buildRelatedQueriesHtml(item) {
-        if (item.related_queries?.length > 0) {
-            const queriesHtml = item.related_queries.map(query => {
-                return `<a href="${query.url}" target="_blank" rel="noopener" class="related-query">${query.title}</a>`;
-            }).join('');
-            return `<div class="feed-item-related"><h4 class="related-title">🔍 Related Searches:</h4><div class="related-queries">${queriesHtml}</div></div>`;
-        }
-        return '';
+        if (!item.related_queries?.length) return '';
+        const queriesHtml = item.related_queries.map(query => `<a href="${query.url}" target="_blank" rel="noopener" class="related-query">${query.title}</a>`).join('');
+        const relatedSection = `<h4 class="related-title">🔍 Related Searches:</h4><div class="related-queries">${queriesHtml}</div>`;
+        return `<div class="feed-item-related">${relatedSection}</div>`;
     }
 
     buildImageHtml(item) {
