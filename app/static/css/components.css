@@ -47,7 +47,7 @@
 /* Button Variants */
 .btn-primary {
     background: var(--accent, #0078d7);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-primary:hover {
@@ -56,7 +56,7 @@
 
 .btn-secondary {
     background: var(--bg-tertiary, #4a4a4a);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-secondary:hover {
@@ -65,7 +65,7 @@
 
 .btn-success {
     background: var(--success, #4caf50);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-success:hover {
@@ -74,7 +74,7 @@
 
 .btn-danger {
     background: var(--error, #f44336);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-danger:hover {
@@ -84,7 +84,7 @@
 /* Special Buttons */
 .btn-hdr {
     background: var(--accent, #0078d7);
-    color: #fff;
+    color: #ffffff;
     padding: 10px 20px;
     border: none;
     border-radius: var(--border-radius, 6px);
@@ -115,31 +115,31 @@
 
 .category-btn:hover {
     background: var(--accent, #007bff);
-    color: #fff;
+    color: #ffffff;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md, 0 2px 6px rgb(0 0 0 / 15%));
 }
 
 .category-btn.active {
     background: var(--accent, #007bff);
-    color: #fff;
+    color: #ffffff;
     font-weight: 600;
 }
 
 body.dark-mode .category-btn {
-    color: #fff;
+    color: #ffffff;
     border-color: var(--accent-light, #007bff);
     background: rgb(0 123 255 / 10%);
 }
 
 body.dark-mode .category-btn:hover {
     background: var(--accent, #007bff);
-    color: #fff;
+    color: #ffffff;
 }
 
 body.dark-mode .category-btn.active {
     background: var(--accent, #007bff);
-    color: #fff;
+    color: #ffffff;
 }
 
 .btn-read-more,
@@ -147,7 +147,7 @@ body.dark-mode .category-btn.active {
     display: inline-block;
     padding: 8px 16px;
     background: var(--accent, #007bff);
-    color: #fff;
+    color: #ffffff;
     text-decoration: none;
     border-radius: var(--border-radius, 6px);
     font-size: var(--font-size-sm, 12px);
@@ -291,7 +291,7 @@ body.dark-mode .card {
 
 .dark-mode-toggle {
     background: var(--accent, #007bff);
-    color: #fff;
+    color: #ffffff;
     border: none;
     padding: 10px 20px;
     border-radius: var(--border-radius, 6px);
@@ -351,7 +351,7 @@ body.dark-mode .history-item {
     left: 50%;
     transform: translateX(-50%) translateY(-120%);
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+    color: #ffffff;
     padding: 12px 24px;
     border-radius: 50px;
     box-shadow: 0 4px 15px rgb(0 0 0 / 30%);
@@ -387,7 +387,7 @@ body.dark-mode .history-item {
     height: 50px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+    color: #ffffff;
     border: none;
     font-size: 24px;
     cursor: pointer;

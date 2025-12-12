@@ -38,7 +38,7 @@ function setVisitorIdCookie() {
 let currentUser = null;
 
 function getAccessToken() {
-    const match = /(?:^|; )access_token=([^;]*)/;.exec(document.cookie);
+    const match = /(?:^|; )access_token=([^;]*)/.exec(document.cookie);
     if (match) return match[1];
     return globalThis.localStorage?.getItem('access_token') || null;
 }
@@ -279,9 +279,6 @@ function toggleDarkMode() {
     // Toggle light-mode class (dark mode is default, no class needed)
     applyModeClasses(willBeLight);
 
-    // Force repaint to ensure background color updates
-    document.documentElement.offsetHeight;
-
     console.log('After toggle - html classes:', document.documentElement.className);
     console.log('After toggle - body classes:', document.body.className);
     console.log('Computed bg color:', getComputedStyle(document.documentElement).backgroundColor);
@@ -389,7 +386,7 @@ function initScrollHeader() {
     let isScrolled = false;
 
     function handleScroll() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollTop = globalThis.pageYOffset || document.documentElement.scrollTop;
 
         // Trigger shrink after scrolling down 50px
         if (scrollTop > 50 && !isScrolled) {
@@ -403,9 +400,9 @@ function initScrollHeader() {
 
     // Throttle scroll events for performance
     let ticking = false;
-    window.addEventListener('scroll', function () {
+    globalThis.addEventListener('scroll', function () {
         if (!ticking) {
-            window.requestAnimationFrame(function () {
+            globalThis.requestAnimationFrame(function () {
                 handleScroll();
                 ticking = false;
             });

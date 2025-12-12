@@ -47,7 +47,7 @@
     padding: 20px;
     padding-bottom: 30px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+    color: #ffffff;
     position: relative;
     min-height: 120px;
 }
@@ -111,7 +111,7 @@
 
 .source-flair {
     background: #e74c3c;
-    color: #fff;
+    color: #ffffff;
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.8em;
@@ -222,7 +222,7 @@
     font-size: 0.9em;
     padding: 4px 10px;
     background: #3498db;
-    color: #fff;
+    color: #ffffff;
     border-radius: 4px;
     text-decoration: none;
 }

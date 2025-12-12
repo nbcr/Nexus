@@ -339,7 +339,7 @@
                 <label>
                     <input type="checkbox" id="auto-refresh-logs" checked> Auto-refresh (10s)
                 </label>
-                <select id="log-type" onchange="refreshLogs()">
+                <select id="log-type" onchange="refreshLogs()" title="Select a log file type to view">
                     <option value="">Loading logs...</option>
                 </select>
                 <input type="number" id="log-lines" value="100" min="10" max="1000" step="10" placeholder="Lines" title="Number of lines to show">

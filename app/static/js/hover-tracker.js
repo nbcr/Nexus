@@ -124,7 +124,7 @@ class HoverTrackerDeprecated {
     handleClick(e) {
         this.state.clicksDetected++;
         this.state.interestScore += 30; // Clicks are strong interest signals
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log(`🖱️ Click detected on card ${this.contentId}. Interest score: ${this.state.interestScore}`);
         }
         this.reportInterest('click');
@@ -154,7 +154,7 @@ class HoverTrackerDeprecated {
         this.state.movementDetected = false;
 
         // Add visual indicator only in debug mode
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             this.element.classList.add('tracking-interest');
             this.addDebugOverlay();
         }
@@ -165,7 +165,7 @@ class HoverTrackerDeprecated {
         // Start AFK checking
         this.startAfkChecking();
 
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log(`👆 Hover started on card ${this.contentId}`);
         }
     }
@@ -179,7 +179,7 @@ class HoverTrackerDeprecated {
 
         // Remove visual indicator and debug overlay
         this.element.classList.remove('tracking-interest');
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             this.removeDebugOverlay();
         }
 
@@ -188,7 +188,7 @@ class HoverTrackerDeprecated {
         // Calculate final interest score
         this.calculateInterestScore();
 
-        if (window.nexusDebugMode) {
+        if (globalThis.nexusDebugMode) {
             console.log(`👋 Hover ended on card ${this.contentId}. Duration: ${hoverDuration}ms, Total: ${this.state.totalHoverTime}ms, Interest Score: ${this.state.interestScore}`);
         }
 
@@ -287,7 +287,7 @@ class HoverTrackerDeprecated {
         if (velocity < this.config.slowdownVelocityThreshold && this.state.movementDetected) {
             this.state.slowdownsDetected++;
             this.state.interestScore += 5; // Slowdowns indicate reading/interest
-            if (window.nexusDebugMode) {
+            if (globalThis.nexusDebugMode) {
                 console.log(`🐌 Slowdown detected on card ${this.contentId}. Velocity: ${velocity.toFixed(3)} px/ms`);
             }
         }
@@ -304,7 +304,7 @@ class HoverTrackerDeprecated {
             if (!this.state.isAfk) {
                 this.state.isAfk = true;
                 this.state.afkStartTime = now;
-                if (window.nexusDebugMode) {
+                if (globalThis.nexusDebugMode) {
                     console.log(`😴 AFK detected on card ${this.contentId}`);
                 }
 
@@ -360,7 +360,7 @@ class HoverTrackerDeprecated {
             velocity < this.config.scrollSlowdownThreshold) {
             this.state.scrollSlowdowns++;
             this.state.interestScore += 3;
-            if (window.nexusDebugMode) {
+            if (globalThis.nexusDebugMode) {
                 console.log(`📜 Scroll slowdown detected near card ${this.contentId}. Interest score: ${this.state.interestScore}`);
             }
         }
@@ -392,14 +392,14 @@ class HoverTrackerDeprecated {
             });
 
             if (response.ok) {
-                if (window.nexusDebugMode) {
+                if (globalThis.nexusDebugMode) {
                     console.log(`✅ Interest reported for card ${this.contentId}:`, data);
                 }
-            } else if (window.nexusDebugMode) {
+            } else if (globalThis.nexusDebugMode) {
                 console.warn(`⚠️ Failed to report interest for card ${this.contentId}`);
             }
         } catch (error) {
-            if (window.nexusDebugMode) {
+            if (globalThis.nexusDebugMode) {
                 console.error(`❌ Error reporting interest for card ${this.contentId}:`, error);
             }
         }
@@ -483,19 +483,19 @@ class HoverTrackerDeprecated {
 // Global scroll velocity tracker for all cards
 class GlobalScrollTracker {
     constructor() {
-        this.lastScrollPosition = window.scrollY;
+        this.lastScrollPosition = globalThis.scrollY;
         this.lastScrollTime = Date.now();
         this.scrollVelocity = 0;
         this.hoverTrackers = new Set();
 
         // Bind and attach scroll listener
         this.handleScroll = this.handleScroll.bind(this);
-        window.addEventListener('scroll', this.handleScroll, { passive: true });
+        globalThis.addEventListener('scroll', this.handleScroll, { passive: true });
     }
 
     handleScroll() {
         const now = Date.now();
-        const currentScroll = window.scrollY;
+        const currentScroll = globalThis.scrollY;
 
         const distance = Math.abs(currentScroll - this.lastScrollPosition);
         const timeDelta = now - this.lastScrollTime;
@@ -524,7 +524,7 @@ class GlobalScrollTracker {
     }
 
     destroy() {
-        window.removeEventListener('scroll', this.handleScroll);
+        globalThis.removeEventListener('scroll', this.handleScroll);
     }
 }
 
