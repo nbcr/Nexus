@@ -20,8 +20,13 @@ from app.models import (
     UserInterestProfile,
 )
 
-# Use sync connection string
-DATABASE_URL = os.getenv("DATABASE_URL_SYNC", "postgresql://postgres:***REMOVED***@localhost:5432/nexus")
+# Use sync connection string from environment
+from dotenv import load_dotenv
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL_SYNC")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL_SYNC not found in .env file")
 
 def init_database():
     """Initialize database tables using synchronous engine"""

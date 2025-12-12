@@ -16,8 +16,13 @@ sys.path.insert(0, project_root)
 from app.db import Base
 from app.models import Topic
 
-# Use sync connection
-DATABASE_URL = os.getenv("DATABASE_URL_SYNC", "postgresql://postgres:***REMOVED***@localhost:5432/nexus")
+# Use sync connection from environment
+from dotenv import load_dotenv
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL_SYNC")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL_SYNC not found in .env file")
 
 def load_feeds():
     """Load RSS feeds from rss_feeds.txt"""

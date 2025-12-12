@@ -5,10 +5,13 @@ import sys
 from alembic.config import Config
 from alembic import command
 
-# Set database URL
-database_url = os.environ.get(
-    "DATABASE_URL", "postgresql+asyncpg://user:pass@localhost:5432/nexus"
-)
+# Set database URL from environment
+from dotenv import load_dotenv
+load_dotenv()
+
+database_url = os.environ.get("DATABASE_URL")
+if not database_url:
+    raise ValueError("DATABASE_URL not found in .env file")
 os.environ["DATABASE_URL"] = database_url
 
 # Create alembic config

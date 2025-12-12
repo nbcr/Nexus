@@ -3,7 +3,9 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-db_url = os.getenv("DATABASE_URL_SYNC", "postgresql://postgres:***REMOVED***@localhost:5432/nexus")
+db_url = os.getenv("DATABASE_URL_SYNC")
+if not db_url:
+    raise ValueError("DATABASE_URL_SYNC not found in .env file")
 
 conn = psycopg2.connect(db_url)
 cursor = conn.cursor()
