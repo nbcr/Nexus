@@ -1,13 +1,14 @@
 import asyncio
 import time
-from functools import lru_cache
-from typing import cast
-
-from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie  # type: ignore
-from sqlalchemy.ext.asyncio import AsyncSession  # type: ignore
-from sqlalchemy import select  # pyright: ignore[reportMissingImports]
-from typing import List, Optional
+import logging
+from typing import cast, List, Optional
 from datetime import datetime, timezone
+
+from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie
+from fastapi.responses import JSONResponse, StreamingResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, distinct, or_, and_, func
+from pydantic import BaseModel
 
 from app.db import AsyncSessionLocal
 from app.api.v1.deps import get_db
@@ -22,10 +23,6 @@ from app.services.article_scraper import article_scraper
 from app.services.deduplication import deduplication_service
 from app.services.rss_discovery import rss_discovery_service
 
-from fastapi.responses import JSONResponse
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-
 router = APIRouter()
 
 # In-memory cache for thumbnail fetch attempts (content_id -> (picture_url, timestamp))
@@ -36,6 +33,16 @@ _THUMBNAIL_CACHE_TTL = 300  # 5 minutes
 # Constants
 LOGGER_NAME = "uvicorn.error"
 CONTENT_NOT_FOUND = "Content not found"
+SNIPPET_LENGTH = 800
+SCRAPE_TIMEOUT = 15.0
+PRIORITY_SCRAPE_TIMEOUT = 10.0
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
+CACHE_CONTROL_PUBLIC = "public, max-age=86400"
+IMAGE_WEBP = "image/webp"
+STATUS_READY = "ready"
+STATUS_LOADING = "loading"
+STATUS_FAILED = "failed"
+STATUS_FETCHING = "fetching"
 
 
 class CategoriesResponse(BaseModel):
@@ -53,12 +60,8 @@ class ProxyRequest(BaseModel):
 @router.get("/categories", response_model=CategoriesResponse)
 async def get_all_categories(db: AsyncSession = Depends(get_db)):
     """Return all unique categories from ContentItem and Topic tables."""
-    import logging
-
     logger = logging.getLogger(LOGGER_NAME)
     try:
-        from sqlalchemy import select, distinct
-
         categories = set()
         result1 = await db.execute(
             select(distinct(ContentItem.category)).where(
@@ -121,16 +124,21 @@ async def get_personalized_feed(
     logger.info("[FEED] About to call recommendation_service.get_all_feed")
 
     # Sanitize user input for logging to prevent log injection
-    safe_category_list = (
-        str(category_list).replace("\n", "").replace("\r", "")
-        if category_list
-        else None
-    )
-    safe_exclude_ids = str(exclude_ids).replace("\n", "").replace("\r", "")
-    safe_cursor = str(cursor).replace("\n", "").replace("\r", "") if cursor else None
+    def _sanitize_for_log(value) -> str:
+        """Sanitize input for safe logging."""
+        if value is None:
+            return "None"
+        safe_str = str(value)[:200]  # Limit length
+        # Remove control characters and newlines
+        return ''.join(c for c in safe_str if c.isprintable() and c not in '\n\r\t')
+    
+    safe_category_list = _sanitize_for_log(category_list)
+    safe_exclude_ids = _sanitize_for_log(exclude_ids)
+    safe_cursor = _sanitize_for_log(cursor)
 
     logger.info(
-        f"Feed request: page={page}, categories={safe_category_list}, exclude_ids={safe_exclude_ids}, cursor={safe_cursor}"
+        "Feed request: page=%d, categories=%s, exclude_ids=%s, cursor=%s",
+        page, safe_category_list, safe_exclude_ids, safe_cursor
     )
     logger.info("[FEED] Calling get_all_feed...")
     # Feed selection - when no categories specified, show all feed (not personalized)
@@ -164,52 +172,44 @@ async def get_personalized_feed(
 
     logger.info("[FEED] get_all_feed returned, building response")
 
-    # Trigger background scraping for articles without content
-    # This happens in parallel without blocking the response
+    def _find_articles_to_scrape(items: list) -> list:
+        """Find articles that need content scraping."""
+        return [
+            item for item in items
+            if (not item.get("facts") or not item.get("facts").strip())
+            and item.get("source_urls")
+        ]
+
+    async def _scrape_single_article(item: dict, bg_db: AsyncSession, logger) -> None:
+        """Scrape a single article with error handling."""
+        try:
+            content = await bg_db.get(ContentItem, item["content_id"])
+            if content and (not content.facts or not content.facts.strip()):
+                source_url = content.source_urls[0] if content.source_urls else None
+                if source_url:
+                    await asyncio.wait_for(
+                        _scrape_and_store_article(content, source_url, bg_db),
+                        timeout=SCRAPE_TIMEOUT
+                    )
+        except asyncio.TimeoutError:
+            logger.debug(f"Background scrape timed out for {item['content_id']}")
+        except Exception as e:
+            logger.debug(f"Background scrape error for {item['content_id']}: {e}")
+
     async def background_scrape_articles():
         """Background scraping task - runs in separate worker"""
         try:
-            articles_to_scrape = [
-                item
-                for item in result["items"]
-                if (not item.get("facts") or not item.get("facts").strip())
-                and item.get("source_urls")
-            ]
-
+            articles_to_scrape = _find_articles_to_scrape(result["items"])
             if articles_to_scrape:
                 async with AsyncSessionLocal() as bg_db:
                     # Limit to only 1 article per request to prevent overwhelming
                     for item in articles_to_scrape[:1]:
-                        try:
-                            content = await bg_db.get(ContentItem, item["content_id"])
-                            if content and (
-                                not content.facts or not content.facts.strip()
-                            ):
-                                source_url = (
-                                    content.source_urls[0]
-                                    if content.source_urls
-                                    else None
-                                )
-                                if source_url:
-                                    # Add timeout to prevent hanging
-                                    await asyncio.wait_for(
-                                        _scrape_and_store_article(
-                                            content, source_url, bg_db
-                                        ),
-                                        timeout=15.0,  # 15 second timeout per article
-                                    )
-                        except asyncio.TimeoutError:
-                            logger.debug(
-                                f"Background scrape timed out for {item['content_id']}"
-                            )
-                        except Exception as e:
-                            logger.debug(
-                                f"Background scrape error for {item['content_id']}: {e}"
-                            )
+                        await _scrape_single_article(item, bg_db, logger)
         except Exception as e:
             logger.debug(f"Background scraping task failed: {e}")
 
-    # Fire and forget - don't await
+    # Trigger background scraping for articles without content
+    # This happens in parallel without blocking the response
     asyncio.create_task(background_scrape_articles())
 
     response_data = {
@@ -378,8 +378,8 @@ def _generate_snippet(content: ContentItem) -> Optional[str]:
     """Generate snippet from content facts."""
     if content.facts is not None:
         facts_str = cast(str, content.facts)
-        if len(facts_str) > 800:
-            return facts_str[:800]
+        if len(facts_str) > SNIPPET_LENGTH:
+            return facts_str[:SNIPPET_LENGTH]
         return facts_str
     return content.facts
 
@@ -423,7 +423,7 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
 
     # Check if already scraped
     if content.facts and content.facts.strip():
-        snippet = content.facts[:800] if len(content.facts) > 800 else content.facts
+        snippet = content.facts[:SNIPPET_LENGTH] if len(content.facts) > SNIPPET_LENGTH else content.facts
         return {
             "snippet": snippet,
             "full_content_available": True,
@@ -450,8 +450,6 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
                 ):
                     await _scrape_and_store_article(bg_content, source_url, bg_db)
         except Exception as e:
-            import logging
-
             logger = logging.getLogger(LOGGER_NAME)
             logger.error(f"Background scrape failed for content {content_id}: {e}")
 
@@ -462,7 +460,7 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
     return {
         "snippet": content.description or None,
         "rate_limited": False,
-        "status": "fetching",
+        "status": STATUS_FETCHING,
     }
 
 
@@ -504,7 +502,7 @@ async def get_content_snippet_priority(
     # Try to scrape immediately with timeout
     try:
         # Use asyncio.timeout context manager to enforce timeout
-        async with asyncio.timeout(10.0):
+        async with asyncio.timeout(PRIORITY_SCRAPE_TIMEOUT):
             snippet = await _scrape_and_store_article(content, source_url, db)
 
         if snippet:
@@ -524,8 +522,6 @@ async def get_content_snippet_priority(
     except Exception as e:
         if _is_rate_limit_error(e):
             return _get_rate_limit_response()
-        import logging
-
         logger = logging.getLogger(LOGGER_NAME)
         logger.debug(f"Priority scrape error for {content_id}: {e}")
         # Return failed status when scraping fails
@@ -740,8 +736,6 @@ async def get_thumbnail(content_id: int, db: AsyncSession = Depends(get_db)):
     If missing, scrape the article to fetch image_url and persist to source_metadata.picture_url.
     Uses in-memory caching to prevent hammering database on repeated failed attempts.
     """
-    import logging
-
     logger = logging.getLogger(LOGGER_NAME)
 
     try:
@@ -874,8 +868,8 @@ async def get_content_image(
         if size <= 600:
             return StreamingResponse(
                 iter([content.image_data]),
-                media_type="image/webp",
-                headers={"Cache-Control": "public, max-age=86400"},
+                media_type=IMAGE_WEBP,
+                headers={"Cache-Control": CACHE_CONTROL_PUBLIC},
             )
 
         # Upscale image using high-quality resampling
@@ -1042,7 +1036,7 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
         resp.raise_for_status()
         
         # Limit response size to prevent DoS
-        if int(resp.headers.get("content-length", 0)) > 10 * 1024 * 1024:  # 10MB
+        if int(resp.headers.get("content-length", 0)) > MAX_IMAGE_SIZE:
             raise HTTPException(status_code=413, detail="Image too large")
             
         content_type = resp.headers.get("content-type", "image/jpeg")
