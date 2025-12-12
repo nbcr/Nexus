@@ -34,10 +34,10 @@ async def logout(response: Response):
     from fastapi.responses import RedirectResponse
 
     # Delete cookies
-    response = RedirectResponse(url="/logged-out.html", status_code=302)
-    response.delete_cookie(key="access_token", path="/")
-    response.delete_cookie(key="refresh_token", path="/")
-    return response
+    redirect_response = RedirectResponse(url="/logged-out.html", status_code=302)
+    redirect_response.delete_cookie(key="access_token", path="/")
+    redirect_response.delete_cookie(key="refresh_token", path="/")
+    return redirect_response
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
