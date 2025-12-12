@@ -303,14 +303,18 @@ class RSSFetcher:
         """Extract image URL from dict-based entry"""
         url = self._get_url_from_data(entry.get("media_content"))
         url = url or self._get_url_from_data(entry.get("media_thumbnail"))
-        
+
         if not url and entry.get("enclosures"):
             enclosures = entry.get("enclosures")
-            enclosures = enclosures if isinstance(enclosures, list) else [enclosures] if enclosures else []
+            enclosures = (
+                enclosures
+                if isinstance(enclosures, list)
+                else [enclosures] if enclosures else []
+            )
             for enc in enclosures:
                 if isinstance(enc, dict) and "image" in enc.get("type", ""):
                     return enc.get("url")
-        
+
         return url
 
     def _extract_image_from_object_entry(self, entry) -> Optional[str]:
