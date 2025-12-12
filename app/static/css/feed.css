@@ -176,7 +176,7 @@
 .feed-item-category {
     display: inline-block;
     padding: 4px 12px;
-    background: #0d2f6e;
+    background: #051a4d;
     color: #fff;
     border-radius: 16px;
     font-size: 12px;
@@ -187,7 +187,7 @@
 .feed-item-relevance {
     display: inline-block;
     padding: 4px 12px;
-    background: #1e7e34;
+    background: #0f4620;
     color: #fff;
     border-radius: 16px;
     font-size: 11px;
@@ -357,7 +357,7 @@
 .related-query {
     display: inline-block;
     padding: 6px 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3d4a7a 0%, #4a2f5a 100%);
     color: #fff;
     text-decoration: none;
     border-radius: 20px;
