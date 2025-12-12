@@ -19,8 +19,14 @@ if sys.platform == "win32":
             os.path.dirname(__file__), "..", "..", "temp", "nexus_reboot_request"
         )
     )
+    REBOOT_LOG = Path(
+        os.path.join(
+            os.path.dirname(__file__), "..", "..", "temp", "reboot.log"
+        )
+    )
 else:
     REBOOT_FILE = Path("/temp/nexus_reboot_request")
+    REBOOT_LOG = Path("/tmp/reboot.log")
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +51,26 @@ class RebootManager:
         return False
 
     async def clear_reboot_request(self):
-        """Clear the reboot request file"""
+        """Clear the reboot request file contents"""
         try:
             if REBOOT_FILE.exists():
-                REBOOT_FILE.unlink()
-                logger.info("[OK] Reboot request cleared")
+                REBOOT_FILE.write_text("", encoding="utf-8")
+                logger.info("[OK] Reboot request file cleared")
+                # Log reboot attempt
+                self._log_reboot_event("Reboot initiated - file cleared, attempting server restart")
         except Exception as e:
             logger.error(f"[ERROR] Failed to clear reboot request: {e}")
+
+    def _log_reboot_event(self, message: str):
+        """Log reboot events to reboot log file"""
+        try:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            log_entry = f"[{timestamp}] {message}\n"
+            REBOOT_LOG.parent.mkdir(parents=True, exist_ok=True)
+            with open(REBOOT_LOG, "a", encoding="utf-8") as f:
+                f.write(log_entry)
+        except Exception as e:
+            logger.error(f"[ERROR] Failed to write to reboot log: {e}")
 
     async def wait_for_safe_reboot(self, timeout_seconds: int = 300):
         """
@@ -149,6 +168,14 @@ class RebootManager:
 
         self.is_running = True
         logger.info("[OK] Reboot manager started (monitoring for reboot requests)")
+        # Check if file is empty on startup (server just rebooted)
+        if REBOOT_FILE.exists():
+            try:
+                content = REBOOT_FILE.read_text(encoding="utf-8").strip()
+                if content == "":
+                    self._log_reboot_event("Server restarted - reboot file is empty")
+            except Exception:
+                pass
 
     def stop(self):
         """Stop the reboot monitor"""
