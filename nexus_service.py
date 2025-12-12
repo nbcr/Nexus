@@ -125,6 +125,18 @@ class NexusService(win32serviceutil.ServiceFramework):
             self.logger.error(f"Cannot connect to PostgreSQL: {e}")
             return False
 
+    def _is_server_healthy(self):
+        """Check if the server is responding on port 8000"""
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(2)
+            result = sock.connect_ex(('127.0.0.1', 8000))
+            sock.close()
+            return result == 0
+        except Exception:
+            return False
+
     def SvcDoRun(self):
         """Run the service"""
         self.logger.info("=" * 80)
@@ -154,8 +166,35 @@ class NexusService(win32serviceutil.ServiceFramework):
         # Give service time to fully start before waiting (prevents timeout)
         time.sleep(5)
 
+        # Monitor server health in a separate loop
+        health_check_thread = Thread(target=self._monitor_server_health, daemon=True)
+        health_check_thread.start()
+
         # Wait for stop event
         win32event.WaitForMultipleObjects([self.hWaitStop], False, win32event.INFINITE)
+
+    def _monitor_server_health(self):
+        """Monitor server health and log warnings if unresponsive"""
+        consecutive_failures = 0
+        max_consecutive_failures = 3
+        
+        while self.is_alive:
+            time.sleep(10)  # Check every 10 seconds
+            
+            if not self.is_alive:
+                break
+                
+            if self._is_server_healthy():
+                consecutive_failures = 0
+            else:
+                consecutive_failures += 1
+                if consecutive_failures == 1:
+                    self.logger.warning("[HEALTH] Server not responding on port 8000")
+                elif consecutive_failures >= max_consecutive_failures:
+                    self.logger.error(
+                        f"[HEALTH] Server failed {max_consecutive_failures} health checks. "
+                        "Server may have crashed or become unresponsive."
+                    )
 
     def _run_server(self):
         """Run the uvicorn server with auto-restart on crash"""
