@@ -27,7 +27,17 @@ class FeedNotifier {
         const match = regex.exec(document.cookie);
         if (match) visitorId = match[1];
         if (!visitorId) {
-            visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).slice(2, 16) + Date.now());
+            // Use crypto.randomUUID if available, otherwise use crypto.getRandomValues for better security
+            if (crypto.randomUUID) {
+                visitorId = crypto.randomUUID();
+            } else if (crypto.getRandomValues) {
+                const arr = new Uint8Array(16);
+                crypto.getRandomValues(arr);
+                visitorId = Array.from(arr, byte => byte.toString(16).padStart(2, '0')).join('');
+            } else {
+                // Fallback: combination of timestamp and Date.now() for environments without crypto
+                visitorId = Math.random().toString(36).slice(2, 16) + Date.now();
+            }
             const expires = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toUTCString(); // 2 years
             document.cookie = `visitor_id=${visitorId}; expires=${expires}; path=/; SameSite=Lax`;
         }
