@@ -7,6 +7,7 @@ Uses multiple sources to find feeds matching user's reading patterns.
 
 import asyncio
 import aiohttp
+import aiofiles
 import re
 from typing import List, Dict, Optional, Set, Tuple
 from datetime import datetime, timedelta, timezone
@@ -577,8 +578,8 @@ class RSSDiscoveryService:
 
         # Also check rss_feeds.txt
         try:
-            with open("rss_feeds.txt", "r", encoding="utf-8") as f:
-                for line in f:
+            async with aiofiles.open("rss_feeds.txt", "r", encoding="utf-8") as f:
+                async for line in f:
                     line = line.strip()
                     if not line or line.startswith("#"):
                         continue
