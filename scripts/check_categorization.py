@@ -48,25 +48,28 @@ def load_request_counts():
     try:
         with open(RATE_LIMIT_FILE, 'r') as f:
             data = json.load(f)
-            # Clean old data
-            today = datetime.now().strftime("%Y-%m-%d")
-            current_hour = datetime.now().strftime("%Y-%m-%d-%H")
-            
-            # Keep only today's daily count
-            if today not in data.get("daily", {}):
-                data["daily"] = {today: 0}
-            else:
-                data["daily"] = {today: data["daily"][today]}
-            
-            # Keep only current hour
-            if current_hour not in data.get("hourly", {}):
-                data["hourly"] = {current_hour: 0}
-            else:
-                data["hourly"] = {current_hour: data["hourly"][current_hour]}
-            
-            return data
-    except:
+            return _clean_old_data(data)
+    except Exception:
         return {"daily": {}, "hourly": {}}
+
+def _clean_old_data(data):
+    """Clean old data from rate limit tracking."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    current_hour = datetime.now().strftime("%Y-%m-%d-%H")
+    
+    # Keep only today's daily count
+    if today not in data.get("daily", {}):
+        data["daily"] = {today: 0}
+    else:
+        data["daily"] = {today: data["daily"][today]}
+    
+    # Keep only current hour
+    if current_hour not in data.get("hourly", {}):
+        data["hourly"] = {current_hour: 0}
+    else:
+        data["hourly"] = {current_hour: data["hourly"][current_hour]}
+    
+    return data
 
 
 def save_request_counts(counts):

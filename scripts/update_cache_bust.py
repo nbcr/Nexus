@@ -15,36 +15,36 @@ from datetime import datetime
 
 
 # Configure logging
-def setup_logging():
-    """Set up logging to both file and console."""
-    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
-    os.makedirs(log_dir, exist_ok=True)
-
-    log_file = os.path.join(log_dir, "cache_bust.log")
-
-    # Create logger
-    logger = logging.getLogger("cache_bust")
-    logger.setLevel(logging.INFO)
-
-    # Remove existing handlers
-    logger.handlers.clear()
-
-    # File handler
+def _create_file_handler(log_file: str) -> logging.FileHandler:
+    """Create file handler for logging."""
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.INFO)
     file_formatter = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     file_handler.setFormatter(file_formatter)
+    return file_handler
 
-    # Console handler
+def _create_console_handler() -> logging.StreamHandler:
+    """Create console handler for logging."""
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_formatter = logging.Formatter("%(message)s")
     console_handler.setFormatter(console_formatter)
+    return console_handler
 
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+def setup_logging():
+    """Set up logging to both file and console."""
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(log_dir, "cache_bust.log")
+
+    logger = logging.getLogger("cache_bust")
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+
+    logger.addHandler(_create_file_handler(log_file))
+    logger.addHandler(_create_console_handler())
 
     return logger
 
@@ -83,31 +83,34 @@ def save_file_hashes(hashes_file: str, hashes: dict) -> None:
         json.dump(hashes, f, indent=2)
 
 
-def check_for_changes(static_dir: str, hashes_file: str) -> dict:
-    """Check which files have changed since last run."""
-    logger.info("Checking for file changes...")
-    old_hashes = load_file_hashes(hashes_file)
+def _scan_static_files(static_dir: str) -> dict:
+    """Scan static directory and return file hashes."""
     new_hashes = {}
-    changed_files = {}
-
-    # Scan static directory
     for root, dirs, files in os.walk(static_dir):
         for file in files:
             filepath = os.path.join(root, file)
             relpath = os.path.relpath(filepath, static_dir)
-
-            # Get current hash
             current_hash = get_file_hash(filepath)
             new_hashes[relpath] = current_hash
+    return new_hashes
 
-            # Check if changed
-            if relpath not in old_hashes or old_hashes[relpath] != current_hash:
-                changed_files[relpath] = current_hash
-                logger.info(f"  Changed: {relpath}")
+def _find_changed_files(old_hashes: dict, new_hashes: dict) -> dict:
+    """Find files that have changed."""
+    changed_files = {}
+    for relpath, current_hash in new_hashes.items():
+        if relpath not in old_hashes or old_hashes[relpath] != current_hash:
+            changed_files[relpath] = current_hash
+            logger.info(f"  Changed: {relpath}")
+    return changed_files
 
-    # Save new hashes
+def check_for_changes(static_dir: str, hashes_file: str) -> dict:
+    """Check which files have changed since last run."""
+    logger.info("Checking for file changes...")
+    old_hashes = load_file_hashes(hashes_file)
+    new_hashes = _scan_static_files(static_dir)
+    changed_files = _find_changed_files(old_hashes, new_hashes)
+    
     save_file_hashes(hashes_file, new_hashes)
-
     return changed_files
 
 
@@ -115,6 +118,72 @@ def extract_filename_from_path(relpath: str) -> str:
     """Extract just the filename from relative path."""
     return os.path.basename(relpath)
 
+
+def _get_template_files(templates_dir: str) -> list:
+    """Get all HTML template files."""
+    template_files = []
+    for root, dirs, files in os.walk(templates_dir):
+        for file in files:
+            if file.endswith(".html"):
+                template_files.append(os.path.join(root, file))
+    return template_files
+
+def _create_version_patterns(changed_file: str, new_version: str) -> list:
+    """Create regex patterns for version replacement."""
+    normalized_path = changed_file.replace("\\", "/")
+    full_static_path = f"static/{normalized_path}"
+    
+    return [
+        (rf"(/{re.escape(full_static_path)}\?v=)\d{{12}}", rf"\1{new_version}"),
+        (rf'("{re.escape(full_static_path)}\?v=)\d{{12}}"', rf'\1{new_version}"'),
+        (rf"('{re.escape(full_static_path)}\?v=)\d{{12}}'", rf"\1{new_version}'"),
+    ]
+
+def _apply_version_patterns(content: str, patterns: list) -> str:
+    """Apply version patterns to content."""
+    for pattern, replacement in patterns:
+        try:
+            content = re.sub(pattern, replacement, content)
+        except Exception:
+            pass
+    return content
+
+def _update_wildcard_versions(content: str, changed_files: dict, new_version: str) -> str:
+    """Update wildcard version patterns."""
+    for changed_file in changed_files:
+        filename = extract_filename_from_path(changed_file)
+        pattern = rf"({re.escape(filename)}\?v=)\d{{12}}"
+        replacement = rf"\1{new_version}"
+        content = re.sub(pattern, replacement, content)
+    return content
+
+def _update_single_template(template_path: str, changed_files: dict, new_version: str) -> bool:
+    """Update a single template file."""
+    try:
+        with open(template_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        
+        original_content = content
+        
+        # Update version strings for changed files
+        for changed_file in changed_files:
+            patterns = _create_version_patterns(changed_file, new_version)
+            content = _apply_version_patterns(content, patterns)
+        
+        # Apply wildcard updates
+        content = _update_wildcard_versions(content, changed_files, new_version)
+        
+        # Write back if changed
+        if content != original_content:
+            with open(template_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            logger.info(f"  ✓ Updated {os.path.basename(template_path)}")
+            return True
+        
+        return False
+    except Exception as e:
+        logger.error(f"  ✗ Error updating {template_path}: {e}")
+        return False
 
 def update_template_versions(
     templates_dir: str, changed_files: dict, new_version: str
@@ -127,79 +196,13 @@ def update_template_versions(
     logger.info(f"📝 Detected {len(changed_files)} changed file(s)")
     logger.info(f"🔄 Updating version to: {new_version}")
 
-    # Group changed files by type
-    css_files = {f for f in changed_files if f.endswith(".css")}
-    js_files = {f for f in changed_files if f.endswith(".js")}
-
-    # Read all templates
-    template_files = []
-    for root, dirs, files in os.walk(templates_dir):
-        for file in files:
-            if file.endswith(".html"):
-                template_files.append(os.path.join(root, file))
-
+    template_files = _get_template_files(templates_dir)
     updated_count = 0
 
     # Update each template
     for template_path in template_files:
-        try:
-            with open(template_path, "r", encoding="utf-8") as f:
-                content = f.read()
-
-            original_content = content
-
-            # Update version strings for changed files
-            for changed_file in changed_files:
-                filename = extract_filename_from_path(changed_file)
-
-                # Normalize path separators to forward slashes for regex
-                normalized_path = changed_file.replace("\\", "/")
-                # Prepend /static/ to the path since templates use absolute URLs
-                full_static_path = f"static/{normalized_path}"
-
-                # Create regex patterns to match different URL formats
-                patterns = [
-                    # Standard pattern: /static/path/to/file.ext?v=XXXXXXXX
-                    (
-                        rf"(/{re.escape(full_static_path)}\?v=)\d{{12}}",
-                        rf"\1{new_version}",
-                    ),
-                    # Alternative with quotes: "/static/path/file.ext?v=XXXXXXXX"
-                    (
-                        rf'("{re.escape(full_static_path)}\?v=)\d{{12}}"',
-                        rf'\1{new_version}"',
-                    ),
-                    # Apostrophes: '/static/path/file.ext?v=XXXXXXXX'
-                    (
-                        rf"('{re.escape(full_static_path)}\?v=)\d{{12}}'",
-                        rf"\1{new_version}'",
-                    ),
-                ]
-
-                for pattern, replacement in patterns:
-                    try:
-                        content = re.sub(pattern, replacement, content)
-                    except Exception:
-                        pass
-
-            # Also do wildcard updates for any files matching just the filename
-            # This catches cases where multiple files with same name might exist
-            for changed_file in changed_files:
-                filename = extract_filename_from_path(changed_file)
-                # Match any occurrence of filename?v=OLDVERSION
-                pattern = rf"({re.escape(filename)}\?v=)\d{{12}}"
-                replacement = rf"\1{new_version}"
-                content = re.sub(pattern, replacement, content)
-
-            # Write back if changed
-            if content != original_content:
-                with open(template_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                logger.info(f"  ✓ Updated {os.path.basename(template_path)}")
-                updated_count += 1
-
-        except Exception as e:
-            logger.error(f"  ✗ Error updating {template_path}: {e}")
+        if _update_single_template(template_path, changed_files, new_version):
+            updated_count += 1
 
     if updated_count > 0:
         logger.info(f"✅ Updated {updated_count} template file(s)")

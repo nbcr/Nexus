@@ -3,8 +3,8 @@
 
 echo "Fixing DATABASE_URL in .env file..."
 
-if [ ! -f .env ]; then
-    echo "ERROR: No .env file found!"
+if [[ ! -f .env ]]; then
+    echo "ERROR: No .env file found!" >&2
     exit 1
 fi
 

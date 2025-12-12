@@ -3,7 +3,7 @@
 
 echo "Checking .env file..."
 
-if [ -f .env ]; then
+if [[ -f .env ]]; then
     echo "Found .env file"
     
     # Check current DATABASE_URL

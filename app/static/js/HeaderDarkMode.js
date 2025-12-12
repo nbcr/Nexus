@@ -8,31 +8,83 @@
  */
 
 /**
+ * Get UI elements for dark mode toggle
+ */
+function getDarkModeElements() {
+    return {
+        toggleBtn: document.getElementById('dark-mode-toggle'),
+        toggleLabel: document.getElementById('dark-mode-label'),
+        toggleMenuBtn: document.getElementById('dark-mode-toggle-menu')
+    };
+}
+
+/**
+ * Apply light mode settings
+ */
+function applyLightMode(elements) {
+    document.documentElement.classList.add('light-mode');
+    updateDarkModeUI(false, elements.toggleBtn, elements.toggleLabel, elements.toggleMenuBtn);
+}
+
+/**
+ * Apply dark mode settings
+ */
+function applyDarkMode(elements) {
+    document.documentElement.classList.remove('light-mode');
+    updateDarkModeUI(true, elements.toggleBtn, elements.toggleLabel, elements.toggleMenuBtn);
+    removeFeedItemSummaryColors();
+}
+
+/**
  * Initialize dark mode based on user preferences
  * Dark mode is enabled by default for all devices (no class needed)
  * Light mode requires explicit light-mode class
  */
 function initDarkMode() {
-    const toggleBtn = document.getElementById('dark-mode-toggle');
-    const toggleLabel = document.getElementById('dark-mode-label');
-    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
-
-    // Use localStorage preference, default to dark mode
+    const elements = getDarkModeElements();
     const savedPreference = localStorage.getItem('darkMode');
 
-    // Check if light mode is explicitly selected
     if (savedPreference === 'false') {
-        // Light mode - add light-mode class
-        document.documentElement.classList.add('light-mode');
-        updateDarkModeUI(false, toggleBtn, toggleLabel, toggleMenuBtn);
+        applyLightMode(elements);
     } else {
-        // Dark mode is default - ensure light-mode class is removed
-        document.documentElement.classList.remove('light-mode');
         if (savedPreference === null) {
             localStorage.setItem('darkMode', 'true');
         }
-        updateDarkModeUI(true, toggleBtn, toggleLabel, toggleMenuBtn);
-        removeFeedItemSummaryColors();
+        applyDarkMode(elements);
+    }
+}
+
+/**
+ * Update toggle button content
+ */
+function updateToggleButton(toggleBtn, isDark) {
+    if (toggleBtn) {
+        toggleBtn.textContent = isDark ? '☀️' : '🌙';
+    }
+}
+
+/**
+ * Update toggle label content
+ */
+function updateToggleLabel(toggleLabel, isDark) {
+    if (toggleLabel) {
+        toggleLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    }
+}
+
+/**
+ * Update menu button content
+ */
+function updateMenuButton(toggleMenuBtn, isDark) {
+    if (toggleMenuBtn) {
+        const icon = toggleMenuBtn.querySelector('.menu-icon');
+        if (icon) {
+            icon.textContent = isDark ? '☀️' : '🌙';
+        }
+        const label = toggleMenuBtn.querySelector('.menu-label');
+        if (label) {
+            label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        }
     }
 }
 
@@ -43,39 +95,48 @@ function initDarkMode() {
  * In light mode: show "🌙 Dark Mode" (clicking will enable dark mode)
  */
 function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
-    if (toggleBtn) {
-        // Show sun when in dark mode (clicking enables light)
-        // Show moon when in light mode (clicking enables dark)
-        toggleBtn.textContent = isDark ? '☀️' : '🌙';
-    }
-    if (toggleLabel) {
-        // Label shows what will happen when clicked
-        toggleLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-    }
-    if (toggleMenuBtn) {
-        const icon = toggleMenuBtn.querySelector('.menu-icon');
-        if (icon) {
-            // Show sun in dark mode (will switch to light)
-            // Show moon in light mode (will switch to dark)
-            icon.textContent = isDark ? '☀️' : '🌙';
-        }
-        const label = toggleMenuBtn.querySelector('.menu-label');
-        if (label) {
-            // Label shows what will happen when clicked
-            label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-        }
-    }
+    updateToggleButton(toggleBtn, isDark);
+    updateToggleLabel(toggleLabel, isDark);
+    updateMenuButton(toggleMenuBtn, isDark);
 }
 
 /**
  * Remove inline color styles from feed item summaries in dark mode
  */
 function removeFeedItemSummaryColors() {
-    document.querySelectorAll('.feed-item-summary').forEach(function (el) {
+    document.querySelectorAll('.feed-item-summary').forEach(el => {
         if (el.style.color) {
             el.style.removeProperty('color');
         }
     });
+}
+
+/**
+ * Apply mode change to document
+ */
+function applyModeChange(willBeLight) {
+    if (willBeLight) {
+        document.documentElement.classList.add('light-mode');
+    } else {
+        document.documentElement.classList.remove('light-mode');
+    }
+}
+
+/**
+ * Save user preference to localStorage
+ */
+function savePreference(willBeLight) {
+    localStorage.setItem('darkMode', String(!willBeLight));
+}
+
+/**
+ * Update UI elements after mode change
+ */
+function updateUIElements(willBeLight) {
+    const toggleBtn = document.getElementById('dark-mode-toggle');
+    const toggleLabel = document.getElementById('dark-mode-label');
+    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
+    updateDarkModeUI(!willBeLight, toggleBtn, toggleLabel, toggleMenuBtn);
 }
 
 /**
@@ -96,25 +157,12 @@ function toggleDarkMode() {
     }
 }
 
-function applyModeChange(willBeLight) {
-    if (willBeLight) {
-        document.documentElement.classList.add('light-mode');
-    } else {
-        document.documentElement.classList.remove('light-mode');
-    }
-}
-
-function savePreference(willBeLight) {
-    localStorage.setItem('darkMode', String(!willBeLight));
-}
-
-function updateUIElements(willBeLight) {
-    const toggleBtn = document.getElementById('dark-mode-toggle');
-    const toggleLabel = document.getElementById('dark-mode-label');
-    const toggleMenuBtn = document.getElementById('dark-mode-toggle-menu');
-    updateDarkModeUI(!willBeLight, toggleBtn, toggleLabel, toggleMenuBtn);
-}
-
 // Export namespace and global functions
-globalThis.HeaderDarkMode = { initDarkMode, toggleDarkMode };
+globalThis.HeaderDarkMode = { 
+    initDarkMode, 
+    toggleDarkMode, 
+    applyModeChange, 
+    savePreference, 
+    updateUIElements 
+};
 globalThis.toggleDarkMode = toggleDarkMode;

@@ -6,7 +6,7 @@ echo "🔄 Restarting Nginx..."
 # Test nginx configuration first
 sudo nginx -t
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
     echo "✅ Nginx configuration is valid"
     
     # Reload nginx (graceful restart)

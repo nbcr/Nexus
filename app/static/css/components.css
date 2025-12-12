@@ -13,7 +13,7 @@
 .article-error-hint {
     margin-top: 10px;
     font-size: 14px;
-    color: #666;
+    color: #4a4a4a;
 }
 
 /* ======================================
@@ -55,12 +55,12 @@
 }
 
 .btn-secondary {
-    background: var(--bg-tertiary, #666);
+    background: var(--bg-tertiary, #4a4a4a);
     color: #fff;
 }
 
 .btn-secondary:hover {
-    background: #555;
+    background: #333;
 }
 
 .btn-success {
@@ -216,7 +216,7 @@ body.dark-mode .category-btn.active {
     right: var(--spacing-md, 16px);
     font-size: 32px;
     font-weight: bold;
-    color: var(--text-secondary, #666);
+    color: var(--text-secondary, #4a4a4a);
     cursor: pointer;
     background: none;
     border: none;
@@ -232,8 +232,8 @@ body.dark-mode .category-btn.active {
 
 .modal-close:hover,
 .article-modal-close:hover {
-    background: var(--bg-tertiary, #f0f0f0);
-    color: var(--text-primary, #333);
+    background: var(--bg-tertiary, #e0e0e0);
+    color: var(--text-primary, #000);
 }
 
 body.dark-mode .modal-content,
@@ -433,13 +433,13 @@ body.dark-mode .history-item {
 
 .article-loading p {
     margin-top: var(--spacing-md, 16px);
-    color: var(--text-secondary, #666);
+    color: var(--text-secondary, #4a4a4a);
 }
 
 .article-error {
     text-align: center;
     padding: var(--spacing-xl, 32px);
-    color: var(--text-secondary, #666);
+    color: var(--text-secondary, #4a4a4a);
 }
 
 /* ======================================

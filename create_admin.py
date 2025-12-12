@@ -33,11 +33,11 @@ async def create_admin_user(username: str, email: str, password: str):
             print(f"❌ User '{username}' already exists!")
 
             # Ask if we should promote to admin
-            response = input(f"Promote existing user to admin? (y/n): ")
+            response = await asyncio.to_thread(input, "Promote existing user to admin? (y/n): ")
             if response.lower() == "y":
                 existing_user.is_admin = True
                 await session.commit()
-                print(f"✅ User '{username}' promoted to admin!")
+            print(f"✅ User '{username}' promoted to admin!")
             return
 
         # Create new admin user
@@ -55,16 +55,16 @@ async def create_admin_user(username: str, email: str, password: str):
         await session.commit()
         await session.refresh(new_user)
 
-        print(f"✅ Admin user created successfully!")
+        print("✅ Admin user created successfully!")
         print(f"   Username: {new_user.username}")
         print(f"   Email: {new_user.email}")
         print(f"   Admin: {new_user.is_admin}")
         print(f"   ID: {new_user.id}")
         print()
-        print(f"🔒 You can now access the admin panel at:")
-        print(f"   https://nexus.comdat.ca/static/admin.html")
+        print("🔒 You can now access the admin panel at:")
+        print("   https://nexus.comdat.ca/static/admin.html")
         print()
-        print(f"⚠️  Keep your admin credentials secure!")
+        print("⚠️  Keep your admin credentials secure!")
 
     await engine.dispose()
 

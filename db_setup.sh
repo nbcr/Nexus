@@ -61,7 +61,7 @@ echo ""
 echo -e "${YELLOW}Step 5: Creating database tables...${NC}"
 python scripts/init_db.py
 
-echo -e "${GREEN}✓ Tables created${NC}"
+echo -e "${GREEN}✓ Tables created${NC}" >&2
 echo ""
 
 # 6. Test database connection

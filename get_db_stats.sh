@@ -2,7 +2,9 @@
 # Database query wrapper for storage monitor
 
 psql_query() {
-    sudo -u postgres psql -d nexus -t -c "$1" 2>/dev/null
+    local query="$1"
+    sudo -u postgres psql -d nexus -t -c "$query" 2>/dev/null
+    return 0
 }
 
 psql_query "SELECT pg_size_pretty(pg_database_size(current_database()));"

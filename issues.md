@@ -2,54 +2,15 @@
 
 **Project:** nbcr_Nexus
 
-**Total Issues:** 191
+**Total Issues:** 78
 
-**JavaScript Issues:** 58
+**JavaScript Issues:** 45
 
 ## Issues by Severity
 
-### 🔴 CRITICAL Issues (13)
+### 🔴 CRITICAL Issues (0)
 
-
-
-#### app/core/input_validation.py
-- **Line 281:** Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed. (`python:S3776`)
-
-#### app/core/secure_request_handler.py
-- **Line 15:** Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed. (`python:S3776`)
-
-#### app/static/js/HeaderDarkMode.js
-- **Line 45:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
-
-
-
-#### app/templates/register.html
-- **Line 170:** Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed. (`javascript:S3776`)
-
-
-
-#### block_china_russia.py
-- **Line 127:** Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed. (`python:S3776`)
-
-
-
-
-
-#### scripts/check_categorization.py
-- **Line 68:** Specify an exception class to catch or reraise the exception (`python:S5754`)
-
-
-
-#### scripts/update_cache_bust.py
-- **Line 119:** Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed. (`python:S3776`)
-
-
-
-#### test_fetch_performance.py
-- **Line 51:** Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed. (`python:S3776`)
-
-#### update_existing_topics.py
-- **Line 15:** Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed. (`python:S3776`)
+*All CRITICAL issues have been resolved.*
 
 ---
 
@@ -59,15 +20,7 @@
 
 ---
 
-### 🟡 MAJOR Issues (95)
-
-
-
-#### app/api/v1/routes/settings.py
-- **Line 30:** Take the required action to fix the issue indicated by this "FIXME" comment. (`python:S1134`)
-
-#### app/services/content_recommendation.py
-- **Line 230:** Take the required action to fix the issue indicated by this "FIXME" comment. (`python:S1134`)
+### 🟡 MAJOR Issues (78)
 
 #### app/static/css/admin.css
 - **Line 407:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
@@ -75,21 +28,6 @@
 
 #### app/static/css/auth.css
 - **Line 297:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-
-#### app/static/css/components.css
-- **Line 354:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 390:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 132:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 137:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 142:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 50:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 68:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 77:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 87:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 118:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 125:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 150:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 294:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 
 #### app/static/css/feed.css
 - **Line 361:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
@@ -100,77 +38,14 @@
 - **Line 50:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 - **Line 114:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 
-
-
 #### app/static/js/HeaderAuth.js
 - **Line 175:** Promise-returning function provided to variable where a void return was expected. (`javascript:S6544`)
-
-#### app/static/js/HoverTracker.js
-- **Line 389:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
-
-
-
-#### app/static/js/hover-tracker.js
-- **Line 399:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
-
-
-
-
-
-#### app/templates/admin.html
-- **Line 244:** A form label must be associated with a control. (`Web:S6853`)
 
 #### app/templates/history.html
 - **Line 187:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 - **Line 194:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 - **Line 413:** Extract this nested ternary operation into an independent statement. (`javascript:S3358`)
 - **Line 566:** Prefer top-level await over an async function `loadHistory` call. (`javascript:S7785`)
-
-#### app/templates/index.html
-- **Line 98:** Headings must have content and the content must be accessible by a screen reader. (`Web:S6850`)
-
-#### app/templates/login.html
-- **Line 41:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
-- **Line 51:** Move function 'getCookie' to the outer scope. (`javascript:S7721`)
-- **Line 81:** Prefer top-level await over an async function `checkAuthAndRedirect` call. (`javascript:S7785`)
-- **Line 99:** Remove this useless assignment to variable "password". (`javascript:S1854`)
-
-#### app/templates/register.html
-- **Line 98:** Unnecessary escape character: \[. (`javascript:S6535`)
-- **Line 98:** Unnecessary escape character: \/. (`javascript:S6535`)
-- **Line 134:** Move function 'summarizeErrorMessage' to the outer scope. (`javascript:S7721`)
-
-#### benchmark_feeds.py
-- **Line 189:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### check_logs_folder.sh
-- **Line 5:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-- **Line 13:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-
-#### create_admin.py
-- **Line 65:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 36:** Wrap this call to input() with await asyncio.to_thread(input). (`python:S7501`)
-- **Line 36:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 58:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 64:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 67:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### db_setup.sh
-- **Line 88:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
-
-#### fix_database_url.sh
-- **Line 6:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-- **Line 7:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
-
-#### fix_env.sh
-- **Line 6:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-
-#### get_db_stats.sh
-- **Line 4:** Add an explicit return statement at the end of the function. (`shelldre:S7682`)
-- **Line 5:** Assign this positional parameter to a local variable. (`shelldre:S7679`)
-
-#### intrusion_detector.py
-- **Line 180:** Remove the unused function parameter "url". (`python:S1172`)
 
 #### nginx/404.html
 - **Line 67:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
@@ -180,13 +55,6 @@
 
 #### nginx/502.html
 - **Line 67:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
-
-#### restart-nginx.sh
-- **Line 9:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-
-#### run_migration.sh
-- **Line 7:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-- **Line 13:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
 
 #### scripts/backup_with_storage_check.py
 - **Line 100:** Return a value of type "dict" instead of "NoneType" or update function "get_filesystem_usage" type hint. (`python:S5886`)

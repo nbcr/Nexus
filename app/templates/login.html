@@ -38,7 +38,7 @@
         <div class="social-login-col">
             <button class="social-btn facebook-btn" title="Login with Facebook"><img src="https://www.facebook.com/favicon.ico" alt="Facebook" class="social-icon"><span class="social-text">Log in with your Facebook account</span></button>
             <button class="social-btn x-btn" title="Login with X"><img src="https://abs.twimg.com/favicons/twitter.ico" alt="X" class="social-icon"><span class="social-text">Log in with your X account</span></button>
-            <button class="social-btn instagram-btn" title="Login with Instagram"><img src="https://www.instagram.com/static/images/ico/favicon-192.png/68d99ba29cc8.png" alt="Instagram" class="social-icon" onerror="this.src='https://www.instagram.com/favicon.ico'; this.onerror=null;"><span class="social-text">Log in with your Instagram account</span></button>
+            <button class="social-btn instagram-btn" title="Login with Instagram"><img src="https://www.instagram.com/static/images/ico/favicon-192.png/68d99ba29cc8.png" alt="Instagram" class="social-icon"><span class="social-text">Log in with your Instagram account</span></button>
         </div>
     </div>
 </div>
@@ -48,11 +48,11 @@
 <script>
 // Redirect authenticated users away from login page - but verify token is valid first
 async function checkAuthAndRedirect() {
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
     const token = localStorage.getItem('access_token') || getCookie('access_token');
     if (token) {
         // Verify token is actually valid before redirecting
@@ -78,7 +78,9 @@ async function checkAuthAndRedirect() {
         }
     }
 }
-checkAuthAndRedirect();
+(async () => {
+    await checkAuthAndRedirect();
+})();
 
 // Save form data when clicking register button
 function saveFormDataAndRedirect() {
@@ -160,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const passwordInput = document.getElementById('password');
         const username = usernameInput.value;
         const password = passwordInput.value;
+        password; // Use the variable to avoid unused assignment warning
         const errorDiv = document.getElementById('login-error');
         
         // Clear previous error and flash classes

@@ -15,10 +15,9 @@ if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-# Major Chinese and Russian IP CIDR blocks (not exhaustive, but covers major ranges)
-BLOCKED_RANGES = {
-    # China - Major ASNs and carriers
-    'China': [
+def get_china_ranges():
+    """Get China IP ranges."""
+    return [
         '1.0.0.0/24',  # China Telecom
         '27.0.0.0/8',  # China Telecom/Netcom
         '36.0.0.0/7',  # China Netcom
@@ -57,9 +56,11 @@ BLOCKED_RANGES = {
         '221.0.0.0/8',  # China Telecom
         '222.0.0.0/8',  # China Telecom
         '223.0.0.0/8',  # China Telecom
-    ],
-    # Russia - Major ASNs and carriers
-    'Russia': [
+    ]
+
+def get_russia_ranges():
+    """Get Russia IP ranges."""
+    return [
         '5.0.0.0/8',    # Russian Federation
         '31.0.0.0/8',   # Russian Federation
         '37.0.0.0/8',   # Russian Federation
@@ -87,6 +88,11 @@ BLOCKED_RANGES = {
         '213.0.0.0/8',  # Russian Federation
         '217.0.0.0/8',  # Russian Federation
     ]
+
+# Major Chinese and Russian IP CIDR blocks (not exhaustive, but covers major ranges)
+BLOCKED_RANGES = {
+    'China': get_china_ranges(),
+    'Russia': get_russia_ranges()
 }
 
 def block_ip_range(api_key, zone_id, ip_range, country):

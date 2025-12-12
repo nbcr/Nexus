@@ -95,7 +95,7 @@
             lowercase: /[a-z]/.test(password),
             uppercase: /[A-Z]/.test(password),
             number: /\d/.test(password),
-            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]/.test(password)
         };
 
         // Update UI for each requirement
@@ -167,21 +167,14 @@
             return;
         }
 
-        registerForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const username = usernameInput.value;
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            const errorDiv = document.getElementById('register-error');
-
-            // Clear previous error
+        // Helper functions for form submission
+        function clearFormErrors(errorDiv, inputs) {
             errorDiv.style.display = 'none';
             errorDiv.textContent = '';
-            usernameInput.classList.remove('flash-error', 'flash-success');
-            emailInput.classList.remove('flash-error', 'flash-success');
-            passwordInput.classList.remove('flash-error', 'flash-success');
+            inputs.forEach(input => input.classList.remove('flash-error', 'flash-success'));
+        }
 
-            // Validate password requirements
+        function validatePasswordReqs(password, errorDiv, passwordInput) {
             const reqs = checkPasswordRequirements(password);
             if (!Object.values(reqs).every(v => v)) {
                 flashRed(passwordInput);
@@ -190,9 +183,41 @@
                 if (!reqs.lowercase) failedReqs.push('lowercase letter');
                 if (!reqs.uppercase) failedReqs.push('uppercase letter');
                 if (!reqs.number) failedReqs.push('number');
-                if (!reqs.special) failedReqs.push('special character (@$!%*?&#:"\')');
-                errorDiv.textContent = `Password missing: ${failedReqs.join(', ')}`;
+                if (!reqs.special) failedReqs.push('special character (@$!%*?&#:"\')');                errorDiv.textContent = `Password missing: ${failedReqs.join(', ')}`;
                 errorDiv.style.display = 'block';
+                return false;
+            }
+            return true;
+        }
+
+        function handleSuccessResponse(data, inputs) {
+            inputs.forEach(input => flashGreen(input));
+            if (data.access_token) {
+                localStorage.setItem('access_token', data.access_token);
+                document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
+            }
+            sessionStorage.removeItem('register_username');
+            sessionStorage.removeItem('register_email');
+            window.location.href = '/';
+        }
+
+        function handleErrorResponse(errorDiv, inputs, message) {
+            inputs.forEach(input => flashRed(input));
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        registerForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const username = usernameInput.value;
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            const errorDiv = document.getElementById('register-error');
+            const inputs = [usernameInput, emailInput, passwordInput];
+
+            clearFormErrors(errorDiv, inputs);
+
+            if (!validatePasswordReqs(password, errorDiv, passwordInput)) {
                 return;
             }
 
@@ -206,50 +231,19 @@
                 if (res.ok) {
                     const data = await res.json();
                     const emailStatus = data.email_status || 'ok';
-                    const emailError = data.email_error;
 
                     if (emailStatus !== 'ok') {
-                        flashRed(usernameInput);
-                        flashRed(emailInput);
-                        flashRed(passwordInput);
-                        errorDiv.textContent = summarizeErrorMessage(emailError);
-                        errorDiv.style.display = 'block';
+                        handleErrorResponse(errorDiv, inputs, summarizeErrorMessage(data.email_error));
                         return;
                     }
 
-                    // Flash green for success
-                    flashGreen(usernameInput);
-                    flashGreen(emailInput);
-                    flashGreen(passwordInput);
-
-                    if (data.access_token) {
-                        localStorage.setItem('access_token', data.access_token);
-                        document.cookie = `access_token=${data.access_token}; path=/; max-age=2592000`;
-                    }
-
-                    // Clear session storage
-                    sessionStorage.removeItem('register_username');
-                    sessionStorage.removeItem('register_email');
-
-                    window.location.href = '/';
+                    handleSuccessResponse(data, inputs);
                 } else {
-                    // Flash red for error
-                    flashRed(usernameInput);
-                    flashRed(emailInput);
-                    flashRed(passwordInput);
-
                     const error = await res.json();
-                    errorDiv.textContent = error.detail || 'Registration failed';
-                    errorDiv.style.display = 'block';
+                    handleErrorResponse(errorDiv, inputs, error.detail || 'Registration failed');
                 }
             } catch (error) {
-                // Flash red for error
-                flashRed(usernameInput);
-                flashRed(emailInput);
-                flashRed(passwordInput);
-
-                errorDiv.textContent = 'Network error. Please try again.';
-                errorDiv.style.display = 'block';
+                handleErrorResponse(errorDiv, inputs, 'Network error. Please try again.');
             }
         });
     });

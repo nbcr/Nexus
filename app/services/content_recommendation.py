@@ -227,8 +227,8 @@ class ContentRecommendationService:
             .where(*where_clauses)
         )
 
-        # FIXME: Future filtering by user_categories can be added here
-        # For now, show everything so we can learn user preferences
+        # TODO: Implement user category filtering based on preferences
+        # Currently showing all content to learn user behavior patterns
 
         # Apply cursor-based filtering (show items older than cursor)
         if cursor:

@@ -27,8 +27,8 @@ async def get_hover_tracker_settings(
     if current_user:
         debug_mode = getattr(current_user, "debug_mode", False)
 
-    # FIXME: Check if user has custom settings in database
-    # For now, return global defaults
+    # TODO: Implement user-specific settings storage in database
+    # Currently using global defaults for all users
 
     settings = {
         "minHoverDuration": 1500,
