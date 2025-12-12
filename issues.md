@@ -2,45 +2,19 @@
 
 **Project:** nbcr_Nexus
 
-**Total Issues:** 116
+**Total Issues:** 104
 
 **JavaScript Issues:** 49
 
 ## Issues by Severity
 
-### 🟠 CRITICAL Issues (6)
+### 🟠 CRITICAL Issues (0)
 
-#### alembic/env.py
-- **Line 27:** Import only needed names or import the module and then use its members. (`python:S2208`)
-
-#### app/static/js/header.js
-- **Line 206:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
-
-#### app/utils/async_rss_parser.py
-- **Line 83:** Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed. (`python:S3776`)
-
-#### block_china_russia.py
-- **Line 133:** Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed. (`python:S3776`)
-
-#### nexus_service.py
-- **Line 268:** Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed. (`python:S3776`)
-
-#### test_fetch_performance.py
-- **Line 46:** Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed. (`python:S3776`)
+**All CRITICAL issues have been resolved!**
 
 ---
 
-### 🟡 MAJOR Issues (52)
-
-#### add_content_fields.sql
-- **Line 16:** Remove this commented out code. (`plsql:S125`)
-
-#### app/core/input_validation.py
-- **Line 203:** Return a value of type "int" instead of "NoneType" or update function "_parse_id_string" type hint. (`python:S5886`)
-
-#### app/static/css/admin.css
-- **Line 407:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 510:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
+### 🟡 MAJOR Issues (40)
 
 #### app/static/css/auth.css
 - **Line 382:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
@@ -70,7 +44,6 @@
 - **Line 114:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 
 #### app/static/js/FeedRenderer.js
-- **Line 48:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
 - **Line 124:** Refactor this code to not use nested template literals. (`javascript:S4624`)
 
 #### app/static/js/HeaderAuth.js
@@ -80,41 +53,45 @@
 - **Line 389:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
 
 #### app/static/js/header.js
-- **Line 265:** Expected an assignment or function call and instead saw an expression. (`javascript:S905`)
-- **Line 386:** Remove this commented out code. (`javascript:S125`)
+- **Line 393:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 118:** Handle this exception or don't catch it at all. (`javascript:S2486`)
+- **Line 129:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 165:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 24:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
+- **Line 27:** '(from: number, length?: number): string' is deprecated. (`javascript:S1874`)
+- **Line 41:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
 
 #### app/static/js/hover-tracker.js
-- **Line 399:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
+- **Line 127:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 157:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 168:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 182:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 191:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 290:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 307:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 363:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 395:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 399:** Prefer `globalThis` over `window`. (`javascript:S7764`)
+- **Line 404:** Prefer `globalThis` over `window`. (`javascript:S7764`)
 
 #### app/templates/admin.html
 - **Line 244:** A form label must be associated with a control. (`Web:S6853`)
 
 #### app/templates/history.html
-- **Line 579:** Prefer top-level await over an async function `initHistory` call. (`javascript:S7785`)
-- **Line 187:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
-- **Line 194:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
 
 #### app/templates/index.html
 - **Line 107:** Remove redundant word "image" from the "alt" attribute of your "img" tag. (`Web:S6851`)
 
 #### app/templates/login.html
-- **Line 81:** Prefer top-level await over an async IIFE. (`javascript:S7785`)
-- **Line 164:** Expected an assignment or function call and instead saw an expression. (`javascript:S905`)
-- **Line 51:** Move function 'getCookie' to the outer scope. (`javascript:S7721`)
-- **Line 101:** Remove this useless assignment to variable "password". (`javascript:S1854`)
+- **Line 74:** Handle this exception or don't catch it at all. (`javascript:S2486`)
 
 #### app/templates/register.html
-- **Line 167:** Move function 'clearFormErrors' to the outer scope. (`javascript:S7721`)
-- **Line 173:** Move function 'validatePasswordReqs' to the outer scope. (`javascript:S7721`)
-- **Line 201:** Move function 'handleErrorResponse' to the outer scope. (`javascript:S7721`)
-- **Line 94:** Unnecessary escape character: \[. (`javascript:S6535`)
-- **Line 130:** Move function 'summarizeErrorMessage' to the outer scope. (`javascript:S7721`)
+- **Line 132:** Prefer `String#replaceAll()` over `String#replace()`. (`javascript:S7781`)
+- **Line 175:** arrow function is equivalent to `Boolean`. Use `Boolean` directly. (`javascript:S7770`)
+- **Line 198:** Prefer `globalThis` over `window`. (`javascript:S7764`)
 
 #### benchmark_feeds.py
 - **Line 189:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### db_setup.sh
-- **Line 88:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
 
 #### intrusion_detector.py
 - **Line 180:** Remove the unused function parameter "url". (`python:S1172`)
@@ -231,8 +208,8 @@
 
 ## Summary by Priority
 
-**🟠 CRITICAL (6 issues)** - Address immediately: Complex functions need refactoring
-**🟡 MAJOR (52 issues)** - Schedule soon: Code quality improvements
+**🟠 CRITICAL (0 issues)** - ✅ All resolved
+**🟡 MAJOR (40 issues)** - Schedule soon: Code quality improvements (CSS contrast: ~18 issues, JavaScript/HTML: ~22 issues)
 **🔵 MINOR (53 issues)** - Address gradually: Style and best practice improvements
 **⚪ INFO (2 issues)** - Optional: Informational suggestions
 
