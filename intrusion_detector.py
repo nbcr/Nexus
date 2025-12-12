@@ -99,6 +99,7 @@ class IntrusionDetector:
         # Nginx: 127.0.0.1 - - [10/Dec/2024:10:10:10] "GET /test.php" 200
         # IIS: 2024-12-10 10:10:10 127.0.0.1 GET /wp-admin - 404
 
+        # ReDoS-safe regex: simple digit pattern with bounded context, no backtracking
         ip_match = re.search(r"(\d+\.\d+\.\d+\.\d+)", line)
         if not ip_match:
             return None

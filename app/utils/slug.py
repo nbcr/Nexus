@@ -48,5 +48,6 @@ def generate_slug_from_url(url: str) -> str:
     Returns:
         A URL-safe slug
     """
+    # Non-cryptographic hash for URL slugs - MD5 acceptable for this use case
     url_hash = hashlib.md5(url.encode()).hexdigest()[:12]
     return f"content-{url_hash}"

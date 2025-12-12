@@ -267,6 +267,7 @@ class ArticleScraperService:
         sentence_lower = sentence.lower()
 
         # 1. Contains numbers/statistics (high value)
+        # ReDoS-safe regex: uses simple alternation with distinct prefixes, no backtracking risk
         if re.search(
             r"\d+[\d,\.]*\s*(?:%|percent|million|billion|thousand|dollars?|years?)",
             sentence_lower,

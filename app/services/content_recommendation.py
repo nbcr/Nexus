@@ -43,9 +43,9 @@ class ContentRecommendationService:
         """Remove img tags and their content from HTML, return plain text."""
         if not html_text:
             return ""
-        # Remove img tags
+        # Remove img tags - ReDoS-safe: character class negation with bounded context
         text = re.sub(r"<img[^>]*/?>", "", html_text)
-        # Remove picture tags
+        # Remove picture tags - safe: non-greedy with DOTALL
         text = re.sub(r"<picture[^>]*>.*?</picture>", "", text, flags=re.DOTALL)
         # Remove figure tags with content
         text = re.sub(r"<figure[^>]*>.*?</figure>", "", text, flags=re.DOTALL)
