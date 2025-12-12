@@ -1,12 +1,13 @@
 """Add image_data column to content_items for storing WebP images
 
 Revision ID: add_image_data
-Revises: 
+Revises: 010
 Create Date: 2025-12-11
 
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -17,20 +18,14 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add image_data column as LONGBLOB (MySQL) / BYTEA (PostgreSQL)
-    # Try to add, but don't fail if column already exists
-    try:
-        op.add_column('content_items', 
-                      sa.Column('image_data', sa.LargeBinary(), nullable=True))
-    except Exception:
-        # Column may already exist, continue
-        pass
+    # Add image_data column for storing WebP images as binary
+    # Using LargeBinary which maps to BYTEA in PostgreSQL, LONGBLOB in MySQL
+    op.add_column(
+        'content_items',
+        sa.Column('image_data', sa.LargeBinary(), nullable=True)
+    )
 
 
 def downgrade() -> None:
     # Remove image_data column
-    try:
-        op.drop_column('content_items', 'image_data')
-    except Exception:
-        # Column may not exist, continue
-        pass
+    op.drop_column('content_items', 'image_data')
