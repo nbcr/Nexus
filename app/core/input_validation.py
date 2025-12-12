@@ -195,7 +195,7 @@ class InputValidator:
         return category_list if category_list else None
 
     @classmethod
-    def _parse_id_string(cls, id_str: str) -> int:
+    def _parse_id_string(cls, id_str: str) -> Optional[int]:
         """Parse and validate a single ID string."""
         id_str = id_str.strip()
         if id_str:

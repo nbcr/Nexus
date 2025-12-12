@@ -113,7 +113,7 @@ class FeedRenderer {
     }
 
     buildRelevanceHtml(item) {
-        if (item.relevance_score && globalThis.nexusDebugMode) {
+        if (item?.relevance_score && globalThis.nexusDebugMode) {
             return `<span class="feed-item-relevance" title="Relevance to your interests">${Math.round(item.relevance_score * 100)}% match</span>`;
         }
         return '';
@@ -121,7 +121,8 @@ class FeedRenderer {
 
     buildTagsHtml(item) {
         if (item.tags?.length > 0) {
-            return `<div class="feed-item-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`;
+            const tagsStr = item.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            return `<div class="feed-item-tags">${tagsStr}</div>`;
         }
         return '';
     }

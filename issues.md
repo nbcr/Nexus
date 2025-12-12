@@ -8,19 +8,6 @@
 
 ## Issues by Severity
 
-### 🔴 BLOCKER Issues (3)
-
-#### app/db.py
-- **Line 10:** Make sure this PostgreSQL database password gets changed and removed from the code. (`secrets:S6698`)
-
-#### scripts/find_blank_titles.py
-- **Line 7:** Make sure this PostgreSQL database password gets changed and removed from the code. (`secrets:S6698`)
-
-#### scripts/find_orphaned_history.py
-- **Line 8:** Make sure this PostgreSQL database password gets changed and removed from the code. (`secrets:S6698`)
-
----
-
 ### 🟠 CRITICAL Issues (6)
 
 #### alembic/env.py
@@ -244,7 +231,6 @@
 
 ## Summary by Priority
 
-**🔴 BLOCKER (3 issues)** - Fix immediately: Build or test failures
 **🟠 CRITICAL (6 issues)** - Address immediately: Complex functions need refactoring
 **🟡 MAJOR (52 issues)** - Schedule soon: Code quality improvements
 **🔵 MINOR (53 issues)** - Address gradually: Style and best practice improvements

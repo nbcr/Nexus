@@ -265,6 +265,18 @@ class NexusService(win32serviceutil.ServiceFramework):
         time.sleep(delay)
         return restart_count, now, True  # Continue restarting
 
+    def _start_server_process(self, python_exe):
+        """Start the server and handle initialization"""
+        self.server_process = self._create_server_process(python_exe)
+        self.logger.info(f"Server started with PID {self.server_process.pid} using {python_exe}")
+
+    def _log_server_output(self):
+        """Log server output from stdout"""
+        if self.server_process and self.server_process.stdout:
+            for line in iter(self.server_process.stdout.readline, ""):
+                if line:
+                    self.logger.info(f"[SERVER] {line.rstrip()}")
+
     def _run_server(self):
         """Run the uvicorn server with auto-restart on crash"""
         python_exe = self._find_python_executable()
@@ -283,15 +295,9 @@ class NexusService(win32serviceutil.ServiceFramework):
                 if restart_count > 0:
                     self._cleanup_port()
 
-                self.server_process = self._create_server_process(python_exe)
-                self.logger.info(f"Server started with PID {self.server_process.pid} using {python_exe}")
+                self._start_server_process(python_exe)
                 restart_count = 0
-
-                # Log server output
-                if self.server_process.stdout:
-                    for line in iter(self.server_process.stdout.readline, ""):
-                        if line:
-                            self.logger.info(f"[SERVER] {line.rstrip()}")
+                self._log_server_output()
 
                 if self.is_alive:
                     restart_count, last_crash_time, should_continue = self._handle_server_crash(

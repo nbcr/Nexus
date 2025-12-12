@@ -24,7 +24,7 @@ try:
     from app.models.interaction import UserInteraction, UserInterestProfile, UserSession
 except ImportError:
     # Fallback if models are in a different structure
-    from app.models import *
+    import app.models
 
 
 # this is the Alembic Config object, which provides

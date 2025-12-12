@@ -401,7 +401,9 @@ class HoverTracker {
     forceReport() {
         if (this.state.isHovering) {
             this.endHover();
-        } else if (this.state.interestScore >= this.config.interestScoreThreshold) {
+            return;
+        }
+        if (this.state.interestScore >= this.config.interestScoreThreshold) {
             this.reportInterest('viewport_exit');
         }
     }

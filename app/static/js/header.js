@@ -198,34 +198,44 @@ function initDarkMode() {
 }
 
 /**
+ * Update dark mode toggle button
+ */
+function updateDarkModeToggleButton(isDark, toggleBtn) {
+    if (!toggleBtn) return;
+    toggleBtn.textContent = isDark ? '☀️' : '🌙';
+}
+
+/**
+ * Update dark mode toggle label
+ */
+function updateDarkModeToggleLabel(isDark, toggleLabel) {
+    if (!toggleLabel) return;
+    toggleLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+}
+
+/**
+ * Update dark mode menu button
+ */
+function updateDarkModeMenuButton(isDark, toggleMenuBtn) {
+    if (!toggleMenuBtn) return;
+    const icon = toggleMenuBtn.querySelector('.menu-icon');
+    if (icon) {
+        icon.textContent = isDark ? '☀️' : '🌙';
+    }
+    const label = toggleMenuBtn.querySelector('.menu-label');
+    if (label) {
+        label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    }
+}
+
+/**
  * Update dark mode toggle UI elements
  * Button should show what it will DO, not current state
- * In dark mode: show "☀️ Light Mode" (clicking will enable light mode)
- * In light mode: show "🌙 Dark Mode" (clicking will enable dark mode)
  */
 function updateDarkModeUI(isDark, toggleBtn, toggleLabel, toggleMenuBtn) {
-    if (toggleBtn) {
-        // Show sun when in dark mode (clicking enables light)
-        // Show moon when in light mode (clicking enables dark)
-        toggleBtn.textContent = isDark ? '☀️' : '🌙';
-    }
-    if (toggleLabel) {
-        // Label shows what will happen when clicked
-        toggleLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-    }
-    if (toggleMenuBtn) {
-        const icon = toggleMenuBtn.querySelector('.menu-icon');
-        if (icon) {
-            // Show sun in dark mode (will switch to light)
-            // Show moon in light mode (will switch to dark)
-            icon.textContent = isDark ? '☀️' : '🌙';
-        }
-        const label = toggleMenuBtn.querySelector('.menu-label');
-        if (label) {
-            // Label shows what will happen when clicked
-            label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
-        }
-    }
+    updateDarkModeToggleButton(isDark, toggleBtn);
+    updateDarkModeToggleLabel(isDark, toggleLabel);
+    updateDarkModeMenuButton(isDark, toggleMenuBtn);
 }
 
 /**
@@ -240,6 +250,22 @@ function removeFeedItemSummaryColors() {
 }
 
 /**
+ * Apply class changes for dark/light mode
+ */
+function applyModeClasses(willBeLight) {
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+    if (willBeLight) {
+        htmlEl.classList.add('light-mode');
+        bodyEl.classList.add('light-mode');
+    } else {
+        htmlEl.classList.remove('light-mode');
+        bodyEl.classList.remove('light-mode');
+        removeFeedItemSummaryColors();
+    }
+}
+
+/**
  * Toggle between dark mode (default) and light mode (toggled on)
  */
 function toggleDarkMode() {
@@ -250,19 +276,10 @@ function toggleDarkMode() {
     console.log('Toggle: Currently light?', isCurrentlyLight, '-> Will be light?', willBeLight);
 
     // Toggle light-mode class (dark mode is default, no class needed)
-    if (willBeLight) {
-        // Switch to light mode (toggled on)
-        document.documentElement.classList.add('light-mode');
-        document.body.classList.add('light-mode');
-    } else {
-        // Switch back to dark mode (default)
-        document.documentElement.classList.remove('light-mode');
-        document.body.classList.remove('light-mode');
-        removeFeedItemSummaryColors();
-    }
+    applyModeClasses(willBeLight);
 
     // Force repaint to ensure background color updates
-    document.documentElement.offsetHeight;
+    void document.documentElement.offsetHeight;
 
     console.log('After toggle - html classes:', document.documentElement.className);
     console.log('After toggle - body classes:', document.body.className);
@@ -368,7 +385,6 @@ function initScrollHeader() {
 
     if (!header || !headerTitle) return;
 
-    let lastScrollTop = 0;
     let isScrolled = false;
 
     function handleScroll() {
@@ -382,8 +398,6 @@ function initScrollHeader() {
             header.classList.remove('scrolled');
             isScrolled = false;
         }
-
-        // lastScrollTop = scrollTop; // Removed unused assignment
     }
 
     // Throttle scroll events for performance

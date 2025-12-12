@@ -43,51 +43,28 @@ async def test_fetch_with_limit(
         return items_per_feed, elapsed, False
 
 
-async def run_performance_test():
-    """Run incremental performance test"""
-    print("🚀 RSS Fetch Performance Test")
-    print("Incrementally increasing items per feed until we exceed 30s\n")
+def create_patched_process(items_limit):
+    """Create a patched process function with specific items_limit"""
+    def patched_process(
+        feed, feed_url, category_hint=None, source_name="RSS", limit=items_limit
+    ):
+        """Patched version that respects items_limit"""
+        trends = []
+        is_google_trends = "trends.google.com" in feed_url
 
-    results = []
-    items_limit = 1
-    max_limit = 20
-    target_time = 30
+        for entry in feed.get("entries", [])[:limit]:
+            trend_data = trending_service.rss_fetcher._process_single_entry(
+                entry, is_google_trends, feed_url, category_hint, source_name
+            )
+            if trend_data:
+                trends.append(trend_data)
 
-    while items_limit <= max_limit:
-        # Patch the fetcher
-        original_code = trending_service.rss_fetcher._process_feed_entries
+        return trends
 
-        def patched_process(
-            feed, feed_url, category_hint=None, source_name="RSS", limit=items_limit
-        ):
-            """Patched version that respects items_limit"""
-            trends = []
-            is_google_trends = "trends.google.com" in feed_url
+    return patched_process
 
-            for entry in feed.get("entries", [])[:limit]:
-                trend_data = trending_service.rss_fetcher._process_single_entry(
-                    entry, is_google_trends, feed_url, category_hint, source_name
-                )
-                if trend_data:
-                    trends.append(trend_data)
-
-            return trends
-
-        trending_service.rss_fetcher._process_feed_entries = patched_process
-
-        items_per_feed, elapsed, success = await test_fetch_with_limit(items_limit)
-        results.append((items_per_feed, elapsed, success))
-
-        # Restore
-        trending_service.rss_fetcher._process_feed_entries = original_code
-
-        if elapsed > target_time:
-            print(f"\n⚠️ Exceeded {target_time}s target!")
-            break
-
-        items_limit += 1
-
-    # Print summary
+def print_performance_summary(results, target_time):
+    """Print the performance test summary and recommendations"""
     print(f"\n{'='*60}")
     print("PERFORMANCE TEST SUMMARY")
     print(f"{'='*60}")
@@ -100,23 +77,49 @@ async def run_performance_test():
             status = "⚠️ SLOW"
         print(f"{items:<15} {elapsed:<15.2f} {status:<15}")
 
-    # Recommendation
-    if results:
-        safe_limit = None
-        for items, elapsed, success in results:
-            if elapsed <= target_time:
-                safe_limit = items
+    safe_limit = None
+    for items, elapsed, success in results:
+        if elapsed <= target_time:
+            safe_limit = items
 
-        print("\n📊 RECOMMENDATION:")
-        if safe_limit:
-            print(
-                f"   Safe limit: {safe_limit} items/feed ({results[safe_limit-1][1]:.2f}s)"
-            )
-            print(
-                f"   Estimated total items: {safe_limit * len(trending_service.rss_fetcher.rss_feeds)}"
-            )
-        else:
-            print("   Even 1 item/feed is too slow!")
+    print("\n📊 RECOMMENDATION:")
+    if safe_limit:
+        print(
+            f"   Safe limit: {safe_limit} items/feed ({results[safe_limit-1][1]:.2f}s)"
+        )
+        print(
+            f"   Estimated total items: {safe_limit * len(trending_service.rss_fetcher.rss_feeds)}"
+        )
+    else:
+        print("   Even 1 item/feed is too slow!")
+
+async def run_performance_test():
+    """Run incremental performance test"""
+    print("🚀 RSS Fetch Performance Test")
+    print("Incrementally increasing items per feed until we exceed 30s\n")
+
+    results = []
+    items_limit = 1
+    max_limit = 20
+    target_time = 30
+
+    while items_limit <= max_limit:
+        original_code = trending_service.rss_fetcher._process_feed_entries
+        trending_service.rss_fetcher._process_feed_entries = create_patched_process(items_limit)
+
+        items_per_feed, elapsed, success = await test_fetch_with_limit(items_limit)
+        results.append((items_per_feed, elapsed, success))
+
+        trending_service.rss_fetcher._process_feed_entries = original_code
+
+        if elapsed > target_time:
+            print(f"\n⚠️ Exceeded {target_time}s target!")
+            break
+
+        items_limit += 1
+
+    if results:
+        print_performance_summary(results, target_time)
 
 
 if __name__ == "__main__":

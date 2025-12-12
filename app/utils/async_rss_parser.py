@@ -80,18 +80,25 @@ class AsyncRSSParser:
             print(f"[WARN] XML parsing failed for {feed_url}: {xml_error}")
             return None
 
+    def _extract_json_entries(self, parsed: Dict, feed_url: str) -> Dict:
+        """Extract entries from parsed JSON"""
+        for key in ["items", "entries"]:
+            if key in parsed:
+                entries = parsed.get(key, [])
+                if not isinstance(entries, list):
+                    entries = [entries] if entries else []
+                print(f"[OK] Parsed {len(entries)} entries from JSON ({key})")
+                return {"feed": parsed, "entries": entries}
+        return None
+
     def _try_json_parsing(self, content: str, feed_url: str) -> Dict:
         """Try to parse content as JSON feed"""
         try:
             parsed = json.loads(content)
             if isinstance(parsed, dict):
-                for key in ["items", "entries"]:
-                    if key in parsed:
-                        entries = parsed.get(key, [])
-                        if not isinstance(entries, list):
-                            entries = [entries] if entries else []
-                        print(f"[OK] Parsed {len(entries)} entries from JSON ({key})")
-                        return {"feed": parsed, "entries": entries}
+                result = self._extract_json_entries(parsed, feed_url)
+                if result:
+                    return result
             print(f"[WARN] JSON feed {feed_url} has no recognized entries field")
         except json.JSONDecodeError:
             print(f"[ERROR] Could not parse {feed_url} as XML or JSON")

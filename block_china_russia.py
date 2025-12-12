@@ -130,6 +130,31 @@ def block_ip_range(api_key, zone_id, ip_range, country):
     except Exception as e:
         return False, str(e)
 
+def process_country_ranges(api_key, zone_id, country, ranges):
+    """Process IP ranges for a specific country"""
+    blocked_count = 0
+    failed_count = 0
+    duplicates = 0
+    
+    print(f"\n{'=' * 100}")
+    print(f"Blocking {country} IP Ranges ({len(ranges)} ranges)")
+    print(f"{'=' * 100}")
+    
+    for i, ip_range in enumerate(ranges, 1):
+        success, result = block_ip_range(api_key, zone_id, ip_range, country)
+        
+        if success:
+            print(f"[OK] [{i:3}/{len(ranges)}] {ip_range:20} -> Blocked (Rule: {result[:16]}...)")
+            blocked_count += 1
+        elif 'duplicate_of_existing' in str(result):
+            print(f"[DUP] [{i:3}/{len(ranges)}] {ip_range:20} -> Already blocked (duplicate)")
+            duplicates += 1
+        else:
+            print(f"[FAIL] [{i:3}/{len(ranges)}] {ip_range:20} -> Failed: {result}")
+            failed_count += 1
+    
+    return blocked_count, failed_count, duplicates
+
 def main():
     """Block all Chinese and Russian IP ranges"""
     api_key = os.getenv('CLOUDFLARE_API_KEY')
@@ -153,23 +178,10 @@ def main():
     duplicates = 0
     
     for country, ranges in BLOCKED_RANGES.items():
-        print(f"\n{'=' * 100}")
-        print(f"Blocking {country} IP Ranges ({len(ranges)} ranges)")
-        print(f"{'=' * 100}")
-        
-        for i, ip_range in enumerate(ranges, 1):
-            success, result = block_ip_range(api_key, zone_id, ip_range, country)
-            
-            if success:
-                print(f"[OK] [{i:3}/{len(ranges)}] {ip_range:20} -> Blocked (Rule: {result[:16]}...)")
-                blocked_count += 1
-            else:
-                if 'duplicate_of_existing' in str(result):
-                    print(f"[DUP] [{i:3}/{len(ranges)}] {ip_range:20} -> Already blocked (duplicate)")
-                    duplicates += 1
-                else:
-                    print(f"[FAIL] [{i:3}/{len(ranges)}] {ip_range:20} -> Failed: {result}")
-                    failed_count += 1
+        cnt_blk, cnt_fail, cnt_dup = process_country_ranges(api_key, zone_id, country, ranges)
+        blocked_count += cnt_blk
+        failed_count += cnt_fail
+        duplicates += cnt_dup
     
     print()
     print("=" * 100)
