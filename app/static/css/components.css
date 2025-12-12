@@ -46,8 +46,8 @@
 
 /* Button Variants */
 .btn-primary {
-    background: var(--accent, #015eaa);
-    color: #ffffff;
+    background: var(--accent, #0056b3);
+    color: #fff;
 }
 
 .btn-primary:hover {
@@ -55,8 +55,8 @@
 }
 
 .btn-secondary {
-    background: var(--bg-tertiary, #4a4a4a);
-    color: #ffffff;
+    background: var(--bg-tertiary, #2a2a2a);
+    color: #fff;
 }
 
 .btn-secondary:hover {
@@ -64,8 +64,8 @@
 }
 
 .btn-success {
-    background: var(--success, #4caf50);
-    color: #ffffff;
+    background: var(--success, #388e3c);
+    color: #fff;
 }
 
 .btn-success:hover {
@@ -73,8 +73,8 @@
 }
 
 .btn-danger {
-    background: var(--error, #f44336);
-    color: #ffffff;
+    background: var(--error, #d32f2f);
+    color: #fff;
 }
 
 .btn-danger:hover {
@@ -83,8 +83,8 @@
 
 /* Special Buttons */
 .btn-hdr {
-    background: var(--accent, #005a9e);
-    color: #ffffff;
+    background: var(--accent, #003d7a);
+    color: #fff;
     padding: 10px 20px;
     border: none;
     border-radius: var(--border-radius, 6px);
@@ -114,40 +114,40 @@
 }
 
 .category-btn:hover {
-    background: var(--accent, #007bff);
+    background: var(--accent, #003d7a);
     color: #fff;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md, 0 2px 6px rgb(0 0 0 / 15%));
 }
 
 .category-btn.active {
-    background: var(--accent, #007bff);
+    background: var(--accent, #003d7a);
     color: #fff;
     font-weight: 600;
 }
 
 body.dark-mode .category-btn {
-    color: #ffffff;
-    border-color: var(--accent-light, #007bff);
-    background: rgb(0 123 255 / 10%);
+    color: #fff;
+    border-color: var(--accent-light, #003d7a);
+    background: rgb(0 61 122 / 15%);
 }
 
 body.dark-mode .category-btn:hover {
-    background: var(--accent, #007bff);
-    color: #ffffff;
+    background: var(--accent, #003d7a);
+    color: #fff;
 }
 
 body.dark-mode .category-btn.active {
-    background: var(--accent, #007bff);
-    color: #ffffff;
+    background: var(--accent, #003d7a);
+    color: #fff;
 }
 
 .btn-read-more,
 .btn-source {
     display: inline-block;
     padding: 8px 16px;
-    background: var(--accent, #007bff);
-    color: #ffffff;
+    background: var(--accent, #0056b3);
+    color: #fff;
     text-decoration: none;
     border-radius: var(--border-radius, 6px);
     font-size: var(--font-size-sm, 12px);
@@ -290,8 +290,8 @@ body.dark-mode .card {
    ====================================== */
 
 .dark-mode-toggle {
-    background: var(--accent, #007bff);
-    color: #ffffff;
+    background: var(--accent, #0056b3);
+    color: #fff;
     border: none;
     padding: 10px 20px;
     border-radius: var(--border-radius, 6px);
@@ -308,7 +308,7 @@ body.dark-mode .card {
 .dark-mode-label {
     display: inline-block;
     margin-left: var(--spacing-sm, 8px);
-    color: #ffffff;
+    color: #fff;
     font-size: var(--font-size-base, 14px);
     font-weight: 500;
 }
@@ -350,8 +350,8 @@ body.dark-mode .history-item {
     top: 70px;
     left: 50%;
     transform: translateX(-50%) translateY(-120%);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, #2a3d70 0%, #3d2752 100%);
+    color: #fff;
     padding: 12px 24px;
     border-radius: 50px;
     box-shadow: 0 4px 15px rgb(0 0 0 / 30%);
@@ -386,8 +386,8 @@ body.dark-mode .history-item {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, #2a3d70 0%, #3d2752 100%);
+    color: #fff;
     border: none;
     font-size: 24px;
     cursor: pointer;
