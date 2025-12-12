@@ -104,7 +104,9 @@ class ArticleScraperService:
             last_error = None
             for attempt in range(1, self.max_retries + 2):  # +2 for initial + retries
                 try:
-                    response = requests.get(url, headers=self.headers, timeout=self.timeout)
+                    response = requests.get(
+                        url, headers=self.headers, timeout=self.timeout
+                    )
                     response.raise_for_status()
                     break  # Success, exit retry loop
                 except requests.Timeout:
@@ -124,7 +126,9 @@ class ArticleScraperService:
                     raise
 
             if not response:
-                print(f"❌ Failed to fetch after {self.max_retries + 1} attempts: {last_error}")
+                print(
+                    f"❌ Failed to fetch after {self.max_retries + 1} attempts: {last_error}"
+                )
                 return None
 
             # Parse HTML
@@ -185,6 +189,7 @@ class ArticleScraperService:
         except Exception as e:
             print(f"❌ Error scraping article: {e}")
             import traceback
+
             print(f"   Exception type: {type(e).__name__}")
             return None
 
