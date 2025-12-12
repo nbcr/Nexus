@@ -186,6 +186,6 @@ if __name__ == "__main__":
     # Analyze
     capacities = analyze_benchmarks(benchmarks, elapsed, target_time=900)
 
-    print(f"\n💾 Summary saved. Feed capacities:")
+    print("\n💾 Summary saved. Feed capacities:")
     for feed_name, max_items in sorted(capacities.items(), key=lambda x: -x[1]):
         print(f"  {feed_name:40} {max_items} items")
