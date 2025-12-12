@@ -54,6 +54,14 @@ ENV/
 .env.local
 .env.production
 
+# SSL Certificates and Private Keys
+*.pem
+*.key
+*.crt
+*.csr
+nginx/certs/
+certs/
+
 # Database
 *.db
 *.sqlite3
