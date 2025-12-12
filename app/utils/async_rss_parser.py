@@ -99,7 +99,9 @@ class AsyncRSSParser:
                             entries = parsed.get("items", [])
                             if not isinstance(entries, list):
                                 entries = [entries] if entries else []
-                            print(f"[OK] Parsed {len(entries)} entries from JSON (items)")
+                            print(
+                                f"[OK] Parsed {len(entries)} entries from JSON (items)"
+                            )
                             return {"feed": parsed, "entries": entries}
                         elif "entries" in parsed:
                             entries = parsed.get("entries", [])
@@ -109,7 +111,9 @@ class AsyncRSSParser:
                                 f"[OK] Parsed {len(entries)} entries from JSON (entries)"
                             )
                             return {"feed": parsed, "entries": entries}
-                    print(f"[WARN] JSON feed {feed_url} has no recognized entries field")
+                    print(
+                        f"[WARN] JSON feed {feed_url} has no recognized entries field"
+                    )
                     return {"feed": {}, "entries": []}
                 except json.JSONDecodeError:
                     print(f"[ERROR] Could not parse {feed_url} as XML or JSON")
