@@ -62,6 +62,15 @@ ENV/
 nginx/certs/
 certs/
 
+# Credential cleanup files
+passwords.txt
+bfg.jar
+cleanup_credentials.sh
+cleanup_*.sh
+cleanup_*.bat
+install_filter_repo.bat
+remove_credentials_commands.txt
+
 # Database
 *.db
 *.sqlite3
