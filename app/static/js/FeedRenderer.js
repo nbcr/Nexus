@@ -122,12 +122,25 @@ class FeedRenderer {
     }
 
     buildImageHtml(item) {
-        // Prefer local optimized image, fallback to thumbnail/picture URL
-        let imageUrl = item.local_image_path || item.thumbnail_url || item.source_metadata?.picture_url || null;
+        // Prefer stored database image (via new endpoint), fallback to local path, then thumbnails
+        let imageUrl = null;
+        let imageSrc = null;
 
-        if (imageUrl) {
-            // If it's a local path, use it directly; otherwise use proxy for remote images
-            const imageSrc = imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
+        // If we have a content_id, use the new image endpoint for stored WebP images
+        if (item.content_id) {
+            imageSrc = `/api/v1/content/${item.content_id}/image?size=800`;
+        } else if (item.local_image_path) {
+            // Fallback to local image path
+            imageSrc = item.local_image_path.startsWith("/") ? item.local_image_path : `/api/v1/content/proxy/image?url=${encodeURIComponent(item.local_image_path)}&w=743&h=413`;
+        } else {
+            // Fallback to thumbnail or picture URL from metadata
+            imageUrl = item.thumbnail_url || item.source_metadata?.picture_url;
+            if (imageUrl) {
+                imageSrc = imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
+            }
+        }
+
+        if (imageSrc) {
             return `<div class="feed-item-image" style="aspect-ratio: 16/9; background: linear-gradient(90deg, #333 25%, #444 50%, #333 75%); background-size: 200% 100%; animation: shimmer 2s infinite;">
             <img src="${imageSrc}" alt="${item.title}" loading="lazy" decoding="async" crossorigin="anonymous" onerror="this.src='/static/img/placeholder.png'" style="width: 100%; height: 100%; object-fit: cover;">
         </div>`;
