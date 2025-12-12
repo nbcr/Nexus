@@ -310,6 +310,9 @@ async def _scrape_and_store_article(
     """Scrape article and persist to database. Returns snippet or None."""
     from datetime import timezone
 
+    # Validate URL before scraping to prevent SSRF
+    _validate_scraping_url(source_url)
+    
     article_data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
 
     # Always mark scraping as attempted
@@ -584,6 +587,9 @@ def _is_search_url(url: str) -> bool:
 
 async def _fetch_article_by_type(source_url: str) -> dict | None:
     """Fetch article content based on URL type (search vs regular article)."""
+    # Validate URL before scraping to prevent SSRF
+    _validate_scraping_url(source_url)
+    
     if _is_search_url(source_url):
         return await asyncio.to_thread(article_scraper.fetch_search_context, source_url)
     else:
@@ -809,6 +815,9 @@ async def _scrape_thumbnail(
         or "bing.com/search" in source_url
     )
     try:
+        # Validate URL before scraping to prevent SSRF
+        _validate_scraping_url(source_url)
+        
         if is_search_url:
             data = await asyncio.to_thread(
                 article_scraper.fetch_search_context, source_url
@@ -932,6 +941,50 @@ async def image_proxy(
         safe_url = url.replace("\n", "").replace("\r", "")
         logger.warning(f"Image proxy failed for URL: {safe_url}")
         raise HTTPException(status_code=404, detail="Unable to fetch image")
+
+
+def _validate_scraping_url(url: str) -> None:
+    """Validate URL for scraping to prevent SSRF attacks."""
+    import ipaddress
+    from urllib.parse import urlparse
+
+    try:
+        parsed = urlparse(url)
+
+        if parsed.scheme not in ("http", "https"):
+            raise HTTPException(status_code=400, detail="Invalid URL scheme")
+
+        hostname = parsed.hostname
+        if not hostname:
+            raise HTTPException(status_code=400, detail="Invalid URL")
+
+        # Check for IP addresses and validate they're not private/internal
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
+                raise HTTPException(
+                    status_code=403, detail="Access to internal resources is forbidden"
+                )
+        except ValueError:
+            # Not an IP address, check hostname patterns
+            hostname_lower = hostname.lower()
+            
+            # Block localhost variants and internal domains
+            blocked_patterns = [
+                "localhost", "127.", "0.0.0.0", "::1", "::ffff:127.0.0.1",
+                ".local", ".internal", ".corp", ".lan", "metadata.google.internal",
+                "169.254.", "metadata", "consul", "vault"
+            ]
+            
+            if any(pattern in hostname_lower for pattern in blocked_patterns):
+                raise HTTPException(
+                    status_code=403, detail="Access to internal resources is forbidden"
+                )
+
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid URL format")
 
 
 def _validate_image_url(url: str) -> None:
