@@ -36,7 +36,7 @@ function getAccessToken() {
     const regex = /(?:^|; )access_token=([^;]*)/;
     const match = regex.exec(document.cookie);
     if (match) return match[1];
-    if (window.localStorage) {
+    if (globalThis.localStorage) {
         return localStorage.getItem('access_token');
     }
     return null;
@@ -163,7 +163,7 @@ async function handleLogout() {
         }
 
         // Redirect to dedicated logged out page
-        window.location.href = "/logged-out.html";
+        globalThis.location.href = "/logged-out.html";
     } catch (error) {
         console.error('Logout error:', error);
     }

@@ -35,17 +35,16 @@ class UIManager {
     }
 
     updateUI() {
-        if (window.auth?.isLoggedIn()) {
+        if (globalThis.auth?.isLoggedIn()) {
             Utils.hideElement('auth-section');
             Utils.showElement('user-section');
-            Utils.setHTML('user-info', `Welcome, ${window.auth.user.username}!`);
+            Utils.setHTML('user-info', `Welcome, ${globalThis.auth.user.username}!`);
         } else {
             Utils.showElement('auth-section');
             Utils.hideElement('user-section');
         }
-        
-        if (window.sessionManager) {
-            window.sessionManager.updateSessionWarning();
+        if (globalThis.sessionManager) {
+            globalThis.sessionManager.updateSessionWarning();
         }
     }
 
@@ -67,12 +66,12 @@ class UIManager {
         const username = document.getElementById('login-username').value;
         const password = document.getElementById('login-password').value;
         
-        const result = await window.auth.login(username, password);
+        const result = await globalThis.auth.login(username, password);
         if (result.success) {
             alert('Login successful!');
             this.showLogin(); // Reset to login form
             this.updateUI();
-            await window.contentManager.refresh();
+            await globalThis.contentManager.refresh();
         } else {
             alert('Login failed: ' + result.error);
         }
@@ -84,7 +83,7 @@ class UIManager {
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         
-        const result = await window.auth.register(username, email, password);
+        const result = await globalThis.auth.register(username, email, password);
         if (result.success) {
             alert(result.message);
             this.showLogin();
@@ -94,10 +93,10 @@ class UIManager {
     }
 
     handleLogout() {
-        window.auth.logout();
+        globalThis.auth.logout();
         alert('Logged out successfully!');
         this.updateUI();
-        window.contentManager.refresh();
+        globalThis.contentManager.refresh();
     }
 
     showLogin() {

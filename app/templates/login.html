@@ -54,34 +54,36 @@ function getCookie(name) {
 }
 
 // Redirect authenticated users away from login page - but verify token is valid first
-async function checkAuthAndRedirect() {
-    const token = localStorage.getItem('access_token') || getCookie('access_token');
-    if (token) {
-        // Verify token is actually valid before redirecting
-        try {
-            const response = await fetch('/api/v1/auth/me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+{
+    const checkAuthAndRedirect = async () => {
+        const token = localStorage.getItem('access_token') || getCookie('access_token');
+        if (token) {
+            // Verify token is actually valid before redirecting
+            try {
+                const response = await fetch('/api/v1/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    // Token is valid, redirect to home
+                    globalThis.location.href = '/';
+                } else {
+                    // Token is invalid/expired, clear it
+                    localStorage.removeItem('access_token');
+                    // Clear cookie by setting it to expire
+                    document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
                 }
-            });
-            if (response.ok) {
-                // Token is valid, redirect to home
-                globalThis.location.href = '/';
-            } else {
-                // Token is invalid/expired, clear it
+            } catch (error) {
+                // If check fails, clear token and stay on login page
+                console.error('Auth check failed:', error);
                 localStorage.removeItem('access_token');
-                // Clear cookie by setting it to expire
-                document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
             }
-        } catch (error) {
-            // If check fails, clear token and stay on login page
-            localStorage.removeItem('access_token');
-            document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         }
-    }
-}
-
-checkAuthAndRedirect();
+    };
+    checkAuthAndRedirect();
+};
 
 // Save form data when clicking register button
 function saveFormDataAndRedirect() {
@@ -161,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const passwordInput = document.getElementById('password');
         const username = usernameInput.value;
         const password = passwordInput.value;
-        password; // Use the variable to avoid unused assignment warning
         const errorDiv = document.getElementById('login-error');
         
         // Clear previous error and flash classes

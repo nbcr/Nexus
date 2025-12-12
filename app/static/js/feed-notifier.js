@@ -155,9 +155,9 @@ class FeedNotifier {
     }
 
     async connect() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const protocol = globalThis.location.protocol === 'https:' ? 'wss:' : 'ws:';
         let accessToken = await this.fetchFreshAccessToken();
-        let wsUrl = `${protocol}//${window.location.host}/api/v1/ws/feed-updates`;
+        let wsUrl = `${protocol}//${globalThis.location.host}/api/v1/ws/feed-updates`;
         if (accessToken) {
             wsUrl += `?token=${encodeURIComponent(accessToken)}`;
         }
@@ -240,12 +240,12 @@ class FeedNotifier {
         this.hideNotification();
         
         // Trigger feed refresh to load new content
-        if (window.infiniteFeed) {
-            window.infiniteFeed.refreshFeed(0); // Keep 0 cards = full refresh
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (globalThis.infiniteFeed) {
+            globalThis.infiniteFeed.refreshFeed(0); // Keep 0 cards = full refresh
+            globalThis.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
             // Fallback: just reload the page
-            window.location.reload();
+            globalThis.location.reload();
         }
     }
     

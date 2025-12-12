@@ -16,15 +16,14 @@ class TrendingManager {
             this.isLoading = true;
             Utils.hideError();
             
-            // Show loading indicator
-            if (!append) {
-                Utils.setHTML('trending-topics', '<div class="loading">Loading trending topics...</div>');
-            } else {
+            if (append) {
                 document.querySelector('#trending-topics .loading')?.remove();
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'loading';
                 loadingDiv.textContent = 'Loading more...';
                 document.getElementById('trending-topics').appendChild(loadingDiv);
+            } else {
+                Utils.setHTML('trending-topics', '<div class="loading">Loading trending topics...</div>');
             }
             
             const response = await Utils.apiCall(
@@ -90,7 +89,7 @@ class TrendingManager {
             // ...existing code...
             
             const imageHtml = trend.image_url ? 
-                `<img src="${trend.image_url}" alt="${trend.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'image-placeholder\\'></div>'">`
+                `<img src="${trend.image_url}" alt="${trend.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\"></div>'">`
                 : '<div class="image-placeholder"></div>';
                 
             // Create a default news item from the trend itself if no news items exist
@@ -133,7 +132,7 @@ class TrendingManager {
                 <div class="trending-card-header">
                     <div class="trending-image">${imageHtml}</div>
                     <h3 class="trending-title">${trend.title}</h3>
-                    ${trend.source !== 'News' ? `<span class="source-flair">${trend.source}</span>` : ''}
+                    ${trend.source === 'News' ? '' : `<span class="source-flair">${trend.source}</span>`}
                 </div>
                 <div class="trending-card-content">
                     <div class="content-inner">
@@ -155,4 +154,4 @@ class TrendingManager {
 }
 
 // Make TrendingManager available globally
-window.TrendingManager = TrendingManager;
+globalThis.TrendingManager = TrendingManager;

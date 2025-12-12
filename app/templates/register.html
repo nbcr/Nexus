@@ -157,7 +157,7 @@
         }
         sessionStorage.removeItem('register_username');
         sessionStorage.removeItem('register_email');
-        window.location.href = '/';
+        globalThis.location.href = '/';
     }
 
     // Handle error response
@@ -170,7 +170,7 @@
     // Summarize error message
     function summarizeErrorMessage(msg) {
         if (!msg) return 'Email delivery failed. Please try again.';
-        const clean = String(msg).replace(/\s+/g, ' ').trim();
+        const clean = String(msg).replaceAll(/\s+/g, ' ').trim();
         return clean.length > 220 ? clean.slice(0, 220) + '…' : clean;
     }
 
