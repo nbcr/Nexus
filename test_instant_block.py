@@ -14,7 +14,7 @@ with open(log_file, 'a') as f:
     f.write(log_line)
     
 print(f'Added test log from {new_russian_ip}')
-print(f'IDS should instantly block this IP (no threshold wait)')
+print('IDS should instantly block this IP (no threshold wait)')
 print()
 print(f'Check intrusion_detector.log for:')
 print(f'  [ALERT] Russia IP - Geographic Block from {new_russian_ip}')

@@ -23,15 +23,18 @@ class FeedNotifier {
     
     ensureSessionToken() {
         let visitorId = null;
-        const match = document.cookie.match(/(?:^|; )visitor_id=([^;]*)/);
+        const regex = /(?:^|; )visitor_id=([^;]*)/;
+        const match = regex.exec(document.cookie);
         if (match) visitorId = match[1];
         if (!visitorId) {
-            visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substr(2, 16) + Date.now());
+            visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2, 16) + Date.now());
             const expires = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toUTCString(); // 2 years
             document.cookie = `visitor_id=${visitorId}; expires=${expires}; path=/; SameSite=Lax`;
         }
         // Optionally store in localStorage for redundancy
-        localStorage.setItem('visitor_id', visitorId);
+        if (globalThis.localStorage) {
+            localStorage.setItem('visitor_id', visitorId);
+        }
     }
     
     init() {
@@ -118,10 +121,11 @@ class FeedNotifier {
         // Check for existing token
         let accessToken = null;
         if (document.cookie) {
-            const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+            const regex = /(?:^|; )access_token=([^;]*)/;
+            const match = regex.exec(document.cookie);
             if (match) accessToken = match[1];
         }
-        if (!accessToken && window.localStorage) {
+        if (!accessToken && globalThis.localStorage) {
             accessToken = localStorage.getItem('access_token');
         }
         // If no token, show temporary popup for login

@@ -379,7 +379,7 @@ body.dark-mode .form-row-inline input.flash-success {
     background: #4caf50;
     border: 1px solid rgb(76 175 80 / 40%);
     border-radius: var(--border-radius, 6px);
-    color: #000;
+    color: #ffffff;
     font-size: var(--font-size-sm, 13px);
     margin-bottom: 16px;
     display: none;

@@ -53,7 +53,7 @@ def test_cloudflare_api():
             zone_data = response.json()
             if zone_data.get('success'):
                 zone_info = zone_data.get('result', {})
-                logger.info(f"✓ API credentials valid!")
+                logger.info("✓ API credentials valid!")
                 logger.info(f"  Domain: {zone_info.get('name')}")
                 logger.info(f"  Zone ID: {zone_info.get('id')}")
                 return True
@@ -103,11 +103,11 @@ def test_blocking_simulation():
             rule_data = response.json()
             if rule_data.get('success'):
                 rule_id = rule_data.get('result', {}).get('id')
-                logger.info(f"✓ Test block created successfully!")
+                logger.info("✓ Test block created successfully!")
                 logger.info(f"  Rule ID: {rule_id}")
                 
                 # Clean up - delete the test rule
-                logger.info(f"\nCleaning up test rule...")
+                logger.info("\nCleaning up test rule...")
                 delete_response = requests.delete(
                     f'https://api.cloudflare.com/client/v4/zones/{zone_id}/firewall/access_rules/rules/{rule_id}',
                     headers=headers,
@@ -115,7 +115,7 @@ def test_blocking_simulation():
                 )
                 
                 if delete_response.status_code == 200:
-                    logger.info(f"✓ Test rule deleted successfully")
+                    logger.info("✓ Test rule deleted successfully")
                     return True
                 else:
                     logger.warning(f"⚠ Could not delete test rule: {delete_response.status_code}")

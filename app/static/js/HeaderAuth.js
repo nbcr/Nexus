@@ -36,7 +36,7 @@ function getAccessToken() {
     const regex = /(?:^|; )access_token=([^;]*)/;
     const match = regex.exec(document.cookie);
     if (match) return match[1];
-    if (globalThis.localStorage) {
+    if (window.localStorage) {
         return localStorage.getItem('access_token');
     }
     return null;
@@ -133,10 +133,10 @@ function handleAuth() {
 /**
  * Handle user logout
  */
-async function handleLogout() {
+function handleLogout() {
     try {
         // Call backend logout endpoint
-        await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
+        fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' });
 
         // Clear cookies
         document.cookie.split(';').forEach(function (c) {
@@ -163,7 +163,7 @@ async function handleLogout() {
         }
 
         // Redirect to dedicated logged out page
-        globalThis.location.href = "/logged-out.html";
+        window.location.href = "/logged-out.html";
     } catch (error) {
         console.error('Logout error:', error);
     }

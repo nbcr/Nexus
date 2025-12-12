@@ -20,10 +20,10 @@ from app.utils.async_rss_parser import get_async_rss_parser
 async def fetch_content():
     """Fetch trending content and save to database"""
     try:
-        print(f"📰 Starting content fetch...")
+        print("📰 Starting content fetch...")
         async with AsyncSessionLocal() as db:
             await trending_service.save_trends_to_database(db)
-        print(f"✅ Content fetch completed")
+        print("✅ Content fetch completed")
     except Exception as e:
         print(f"❌ Error fetching content: {e}")
         sys.exit(1)

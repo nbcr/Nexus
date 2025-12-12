@@ -205,7 +205,7 @@
         }
 
         body.dark-mode .history-item-title {
-            color: #e0e0e0;
+            color: #ffffff;
         }
 
         body.dark-mode .history-tabs {
@@ -222,7 +222,7 @@
         }
 
         body.dark-mode .page-size-selector {
-            color: #ccc;
+            color: #ffffff;
         }
 
         body.dark-mode .page-size-selector select {
@@ -409,8 +409,14 @@
                 const type = tab.dataset.type;
                 currentTab = type || 'all';
 
-                const contentId = type === 'seen' ? 'seen-content' :
-                    type === 'clicked' ? 'clicked-content' : 'all-content';
+                let contentId;
+                if (type === 'seen') {
+                    contentId = 'seen-content';
+                } else if (type === 'clicked') {
+                    contentId = 'clicked-content';
+                } else {
+                    contentId = 'all-content';
+                }
                 document.getElementById(contentId).classList.add('active');
 
                 loadHistory(currentTab, currentPage[currentTab]);
@@ -563,7 +569,9 @@
         }
 
         // Load initial history
-        loadHistory('seen', 1);
+        (async () => {
+            await loadHistory('seen', 1);
+        })();
     </script>
 </body>
 

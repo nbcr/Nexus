@@ -306,7 +306,7 @@ body {
 }
 
 .stat-value.high {
-    color: #c00;
+    color: #ff4444;
 }
 
 .stat-value.medium {
@@ -404,7 +404,7 @@ body {
 
 .log-entry-badge.high {
     background: rgb(255 68 68 / 20%);
-    color: #900;
+    color: #cc0000;
 }
 
 .log-entry-badge.medium {

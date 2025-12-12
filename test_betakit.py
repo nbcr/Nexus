@@ -35,12 +35,12 @@ if feed.entries:
     article_data = article_scraper.fetch_article(entry.link)
 
     if article_data:
-        print(f"\n✅ Scraping Result:")
+        print("\n✅ Scraping Result:")
         print(f"Title: {article_data.get('title', 'N/A')}")
         print(f"Author: {article_data.get('author', 'N/A')}")
         print(f"Image URL: {article_data.get('image_url', 'N/A')}")
         print(f"Content Length: {len(article_data.get('content', ''))} characters")
-        print(f"\nExtracted Content Preview:")
+        print("\nExtracted Content Preview:")
         print("-" * 70)
         print(article_data.get("content", "No content")[:800])
         print("-" * 70)

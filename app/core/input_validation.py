@@ -164,7 +164,7 @@ class InputValidator:
     @classmethod
     def _validate_single_category(cls, cat: str) -> str:
         """Validate a single category name."""
-        if not re.match(r'^[a-zA-Z0-9\s\-_]+$', cat):
+        if not re.match(r'^[\w\s\-]+$', cat):
             raise HTTPException(status_code=400, detail=f"Invalid category name: {cat}")
         if len(cat) > 50:
             raise HTTPException(status_code=400, detail="Category name too long")

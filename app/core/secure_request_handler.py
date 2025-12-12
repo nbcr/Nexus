@@ -64,8 +64,8 @@ class SecureRequestHandler:
             
             return validate_request_data(data)
             
-        except Exception as e:
-            if isinstance(e, HTTPException):
+        except Exception as exc:
+            if isinstance(exc, HTTPException):
                 raise
             raise HTTPException(status_code=400, detail="Invalid request data format")
     
@@ -207,9 +207,8 @@ def secure_endpoint(func):
             return await func(*args, **kwargs)
         except HTTPException:
             raise
-        except Exception as e:
-            # Sanitize error messages
-            safe_error = SecureRequestHandler.sanitize_error_message(str(e))
+        except Exception:
+            # Sanitize error messages for logging but don't expose details
             raise HTTPException(status_code=500, detail="Internal server error")
     
     return wrapper

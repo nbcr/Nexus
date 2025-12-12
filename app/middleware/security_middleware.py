@@ -26,7 +26,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         
         try:
             self._validate_request_basics(request)
-            await self._validate_query_params(request)
+            self._validate_query_params(request)
             self._validate_headers(request)
             
             response = await call_next(request)
@@ -73,7 +73,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             content={"detail": "Internal server error"}
         )
     
-    async def _validate_query_params(self, request: Request) -> None:
+    def _validate_query_params(self, request: Request) -> None:
         """Validate query parameters for injection attacks."""
         for key, value in request.query_params.items():
             self._validate_param_name(key)

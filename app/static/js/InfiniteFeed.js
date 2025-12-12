@@ -191,7 +191,7 @@ class InfiniteFeed {
 
         // Clean up removed cards
         cardsToRemove.forEach(card => {
-            const contentId = parseInt(card.dataset.contentId);
+            const contentId = Number.parseInt(card.dataset.contentId, 10);
 
             // Stop view timer
             this.tracking.stopViewTimer(contentId);
