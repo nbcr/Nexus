@@ -306,11 +306,8 @@ class RSSFetcher:
 
         if not url and entry.get("enclosures"):
             enclosures = entry.get("enclosures")
-            enclosures = (
-                enclosures
-                if isinstance(enclosures, list)
-                else [enclosures] if enclosures else []
-            )
+            if not isinstance(enclosures, list):
+                enclosures = [enclosures] if enclosures else []
             for enc in enclosures:
                 if isinstance(enc, dict) and "image" in enc.get("type", ""):
                     return enc.get("url")

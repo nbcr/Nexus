@@ -82,6 +82,63 @@ class ArticleScraperService:
         except Exception:
             raise ValueError("Invalid URL format")
 
+    def _fetch_with_retries(self, url: str) -> Optional[requests.Response]:
+        """Fetch URL with retry logic"""
+        last_error = None
+        for attempt in range(1, self.max_retries + 2):
+            try:
+                response = requests.get(
+                    url, headers=self.headers, timeout=self.timeout
+                )
+                response.raise_for_status()
+                return response
+            except requests.Timeout:
+                last_error = f"Timeout after {self.timeout}s"
+                if attempt <= self.max_retries:
+                    print(f"  [RETRY {attempt}/{self.max_retries}] {last_error}")
+            except requests.RequestException as e:
+                last_error = str(e)
+                if any(code in str(e) for code in ["429", "403", "401"]):
+                    raise
+                if attempt <= self.max_retries:
+                    print(f"  [RETRY {attempt}/{self.max_retries}] {last_error}")
+        return None
+
+    def _process_scraped_article(self, soup: BeautifulSoup, url: str) -> Optional[Dict]:
+        """Process and validate scraped article data"""
+        article_data = {
+            "url": url,
+            "title": self._extract_title(soup),
+            "content": self._extract_content(soup),
+            "author": self._extract_author(soup),
+            "published_date": self._extract_date(soup),
+            "image_url": self._extract_image(soup, url),
+            "domain": urlparse(url).netloc,
+        }
+
+        if article_data["content"] and len(article_data["content"]) > 200:
+            original_length = len(article_data["content"])
+            article_data["content"] = self._limit_to_excerpt(
+                article_data["content"], article_data["domain"]
+            )
+            article_data["is_excerpt"] = True
+            article_data["full_article_available"] = True
+            print(
+                f"✅ Successfully scraped {original_length} characters, limited to excerpt ({len(article_data['content'])} chars)"
+            )
+            return article_data
+
+        print(
+            f"⚠️ Content too short or empty. Length: {len(article_data['content']) if article_data['content'] else 0}"
+        )
+        if article_data["title"]:
+            print("ℹ️ Returning article with limited content")
+            article_data["content"] = "Unable to extract facts. Please visit the source site to read the full article."
+            article_data["is_excerpt"] = False
+            article_data["full_article_available"] = False
+            return article_data
+        return None
+
     def fetch_article(self, url: str) -> Optional[Dict]:
         """
         Fetch and parse article content from a URL.
@@ -100,84 +157,15 @@ class ArticleScraperService:
             self._validate_url(url)
 
             # Attempt fetch with retries
-            response = None
-            last_error = None
-            for attempt in range(1, self.max_retries + 2):  # +2 for initial + retries
-                try:
-                    response = requests.get(
-                        url, headers=self.headers, timeout=self.timeout
-                    )
-                    response.raise_for_status()
-                    break  # Success, exit retry loop
-                except requests.Timeout:
-                    last_error = f"Timeout after {self.timeout}s"
-                    if attempt <= self.max_retries:
-                        print(f"  [RETRY {attempt}/{self.max_retries}] {last_error}")
-                        continue
-                    raise
-                except requests.RequestException as e:
-                    last_error = str(e)
-                    if "429" in str(e) or "403" in str(e) or "401" in str(e):
-                        # Rate limit or auth error - don't retry
-                        raise
-                    if attempt <= self.max_retries:
-                        print(f"  [RETRY {attempt}/{self.max_retries}] {last_error}")
-                        continue
-                    raise
+            response = self._fetch_with_retries(url)
 
             if not response:
-                print(
-                    f"❌ Failed to fetch after {self.max_retries + 1} attempts: {last_error}"
-                )
+                print(f"❌ Failed to fetch after {self.max_retries + 1} attempts")
                 return None
 
             # Parse HTML
             soup = BeautifulSoup(response.content, "html.parser")
-
-            # Extract article content
-            article_data = {
-                "url": url,
-                "title": self._extract_title(soup),
-                "content": self._extract_content(soup),
-                "author": self._extract_author(soup),
-                "published_date": self._extract_date(soup),
-                "image_url": self._extract_image(soup, url),
-                "domain": urlparse(url).netloc,
-            }
-
-            # Validate we got meaningful content
-            if article_data["content"] and len(article_data["content"]) > 200:
-                # Limit to excerpt for AdSense/copyright compliance
-                original_length = len(article_data["content"])
-                article_data["content"] = self._limit_to_excerpt(
-                    article_data["content"], article_data["domain"]
-                )
-                article_data["is_excerpt"] = (
-                    True  # Flag to show "Continue Reading" button
-                )
-                article_data["full_article_available"] = True
-
-                print(
-                    f"✅ Successfully scraped {original_length} characters, limited to excerpt ({len(article_data['content'])} chars)"
-                )
-                return article_data
-            else:
-                print(
-                    f"⚠️ Content too short or empty. Length: {len(article_data['content']) if article_data['content'] else 0}"
-                )
-                print(
-                    f"Title: {article_data['title'][:100] if article_data['title'] else 'None'}"
-                )
-                # Return article data anyway with what we have
-                if article_data["title"]:
-                    print("ℹ️ Returning article with limited content")
-                    # Set a message indicating content couldn't be extracted
-                    article_data["content"] = (
-                        "Unable to extract facts. Please visit the source site to read the full article."
-                    )
-                    article_data["is_excerpt"] = False
-                    article_data["full_article_available"] = False
-                    return article_data
+            return self._process_scraped_article(soup, url)
                 return None
 
         except requests.exceptions.ConnectionError as e:
@@ -244,7 +232,7 @@ class ArticleScraperService:
                     break
 
         # Re-sort by original order in document (maintain narrative flow)
-        fact_sentences_set = {fact for fact in extracted_facts}
+        fact_sentences_set = set(extracted_facts)
         ordered_facts = []
         for sentence in sentences:
             if sentence.strip() in fact_sentences_set:
@@ -852,69 +840,66 @@ class ArticleScraperService:
 
         return None
 
-    def _extract_image(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
-        """Extract main article image, filtering out small placeholder images"""
+    def _make_absolute_url(self, img_url: str, base_url: str) -> str:
+        """Convert relative URLs to absolute"""
+        if img_url.startswith("//"):
+            return "https:" + img_url
+        if img_url.startswith("/"):
+            parsed = urlparse(base_url)
+            return f"{parsed.scheme}://{parsed.netloc}{img_url}"
+        return img_url
+
+    def _is_placeholder_image(self, img_url: str) -> bool:
+        """Check if image is likely a small placeholder"""
+        placeholder_patterns = [
+            r"150x150", r"150[_-]150", r"100x100", r"100[_-]100",
+            r"thumbnail", r"thumb", r"avatar", r"icon",
+        ]
+        url_lower = img_url.lower()
+        return any(re.search(pattern, url_lower) for pattern in placeholder_patterns)
+
+    def _extract_image_from_meta_tags(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+        """Try to extract image from meta tags"""
         selectors = [
             ("meta", {"property": "og:image"}),
             ("meta", {"name": "twitter:image"}),
         ]
-
-        def make_absolute_url(img_url: str) -> str:
-            """Convert relative URLs to absolute"""
-            if img_url.startswith("//"):
-                return "https:" + img_url
-            elif img_url.startswith("/"):
-                parsed = urlparse(base_url)
-                return f"{parsed.scheme}://{parsed.netloc}{img_url}"
-            return img_url
-
-        def is_placeholder_image(img_url: str) -> bool:
-            """Check if image is likely a small placeholder (150x150 or similar)"""
-            # Check for common placeholder dimensions in URL
-            placeholder_patterns = [
-                r"150x150",
-                r"150[_-]150",  # Exact 150x150
-                r"100x100",
-                r"100[_-]100",  # 100x100
-                r"thumbnail",
-                r"thumb",  # Thumbnail keywords
-                r"avatar",
-                r"icon",  # Avatar/icon images
-            ]
-            url_lower = img_url.lower()
-            return any(
-                re.search(pattern, url_lower) for pattern in placeholder_patterns
-            )
-
-        # Try meta tags first
-        for selector in selectors:
-            tag, attrs = selector
+        for tag, attrs in selectors:
             element = soup.find(tag, attrs)
             if element:
                 img_url = element.get("content")
                 if img_url:
-                    img_url = make_absolute_url(img_url)
-                    # Reject if it's a placeholder
-                    if not is_placeholder_image(img_url):
+                    img_url = self._make_absolute_url(img_url, base_url)
+                    if not self._is_placeholder_image(img_url):
                         return img_url
                     print(f"⚠️ Rejected placeholder meta image: {img_url}")
+        return None
 
-        # Fallback: Look for first large image in article body
+    def _extract_image_from_article_body(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+        """Look for large image in article body"""
         article_element = (
             soup.find("article")
             or soup.find("main")
             or soup.find("div", {"class": re.compile("article|content|post", re.I)})
         )
-        if article_element:
-            for img in article_element.find_all("img", limit=5):
-                img_url = img.get("src") or img.get("data-src")
-                if img_url:
-                    img_url = make_absolute_url(img_url)
-                    if not is_placeholder_image(img_url):
-                        print(f"✅ Found article body image: {img_url}")
-                        return img_url
+        if not article_element:
+            return None
 
+        for img in article_element.find_all("img", limit=5):
+            img_url = img.get("src") or img.get("data-src")
+            if img_url:
+                img_url = self._make_absolute_url(img_url, base_url)
+                if not self._is_placeholder_image(img_url):
+                    print(f"✅ Found article body image: {img_url}")
+                    return img_url
         return None
+
+    def _extract_image(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+        """Extract main article image, filtering out small placeholder images"""
+        img_url = self._extract_image_from_meta_tags(soup, base_url)
+        if img_url:
+            return img_url
+        return self._extract_image_from_article_body(soup, base_url)
 
     def download_and_optimize_image(
         self, image_url: str, content_id: int
