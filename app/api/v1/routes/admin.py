@@ -927,7 +927,9 @@ async def get_logs(
     
     try:
         if not os.path.exists(log_file):
-            return {"content": f"Log file not found: {log_file}"}
+            # Sanitize log_type for safe error message
+            safe_log_type = ''.join(c for c in log_type[:50] if c.isalnum() or c in '.-_')
+            return {"content": f"Log file not found: {safe_log_type}.log"}
         
         # Read last N lines efficiently
         with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
