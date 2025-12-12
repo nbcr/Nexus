@@ -935,7 +935,8 @@ async def image_proxy(
 
 
 def _validate_image_url(url: str) -> None:
-    """Validate URL for security."""
+    """Validate URL for security against SSRF attacks."""
+    import ipaddress
     from urllib.parse import urlparse
 
     try:
@@ -948,44 +949,28 @@ def _validate_image_url(url: str) -> None:
         if not hostname:
             raise HTTPException(status_code=400, detail="Invalid URL")
 
-        blocked_hosts = [
-            "localhost",
-            "127.0.0.1",
-            "0.0.0.0",
-            "10.",
-            "172.16.",
-            "172.17.",
-            "172.18.",
-            "172.19.",
-            "172.20.",
-            "172.21.",
-            "172.22.",
-            "172.23.",
-            "172.24.",
-            "172.25.",
-            "172.26.",
-            "172.27.",
-            "172.28.",
-            "172.29.",
-            "172.30.",
-            "172.31.",
-            "192.168.",
-            "169.254.",
-        ]
-
-        hostname_lower = hostname.lower()
-        if any(
-            hostname_lower == blocked or hostname_lower.startswith(blocked)
-            for blocked in blocked_hosts
-        ):
-            raise HTTPException(
-                status_code=403, detail="Access to internal resources is forbidden"
-            )
-
-        if hostname_lower in ("::1", "::ffff:127.0.0.1"):
-            raise HTTPException(
-                status_code=403, detail="Access to internal resources is forbidden"
-            )
+        # Check for IP addresses and validate they're not private/internal
+        try:
+            ip = ipaddress.ip_address(hostname)
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
+                raise HTTPException(
+                    status_code=403, detail="Access to internal resources is forbidden"
+                )
+        except ValueError:
+            # Not an IP address, check hostname patterns
+            hostname_lower = hostname.lower()
+            
+            # Block localhost variants and internal domains
+            blocked_patterns = [
+                "localhost", "127.", "0.0.0.0", "::1", "::ffff:127.0.0.1",
+                ".local", ".internal", ".corp", ".lan", "metadata.google.internal",
+                "169.254.", "metadata", "consul", "vault"
+            ]
+            
+            if any(pattern in hostname_lower for pattern in blocked_patterns):
+                raise HTTPException(
+                    status_code=403, detail="Access to internal resources is forbidden"
+                )
 
     except HTTPException:
         raise
@@ -994,15 +979,23 @@ def _validate_image_url(url: str) -> None:
 
 
 async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
-    """Fetch image data from URL."""
+    """Fetch image data from URL with size limits."""
     import httpx
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=5.0) as client:
+    async with httpx.AsyncClient(follow_redirects=False, timeout=5.0) as client:
         safe_url = url.replace("\n", "").replace("\r", "")
         logger.info(f"Image proxy fetch: {safe_url}")
         resp = await client.get(url)
         resp.raise_for_status()
+        
+        # Limit response size to prevent DoS
+        if int(resp.headers.get("content-length", 0)) > 10 * 1024 * 1024:  # 10MB
+            raise HTTPException(status_code=413, detail="Image too large")
+            
         content_type = resp.headers.get("content-type", "image/jpeg")
+        if not content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Invalid content type")
+            
         return resp.content, content_type
 
 
