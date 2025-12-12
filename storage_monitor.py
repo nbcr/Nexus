@@ -172,11 +172,12 @@ def calculate_projections(
 
 def format_bytes(bytes_val: int) -> str:
     """Convert bytes to human readable format"""
+    bytes_val_float = float(bytes_val)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
-        if bytes_val < 1024:
-            return f"{bytes_val:.1f}{unit}"
-        bytes_val /= 1024
-    return f"{bytes_val:.1f}TB"
+        if bytes_val_float < 1024:
+            return f"{bytes_val_float:.1f}{unit}"
+        bytes_val_float /= 1024
+    return f"{bytes_val_float:.1f}TB"
 
 
 def generate_report() -> Dict[str, Any]:
@@ -192,7 +193,7 @@ def generate_report() -> Dict[str, Any]:
         try:
             with open(REPORT_FILE) as f:
                 previous_report = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
+        except (FileNotFoundError, json.JSONDecodeError):
             pass
 
     # Calculate projections
@@ -233,7 +234,7 @@ def update_history(report: Dict[str, Any]) -> None:
         try:
             with open(HISTORY_FILE) as f:
                 history = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
+        except (FileNotFoundError, json.JSONDecodeError):
             pass
 
     # Add today's data
@@ -259,14 +260,14 @@ def update_history(report: Dict[str, Any]) -> None:
 def calculate_statistics() -> Dict[str, Any]:
     """Calculate min/max/avg statistics from history"""
     stats = {
-        "daily_new_stories_min": 0,
-        "daily_new_stories_max": 0,
-        "daily_new_stories_avg": 0,
-        "daily_db_growth_min_bytes": 0,
-        "daily_db_growth_max_bytes": 0,
-        "daily_db_growth_avg_bytes": 0,
-        "stories_per_fetch_avg": 0,
-        "predicted_backup_size_mb": 0,
+        "daily_new_stories_min": 0.0,
+        "daily_new_stories_max": 0.0,
+        "daily_new_stories_avg": 0.0,
+        "daily_db_growth_min_bytes": 0.0,
+        "daily_db_growth_max_bytes": 0.0,
+        "daily_db_growth_avg_bytes": 0.0,
+        "stories_per_fetch_avg": 0.0,
+        "predicted_backup_size_mb": 0.0,
         "days_tracked": 0,
     }
 
@@ -276,7 +277,7 @@ def calculate_statistics() -> Dict[str, Any]:
     try:
         with open(HISTORY_FILE) as f:
             history = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
+    except (FileNotFoundError, json.JSONDecodeError):
         return stats
 
     if len(history) < 2:
@@ -396,7 +397,7 @@ def generate_display_text(report: Dict[str, Any]) -> str:
             "",
             "FREE TIER LIMITS:",
             f"  EBS Storage:  30GB/month (using {format_bytes(disk['total_bytes'])})",
-            f"  EC2 Hours:    750 hours/month",
+            "  EC2 Hours:    750 hours/month",
             "",
             "=" * 70,
         ]
