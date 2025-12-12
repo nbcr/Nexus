@@ -156,7 +156,7 @@ async def register(
     user = await create_user(db, user_data)
 
     # Migrate anonymous session data if session token exists
-    await _migrate_anonymous_session(db, request, nexus_session, user.id)
+    await _migrate_anonymous_session(db, request, nexus_session, int(user.id))
 
     email_status, email_error = await _send_registration_email(
         db, user_data.email, user.username
@@ -270,7 +270,7 @@ async def login(
     session_token = nexus_session or request.cookies.get("nexus_session")
     if session_token:
         try:
-            migrated_count = await migrate_session_to_user(db, session_token, user.id)
+            migrated_count = await migrate_session_to_user(db, session_token, int(user.id))
             if migrated_count > 0:
                 print(
                     f"Migrated {migrated_count} interactions from anonymous session to user {user.id}"
