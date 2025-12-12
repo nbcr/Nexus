@@ -46,7 +46,7 @@
 
 /* Button Variants */
 .btn-primary {
-    background: var(--accent, #0078d7);
+    background: var(--accent, #015eaa);
     color: #ffffff;
 }
 
@@ -83,7 +83,7 @@
 
 /* Special Buttons */
 .btn-hdr {
-    background: var(--accent, #0078d7);
+    background: var(--accent, #005a9e);
     color: #ffffff;
     padding: 10px 20px;
     border: none;
@@ -115,14 +115,14 @@
 
 .category-btn:hover {
     background: var(--accent, #007bff);
-    color: #ffffff;
+    color: #fff;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md, 0 2px 6px rgb(0 0 0 / 15%));
 }
 
 .category-btn.active {
     background: var(--accent, #007bff);
-    color: #ffffff;
+    color: #fff;
     font-weight: 600;
 }
 
@@ -308,7 +308,7 @@ body.dark-mode .card {
 .dark-mode-label {
     display: inline-block;
     margin-left: var(--spacing-sm, 8px);
-    color: #fff;
+    color: #ffffff;
     font-size: var(--font-size-base, 14px);
     font-weight: 500;
 }

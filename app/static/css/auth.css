@@ -253,6 +253,7 @@ body.dark-mode .form-row-inline input.flash-success {
     align-items: center;
     position: relative;
     white-space: nowrap;
+    color: #fff;
 }
 
 .social-icon {
@@ -283,18 +284,18 @@ body.dark-mode .form-row-inline input.flash-success {
 
 .google-btn {
     background: #fff;
-    color: #1a73e8;
+    color: #000;
     border: 1px solid #ddd;
 }
 
 .apple-btn {
     background: #000;
-    color: #ffffff;
+    color: #fff;
 }
 
 .facebook-btn {
-    background: #1877f2;
-    color: #ffffff;
+    background: #1567d3;
+    color: #fff;
 }
 
 .x-btn {
@@ -379,7 +380,7 @@ body.dark-mode .form-row-inline input.flash-success {
     background: #4caf50;
     border: 1px solid rgb(76 175 80 / 40%);
     border-radius: var(--border-radius, 6px);
-    color: #ffffff;
+    color: #000;
     font-size: var(--font-size-sm, 13px);
     margin-bottom: 16px;
     display: none;

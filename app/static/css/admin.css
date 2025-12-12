@@ -306,7 +306,7 @@ body {
 }
 
 .stat-value.high {
-    color: #ff4444;
+    color: #f44;
 }
 
 .stat-value.medium {
@@ -776,12 +776,12 @@ body.light-mode {
 }
 
 .log-viewer pre {
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-family: Consolas, Monaco, 'Courier New', monospace;
     font-size: 12px;
     line-height: 1.4;
     color: var(--text-secondary);
     white-space: pre-wrap;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     margin: 0;
 }
 
