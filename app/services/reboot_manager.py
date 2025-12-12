@@ -78,7 +78,11 @@ class RebootManager:
             except Exception:
                 is_refreshing = False
 
-            if self.active_connections == 0 and not is_refreshing and not self.rss_fetcher_active:
+            if (
+                self.active_connections == 0
+                and not is_refreshing
+                and not self.rss_fetcher_active
+            ):
                 logger.info("[REBOOT] Safe conditions met - proceeding with reboot")
                 return True
 
@@ -89,7 +93,9 @@ class RebootManager:
             if is_refreshing:
                 logger.info("[REBOOT] Waiting for content refresh to complete...")
             if self.rss_fetcher_active:
-                logger.info("[REBOOT] Waiting for RSS fetcher to complete current batch...")
+                logger.info(
+                    "[REBOOT] Waiting for RSS fetcher to complete current batch..."
+                )
 
             await asyncio.sleep(check_interval)
 
