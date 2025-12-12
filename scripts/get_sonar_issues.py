@@ -146,7 +146,7 @@ def generate_summary_section(severity_groups):
     
     return content
 
-def generate_markdown_report(project_key, all_issues, js_issues, feedrenderer_issues):
+def generate_markdown_report(project_key, all_issues, js_issues):
     """Generate markdown report of all issues organized by severity"""
     md_content = f"# SonarQube Issues Report\n\n"
     md_content += f"**Project:** {project_key}\n\n"
@@ -199,7 +199,7 @@ def main():
     print(f"FeedRenderer.js issues: {len(feedrenderer_issues)}")
     
     # Generate and save markdown report
-    markdown_content = generate_markdown_report(project_key, all_issues, all_js_issues, feedrenderer_issues)
+    markdown_content = generate_markdown_report(project_key, all_issues, all_js_issues)
     with open("issues.md", 'w', encoding='utf-8') as f:
         f.write(markdown_content)
     
@@ -213,8 +213,8 @@ def main():
             "raw_data": issues_data
         }, f, indent=2)
     
-    print(f"\nMarkdown report saved to: issues.md")
-    print(f"JSON data saved to: sonar_issues.json")
+    print("\nMarkdown report saved to: issues.md")
+    print("JSON data saved to: sonar_issues.json")
 
 if __name__ == "__main__":
     main()

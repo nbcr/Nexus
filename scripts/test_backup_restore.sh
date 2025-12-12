@@ -9,7 +9,7 @@ echo "Starting at: $(date)"
 LATEST_BACKUP=$(ls -t /home/nexus/backups/nexus_db_*.sql.gz | head -1)
 
 if [[ -z "$LATEST_BACKUP" ]]; then
-    echo "❌ ERROR: No backup files found"
+    echo "❌ ERROR: No backup files found" >&2
     exit 1
 fi
 
@@ -42,7 +42,7 @@ if [[ $? -eq 0 ]]; then
     echo ""
     echo "✅ Backup is valid and can be restored"
 else
-    echo "❌ ERROR: Restore failed"
+    echo "❌ ERROR: Restore failed" >&2
     sudo -u postgres psql -c "DROP DATABASE IF EXISTS nexus_test;" 2>/dev/null
     exit 1
 fi

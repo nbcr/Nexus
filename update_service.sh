@@ -2,18 +2,18 @@
 # Update systemd service to include DATABASE_URL from .env file
 
 echo "Reading DATABASE_URL from .env file..."
-if [ -f .env ]; then
+if [[ -f .env ]]; then
     source .env
     echo "Found DATABASE_URL in .env"
 else
-    echo "ERROR: No .env file found!"
+    echo "ERROR: No .env file found!" >&2
     exit 1
 fi
 
 # Make sure it has the asyncpg driver
 if [[ "$DATABASE_URL" != *"+asyncpg"* ]]; then
-    echo "ERROR: DATABASE_URL must use asyncpg driver (postgresql+asyncpg://...)"
-    echo "Current: $DATABASE_URL"
+    echo "ERROR: DATABASE_URL must use asyncpg driver (postgresql+asyncpg://...)" >&2
+    echo "Current: $DATABASE_URL" >&2
     exit 1
 fi
 

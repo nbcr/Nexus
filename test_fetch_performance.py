@@ -62,12 +62,12 @@ async def run_performance_test():
         # Patch the fetcher
         original_code = trending_service.rss_fetcher._process_feed_entries
 
-        def patched_process(feed, feed_url, category_hint=None, source_name="RSS"):
+        def patched_process(feed, feed_url, category_hint=None, source_name="RSS", limit=items_limit):
             """Patched version that respects items_limit"""
             trends = []
             is_google_trends = "trends.google.com" in feed_url
 
-            for entry in feed.get("entries", [])[:items_limit]:
+            for entry in feed.get("entries", [])[:limit]:
                 trend_data = trending_service.rss_fetcher._process_single_entry(
                     entry, is_google_trends, feed_url, category_hint, source_name
                 )
@@ -110,7 +110,7 @@ async def run_performance_test():
             if elapsed <= target_time:
                 safe_limit = items
 
-        print(f"\n📊 RECOMMENDATION:")
+        print("\n📊 RECOMMENDATION:")
         if safe_limit:
             print(
                 f"   Safe limit: {safe_limit} items/feed ({results[safe_limit-1][1]:.2f}s)"
@@ -119,7 +119,7 @@ async def run_performance_test():
                 f"   Estimated total items: {safe_limit * len(trending_service.rss_fetcher.rss_feeds)}"
             )
         else:
-            print(f"   Even 1 item/feed is too slow!")
+            print("   Even 1 item/feed is too slow!")
 
 
 if __name__ == "__main__":

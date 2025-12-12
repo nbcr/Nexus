@@ -97,7 +97,7 @@ def get_filesystem_usage() -> dict:
         }
     except Exception as e:
         log_message(f"Error getting filesystem usage: {e}", "ERROR")
-        return None
+        return {}
 
 
 def estimate_backup_size() -> float:

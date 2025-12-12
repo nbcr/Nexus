@@ -2,7 +2,7 @@
 
 **Project:** nbcr_Nexus
 
-**Total Issues:** 78
+**Total Issues:** 70
 
 **JavaScript Issues:** 45
 
@@ -20,7 +20,7 @@
 
 ---
 
-### 🟡 MAJOR Issues (78)
+### 🟡 MAJOR Issues (70)
 
 #### app/static/css/admin.css
 - **Line 407:** Text does not meet the minimal contrast requirement with its background. (`css:S7924`)
@@ -56,9 +56,6 @@
 #### nginx/502.html
 - **Line 67:** Non-interactive elements should not be assigned mouse or keyboard event listeners. (`Web:S6847`)
 
-#### scripts/backup_with_storage_check.py
-- **Line 100:** Return a value of type "dict" instead of "NoneType" or update function "get_filesystem_usage" type hint. (`python:S5886`)
-
 #### scripts/check_categorization.py
 - **Line 297:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
 - **Line 303:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
@@ -67,18 +64,8 @@
 - **Line 23:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
 - **Line 26:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
 
-#### scripts/get_sonar_issues.py
-- **Line 93:** Remove the unused function parameter "feedrenderer_issues". (`python:S1172`)
-- **Line 95:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 197:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 198:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
 #### scripts/remove_google_trends.py
 - **Line 85:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### scripts/test_backup_restore.sh
-- **Line 12:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
-- **Line 45:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
 
 #### storage_monitor.py
 - **Line 400:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
@@ -87,11 +74,6 @@
 #### test_betakit.py
 - **Line 38:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
 - **Line 43:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### test_fetch_performance.py
-- **Line 70:** Add a parameter to function "patched_process" and use variable "items_limit" as its default value;The value of "items_limit" might change at the next loop iteration. (`python:S1515`)
-- **Line 113:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-- **Line 122:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
 
 #### test_ids.py
 - **Line 56:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
@@ -102,11 +84,6 @@
 #### test_instant_block.py
 - **Line 17:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
 - **Line 19:** Add replacement fields or use a normal string instead of an f-string. (`python:S3457`)
-
-#### update_service.sh
-- **Line 5:** Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich. (`shelldre:S7688`)
-- **Line 9:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
-- **Line 15:** Redirect this error message to stderr (>&2). (`shelldre:S7677`)
 
 ---
 
