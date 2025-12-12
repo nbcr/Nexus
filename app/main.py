@@ -59,7 +59,8 @@ async def startup_event():
         reboot_manager.start()
 
         # Start reboot monitor as background task
-        asyncio.create_task(reboot_manager.monitor_reboot_requests())
+        reboot_task = asyncio.create_task(reboot_manager.monitor_reboot_requests())
+        reboot_task.add_done_callback(lambda t: None)  # Prevent garbage collection
 
         logger.info("[OK] Startup completed successfully")
     except Exception as e:
