@@ -166,7 +166,6 @@ class ArticleScraperService:
             # Parse HTML
             soup = BeautifulSoup(response.content, "html.parser")
             return self._process_scraped_article(soup, url)
-                return None
 
         except requests.exceptions.ConnectionError as e:
             print(f"❌ Connection error scraping article: {e}")
