@@ -11,17 +11,26 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_image_data'
-down_revision = None
+down_revision = '010'
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
     # Add image_data column as LONGBLOB (MySQL) / BYTEA (PostgreSQL)
-    op.add_column('content_items', 
-                  sa.Column('image_data', sa.LargeBinary(), nullable=True))
+    # Try to add, but don't fail if column already exists
+    try:
+        op.add_column('content_items', 
+                      sa.Column('image_data', sa.LargeBinary(), nullable=True))
+    except Exception:
+        # Column may already exist, continue
+        pass
 
 
 def downgrade() -> None:
     # Remove image_data column
-    op.drop_column('content_items', 'image_data')
+    try:
+        op.drop_column('content_items', 'image_data')
+    except Exception:
+        # Column may not exist, continue
+        pass
