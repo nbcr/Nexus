@@ -177,7 +177,7 @@
     display: inline-block;
     padding: 4px 12px;
     background: #0d2f6e;
-    color: #ffffff;
+    color: #fff;
     border-radius: 16px;
     font-size: 12px;
     font-weight: 600;
@@ -188,7 +188,7 @@
     display: inline-block;
     padding: 4px 12px;
     background: #1e7e34;
-    color: #ffffff;
+    color: #fff;
     border-radius: 16px;
     font-size: 11px;
     font-weight: 500;
@@ -358,7 +358,7 @@
     display: inline-block;
     padding: 6px 14px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    color: #fff;
     text-decoration: none;
     border-radius: 20px;
     font-size: 13px;
