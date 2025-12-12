@@ -10,9 +10,10 @@
 
 ### 🟠 CRITICAL Issues (1)
 
-#### app/static/js/header.js
+#### app/static/js/header.js - Cognitive Complexity
 
-- **Line 206:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
+- **Line 206:** Refactor this function to reduce its Cognitive Complexity from
+  17 to the 15 allowed. (`javascript:S3776`)
 
 ---
 
@@ -20,21 +21,27 @@
 
 #### app/static/js/FeedRenderer.js
 
-- **Line 48:** Prefer using an optional chain expression instead, as it's more concise and easier to read. (`javascript:S6582`)
-- **Line 124:** Refactor this code to not use nested template literals. (`javascript:S4624`)
+- **Line 48:** Prefer using an optional chain expression instead, as it's
+  more concise and easier to read. (`javascript:S6582`)
+- **Line 124:** Refactor this code to not use nested template literals.
+  (`javascript:S4624`)
 
-#### app/static/js/HeaderAuth.js
+#### app/static/js/HeaderAuth.js - Promise & Control Flow
 
-- **Line 175:** Promise-returning function provided to variable where a void return was expected. (`javascript:S6544`)
+- **Line 175:** Promise-returning function provided to variable where a
+  void return was expected. (`javascript:S6544`)
 
 #### app/static/js/HoverTracker.js
 
-- **Line 389:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
-- **Line 399:** 'If' statement should not be the only statement in 'else' block (`javascript:S6660`)
+- **Line 389:** 'If' statement should not be the only statement in 'else'
+  block (`javascript:S6660`)
+- **Line 399:** 'If' statement should not be the only statement in 'else'
+  block (`javascript:S6660`)
 
-#### app/static/js/header.js
+#### app/static/js/header.js - Expression & Code Quality
 
-- **Line 265:** Expected an assignment or function call and instead saw an expression. (`javascript:S905`)
+- **Line 265:** Expected an assignment or function call and instead saw
+  an expression. (`javascript:S905`)
 - **Line 386:** Remove this commented out code. (`javascript:S125`)
 
 ---
@@ -54,7 +61,7 @@
 - **Line 244:** Prefer `globalThis` over `window`. (`javascript:S7764`)
 - **Line 248:** Prefer `globalThis` over `window`. (`javascript:S7764`)
 
-#### app/static/js/header.js
+#### app/static/js/header.js - RegExp, Deprecated, & Variable Issues
 
 - **Line 24:** Use the "RegExp.exec()" method instead. (`javascript:S6594`)
 - **Line 27:** '(from: number, length?: number): string' is deprecated. (`javascript:S1874`)
