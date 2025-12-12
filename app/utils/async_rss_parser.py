@@ -50,6 +50,53 @@ class AsyncRSSParser:
         if self._session and not self._session.closed:
             await self._session.close()
 
+    async def _fetch_content(self, feed_url: str) -> Optional[str]:
+        """Fetch content from feed URL"""
+        session = self.get_session()
+        async with session.get(feed_url) as response:
+            if response.status != 200:
+                print(f"[WARN] Feed {feed_url} returned status {response.status}")
+                return None
+            return await response.text()
+
+    def _try_xml_parsing(self, content: str, feed_url: str) -> Optional[Dict]:
+        """Try to parse content as XML (RSS/Atom)"""
+        try:
+            parsed = xmltodict.parse(content)
+            if "rss" in parsed:
+                result = self._parse_rss(parsed["rss"])
+                if result["entries"]:
+                    print(f"[OK] Parsed {len(result['entries'])} entries from RSS")
+                return result
+            elif "feed" in parsed:
+                result = self._parse_atom(parsed["feed"])
+                if result["entries"]:
+                    print(f"[OK] Parsed {len(result['entries'])} entries from Atom")
+                return result
+            else:
+                print(f"[WARN] Feed {feed_url} has unknown XML format")
+                return {"feed": {}, "entries": []}
+        except Exception as xml_error:
+            print(f"[WARN] XML parsing failed for {feed_url}: {xml_error}")
+            return None
+
+    def _try_json_parsing(self, content: str, feed_url: str) -> Dict:
+        """Try to parse content as JSON feed"""
+        try:
+            parsed = json.loads(content)
+            if isinstance(parsed, dict):
+                for key in ["items", "entries"]:
+                    if key in parsed:
+                        entries = parsed.get(key, [])
+                        if not isinstance(entries, list):
+                            entries = [entries] if entries else []
+                        print(f"[OK] Parsed {len(entries)} entries from JSON ({key})")
+                        return {"feed": parsed, "entries": entries}
+            print(f"[WARN] JSON feed {feed_url} has no recognized entries field")
+        except json.JSONDecodeError:
+            print(f"[ERROR] Could not parse {feed_url} as XML or JSON")
+        return {"feed": {}, "entries": []}
+
     async def parse_feed(self, feed_url: str) -> Dict:
         """
         Parse RSS/Atom feed from URL asynchronously.
@@ -61,63 +108,17 @@ class AsyncRSSParser:
             Dict with 'feed' metadata and 'entries' list
         """
         try:
-            session = self.get_session()
-            async with session.get(feed_url) as response:
-                if response.status != 200:
-                    print(f"[WARN] Feed {feed_url} returned status {response.status}")
-                    return {"feed": {}, "entries": []}
-
-                content = await response.text()
+            content = await self._fetch_content(feed_url)
+            if not content:
+                return {"feed": {}, "entries": []}
 
             # Try XML parsing first
-            try:
-                parsed = xmltodict.parse(content)
+            xml_result = self._try_xml_parsing(content, feed_url)
+            if xml_result is not None:
+                return xml_result
 
-                # Handle RSS 2.0
-                if "rss" in parsed:
-                    result = self._parse_rss(parsed["rss"])
-                    if result["entries"]:
-                        print(f"[OK] Parsed {len(result['entries'])} entries from RSS")
-                    return result
-                # Handle Atom
-                elif "feed" in parsed:
-                    result = self._parse_atom(parsed["feed"])
-                    if result["entries"]:
-                        print(f"[OK] Parsed {len(result['entries'])} entries from Atom")
-                    return result
-                else:
-                    print(f"[WARN] Feed {feed_url} has unknown XML format")
-                    return {"feed": {}, "entries": []}
-            except Exception as xml_error:
-                print(f"[WARN] XML parsing failed for {feed_url}: {xml_error}")
-                # Try JSON parsing as fallback
-                try:
-                    parsed = json.loads(content)
-                    if isinstance(parsed, dict):
-                        # Try common JSON feed formats
-                        if "items" in parsed:
-                            entries = parsed.get("items", [])
-                            if not isinstance(entries, list):
-                                entries = [entries] if entries else []
-                            print(
-                                f"[OK] Parsed {len(entries)} entries from JSON (items)"
-                            )
-                            return {"feed": parsed, "entries": entries}
-                        elif "entries" in parsed:
-                            entries = parsed.get("entries", [])
-                            if not isinstance(entries, list):
-                                entries = [entries] if entries else []
-                            print(
-                                f"[OK] Parsed {len(entries)} entries from JSON (entries)"
-                            )
-                            return {"feed": parsed, "entries": entries}
-                    print(
-                        f"[WARN] JSON feed {feed_url} has no recognized entries field"
-                    )
-                    return {"feed": {}, "entries": []}
-                except json.JSONDecodeError:
-                    print(f"[ERROR] Could not parse {feed_url} as XML or JSON")
-                    return {"feed": {}, "entries": []}
+            # Fallback to JSON parsing
+            return self._try_json_parsing(content, feed_url)
 
         except Exception as e:
             print(f"[ERROR] Error fetching feed {feed_url}: {e}")

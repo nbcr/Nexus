@@ -37,18 +37,72 @@ function setVisitorIdCookie() {
 
 let currentUser = null;
 
+function getAccessToken() {
+    const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+    if (match) return match[1];
+    return window.localStorage?.getItem('access_token') || null;
+}
+
+function setupAuthButton(btn, isLoggedIn) {
+    if (!btn) return;
+    const label = btn.querySelector('.menu-label');
+    const icon = btn.querySelector('.menu-icon');
+    
+    if (isLoggedIn) {
+        if (label) label.textContent = 'Logout';
+        if (icon) icon.textContent = '🚪';
+        btn.href = '#';
+        btn.onclick = (e) => { e.preventDefault(); handleLogout(); };
+    } else {
+        if (label) label.textContent = 'Login';
+        if (icon) icon.textContent = '🔐';
+        btn.href = '/login';
+        btn.onclick = null;
+    }
+    btn.style.display = 'flex';
+}
+
+function updateUIForAuthenticatedUser() {
+    const welcomeEl = document.getElementById('user-welcome');
+    if (welcomeEl) {
+        welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
+        welcomeEl.style.display = 'inline';
+    }
+    
+    setupAuthButton(document.getElementById('auth-btn'), true);
+    setupAuthButton(document.getElementById('auth-btn-mobile'), true);
+    
+    const registerBtn = document.getElementById('register-btn');
+    const registerBtnMobile = document.getElementById('register-btn-mobile');
+    if (registerBtn) registerBtn.style.display = 'none';
+    if (registerBtnMobile) registerBtnMobile.style.display = 'none';
+}
+
+function updateUIForUnauthenticatedUser() {
+    const welcomeEl = document.getElementById('user-welcome');
+    if (welcomeEl) welcomeEl.style.display = 'none';
+    
+    setupAuthButton(document.getElementById('auth-btn'), false);
+    setupAuthButton(document.getElementById('auth-btn-mobile'), false);
+    
+    const registerBtn = document.getElementById('register-btn');
+    const registerBtnMobile = document.getElementById('register-btn-mobile');
+    if (registerBtn) {
+        registerBtn.style.display = 'flex';
+        registerBtn.href = '/register';
+    }
+    if (registerBtnMobile) {
+        registerBtnMobile.style.display = 'flex';
+        registerBtnMobile.href = '/register';
+    }
+}
+
 /**
  * Check if user is authenticated and update header accordingly
  */
 async function checkAuthStatus() {
     try {
-        // Get access token from cookie or localStorage
-        let accessToken = null;
-        const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
-        if (match) accessToken = match[1];
-        if (!accessToken && window.localStorage) {
-            accessToken = localStorage.getItem('access_token');
-        }
+        const accessToken = getAccessToken();
         const headers = accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {};
         const response = await fetch('/api/v1/auth/me', {
             credentials: 'include',
@@ -57,83 +111,12 @@ async function checkAuthStatus() {
 
         if (response.ok) {
             currentUser = await response.json();
-            const welcomeEl = document.getElementById('user-welcome');
-            const authBtn = document.getElementById('auth-btn');
-            const authBtnMobile = document.getElementById('auth-btn-mobile');
-            if (welcomeEl) {
-                welcomeEl.textContent = `Welcome, ${currentUser.username}!`;
-                welcomeEl.style.display = 'inline';
-            }
-            if (authBtn) {
-                const label = authBtn.querySelector('.menu-label');
-                const icon = authBtn.querySelector('.menu-icon');
-                if (label) label.textContent = 'Logout';
-                if (icon) icon.textContent = '🚪';
-                authBtn.href = '#';
-                authBtn.onclick = function (e) {
-                    e.preventDefault();
-                    handleLogout();
-                };
-                authBtn.style.display = 'flex';
-            }
-            if (authBtnMobile) {
-                const label = authBtnMobile.querySelector('.menu-label');
-                const icon = authBtnMobile.querySelector('.menu-icon');
-                if (label) label.textContent = 'Logout';
-                if (icon) icon.textContent = '🚪';
-                authBtnMobile.href = '#';
-                authBtnMobile.onclick = function (e) {
-                    e.preventDefault();
-                    handleLogout();
-                };
-                authBtnMobile.style.display = 'flex';
-            }
-            const registerBtn = document.getElementById('register-btn');
-            const registerBtnMobile = document.getElementById('register-btn-mobile');
-            if (registerBtn) {
-                registerBtn.style.display = 'none';
-            }
-            if (registerBtnMobile) {
-                registerBtnMobile.style.display = 'none';
-            }
+            updateUIForAuthenticatedUser();
         } else {
-            // User not authenticated - show login and register buttons
-            const welcomeEl = document.getElementById('user-welcome');
-            if (welcomeEl) {
-                welcomeEl.style.display = 'none';
-            }
-            const authBtn = document.getElementById('auth-btn');
-            const authBtnMobile = document.getElementById('auth-btn-mobile');
-            if (authBtn) {
-                const label = authBtn.querySelector('.menu-label');
-                const icon = authBtn.querySelector('.menu-icon');
-                if (label) label.textContent = 'Login';
-                if (icon) icon.textContent = '🔐';
-                authBtn.href = '/login';
-                authBtn.onclick = null;
-                authBtn.style.display = 'flex';
-            }
-            if (authBtnMobile) {
-                const label = authBtnMobile.querySelector('.menu-label');
-                const icon = authBtnMobile.querySelector('.menu-icon');
-                if (label) label.textContent = 'Login';
-                if (icon) icon.textContent = '🔐';
-                authBtnMobile.href = '/login';
-                authBtnMobile.onclick = null;
-                authBtnMobile.style.display = 'flex';
-            }
-            const registerBtn = document.getElementById('register-btn');
-            const registerBtnMobile = document.getElementById('register-btn-mobile');
-            if (registerBtn) {
-                registerBtn.style.display = 'flex';
-                registerBtn.href = '/register';
-            }
-            if (registerBtnMobile) {
-                registerBtnMobile.style.display = 'flex';
-                registerBtnMobile.href = '/register';
-            }
+            updateUIForUnauthenticatedUser();
         }
     } catch (error) {
+        updateUIForUnauthenticatedUser();
     }
 }
 
@@ -297,18 +280,7 @@ function toggleDarkMode() {
     updateDarkModeUI(!willBeLight, toggleBtn, toggleLabel, toggleMenuBtn);
 }
 
-/**
- * Initialize hamburger menu toggle with proper event handling
- */
-function initHamburgerMenu() {
-    const hamburger = document.getElementById('hamburger-menu');
-    const navLinks = document.getElementById('nav-links');
-
-    if (!hamburger || !navLinks) {
-        return;
-    }
-
-    // Ensure hamburger bars exist
+function createHamburgerBars(hamburger) {
     if (hamburger.children.length === 0) {
         for (let i = 0; i < 3; i++) {
             const bar = document.createElement('span');
@@ -316,50 +288,62 @@ function initHamburgerMenu() {
             hamburger.appendChild(bar);
         }
     }
+}
 
-    // Toggle menu on hamburger click
-    hamburger.addEventListener('click', function (e) {
+function shouldKeepMenuOpen(element) {
+    return element.id === 'text-size-decrease' ||
+           element.id === 'text-size-increase' ||
+           element.id === 'dark-mode-toggle-menu' ||
+           element.classList.contains('text-size-btn');
+}
+
+function closeMenu(hamburger, navLinks) {
+    navLinks.classList.remove('open');
+    hamburger.classList.remove('open');
+}
+
+function setupMenuEventListeners(hamburger, navLinks) {
+    hamburger.addEventListener('click', (e) => {
         e.stopPropagation();
         const nowOpen = !navLinks.classList.contains('open');
         hamburger.classList.toggle('open', nowOpen);
         navLinks.classList.toggle('open', nowOpen);
     });
 
-    // Dark mode toggle in menu (don't close menu)
     const darkToggleMenu = document.getElementById('dark-mode-toggle-menu');
-    console.log('Dark mode toggle button found:', darkToggleMenu);
     if (darkToggleMenu) {
-        darkToggleMenu.addEventListener('click', function (e) {
-            console.log('Dark mode button clicked!');
+        darkToggleMenu.addEventListener('click', (e) => {
             e.stopPropagation();
             toggleDarkMode();
-            // Don't close menu
         });
     }
 
-    // Close menu on link/button click, EXCEPT for text size and dark mode buttons
-    navLinks.querySelectorAll('a, button').forEach(function (el) {
-        el.addEventListener('click', function (e) {
-            // Don't close menu for text size buttons or dark mode toggle
-            if (el.id === 'text-size-decrease' ||
-                el.id === 'text-size-increase' ||
-                el.id === 'dark-mode-toggle-menu' ||
-                el.classList.contains('text-size-btn')) {
-                return; // Don't close menu
+    navLinks.querySelectorAll('a, button').forEach((el) => {
+        el.addEventListener('click', () => {
+            if (!shouldKeepMenuOpen(el)) {
+                closeMenu(hamburger, navLinks);
             }
-            // Close menu for everything else
-            navLinks.classList.remove('open');
-            hamburger.classList.remove('open');
         });
     });
 
-    // Close menu when clicking outside
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', (e) => {
         if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
-            navLinks.classList.remove('open');
-            hamburger.classList.remove('open');
+            closeMenu(hamburger, navLinks);
         }
     });
+}
+
+/**
+ * Initialize hamburger menu toggle with proper event handling
+ */
+function initHamburgerMenu() {
+    const hamburger = document.getElementById('hamburger-menu');
+    const navLinks = document.getElementById('nav-links');
+
+    if (!hamburger || !navLinks) return;
+
+    createHamburgerBars(hamburger);
+    setupMenuEventListeners(hamburger, navLinks);
 }
 
 /**

@@ -197,109 +197,108 @@ class NexusService(win32serviceutil.ServiceFramework):
                         "Server may have crashed or become unresponsive."
                     )
 
-    def _run_server(self):
-        """Run the uvicorn server with auto-restart on crash"""
-        # Use Program Files Python (where dependencies are installed globally)
+    def _find_python_executable(self):
+        """Find Python executable"""
         python_exe = Path("C:\\Program Files\\Python312\\python.exe")
-
-        # Fallback to venv if Program Files doesn't exist
         if not python_exe.exists():
             python_exe = PROJECT_ROOT / "venv" / "Scripts" / "python.exe"
-
+        
         if not python_exe.exists():
             self.logger.error(f"Python executable not found at {python_exe}")
-            self.logger.error(
-                f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}"
-            )
+            self.logger.error(f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}")
+            return None
+        return python_exe
+
+    def _cleanup_port(self):
+        """Clean up stale processes on port 8000"""
+        try:
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            result = sock.connect_ex(("127.0.0.1", 8000))
+            sock.close()
+            if result == 0:
+                self.logger.warning("Port 8000 still in use, waiting longer...")
+                time.sleep(5)
+        except Exception as e:
+            self.logger.debug(f"Port check: {e}")
+
+    def _create_server_process(self, python_exe):
+        """Create and start server subprocess"""
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(PROJECT_ROOT)
+        env["PYTHONUNBUFFERED"] = "1"
+        env["PYTHONIOENCODING"] = "utf-8"
+
+        return subprocess.Popen(
+            [str(python_exe), "run_server.py"],
+            cwd=str(PROJECT_ROOT),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+        )
+
+    def _handle_server_crash(self, restart_count, last_crash_time, max_restarts, restart_window):
+        """Handle server crash and determine restart behavior"""
+        exit_code = self.server_process.returncode
+        self.logger.warning(f"Server exited with code {exit_code}, restarting...")
+
+        now = time.time()
+        if last_crash_time and (now - last_crash_time) < restart_window:
+            restart_count += 1
+            if restart_count >= max_restarts:
+                self.logger.error(
+                    f"Server crashed {max_restarts} times in {restart_window}s. "
+                    "Stopping service to prevent crash loop."
+                )
+                return restart_count, now, False  # Stop restarting
+        else:
+            restart_count = 1
+
+        delay = min(30, restart_count * 5)
+        self.logger.info(f"Waiting {delay}s before restart...")
+        time.sleep(delay)
+        return restart_count, now, True  # Continue restarting
+
+    def _run_server(self):
+        """Run the uvicorn server with auto-restart on crash"""
+        python_exe = self._find_python_executable()
+        if not python_exe:
             return
 
         restart_count = 0
         max_restarts = 10
-        restart_window = 60  # seconds
+        restart_window = 60
         last_crash_time = None
 
         while self.is_alive:
             try:
-                self.logger.info(
-                    f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}..."
-                )
+                self.logger.info(f"Starting Nexus server (attempt {restart_count + 1}) using {python_exe}...")
 
-                # Clean up any stale processes on port 8000 before starting
                 if restart_count > 0:
-                    try:
-                        import socket
+                    self._cleanup_port()
 
-                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        result = sock.connect_ex(("127.0.0.1", 8000))
-                        sock.close()
-                        if result == 0:
-                            self.logger.warning(
-                                "Port 8000 still in use, waiting longer..."
-                            )
-                            time.sleep(5)  # Wait longer for graceful socket closure
-                    except Exception as e:
-                        self.logger.debug(f"Port check: {e}")
+                self.server_process = self._create_server_process(python_exe)
+                self.logger.info(f"Server started with PID {self.server_process.pid} using {python_exe}")
+                restart_count = 0
 
-                # Set up environment for subprocess
-                env = os.environ.copy()
-                env["PYTHONPATH"] = str(PROJECT_ROOT)
-                env["PYTHONUNBUFFERED"] = "1"
-                env["PYTHONIOENCODING"] = "utf-8"  # Force UTF-8 to handle emojis
-
-                # Start using run_server.py directly for better compatibility
-                self.server_process = subprocess.Popen(
-                    [
-                        str(python_exe),
-                        "run_server.py",
-                    ],
-                    cwd=str(PROJECT_ROOT),
-                    env=env,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",  # Replace unencodable chars instead of failing
-                    bufsize=1,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-                )
-
-                self.logger.info(
-                    f"Server started with PID {self.server_process.pid} using {python_exe}"
-                )
-                restart_count = 0  # Reset on successful start
-
-                # Log all output from server
+                # Log server output
                 if self.server_process.stdout:
                     for line in iter(self.server_process.stdout.readline, ""):
                         if line:
                             self.logger.info(f"[SERVER] {line.rstrip()}")
 
                 if self.is_alive:
-                    exit_code = self.server_process.returncode
-                    self.logger.warning(
-                        f"Server exited with code {exit_code}, restarting..."
+                    restart_count, last_crash_time, should_continue = self._handle_server_crash(
+                        restart_count, last_crash_time, max_restarts, restart_window
                     )
-
-                    # Check restart frequency (crash loop protection)
-                    now = time.time()
-                    if last_crash_time and (now - last_crash_time) < restart_window:
-                        restart_count += 1
-                        if restart_count >= max_restarts:
-                            self.logger.error(
-                                f"Server crashed {max_restarts} times in {restart_window}s. "
-                                "Stopping service to prevent crash loop."
-                            )
-                            break
-                    else:
-                        restart_count = 1
-
-                    last_crash_time = now
-
-                    # Wait before restart
-                    delay = min(30, restart_count * 5)  # Max 30 second wait
-                    self.logger.info(f"Waiting {delay}s before restart...")
-                    time.sleep(delay)
+                    if not should_continue:
+                        break
 
             except Exception as e:
                 self.logger.error(f"Error running server: {e}", exc_info=True)
