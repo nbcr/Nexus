@@ -1,7 +1,8 @@
 // UI Manager
 class UIManager {
+    currentView = 'home';
+
     constructor() {
-        this.currentView = 'home';
     }
 
     initializeUI() {

@@ -49,7 +49,7 @@ class HoverTrackerDeprecated {
             interestScoreThreshold: options.interestScoreThreshold || 50,
 
             // Scroll velocity threshold (pixels/ms) - lower = slower = more interested
-            scrollSlowdownThreshold: options.scrollSlowdownThreshold || 2.0,
+            scrollSlowdownThreshold: options.scrollSlowdownThreshold || 2,
         };
 
         // State tracking
@@ -272,8 +272,8 @@ class HoverTrackerDeprecated {
         if (this.state.mousePositions.length < 2) return;
 
         const positions = this.state.mousePositions;
-        const recentPos = positions[positions.length - 1];
-        const olderPos = positions[Math.max(0, positions.length - 5)]; // Compare with position from ~500ms ago
+        const recentPos = positions.at(-1);
+        const olderPos = positions.at(Math.max(-positions.length, -5)); // Compare with position from ~500ms ago
 
         const distance = Math.sqrt(
             Math.pow(recentPos.x - olderPos.x, 2) +

@@ -4,8 +4,9 @@
  */
 
 class HistoryTracker {
+    observer = null;
+
     constructor() {
-        this.observer = null;
         this.seenContentIds = new Set();
         this.clickedContentIds = new Set();
         this.apiBase = '/api/v1/history';

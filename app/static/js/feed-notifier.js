@@ -8,13 +8,13 @@
  */
 
 class FeedNotifier {
+    ws = null;
+    reconnectAttempts = 0;
+    maxReconnectAttempts = 5;
+    reconnectDelay = 2000;
+    newContentCount = 0;
+
     constructor() {
-        this.ws = null;
-        this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
-        this.reconnectDelay = 2000;
-        this.newContentCount = 0;
-        
         // Ensure persistent visitor/session tracking for all users
         this.ensureSessionToken();
         
@@ -27,7 +27,7 @@ class FeedNotifier {
         const match = regex.exec(document.cookie);
         if (match) visitorId = match[1];
         if (!visitorId) {
-            visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2, 16) + Date.now());
+            visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).slice(2, 16) + Date.now());
             const expires = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toUTCString(); // 2 years
             document.cookie = `visitor_id=${visitorId}; expires=${expires}; path=/; SameSite=Lax`;
         }
