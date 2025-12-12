@@ -89,7 +89,7 @@ class TrendingManager {
             // ...existing code...
             
             const imageHtml = trend.image_url ? 
-                `<img src="${trend.image_url}" alt="${trend.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\"image-placeholder\"></div>'">`
+                `<img src="${trend.image_url}" alt="${trend.title}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class='image-placeholder'></div>'">`
                 : '<div class="image-placeholder"></div>';
                 
             // Create a default news item from the trend itself if no news items exist
