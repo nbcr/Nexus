@@ -114,3 +114,6 @@ server.log
 __pycache__/
 venv/
 .env
+clean_credentials_windows.bat
+
+remove_all_credentials.bat
