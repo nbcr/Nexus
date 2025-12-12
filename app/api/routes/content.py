@@ -166,7 +166,7 @@ async def get_personalized_feed(
         )
     elif category_list:
         # Filter by multiple categories
-        logger.info(f"Filtering feed by categories: {safe_category_list}")
+        logger.info("Filtering feed by categories: %s", safe_category_list)
         result = await recommendation_service.get_all_feed(
             db=db,
             page_size=page_size,
@@ -1104,7 +1104,8 @@ def _resize_image_if_needed(
             img.save(output, format="WEBP", **save_kwargs)
             return output.getvalue(), IMAGE_WEBP
         except Exception as e:
-            logger.warning(f"Image resize failed: {e}, returning original")
+            safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+            logger.warning("Image resize failed: %s, returning original", safe_error)
 
     return image_data, content_type
 
@@ -1211,8 +1212,10 @@ async def find_related_content(
     if not priority_keywords:
         return []
 
+    safe_title = ''.join(c for c in str(content.title)[:200] if c.isprintable() and c not in '\n\r\t')
+    safe_keywords = ''.join(c for c in str(priority_keywords)[:200] if c.isprintable() and c not in '\n\r\t')
     print(
-        f"🔍 Finding related content for '{content.title}' using keywords: {priority_keywords}"
+        "🔍 Finding related content for '%s' using keywords: %s", safe_title, safe_keywords
     )
 
     # Build and execute query
