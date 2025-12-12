@@ -20,9 +20,7 @@ if sys.platform == "win32":
         )
     )
     REBOOT_LOG = Path(
-        os.path.join(
-            os.path.dirname(__file__), "..", "..", "temp", "reboot.log"
-        )
+        os.path.join(os.path.dirname(__file__), "..", "..", "temp", "reboot.log")
     )
 else:
     REBOOT_FILE = Path("/temp/nexus_reboot_request")
@@ -57,7 +55,9 @@ class RebootManager:
                 REBOOT_FILE.write_text("", encoding="utf-8")
                 logger.info("[OK] Reboot request file cleared")
                 # Log reboot attempt
-                self._log_reboot_event("Reboot initiated - file cleared, attempting server restart")
+                self._log_reboot_event(
+                    "Reboot initiated - file cleared, attempting server restart"
+                )
         except Exception as e:
             logger.error(f"[ERROR] Failed to clear reboot request: {e}")
 

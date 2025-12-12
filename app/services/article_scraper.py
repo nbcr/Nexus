@@ -88,9 +88,7 @@ class ArticleScraperService:
         last_error = None
         for attempt in range(1, self.max_retries + 2):
             try:
-                response = requests.get(
-                    url, headers=self.headers, timeout=self.timeout
-                )
+                response = requests.get(url, headers=self.headers, timeout=self.timeout)
                 response.raise_for_status()
                 return response
             except requests.Timeout:
@@ -134,7 +132,9 @@ class ArticleScraperService:
         )
         if article_data["title"]:
             print("ℹ️ Returning article with limited content")
-            article_data["content"] = "Unable to extract facts. Please visit the source site to read the full article."
+            article_data["content"] = (
+                "Unable to extract facts. Please visit the source site to read the full article."
+            )
             article_data["is_excerpt"] = False
             article_data["full_article_available"] = False
             return article_data
@@ -852,13 +852,21 @@ class ArticleScraperService:
     def _is_placeholder_image(self, img_url: str) -> bool:
         """Check if image is likely a small placeholder"""
         placeholder_patterns = [
-            r"150x150", r"150[_-]150", r"100x100", r"100[_-]100",
-            r"thumbnail", r"thumb", r"avatar", r"icon",
+            r"150x150",
+            r"150[_-]150",
+            r"100x100",
+            r"100[_-]100",
+            r"thumbnail",
+            r"thumb",
+            r"avatar",
+            r"icon",
         ]
         url_lower = img_url.lower()
         return any(re.search(pattern, url_lower) for pattern in placeholder_patterns)
 
-    def _extract_image_from_meta_tags(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+    def _extract_image_from_meta_tags(
+        self, soup: BeautifulSoup, base_url: str
+    ) -> Optional[str]:
         """Try to extract image from meta tags"""
         selectors = [
             ("meta", {"property": "og:image"}),
@@ -875,7 +883,9 @@ class ArticleScraperService:
                     print(f"⚠️ Rejected placeholder meta image: {img_url}")
         return None
 
-    def _extract_image_from_article_body(self, soup: BeautifulSoup, base_url: str) -> Optional[str]:
+    def _extract_image_from_article_body(
+        self, soup: BeautifulSoup, base_url: str
+    ) -> Optional[str]:
         """Look for large image in article body"""
         article_element = (
             soup.find("article")
@@ -941,9 +951,11 @@ class ArticleScraperService:
 
             # Save as WebP with quality 75
             output = BytesIO()
-            img.save(output, "WEBP", quality=75, method=6)  # method=6 for best compression
+            img.save(
+                output, "WEBP", quality=75, method=6
+            )  # method=6 for best compression
             output.seek(0)
-            
+
             return output.getvalue()
 
         except Exception as e:

@@ -129,9 +129,10 @@ class NexusService(win32serviceutil.ServiceFramework):
         """Check if the server is responding on port 8000"""
         try:
             import socket
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(2)
-            result = sock.connect_ex(('127.0.0.1', 8000))
+            result = sock.connect_ex(("127.0.0.1", 8000))
             sock.close()
             return result == 0
         except Exception:
@@ -177,13 +178,13 @@ class NexusService(win32serviceutil.ServiceFramework):
         """Monitor server health and log warnings if unresponsive"""
         consecutive_failures = 0
         max_consecutive_failures = 3
-        
+
         while self.is_alive:
             time.sleep(10)  # Check every 10 seconds
-            
+
             if not self.is_alive:
                 break
-                
+
             if self._is_server_healthy():
                 consecutive_failures = 0
             else:
@@ -207,7 +208,9 @@ class NexusService(win32serviceutil.ServiceFramework):
 
         if not python_exe.exists():
             self.logger.error(f"Python executable not found at {python_exe}")
-            self.logger.error(f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}")
+            self.logger.error(
+                f"Also checked: {PROJECT_ROOT / 'venv' / 'Scripts' / 'python.exe'}"
+            )
             return
 
         restart_count = 0
@@ -225,12 +228,15 @@ class NexusService(win32serviceutil.ServiceFramework):
                 if restart_count > 0:
                     try:
                         import socket
+
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        result = sock.connect_ex(('127.0.0.1', 8000))
+                        result = sock.connect_ex(("127.0.0.1", 8000))
                         sock.close()
                         if result == 0:
-                            self.logger.warning("Port 8000 still in use, waiting longer...")
+                            self.logger.warning(
+                                "Port 8000 still in use, waiting longer..."
+                            )
                             time.sleep(5)  # Wait longer for graceful socket closure
                     except Exception as e:
                         self.logger.debug(f"Port check: {e}")
@@ -258,12 +264,14 @@ class NexusService(win32serviceutil.ServiceFramework):
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
                 )
 
-                self.logger.info(f"Server started with PID {self.server_process.pid} using {python_exe}")
+                self.logger.info(
+                    f"Server started with PID {self.server_process.pid} using {python_exe}"
+                )
                 restart_count = 0  # Reset on successful start
 
                 # Log all output from server
                 if self.server_process.stdout:
-                    for line in iter(self.server_process.stdout.readline, ''):
+                    for line in iter(self.server_process.stdout.readline, ""):
                         if line:
                             self.logger.info(f"[SERVER] {line.rstrip()}")
 

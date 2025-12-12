@@ -94,9 +94,10 @@ async def get_personalized_feed(
     Supports multi-category filtering via 'categories' param (comma-separated).
     """
     import logging
+
     logger = logging.getLogger(LOGGER_NAME)
     logger.info("[FEED] Endpoint called")
-    
+
     # Parse exclude_ids
     excluded_ids = []
     if exclude_ids:
@@ -118,7 +119,7 @@ async def get_personalized_feed(
     session_token = nexus_session or request.cookies.get("nexus_session")
 
     logger.info("[FEED] About to call recommendation_service.get_all_feed")
-    
+
     # Sanitize user input for logging to prevent log injection
     safe_category_list = (
         str(category_list).replace("\n", "").replace("\r", "")
@@ -162,7 +163,7 @@ async def get_personalized_feed(
         )
 
     logger.info("[FEED] get_all_feed returned, building response")
-    
+
     # Trigger background scraping for articles without content
     # This happens in parallel without blocking the response
     async def background_scrape_articles():
@@ -219,7 +220,7 @@ async def get_personalized_feed(
         "has_more": result["has_more"],
         "is_personalized": session_token is not None,
     }
-    
+
     # Return with cache headers for public feeds (no caching for personalized)
     if session_token is None:
         return JSONResponse(
@@ -227,7 +228,7 @@ async def get_personalized_feed(
             headers={
                 "Cache-Control": "public, max-age=60",  # Cache feed for 60 seconds
                 "Vary": "Accept-Encoding",
-            }
+            },
         )
     return response_data
 
@@ -365,9 +366,7 @@ async def _download_article_image(content: ContentItem, article_data: dict) -> N
             )
             if image_data:
                 content.image_data = image_data
-                print(
-                    f"✅ Stored optimized image for content {content.id}"
-                )
+                print(f"✅ Stored optimized image for content {content.id}")
         except Exception as e:
             print(f"⚠️ Failed to optimize image: {e}")
 
@@ -840,16 +839,16 @@ async def _scrape_thumbnail(
 async def get_content_image(
     content_id: int,
     size: int = Query(800, ge=400, le=1600),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Serve stored WebP image for content, with optional resizing.
     Images are stored at 600px and upscaled on-demand.
-    
+
     Args:
         content_id: ID of the content item
         size: Desired width in pixels (400-1600, default 800)
-    
+
     Returns:
         WebP image data with appropriate size
     """
@@ -858,42 +857,42 @@ async def get_content_image(
             select(ContentItem).where(ContentItem.id == content_id)
         )
         content = result.scalar_one_or_none()
-        
+
         if not content or not content.image_data:
             raise HTTPException(status_code=404, detail="Image not found")
-        
+
         # If size matches or is smaller than original, return as-is
         if size <= 600:
             return StreamingResponse(
                 iter([content.image_data]),
                 media_type="image/webp",
-                headers={"Cache-Control": "public, max-age=86400"}
+                headers={"Cache-Control": "public, max-age=86400"},
             )
-        
+
         # Upscale image using high-quality resampling
         from PIL import Image
         from io import BytesIO
-        
+
         img = Image.open(BytesIO(content.image_data))
-        
+
         # Calculate aspect ratio and new height
         aspect_ratio = img.height / img.width
         new_height = int(size * aspect_ratio)
-        
+
         # Upscale with LANCZOS resampling (best for enlargement)
         img = img.resize((size, new_height), Image.Resampling.LANCZOS)
-        
+
         # Save as WebP
         output = BytesIO()
         img.save(output, "WEBP", quality=75, method=6)
         output.seek(0)
-        
+
         return StreamingResponse(
             iter([output.getvalue()]),
             media_type="image/webp",
-            headers={"Cache-Control": "public, max-age=86400"}
+            headers={"Cache-Control": "public, max-age=86400"},
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
