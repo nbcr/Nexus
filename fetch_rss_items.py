@@ -9,6 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import asyncio
 import re
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add project root
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -18,41 +22,79 @@ from app.models import ContentItem, Topic
 from app.utils.async_rss_parser import AsyncRSSParser
 
 # Use sync connection
-DATABASE_URL = os.getenv("DATABASE_URL_SYNC", "postgresql://postgres:***REMOVED***@localhost:5432/nexus")
+DATABASE_URL = os.getenv("DATABASE_URL_SYNC")
+
+def generate_slug(title):
+    """Generate URL-safe slug from title"""
+    slug = re.sub(r'[^a-z0-9]+', '-', title.lower())
+    return slug.strip('-')[:50]
+
+def read_first_feed(feeds_file):
+    """Read first valid feed from feeds file"""
+    with open(feeds_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            parts = line.split('|')
+            if len(parts) >= 2:
+                return parts[0], parts[1]
+    return None, None
+
+def get_or_create_topic(session, feed_name):
+    """Get existing topic or create new one"""
+    topic = session.query(Topic).filter_by(title=feed_name).first()
+    if not topic:
+        topic = Topic(
+            title=feed_name,
+            normalized_title=feed_name.lower().replace(' ', '_'),
+            description=f"Feed: {feed_name}",
+            trend_score=0.5,
+            category="News",
+            tags=[feed_name]
+        )
+        session.add(topic)
+        session.commit()
+        print(f"Created topic: {feed_name}")
+    return topic
+
+def create_content_item(item, topic_id, feed_name):
+    """Create content item from RSS item"""
+    link = item.get('link', '')
+    title = item.get('title', 'No title')
+    
+    if not link or not title:
+        return None
+    
+    return ContentItem(
+        topic_id=topic_id,
+        title=title,
+        slug=generate_slug(title),
+        description=item.get('description', ''),
+        source_urls=[link],
+        source_metadata={
+            'feed': feed_name,
+            'author': item.get('author', ''),
+            'published': str(item.get('published', ''))
+        }
+    )
 
 async def fetch_and_add_items():
     """Fetch items from first RSS feed and add to database"""
-    
-    def generate_slug(title):
-        """Generate URL-safe slug from title"""
-        slug = re.sub(r'[^a-z0-9]+', '-', title.lower())
-        return slug.strip('-')[:50]
+    if not DATABASE_URL:
+        raise ValueError("DATABASE_URL_SYNC environment variable not set")
     
     engine = create_engine(DATABASE_URL, echo=False)
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session_factory = sessionmaker(bind=engine)
+    session = session_factory()
     
     try:
-        # Read RSS feeds file
         feeds_file = Path(__file__).parent / "rss_feeds.txt"
         if not feeds_file.exists():
             print(f"RSS feeds file not found: {feeds_file}")
             return
         
-        # Get first feed
-        feed_url = None
-        feed_name = None
-        with open(feeds_file, 'r') as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
-                parts = line.split('|')
-                if len(parts) >= 2:
-                    feed_name = parts[0]
-                    feed_url = parts[1]
-                    break
-        
+        feed_name, feed_url = await asyncio.to_thread(read_first_feed, feeds_file)
         if not feed_url or not feed_name:
             print("No RSS feeds found")
             return
@@ -60,7 +102,6 @@ async def fetch_and_add_items():
         print(f"Fetching from: {feed_name}")
         print(f"URL: {feed_url}")
         
-        # Parse RSS feed
         parser = AsyncRSSParser()
         feed_data = await parser.parse_feed(feed_url)
         items = feed_data.get('entries', [])
@@ -69,44 +110,14 @@ async def fetch_and_add_items():
             print("No items found in feed")
             return
         
-        # Get or create topic for this feed
-        topic = session.query(Topic).filter_by(title=feed_name).first()
-        if not topic:
-            topic = Topic(
-                title=feed_name,
-                normalized_title=feed_name.lower().replace(' ', '_'),
-                description=f"Feed: {feed_name}",
-                trend_score=0.5,
-                category="News",
-                tags=[feed_name]
-            )
-            session.add(topic)
-            session.commit()
-            print(f"Created topic: {feed_name}")
+        topic = get_or_create_topic(session, feed_name)
         
-        # Add items
         added = 0
-        for item in items[:5]:  # Add first 5 items
-            link = item.get('link', '')
-            title = item.get('title', 'No title')
-            
-            if not link or not title:
-                continue
-            
-            content = ContentItem(
-                topic_id=topic.id,
-                title=title,
-                slug=generate_slug(title),
-                description=item.get('description', ''),
-                source_urls=[link],
-                source_metadata={
-                    'feed': feed_name,
-                    'author': item.get('author', ''),
-                    'published': str(item.get('published', ''))
-                }
-            )
-            session.add(content)
-            added += 1
+        for item in items[:5]:
+            content = create_content_item(item, topic.id, feed_name)
+            if content:
+                session.add(content)
+                added += 1
         
         session.commit()
         print(f"✅ Added {added} items to database")
