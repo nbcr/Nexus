@@ -1,8 +1,13 @@
 import asyncio
 import time
 import logging
+import secrets
+import ipaddress
+import httpx
 from typing import cast, List, Optional
 from datetime import datetime, timezone
+from urllib.parse import urlparse
+from io import BytesIO
 
 from fastapi import APIRouter, HTTPException, Depends, Query, Request, Cookie
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -34,6 +39,7 @@ _THUMBNAIL_CACHE_TTL = 300  # 5 minutes
 LOGGER_NAME = "uvicorn.error"
 CONTENT_NOT_FOUND = "Content not found"
 SNIPPET_LENGTH = 800
+MIN_CONTENT_LENGTH = 100
 SCRAPE_TIMEOUT = 15.0
 PRIORITY_SCRAPE_TIMEOUT = 10.0
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -68,6 +74,57 @@ class ThumbnailResponse(BaseModel):
 
 class ProxyRequest(BaseModel):
     url: str
+
+
+def _parse_exclude_ids(exclude_ids: Optional[str]) -> list[int]:
+    """Parse comma-separated exclude_ids parameter."""
+    excluded_ids = []
+    if exclude_ids:
+        try:
+            excluded_ids = [
+                int(id.strip()) for id in exclude_ids.split(",") if id.strip()
+            ]
+        except ValueError:
+            raise HTTPException(status_code=400, detail=ERROR_INVALID_EXCLUDE_IDS)
+    return excluded_ids
+
+
+def _parse_categories(categories: Optional[str], category: Optional[str]) -> Optional[list[str]]:
+    """Parse categories parameter with multi-select support."""
+    if categories:
+        return [cat.strip() for cat in categories.split(",") if cat.strip()]
+    elif category:
+        return [category]
+    return None
+
+
+async def _get_feed_data(db, page_size, excluded_ids, cursor, category_list, safe_category_list, logger):
+    """Get feed data based on category selection."""
+    if category_list and "all" in [c.lower() for c in category_list]:
+        logger.info("Category 'All' selected: returning all items")
+        return await recommendation_service.get_all_feed(
+            db=db,
+            page_size=page_size,
+            exclude_ids=excluded_ids,
+            cursor=cursor,
+        )
+    elif category_list:
+        logger.info("Filtering feed by categories: %s", safe_category_list)
+        return await recommendation_service.get_all_feed(
+            db=db,
+            page_size=page_size,
+            exclude_ids=excluded_ids,
+            cursor=cursor,
+            categories=category_list,
+        )
+    else:
+        logger.info("No categories selected: returning all items")
+        return await recommendation_service.get_all_feed(
+            db=db,
+            page_size=page_size,
+            exclude_ids=excluded_ids,
+            cursor=cursor,
+        )
 
 
 @router.get("/categories", response_model=CategoriesResponse)
@@ -110,27 +167,12 @@ async def get_personalized_feed(
     Shows newest content first and prevents duplicates.
     Supports multi-category filtering via 'categories' param (comma-separated).
     """
-    import logging
-
     logger = logging.getLogger(LOGGER_NAME)
     logger.info("[FEED] Endpoint called")
 
-    # Parse exclude_ids
-    excluded_ids = []
-    if exclude_ids:
-        try:
-            excluded_ids = [
-                int(id.strip()) for id in exclude_ids.split(",") if id.strip()
-            ]
-        except ValueError:
-            raise HTTPException(status_code=400, detail=ERROR_INVALID_EXCLUDE_IDS)
-
-    # Parse categories (multi-select support)
-    category_list = None
-    if categories:
-        category_list = [cat.strip() for cat in categories.split(",") if cat.strip()]
-    elif category:
-        category_list = [category]
+    # Parse parameters
+    excluded_ids = _parse_exclude_ids(exclude_ids)
+    category_list = _parse_categories(categories, category)
 
     # Get session token for anonymous users
     session_token = nexus_session or request.cookies.get("nexus_session")
@@ -155,34 +197,8 @@ async def get_personalized_feed(
         page, safe_category_list, safe_exclude_ids, safe_cursor
     )
     logger.info("[FEED] Calling get_all_feed...")
-    # Feed selection - when no categories specified, show all feed (not personalized)
-    if category_list and "all" in [c.lower() for c in category_list]:
-        logger.info("Category 'All' selected: returning all items")
-        result = await recommendation_service.get_all_feed(
-            db=db,
-            page_size=page_size,
-            exclude_ids=excluded_ids,
-            cursor=cursor,
-        )
-    elif category_list:
-        # Filter by multiple categories
-        logger.info("Filtering feed by categories: %s", safe_category_list)
-        result = await recommendation_service.get_all_feed(
-            db=db,
-            page_size=page_size,
-            exclude_ids=excluded_ids,
-            cursor=cursor,
-            categories=category_list,
-        )
-    else:
-        # No category filter = show all content
-        logger.info("No categories selected: returning all items")
-        result = await recommendation_service.get_all_feed(
-            db=db,
-            page_size=page_size,
-            exclude_ids=excluded_ids,
-            cursor=cursor,
-        )
+    # Get feed data
+    result = await _get_feed_data(db, page_size, excluded_ids, cursor, category_list, safe_category_list, logger)
 
     logger.info("[FEED] get_all_feed returned, building response")
     
@@ -212,7 +228,7 @@ async def get_personalized_feed(
             logger.debug("Background scrape timed out for %s", item['content_id'])
         except Exception as e:
             safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
-        logger.debug("Background scrape error for %s: %s", item['content_id'], safe_error)
+            logger.debug("Background scrape error for %s: %s", item['content_id'], safe_error)
 
     async def background_scrape_articles():
         """Background scraping task - runs in separate worker"""
@@ -224,7 +240,8 @@ async def get_personalized_feed(
                     for item in articles_to_scrape[:1]:
                         await _scrape_single_article(item, bg_db, bg_logger)
         except Exception as e:
-            logger.debug(f"Background scraping task failed: {e}")
+            safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+            logger.debug("Background scraping task failed: %s", safe_error)
 
     # Trigger background scraping for articles without content
     # This happens in parallel without blocking the response
@@ -304,7 +321,7 @@ def _get_cached_content(content: ContentItem) -> Optional[dict]:
     """Return cached content if available and valid."""
     if (
         content.content_text
-        and len(content.content_text) > 100
+        and len(content.content_text) > MIN_CONTENT_LENGTH
         and not content.content_text.startswith("Trending topic")
     ):
         snippet = (
@@ -327,8 +344,6 @@ async def _scrape_and_store_article(
     content: ContentItem, source_url: str, db: AsyncSession
 ) -> Optional[str]:
     """Scrape article and persist to database. Returns snippet or None."""
-    from datetime import timezone
-
     # Validate URL before scraping to prevent SSRF
     _validate_scraping_url(source_url)
     
@@ -360,8 +375,6 @@ async def _scrape_and_store_article(
 
 def _update_scraping_metadata(content: ContentItem) -> None:
     """Mark scraping as attempted."""
-    from datetime import timezone
-
     if not content.source_metadata:
         content.source_metadata = {}
     content.source_metadata["scraped_at"] = datetime.now(timezone.utc).isoformat()
@@ -389,8 +402,10 @@ async def _download_article_image(content: ContentItem, article_data: dict) -> N
             if image_data:
                 content.image_data = image_data
                 print(f"✅ Stored optimized image for content {content.id}")
-        except Exception as e:
+        except (OSError, ValueError, TypeError) as e:
             print(f"⚠️ Failed to optimize image: {e}")
+        except Exception as e:
+            print(f"⚠️ Unexpected error optimizing image: {e}")
 
 
 def _generate_snippet(content: ContentItem) -> Optional[str]:
@@ -403,6 +418,23 @@ def _generate_snippet(content: ContentItem) -> Optional[str]:
     return content.facts
 
 
+def _get_content_for_snippet(content_id: int, db: AsyncSession):
+    """Get content item for snippet endpoints."""
+    return db.execute(select(ContentItem).where(ContentItem.id == content_id))
+
+
+def _check_existing_snippet(content: ContentItem) -> Optional[dict]:
+    """Check if content already has a snippet and return response if so."""
+    if content.facts and content.facts.strip():
+        snippet = content.facts[:SNIPPET_LENGTH] if len(content.facts) > SNIPPET_LENGTH else content.facts
+        return {
+            "snippet": snippet,
+            "full_content_available": True,
+            "rate_limited": False,
+        }
+    return None
+
+
 def _is_rate_limit_error(error: Exception) -> bool:
     """Check if error is rate-limit related."""
     error_msg = str(error).lower()
@@ -411,8 +443,6 @@ def _is_rate_limit_error(error: Exception) -> bool:
 
 def _get_rate_limit_response() -> dict:
     """Return dad joke rate limit response."""
-    import secrets
-
     dad_jokes = [
         "Whoa there, speed racer! Even my dad jokes need a breather. Try again in a moment!",
         "Easy there, tiger! You're clicking faster than my dad can tell a punchline. Slow down!",
@@ -435,19 +465,15 @@ async def get_content_snippet(content_id: int, db: AsyncSession = Depends(get_db
     Returns immediately with description, triggers background scraping for full content.
     """
     # Get content from database
-    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
+    result = await _get_content_for_snippet(content_id, db)
     content = result.scalar_one_or_none()
     if not content:
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # Check if already scraped
-    if content.facts and content.facts.strip():
-        snippet = content.facts[:SNIPPET_LENGTH] if len(content.facts) > SNIPPET_LENGTH else content.facts
-        return {
-            "snippet": snippet,
-            "full_content_available": True,
-            "rate_limited": False,
-        }
+    existing_snippet = _check_existing_snippet(content)
+    if existing_snippet:
+        return existing_snippet
 
     # Validate source URL
     source_url = _get_source_url(content)
@@ -494,20 +520,16 @@ async def get_content_snippet_priority(
     Shows loading state if scraping takes longer than timeout.
     """
     # Get content from database
-    result = await db.execute(select(ContentItem).where(ContentItem.id == content_id))
+    result = await _get_content_for_snippet(content_id, db)
     content = result.scalar_one_or_none()
     if not content:
         raise HTTPException(status_code=404, detail=CONTENT_NOT_FOUND)
 
     # Check if already scraped
-    if content.facts and content.facts.strip():
-        snippet = content.facts[:SNIPPET_LENGTH] if len(content.facts) > SNIPPET_LENGTH else content.facts
-        return {
-            "snippet": snippet,
-            "full_content_available": True,
-            "rate_limited": False,
-            "status": STATUS_READY,
-        }
+    existing_snippet = _check_existing_snippet(content)
+    if existing_snippet:
+        existing_snippet["status"] = STATUS_READY
+        return existing_snippet
 
     # Validate source URL
     source_url = _get_source_url(content)
@@ -692,7 +714,7 @@ def _has_scraped_content(content: ContentItem) -> bool:
     """Check if content has valid scraped content."""
     return bool(
         content.content_text
-        and len(content.content_text) > 100
+        and len(content.content_text) > MIN_CONTENT_LENGTH
         and not content.content_text.startswith("Trending topic")
         and content.source_metadata
         and content.source_metadata.get("scraped_at")
@@ -702,7 +724,6 @@ def _has_scraped_content(content: ContentItem) -> bool:
 def _get_safe_domain(url: str) -> Optional[str]:
     """Safely extract domain from URL without exposing user-controlled data."""
     try:
-        from urllib.parse import urlparse
         parsed = urlparse(url)
         if parsed.netloc:
             # Only return domain, sanitized and length-limited
@@ -910,7 +931,6 @@ async def get_content_image(
 
         # Upscale image using high-quality resampling
         from PIL import Image
-        from io import BytesIO
 
         img = Image.open(BytesIO(content.image_data))
 
@@ -944,9 +964,6 @@ async def image_proxy(
     url: str, w: int = Query(None, ge=1, le=1200), h: int = Query(None, ge=1, le=1200)
 ):
     """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
-    import httpx  # pyright: ignore[reportMissingImports]
-    import logging
-
     logger = logging.getLogger("uvicorn.error")
 
     _validate_image_url(url)
@@ -969,7 +986,6 @@ async def image_proxy(
         raise
     except Exception:
         # Only log domain to prevent sensitive data exposure
-        from urllib.parse import urlparse
         try:
             parsed_url = urlparse(url)
             safe_domain = parsed_url.netloc[:100] if parsed_url.netloc else "unknown"
@@ -981,9 +997,6 @@ async def image_proxy(
 
 def _validate_scraping_url(url: str) -> None:
     """Validate URL for scraping to prevent SSRF attacks."""
-    import ipaddress
-    from urllib.parse import urlparse
-
     try:
         parsed = urlparse(url)
 
@@ -1025,9 +1038,6 @@ def _validate_scraping_url(url: str) -> None:
 
 def _validate_image_url(url: str) -> None:
     """Validate URL for security against SSRF attacks."""
-    import ipaddress
-    from urllib.parse import urlparse
-
     try:
         parsed = urlparse(url)
 
@@ -1069,15 +1079,12 @@ def _validate_image_url(url: str) -> None:
 
 async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
     """Fetch image data from URL with size limits."""
-    import httpx
-
     async with httpx.AsyncClient(follow_redirects=False, timeout=5.0) as client:
         # Validate and sanitize URL for logging to prevent malicious content
         if len(url) > 2000:  # Reject extremely long URLs
             raise HTTPException(status_code=400, detail="URL too long")
         
         # Only log domain part to prevent sensitive data exposure
-        from urllib.parse import urlparse
         try:
             parsed_url = urlparse(url)
             safe_domain = parsed_url.netloc[:100] if parsed_url.netloc else "unknown"
@@ -1102,8 +1109,6 @@ def _resize_image_if_needed(
     image_data: bytes, content_type: str, w: Optional[int], h: Optional[int], logger
 ) -> tuple[bytes, str]:
     """Resize image if dimensions specified."""
-    from io import BytesIO
-
     if (w or h) and content_type.startswith("image/"):
         try:
             from PIL import Image  # type: ignore
@@ -1173,8 +1178,6 @@ def _build_search_conditions(
     priority_keywords: List[str], content: ContentItem
 ) -> List:
     """Build SQLAlchemy search conditions for keywords."""
-    from sqlalchemy import func
-
     conditions = []
     for keyword in priority_keywords:
         conditions.append(func.lower(ContentItem.title).contains(keyword))
@@ -1219,8 +1222,6 @@ async def find_related_content(
     db: AsyncSession, content: ContentItem, limit: int = 5
 ) -> List[ContentItem]:
     """Find related content items based on title similarity and keywords."""
-    from sqlalchemy import or_, and_
-
     # Extract and filter keywords
     proper_nouns, other_keywords = _extract_keywords(content.title)
     priority_keywords = _filter_stop_words(proper_nouns, other_keywords)

@@ -400,9 +400,6 @@ async def get_analytics(
 # === Dashboard Endpoints ===
 from pathlib import Path
 import subprocess
-import json
-import subprocess
-from pathlib import Path
 from fastapi.responses import HTMLResponse
 
 # Use relative paths for cross-platform compatibility
@@ -421,11 +418,6 @@ AVAILABLE_SCRIPTS = {
 @router.get("/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(current_user: User = Depends(verify_admin)):
     """Admin dashboard with storage, scripts, terminal, and chat"""
-    # Read storage status
-    storage_status = ""
-    if STORAGE_STATUS_FILE.exists():
-        storage_status = await read_file_async(STORAGE_STATUS_FILE)  # type: ignore
-
     # Read system logs
     error_log = ""
     service_log = ""
@@ -436,7 +428,7 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
             # Show last 50 lines
             error_log_lines = error_log.split("\n")[-50:]
             error_log = "\n".join(error_log_lines).strip()
-    except:
+    except Exception:
         error_log = "Error reading error.log"
 
     try:
@@ -446,18 +438,8 @@ async def admin_dashboard(current_user: User = Depends(verify_admin)):
             # Show last 30 lines
             service_log_lines = service_log.split("\n")[-30:]
             service_log = "\n".join(service_log_lines).strip()
-    except:
+    except Exception:
         service_log = "Error reading service.log"
-
-    # Calculate next RSS fetch time (every 15 minutes)
-    from datetime import datetime, timedelta
-
-    now = datetime.now()
-    # RSS fetches run every 15 minutes, so find the next 15-minute interval
-    minutes_since_epoch = (now - datetime(1970, 1, 1)).total_seconds() / 60
-    next_fetch_minutes = ((minutes_since_epoch // 15) + 1) * 15
-    next_fetch_time = datetime(1970, 1, 1) + timedelta(minutes=next_fetch_minutes)
-    seconds_until_next = int((next_fetch_time - now).total_seconds())
 
     # Build script buttons HTML
     script_buttons = ""
@@ -774,17 +756,16 @@ async def run_script_endpoint(
     cmd = AVAILABLE_SCRIPTS[script_name]
 
     try:
-        result = subprocess.run(
+        proc = await asyncio.create_subprocess_shell(
             cmd,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            cwd=str(PROJECT_ROOT),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(PROJECT_ROOT)
         )
-        output = result.stdout + (result.stderr if result.returncode != 0 else "")
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30)
+        output = stdout.decode() + (stderr.decode() if proc.returncode != 0 else "")
         return {"output": output[:5000]}  # Limit output
-    except subprocess.TimeoutExpired:
+    except asyncio.TimeoutError:
         return {"output": "Script timed out after 30 seconds"}
     except Exception as e:
         return {"output": f"Error: {str(e)}"}
@@ -799,19 +780,23 @@ async def terminal_endpoint(
 
     if not cmd:
         return {"output": "No command provided"}
+    
+    # Basic security: block dangerous commands
+    dangerous_patterns = ['rm ', 'del ', 'format', 'shutdown', 'reboot', 'passwd', 'sudo rm', 'dd if=']
+    if any(pattern in cmd.lower() for pattern in dangerous_patterns):
+        return {"output": "Command blocked for security reasons"}
 
     try:
-        result = subprocess.run(
+        proc = await asyncio.create_subprocess_shell(
             cmd,
-            shell=True,
-            capture_output=True,
-            text=True,
-            timeout=10,
-            cwd=str(PROJECT_ROOT),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(PROJECT_ROOT)
         )
-        output = result.stdout + (result.stderr if result.returncode != 0 else "")
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10)
+        output = stdout.decode() + (stderr.decode() if proc.returncode != 0 else "")
         return {"output": output[:2000]}  # Limit output
-    except subprocess.TimeoutExpired:
+    except asyncio.TimeoutError:
         return {"output": "Command timed out after 10 seconds"}
     except Exception as e:
         return {"output": f"Error: {str(e)}"}
@@ -831,50 +816,18 @@ async def chat_endpoint(
         "devops": "DevOps Specialist",
     }
 
+    # Sanitize message for safe response
+    safe_message = ''.join(c for c in message[:200] if c.isprintable() and c not in '\n\r\t')
+    
     return {
-        "response": f"[{agent_descriptions.get(agent, 'Assistant')}] I received: '{message}'. Real Copilot API integration coming soon!"
+        "response": f"[{agent_descriptions.get(agent, 'Assistant')}] I received: '{safe_message}'. Real Copilot API integration coming soon!"
     }
-
-
-@router.get("/logs/list")
-async def list_logs(
-    admin: User = Depends(verify_admin),
-) -> Dict[str, Any]:
-    """List available log files in the logs directory"""
-    import os
-
-    log_dir = os.path.join(os.getcwd(), "logs")
-    
-    if not os.path.exists(log_dir):
-        return {"logs": []}
-    
-    try:
-        # Get all .log files
-        log_files = []
-        for filename in os.listdir(log_dir):
-            if filename.endswith('.log'):
-                filepath = os.path.join(log_dir, filename)
-                if os.path.isfile(filepath):
-                    size = os.path.getsize(filepath)
-                    log_files.append({
-                        "name": filename.replace('.log', ''),
-                        "filename": filename,
-                        "size": size
-                    })
-        
-        # Sort by filename
-        log_files.sort(key=lambda x: x['filename'])
-        return {"logs": log_files}
-    
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error listing logs: {str(e)}")
 
 
 @router.get("/logs/list")
 async def list_logs(admin: User = Depends(verify_admin)) -> Dict[str, Any]:
     """List all available log files in the logs directory"""
     import os
-    import glob
 
     log_dir = os.path.join(os.getcwd(), "logs")
     
@@ -932,10 +885,10 @@ async def get_logs(
             return {"content": f"Log file not found: {safe_log_type}.log"}
         
         # Read last N lines efficiently
-        with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-            all_lines = f.readlines()
-            last_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
-            content = ''.join(last_lines)
+        content = await read_file_async(log_file)
+        all_lines = content.split('\n')
+        last_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+        content = '\n'.join(last_lines)
         
         return {"content": content, "lines": len(last_lines)}
     
