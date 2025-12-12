@@ -6,18 +6,13 @@ Uses multiple sources to find feeds matching user's reading patterns.
 """
 
 import asyncio
-import aiohttp
-import aiofiles
-import re
-from typing import List, Dict, Optional, Set, Tuple
+from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+from sqlalchemy import select
 from collections import Counter
-from urllib.parse import urljoin, urlparse
 
 from app.models import UserInteraction, ContentItem, Topic, UserInterestProfile
-from app.core.config import settings
 from app.utils.async_rss_parser import get_async_rss_parser
 
 
@@ -76,7 +71,7 @@ class RSSDiscoveryService:
 
     async def analyze_user_preferences(
         self, db: AsyncSession, user_id: Optional[int], session_token: Optional[str]
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Analyze user's reading patterns to determine their preferences.
 
@@ -213,11 +208,11 @@ class RSSDiscoveryService:
     ) -> List[Dict]:
         """Add feeds based on user's explicit interest profile"""
         profile = await db.get(UserInterestProfile, user_id)
-        if not profile or not profile.interests:
+        if not profile or profile.interests is None:
             return discovered_feeds
 
-        for interest in profile.interests[:5]:
-            discovered_feeds = self._add_feeds_for_interest(interest, discovered_feeds)
+        for interest in profile.interests[:5]:  # type: ignore
+            discovered_feeds = self._add_feeds_for_interest(interest, discovered_feeds)  # type: ignore
         return discovered_feeds
 
     def _add_feeds_for_interest(
@@ -316,7 +311,7 @@ class RSSDiscoveryService:
             if isinstance(items, Exception) or not items:
                 continue
 
-            for item in items:
+            for item in items: # type: ignore
                 item["category"] = feed_info["category"]
                 item["relevance_score"] = feed_info["relevance_score"]
                 all_items.append(item)
@@ -556,9 +551,12 @@ class RSSDiscoveryService:
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Combine results
-        for result in results:
+        for result in results:  # type: ignore
             if isinstance(result, list):
                 all_discovered.extend(result)
+            elif isinstance(result, Exception):
+                # Skip exceptions from failed searches
+                continue
 
         # Remove duplicates by URL
         seen_urls = set()
@@ -577,17 +575,23 @@ class RSSDiscoveryService:
             existing_urls.update(feeds)
 
         # Also check rss_feeds.txt
-        try:
-            async with aiofiles.open("rss_feeds.txt", "r", encoding="utf-8") as f:
-                async for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    parts = line.split("|")
-                    if len(parts) >= 2:
-                        existing_urls.add(parts[1])
-        except FileNotFoundError:
-            pass
+        def _read_rss_feeds_file():
+            urls = set()
+            try:
+                with open("rss_feeds.txt", "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        parts = line.split("|")
+                        if len(parts) >= 2:
+                            urls.add(parts[1])
+            except FileNotFoundError:
+                pass
+            return urls
+        
+        file_urls = await asyncio.to_thread(_read_rss_feeds_file)
+        existing_urls.update(file_urls)
 
         new_feeds = [f for f in unique_feeds if f["url"] not in existing_urls]
 
