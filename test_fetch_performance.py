@@ -57,7 +57,9 @@ async def run_performance_test():
         # Patch the fetcher
         original_code = trending_service.rss_fetcher._process_feed_entries
 
-        def patched_process(feed, feed_url, category_hint=None, source_name="RSS", limit=items_limit):
+        def patched_process(
+            feed, feed_url, category_hint=None, source_name="RSS", limit=items_limit
+        ):
             """Patched version that respects items_limit"""
             trends = []
             is_google_trends = "trends.google.com" in feed_url

@@ -1,6 +1,6 @@
 """
 Input validation and sanitization utilities to prevent injection attacks.
-Addresses the security vulnerability where user-controlled input flows 
+Addresses the security vulnerability where user-controlled input flows
 from source (request.GET/POST) through processing functions to dangerous sinks.
 """
 
@@ -13,7 +13,7 @@ from fastapi import HTTPException
 
 class InputValidator:
     """Centralized input validation and sanitization."""
-    
+
     # SQL injection patterns
     SQL_INJECTION_PATTERNS = [
         r"(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION)\b)",
@@ -22,7 +22,7 @@ class InputValidator:
         r"(\'\s*(OR|AND)\s+\'\w+\'\s*=\s*\'\w+)",
         r"(\bUNION\s+SELECT\b)",
     ]
-    
+
     # XSS patterns
     XSS_PATTERNS = [
         r"<script[^>]*>.*?</script>",
@@ -32,7 +32,7 @@ class InputValidator:
         r"<object[^>]*>",
         r"<embed[^>]*>",
     ]
-    
+
     # Path traversal patterns
     PATH_TRAVERSAL_PATTERNS = [
         r"\.\./",
@@ -42,7 +42,7 @@ class InputValidator:
         r"\.\.%2f",
         r"\.\.%5c",
     ]
-    
+
     # Command injection patterns
     COMMAND_INJECTION_PATTERNS = [
         r"[;&|`$(){}[\]<>]",
@@ -54,7 +54,7 @@ class InputValidator:
     def _clean_string_content(cls, value: str) -> str:
         """Clean string content by removing dangerous characters."""
         value = html.escape(value, quote=True)
-        value = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', value)
+        value = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", value)
         return value.strip()
 
     @classmethod
@@ -62,7 +62,7 @@ class InputValidator:
         """Sanitize string input to prevent injection attacks."""
         if not isinstance(value, str):
             value = str(value)
-        
+
         value = value[:max_length]
         return cls._clean_string_content(value)
 
@@ -72,8 +72,8 @@ class InputValidator:
         for pattern in cls.SQL_INJECTION_PATTERNS:
             if re.search(pattern, value_lower, re.IGNORECASE):
                 raise HTTPException(
-                    status_code=400, 
-                    detail="Invalid input: potential SQL injection detected"
+                    status_code=400,
+                    detail="Invalid input: potential SQL injection detected",
                 )
 
     @classmethod
@@ -81,7 +81,7 @@ class InputValidator:
         """Validate that input is safe from SQL injection."""
         if not isinstance(value, str):
             value = str(value)
-        
+
         cls._check_sql_patterns(value.lower())
         return cls.sanitize_string(value)
 
@@ -91,8 +91,7 @@ class InputValidator:
         for pattern in cls.XSS_PATTERNS:
             if re.search(pattern, value, re.IGNORECASE):
                 raise HTTPException(
-                    status_code=400, 
-                    detail="Invalid input: potential XSS detected"
+                    status_code=400, detail="Invalid input: potential XSS detected"
                 )
 
     @classmethod
@@ -100,7 +99,7 @@ class InputValidator:
         """Validate that input is safe from XSS attacks."""
         if not isinstance(value, str):
             value = str(value)
-        
+
         cls._check_xss_patterns(value)
         return cls.sanitize_string(value)
 
@@ -110,8 +109,8 @@ class InputValidator:
         for pattern in cls.PATH_TRAVERSAL_PATTERNS:
             if re.search(pattern, decoded_value, re.IGNORECASE):
                 raise HTTPException(
-                    status_code=400, 
-                    detail="Invalid input: potential path traversal detected"
+                    status_code=400,
+                    detail="Invalid input: potential path traversal detected",
                 )
 
     @classmethod
@@ -119,7 +118,7 @@ class InputValidator:
         """Validate that input is safe from path traversal attacks."""
         if not isinstance(value, str):
             value = str(value)
-        
+
         decoded_value = urllib.parse.unquote(value)
         cls._check_path_patterns(decoded_value)
         return cls.sanitize_string(value)
@@ -130,8 +129,8 @@ class InputValidator:
         for pattern in cls.COMMAND_INJECTION_PATTERNS:
             if re.search(pattern, value, re.IGNORECASE):
                 raise HTTPException(
-                    status_code=400, 
-                    detail="Invalid input: potential command injection detected"
+                    status_code=400,
+                    detail="Invalid input: potential command injection detected",
                 )
 
     @classmethod
@@ -139,20 +138,28 @@ class InputValidator:
         """Validate that input is safe from command injection."""
         if not isinstance(value, str):
             value = str(value)
-        
+
         cls._check_command_patterns(value)
         return cls.sanitize_string(value)
 
     @classmethod
-    def _check_integer_bounds(cls, int_val: int, min_val: int = None, max_val: int = None) -> None:
+    def _check_integer_bounds(
+        cls, int_val: int, min_val: int = None, max_val: int = None
+    ) -> None:
         """Check integer bounds."""
         if min_val is not None and int_val < min_val:
-            raise HTTPException(status_code=400, detail=f"Value must be at least {min_val}")
+            raise HTTPException(
+                status_code=400, detail=f"Value must be at least {min_val}"
+            )
         if max_val is not None and int_val > max_val:
-            raise HTTPException(status_code=400, detail=f"Value must be at most {max_val}")
+            raise HTTPException(
+                status_code=400, detail=f"Value must be at most {max_val}"
+            )
 
     @classmethod
-    def validate_integer(cls, value: Any, min_val: int = None, max_val: int = None) -> int:
+    def validate_integer(
+        cls, value: Any, min_val: int = None, max_val: int = None
+    ) -> int:
         """Validate and convert to integer with bounds checking."""
         try:
             int_val = int(value)
@@ -164,7 +171,7 @@ class InputValidator:
     @classmethod
     def _validate_single_category(cls, cat: str) -> str:
         """Validate a single category name."""
-        if not re.match(r'^[\w\s\-]+$', cat):
+        if not re.match(r"^[\w\s\-]+$", cat):
             raise HTTPException(status_code=400, detail=f"Invalid category name: {cat}")
         if len(cat) > 50:
             raise HTTPException(status_code=400, detail="Category name too long")
@@ -175,16 +182,16 @@ class InputValidator:
         """Validate and sanitize category list input."""
         if not categories:
             return None
-        
+
         categories = cls.validate_xss_safe(categories)
         categories = cls.validate_sql_safe(categories)
-        
+
         category_list = []
         for cat in categories.split(","):
             cat = cat.strip()
             if cat:
                 category_list.append(cls._validate_single_category(cat))
-        
+
         return category_list if category_list else None
 
     @classmethod
@@ -200,15 +207,15 @@ class InputValidator:
         """Validate and parse exclude_ids parameter."""
         if not exclude_ids:
             return []
-        
+
         exclude_ids = cls.sanitize_string(exclude_ids, max_length=500)
-        
-        if not re.match(r'^[\d,\s]+$', exclude_ids):
+
+        if not re.match(r"^[\d,\s]+$", exclude_ids):
             raise HTTPException(
-                status_code=400, 
-                detail="Invalid exclude_ids format: only numbers and commas allowed"
+                status_code=400,
+                detail="Invalid exclude_ids format: only numbers and commas allowed",
             )
-        
+
         try:
             ids = []
             for id_str in exclude_ids.split(","):
@@ -222,7 +229,7 @@ class InputValidator:
     @classmethod
     def _validate_cursor_format(cls, cursor: str) -> None:
         """Validate cursor format."""
-        if not re.match(r'^[a-zA-Z0-9+/=_-]+$', cursor):
+        if not re.match(r"^[a-zA-Z0-9+/=_-]+$", cursor):
             raise HTTPException(status_code=400, detail="Invalid cursor format")
 
     @classmethod
@@ -230,7 +237,7 @@ class InputValidator:
         """Validate cursor parameter for pagination."""
         if not cursor:
             return None
-        
+
         cursor = cls.sanitize_string(cursor, max_length=200)
         cls._validate_cursor_format(cursor)
         return cursor
@@ -238,8 +245,8 @@ class InputValidator:
     @classmethod
     def _remove_control_chars(cls, safe_str: str) -> str:
         """Remove control characters and ANSI sequences."""
-        safe_str = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\n\r\t]', '', safe_str)
-        safe_str = re.sub(r'\x1b\[[0-9;]*m', '', safe_str)
+        safe_str = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\n\r\t]", "", safe_str)
+        safe_str = re.sub(r"\x1b\[[0-9;]*m", "", safe_str)
         return safe_str
 
     @classmethod
@@ -247,7 +254,7 @@ class InputValidator:
         """Sanitize input for safe logging to prevent log injection."""
         if value is None:
             return "None"
-        
+
         safe_str = str(value)[:max_length]
         return cls._remove_control_chars(safe_str)
 
@@ -260,30 +267,33 @@ class InputValidator:
     @classmethod
     def _validate_search_characters(cls, query: str) -> None:
         """Validate search query characters."""
-        if re.search(r'[<>{}[\]\\]', query):
-            raise HTTPException(status_code=400, detail="Invalid characters in search query")
+        if re.search(r"[<>{}[\]\\]", query):
+            raise HTTPException(
+                status_code=400, detail="Invalid characters in search query"
+            )
 
     @classmethod
     def validate_search_query(cls, query: str) -> str:
         """Validate search query input."""
         if not isinstance(query, str):
             query = str(query)
-        
+
         cls._validate_search_length(query)
-        
+
         query = cls.validate_sql_safe(query)
         query = cls.validate_xss_safe(query)
         query = cls.validate_command_safe(query)
-        
+
         cls._validate_search_characters(query)
-        
+
         return query.strip()
 
 
 def _validate_key_name(key: str) -> None:
     """Validate parameter key name."""
-    if not isinstance(key, str) or not re.match(r'^[a-zA-Z_][\w]*$', key):
+    if not isinstance(key, str) or not re.match(r"^[a-zA-Z_][\w]*$", key):
         raise HTTPException(status_code=400, detail=f"Invalid parameter name: {key}")
+
 
 def _sanitize_value(value: Any) -> Any:
     """Sanitize a single value based on its type."""
@@ -292,9 +302,13 @@ def _sanitize_value(value: Any) -> Any:
     elif isinstance(value, (int, float, bool)):
         return value
     elif isinstance(value, list):
-        return [InputValidator.sanitize_string(item) if isinstance(item, str) else item for item in value]
+        return [
+            InputValidator.sanitize_string(item) if isinstance(item, str) else item
+            for item in value
+        ]
     else:
         return InputValidator.sanitize_string(str(value))
+
 
 def validate_request_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -303,12 +317,12 @@ def validate_request_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     if not isinstance(data, dict):
         raise HTTPException(status_code=400, detail="Invalid request data format")
-    
+
     validated_data = {}
     for key, value in data.items():
         _validate_key_name(key)
         validated_data[key] = _sanitize_value(value)
-    
+
     return validated_data
 
 
@@ -320,15 +334,18 @@ def _apply_security_validations(user_input: str) -> str:
     user_input = InputValidator.validate_command_safe(user_input)
     return user_input
 
-def get_safe_user_input(data: Dict[str, Any], field_name: str, default: str = "") -> str:
+
+def get_safe_user_input(
+    data: Dict[str, Any], field_name: str, default: str = ""
+) -> str:
     """
     Safely extract and validate user input from request data.
     This replaces the vulnerable _get_user_input pattern.
     """
     validated_data = validate_request_data(data)
     user_input = validated_data.get(field_name, default)
-    
+
     if not isinstance(user_input, str):
         user_input = str(user_input)
-    
+
     return _apply_security_validations(user_input)

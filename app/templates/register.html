@@ -58,14 +58,10 @@
     // Save register form data and redirect to login page
     function saveRegisterDataAndRedirect() {
         const username = document.getElementById('username')?.value || '';
-        const password = document.getElementById('password')?.value || '';
         if (username) {
             sessionStorage.setItem('login_username', username);
         }
-        if (password) {
-            sessionStorage.setItem('login_password', password);
-        }
-        window.location.href = '/login';
+        globalThis.location.href = '/login';
     }
 
     // Restore form data from sessionStorage
@@ -183,7 +179,8 @@
                 if (!reqs.lowercase) failedReqs.push('lowercase letter');
                 if (!reqs.uppercase) failedReqs.push('uppercase letter');
                 if (!reqs.number) failedReqs.push('number');
-                if (!reqs.special) failedReqs.push('special character (@$!%*?&#:"\')');                errorDiv.textContent = `Password missing: ${failedReqs.join(', ')}`;
+                if (!reqs.special) failedReqs.push('special character (@$!%*?&#:"\')');
+                errorDiv.textContent = `Password missing: ${failedReqs.join(', ')}`;
                 errorDiv.style.display = 'block';
                 return false;
             }
@@ -243,6 +240,7 @@
                     handleErrorResponse(errorDiv, inputs, error.detail || 'Registration failed');
                 }
             } catch (error) {
+                console.error('Registration error:', error);
                 handleErrorResponse(errorDiv, inputs, 'Network error. Please try again.');
             }
         });

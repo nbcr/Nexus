@@ -127,7 +127,7 @@ function showRegisterButtons() {
 function handleAuth() {
     // Debug message for login button click
     // Only redirect to login if not authenticated
-    window.location.href = '/static/login.html';
+    globalThis.location.href = '/static/login.html';
 }
 
 /**

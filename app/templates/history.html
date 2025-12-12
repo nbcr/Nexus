@@ -501,7 +501,7 @@
         }
 
         function renderPagination(container, data, type, page) {
-            if (data.total <= data.page_size) {
+            if (!(data.total > data.page_size)) {
                 container.innerHTML = '';
                 return;
             }

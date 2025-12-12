@@ -64,7 +64,7 @@ function getCookie(name) {
             });
             if (response.ok) {
                 // Token is valid, redirect to home
-                window.location.href = '/';
+                globalThis.location.href = '/';
             } else {
                 // Token is invalid/expired, clear it
                 localStorage.removeItem('access_token');
@@ -92,7 +92,7 @@ function saveFormDataAndRedirect() {
     if (password) {
         sessionStorage.setItem('register_password', password);
     }
-    window.location.href = '/register';
+    globalThis.location.href = '/register';
 }
 
 // Save form data to sessionStorage
@@ -106,7 +106,6 @@ function saveFormData() {
 // Restore form data from sessionStorage
 function restoreFormData() {
     const savedUsername = sessionStorage.getItem('login_username');
-    const savedPassword = sessionStorage.getItem('login_password');
     if (savedUsername) {
         const usernameInput = document.getElementById('username');
         if (usernameInput) {
@@ -196,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sessionStorage.removeItem('login_username');
                 sessionStorage.removeItem('login_password');
                 
-                window.location.href = '/';
+                globalThis.location.href = '/';
             } else {
                 // Flash red for error
                 flashRed(usernameInput);
@@ -208,6 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             // Flash red for error
+            console.error('Login error:', error);
             flashRed(usernameInput);
             flashRed(passwordInput);
             
