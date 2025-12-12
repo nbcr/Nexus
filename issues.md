@@ -2,13 +2,13 @@
 
 **Project:** nbcr_Nexus
 
-**Total Issues:** 195
+**Total Issues:** 191
 
-**JavaScript Issues:** 60
+**JavaScript Issues:** 58
 
 ## Issues by Severity
 
-### 🔴 CRITICAL Issues (17)
+### 🔴 CRITICAL Issues (13)
 
 
 
@@ -21,29 +21,24 @@
 #### app/static/js/HeaderDarkMode.js
 - **Line 45:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
 
-#### app/static/js/header.js
-- **Line 223:** Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed. (`javascript:S3776`)
-- **Line 43:** Refactor this function to reduce its Cognitive Complexity from 51 to the 15 allowed. (`javascript:S3776`)
+
 
 #### app/templates/register.html
 - **Line 170:** Refactor this function to reduce its Cognitive Complexity from 18 to the 15 allowed. (`javascript:S3776`)
 
-#### app/utils/async_rss_parser.py
-- **Line 53:** Refactor this function to reduce its Cognitive Complexity from 36 to the 15 allowed. (`python:S3776`)
+
 
 #### block_china_russia.py
 - **Line 127:** Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed. (`python:S3776`)
 
 
 
-#### nexus_service.py
-- **Line 200:** Refactor this function to reduce its Cognitive Complexity from 36 to the 15 allowed. (`python:S3776`)
+
 
 #### scripts/check_categorization.py
 - **Line 68:** Specify an exception class to catch or reraise the exception (`python:S5754`)
 
-#### scripts/get_sonar_issues.py
-- **Line 93:** Refactor this function to reduce its Cognitive Complexity from 31 to the 15 allowed. (`python:S3776`)
+
 
 #### scripts/update_cache_bust.py
 - **Line 119:** Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed. (`python:S3776`)
