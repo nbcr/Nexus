@@ -10,6 +10,7 @@ from sqlalchemy import (
     Boolean,
     JSON,
     ForeignKey,
+    LargeBinary,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -36,6 +37,9 @@ class ContentItem(Base):
     ai_model_used: Mapped[str] = mapped_column(String(100))
     source_urls: Mapped[List[str]] = mapped_column(JSON, default=list)
     source_metadata: Mapped[Dict[str, Any]] = mapped_column(JSON, default=dict)
+    image_data: Mapped[bytes | None] = mapped_column(
+        LargeBinary, nullable=True
+    )  # WebP image stored as binary
     local_image_path: Mapped[str | None] = mapped_column(
         String(255), nullable=True
     )  # Path to locally stored optimized image

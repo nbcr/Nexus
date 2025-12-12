@@ -358,15 +358,15 @@ async def _download_article_image(content: ContentItem, article_data: dict) -> N
     """Download and optimize image for content."""
     if article_data.get("image_url"):
         try:
-            local_image_path = await asyncio.to_thread(
+            image_data = await asyncio.to_thread(
                 article_scraper.download_and_optimize_image,
                 article_data["image_url"],
                 content.id,
             )
-            if local_image_path:
-                content.local_image_path = local_image_path
+            if image_data:
+                content.image_data = image_data
                 print(
-                    f"✅ Stored optimized image for content {content.id}: {local_image_path}"
+                    f"✅ Stored optimized image for content {content.id}"
                 )
         except Exception as e:
             print(f"⚠️ Failed to optimize image: {e}")
@@ -834,6 +834,71 @@ async def _scrape_thumbnail(
         )
     _thumbnail_cache[content.id] = (None, current_time)
     return None
+
+
+@router.get("/{content_id}/image")
+async def get_content_image(
+    content_id: int,
+    size: int = Query(800, ge=400, le=1600),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Serve stored WebP image for content, with optional resizing.
+    Images are stored at 600px and upscaled on-demand.
+    
+    Args:
+        content_id: ID of the content item
+        size: Desired width in pixels (400-1600, default 800)
+    
+    Returns:
+        WebP image data with appropriate size
+    """
+    try:
+        result = await db.execute(
+            select(ContentItem).where(ContentItem.id == content_id)
+        )
+        content = result.scalar_one_or_none()
+        
+        if not content or not content.image_data:
+            raise HTTPException(status_code=404, detail="Image not found")
+        
+        # If size matches or is smaller than original, return as-is
+        if size <= 600:
+            return StreamingResponse(
+                iter([content.image_data]),
+                media_type="image/webp",
+                headers={"Cache-Control": "public, max-age=86400"}
+            )
+        
+        # Upscale image using high-quality resampling
+        from PIL import Image
+        from io import BytesIO
+        
+        img = Image.open(BytesIO(content.image_data))
+        
+        # Calculate aspect ratio and new height
+        aspect_ratio = img.height / img.width
+        new_height = int(size * aspect_ratio)
+        
+        # Upscale with LANCZOS resampling (best for enlargement)
+        img = img.resize((size, new_height), Image.Resampling.LANCZOS)
+        
+        # Save as WebP
+        output = BytesIO()
+        img.save(output, "WEBP", quality=75, method=6)
+        output.seek(0)
+        
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="image/webp",
+            headers={"Cache-Control": "public, max-age=86400"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Failed to serve image for content {content_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to serve image")
 
 
 @router.get("/proxy/image")

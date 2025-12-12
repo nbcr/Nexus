@@ -392,13 +392,13 @@ class TrendingPersistence:
             # Download and optimize image
             if article_data.get("image_url"):
                 try:
-                    local_path = await asyncio.to_thread(
+                    image_data = await asyncio.to_thread(
                         article_scraper.download_and_optimize_image,
                         article_data["image_url"],
                         content.id,
                     )
-                    if local_path:
-                        content.local_image_path = local_path
+                    if image_data:
+                        content.image_data = image_data
                         print(f"  ✅ Scraped & stored image for '{title}'")
                 except Exception as e:
                     print(f"  ⚠️ Image download failed for '{title}': {e}")

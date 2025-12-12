@@ -11,6 +11,7 @@ from typing import Optional, Dict, List
 import re
 from urllib.parse import urlparse
 from fastapi import HTTPException
+from io import BytesIO
 
 
 class ArticleScraperService:
@@ -902,21 +903,20 @@ class ArticleScraperService:
 
     def download_and_optimize_image(
         self, image_url: str, content_id: int
-    ) -> Optional[str]:
+    ) -> Optional[bytes]:
         """
-        Download image from URL and optimize it for storage.
+        Download image from URL and optimize it for database storage.
+        Converts to WebP at 600px width for responsive scaling.
 
         Args:
             image_url: URL of the image to download
-            content_id: ID of the content item for filename
+            content_id: ID of the content item (for reference only)
 
         Returns:
-            Local path to optimized image if successful, None otherwise
+            Binary WebP image data if successful, None otherwise
         """
         try:
             from PIL import Image
-            from io import BytesIO
-            import os
 
             # Validate URL
             self._validate_url(image_url)
@@ -936,22 +936,15 @@ class ArticleScraperService:
                 )
                 img = rgb_img
 
-            # Resize to display size
-            img.thumbnail((480, 270), Image.Resampling.LANCZOS)
+            # Resize to 600px width for database storage (upscales on serving)
+            img.thumbnail((600, 337), Image.Resampling.LANCZOS)
 
-            # Create storage directory
-            image_dir = os.path.join(
-                os.path.dirname(__file__), "..", "static", "images", "articles"
-            )
-            os.makedirs(image_dir, exist_ok=True)
-
-            # Save optimized image
-            filename = f"article_{content_id}.jpg"
-            filepath = os.path.join(image_dir, filename)
-            img.save(filepath, "JPEG", quality=85, optimize=True)
-
-            # Return relative path for serving
-            return f"/static/images/articles/{filename}"
+            # Save as WebP with quality 75
+            output = BytesIO()
+            img.save(output, "WEBP", quality=75, method=6)  # method=6 for best compression
+            output.seek(0)
+            
+            return output.getvalue()
 
         except Exception as e:
             print(f"❌ Failed to download/optimize image {image_url}: {e}")
