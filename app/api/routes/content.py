@@ -228,7 +228,8 @@ async def get_personalized_feed(
 
     # Trigger background scraping for articles without content
     # This happens in parallel without blocking the response
-    asyncio.create_task(background_scrape_articles())
+    task = asyncio.create_task(background_scrape_articles())
+    task.add_done_callback(lambda t: None)  # Prevent garbage collection
 
     response_data = {
         "page": page,
