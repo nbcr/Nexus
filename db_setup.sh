@@ -86,8 +86,8 @@ echo "Next steps:"
 echo "1. Restart Nexus API: sudo systemctl restart nexus"
 echo "2. Test new endpoints: curl http://localhost:8000/api/v1/topics"
 echo "3. Check logs: tail -f /home/nexus/nexus/logs/error.log"
-echo ""
-echo "Useful commands:"
-echo "  - Connect to DB: psql -U nexus_user -d nexus"
-echo "  - List tables: psql -U nexus_user -d nexus -c '\dt'"
+echo "" >&2
+echo "Useful commands:" >&2
+echo "  - Connect to DB: psql -U nexus_user -d nexus" >&2
+echo "  - List tables: psql -U nexus_user -d nexus -c '\dt'" >&2
 echo "  - View users: psql -U nexus_user -d nexus -c 'SELECT * FROM users;'"

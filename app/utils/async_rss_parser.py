@@ -80,7 +80,7 @@ class AsyncRSSParser:
             print(f"[WARN] XML parsing failed for {feed_url}: {xml_error}")
             return None
 
-    def _extract_json_entries(self, parsed: Dict, feed_url: str) -> Dict:
+    def _extract_json_entries(self, parsed: Dict) -> Dict:
         """Extract entries from parsed JSON"""
         for key in ["items", "entries"]:
             if key in parsed:
@@ -89,7 +89,7 @@ class AsyncRSSParser:
                     entries = [entries] if entries else []
                 print(f"[OK] Parsed {len(entries)} entries from JSON ({key})")
                 return {"feed": parsed, "entries": entries}
-        return None
+        return {}
 
     def _try_json_parsing(self, content: str, feed_url: str) -> Dict:
         """Try to parse content as JSON feed"""

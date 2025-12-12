@@ -148,16 +148,16 @@ class ContentRecommendationService:
     def _extract_tags(self, content: ContentItem, topic: Topic) -> set:
         """Extract all tags from content and topic"""
         tags = set()
-        
+
         # Handle topic tags - check if it's a list/iterable, not a SQLAlchemy Column
-        if hasattr(topic, 'tags') and topic.tags is not None:
+        if hasattr(topic, "tags") and topic.tags is not None:
             try:
                 # Only proceed if it's actually a list/iterable
                 if isinstance(topic.tags, (list, tuple)):
                     tags = set(topic.tags)
             except (TypeError, AttributeError):
                 pass
-        
+
         if content.source_metadata:
             tags.update(content.source_metadata.get("tags", []))
         return tags
@@ -220,7 +220,7 @@ class ContentRecommendationService:
         ]
         if all_excluded:
             where_clauses.append(ContentItem.id.notin_(all_excluded))
-        
+
         query = (
             select(ContentItem, Topic)
             .join(Topic, ContentItem.topic_id == Topic.id)
@@ -401,9 +401,7 @@ class ContentRecommendationService:
 
         return query
 
-    def _build_feed_items(
-        self, rows
-    ) -> List[Dict]:
+    def _build_feed_items(self, rows) -> List[Dict]:
         """Build feed item dictionaries from query results"""
         items = []
         for content, topic in rows:
@@ -553,7 +551,11 @@ class ContentRecommendationService:
 
         for topic in all_queries:
             # Check if any tag matches key terms from the parent keyword
-            if topic.tags is not None and isinstance(topic.tags, (list, tuple)) and len(topic.tags) > 0:
+            if (
+                topic.tags is not None
+                and isinstance(topic.tags, (list, tuple))
+                and len(topic.tags) > 0
+            ):
                 for tag in topic.tags:
                     tag_lower = str(tag).lower()
                     # Match if any key term is in the tag
@@ -606,7 +608,12 @@ class ContentRecommendationService:
                 score += 0.2 * min(matching_interests / len(user_interests), 1.0)
 
         # Tag match
-        if user_interests and topic.tags is not None and isinstance(topic.tags, (list, tuple)) and len(topic.tags) > 0:
+        if (
+            user_interests
+            and topic.tags is not None
+            and isinstance(topic.tags, (list, tuple))
+            and len(topic.tags) > 0
+        ):
             matching_tags = sum(
                 1
                 for tag in topic.tags

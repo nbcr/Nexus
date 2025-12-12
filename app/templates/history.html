@@ -501,7 +501,7 @@
         }
 
         function renderPagination(container, data, type, page) {
-            if (!(data.total > data.page_size)) {
+            if (data.total <= data.page_size) {
                 container.innerHTML = '';
                 return;
             }
@@ -513,7 +513,7 @@
                     ← Previous
                 </button>
                 <span>Page ${page} of ${totalPages}</span>
-                <button onclick="changePage('${type}', ${page + 1})" ${!data.has_more ? 'disabled' : ''}>
+                <button onclick="changePage('${type}', ${page + 1})" ${data.has_more ? '' : 'disabled'}>
                     Next →
                 </button>
             `;
@@ -572,11 +572,9 @@
         }
 
         // Load initial history on page load
-        async function initHistory() {
+        await (async () => {
             await loadHistory('seen', 1);
-        }
-
-        initHistory();
+        })();
     </script>
 </body>
 

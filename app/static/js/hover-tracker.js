@@ -395,10 +395,8 @@ class HoverTrackerDeprecated {
                 if (window.nexusDebugMode) {
                     console.log(`✅ Interest reported for card ${this.contentId}:`, data);
                 }
-            } else {
-                if (window.nexusDebugMode) {
-                    console.warn(`⚠️ Failed to report interest for card ${this.contentId}`);
-                }
+            } else if (window.nexusDebugMode) {
+                console.warn(`⚠️ Failed to report interest for card ${this.contentId}`);
             }
         } catch (error) {
             if (window.nexusDebugMode) {

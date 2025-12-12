@@ -64,11 +64,16 @@
 
 <body>
     <div class="error-container">
-        <img src="/static/logo.png" alt="Nexus Logo" class="logo" onerror="this.style.display='none'">
+        <img src="/static/logo.png" alt="Nexus Logo" class="logo" id="logo-img">
         <h1>502</h1>
         <p>Bad Gateway<br>Our servers are having trouble right now.<br>Please try again in a moment.</p>
         <p><a href="/">Go back to homepage</a></p>
     </div>
+    <script>
+        document.getElementById('logo-img').addEventListener('error', function() {
+            this.style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

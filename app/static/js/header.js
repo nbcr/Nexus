@@ -21,10 +21,10 @@ console.warn('⚠️ header.js is deprecated. Please use HeaderAuth.js, HeaderDa
 // Set persistent visitor_id cookie if not present
 function setVisitorIdCookie() {
     let visitorId = null;
-    const match = document.cookie.match(/(?:^|; )visitor_id=([^;]*)/);
+    const match = /(?:^|; )visitor_id=([^;]*)/.exec(document.cookie);
     if (match) visitorId = match[1];
     if (!visitorId) {
-        visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substr(2, 16) + Date.now());
+        visitorId = crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2, 18) + Date.now());
         const expires = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toUTCString(); // 2 years
         document.cookie = `visitor_id=${visitorId}; expires=${expires}; path=/; SameSite=Lax`;
     }
@@ -38,7 +38,7 @@ function setVisitorIdCookie() {
 let currentUser = null;
 
 function getAccessToken() {
-    const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/);
+    const match = /(?:^|; )access_token=([^;]*)/;.exec(document.cookie);
     if (match) return match[1];
     return globalThis.localStorage?.getItem('access_token') || null;
 }
@@ -116,6 +116,7 @@ async function checkAuthStatus() {
             updateUIForUnauthenticatedUser();
         }
     } catch (error) {
+        console.error('Auth initialization error:', error);
         updateUIForUnauthenticatedUser();
     }
 }
@@ -126,7 +127,7 @@ async function checkAuthStatus() {
 function handleAuth() {
     // Debug message for login button click
     // Only redirect to login if not authenticated
-    window.location.href = '/static/login.html';
+    globalThis.location.href = '/static/login.html';
 }
 
 /**
@@ -162,7 +163,7 @@ async function handleLogout() {
         }
 
         // Redirect to dedicated logged out page
-        window.location.href = "/logged-out.html";
+        globalThis.location.href = "/logged-out.html";
     } catch (error) {
         console.error('Logout error:', error);
     }
@@ -279,7 +280,7 @@ function toggleDarkMode() {
     applyModeClasses(willBeLight);
 
     // Force repaint to ensure background color updates
-    void document.documentElement.offsetHeight;
+    document.documentElement.offsetHeight;
 
     console.log('After toggle - html classes:', document.documentElement.className);
     console.log('After toggle - body classes:', document.body.className);

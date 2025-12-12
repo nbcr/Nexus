@@ -45,7 +45,7 @@ class FeedRenderer {
     }
 
     buildSummaryHtml(item) {
-        if (!item.facts || !item.facts.trim()) {
+        if (!item?.facts?.trim?.()) {
             return '<div class="feed-item-summary"></div>';
         }
 

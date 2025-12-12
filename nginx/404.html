@@ -64,11 +64,16 @@
 
 <body>
     <div class="error-container">
-        <img src="/static/logo.png" alt="Nexus Logo" class="logo" onerror="this.style.display='none'">
+        <img src="/static/logo.png" alt="Nexus Logo" class="logo" id="logo-img">
         <h1>404</h1>
         <p>Page not found.<br>The page you are looking for does not exist.</p>
         <p><a href="/">Go back to homepage</a></p>
     </div>
+    <script>
+        document.getElementById('logo-img').addEventListener('error', function() {
+            this.style.display = 'none';
+        });
+    </script>
 </body>
 
 </html>

@@ -1,6 +1,6 @@
 {
   "project_key": "nbcr_Nexus",
-  "total_issues": 111,
+  "total_issues": 58,
   "js_issues": [
     {
       "file": "app/static/js/FeedRenderer.js",
@@ -9,86 +9,6 @@
       "type": "CODE_SMELL",
       "rule": "javascript:S6582",
       "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
-    },
-    {
-      "file": "app/static/js/FeedRenderer.js",
-      "line": 124,
-      "severity": "MAJOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S4624",
-      "message": "Refactor this code to not use nested template literals."
-    },
-    {
-      "file": "app/static/js/HeaderAuth.js",
-      "line": 39,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/HeaderAuth.js",
-      "line": 166,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/HeaderAuth.js",
-      "line": 175,
-      "severity": "MAJOR",
-      "type": "BUG",
-      "rule": "javascript:S6544",
-      "message": "Promise-returning function provided to variable where a void return was expected."
-    },
-    {
-      "file": "app/static/js/HoverTracker.js",
-      "line": 389,
-      "severity": "MAJOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S6660",
-      "message": "'If' statement should not be the only statement in 'else' block"
-    },
-    {
-      "file": "app/static/js/feed-notifier.js",
-      "line": 158,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/feed-notifier.js",
-      "line": 160,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/feed-notifier.js",
-      "line": 243,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/feed-notifier.js",
-      "line": 244,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/feed-notifier.js",
-      "line": 248,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
     },
     {
       "file": "app/static/js/header.js",
@@ -140,39 +60,15 @@
     },
     {
       "file": "app/static/js/header.js",
-      "line": 206,
+      "line": 282,
       "severity": "CRITICAL",
       "type": "CODE_SMELL",
-      "rule": "javascript:S3776",
-      "message": "Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed."
+      "rule": "javascript:S3735",
+      "message": "Remove this use of the \"void\" operator."
     },
     {
       "file": "app/static/js/header.js",
-      "line": 265,
-      "severity": "MAJOR",
-      "type": "BUG",
-      "rule": "javascript:S905",
-      "message": "Expected an assignment or function call and instead saw an expression."
-    },
-    {
-      "file": "app/static/js/header.js",
-      "line": 371,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S1481",
-      "message": "Remove the declaration of the unused 'lastScrollTop' variable."
-    },
-    {
-      "file": "app/static/js/header.js",
-      "line": 386,
-      "severity": "MAJOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S125",
-      "message": "Remove this commented out code."
-    },
-    {
-      "file": "app/static/js/header.js",
-      "line": 393,
+      "line": 407,
       "severity": "MINOR",
       "type": "CODE_SMELL",
       "rule": "javascript:S7764",
@@ -281,118 +177,6 @@
       "type": "CODE_SMELL",
       "rule": "javascript:S7764",
       "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/trending.js",
-      "line": 20,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7735",
-      "message": "Unexpected negated condition."
-    },
-    {
-      "file": "app/static/js/trending.js",
-      "line": 93,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7780",
-      "message": "`String.raw` should be used to avoid escaping `\\`."
-    },
-    {
-      "file": "app/static/js/trending.js",
-      "line": 136,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7735",
-      "message": "Unexpected negated condition."
-    },
-    {
-      "file": "app/static/js/trending.js",
-      "line": 158,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 5,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S6647",
-      "message": "Useless constructor."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 41,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 44,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 50,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 51,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 73,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 78,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 90,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 100,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
-    },
-    {
-      "file": "app/static/js/ui.js",
-      "line": 103,
-      "severity": "MINOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S7764",
-      "message": "Prefer `globalThis` over `window`."
     }
   ],
   "feedrenderer_issues": [
@@ -403,28 +187,125 @@
       "type": "CODE_SMELL",
       "rule": "javascript:S6582",
       "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read."
-    },
-    {
-      "file": "app/static/js/FeedRenderer.js",
-      "line": 124,
-      "severity": "MAJOR",
-      "type": "CODE_SMELL",
-      "rule": "javascript:S4624",
-      "message": "Refactor this code to not use nested template literals."
     }
   ],
   "raw_data": {
-    "total": 111,
+    "total": 58,
     "p": 1,
     "ps": 500,
     "paging": {
       "pageIndex": 1,
       "pageSize": 500,
-      "total": 111
+      "total": 58
     },
-    "effortTotal": 578,
-    "debtTotal": 578,
+    "effortTotal": 294,
+    "debtTotal": 294,
     "issues": [
+      {
+        "key": "AZsSuPFWM3-8Um7cAeLx",
+        "rule": "python:S1172",
+        "severity": "MAJOR",
+        "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
+        "project": "nbcr_Nexus",
+        "line": 83,
+        "hash": "ca4ec538fc365c7402bc4fc674f17fa0",
+        "textRange": {
+          "startLine": 83,
+          "endLine": 83,
+          "startOffset": 50,
+          "endOffset": 63
+        },
+        "flows": [],
+        "status": "OPEN",
+        "message": "Remove the unused function parameter \"feed_url\".",
+        "effort": "5min",
+        "debt": "5min",
+        "author": "840382+nbcr@users.noreply.github.com",
+        "tags": [
+          "unused"
+        ],
+        "creationDate": "2025-12-12T13:20:19+0000",
+        "updateDate": "2025-12-12T13:20:19+0000",
+        "type": "CODE_SMELL",
+        "organization": "nbcr",
+        "cleanCodeAttribute": "CLEAR",
+        "cleanCodeAttributeCategory": "INTENTIONAL",
+        "impacts": [
+          {
+            "softwareQuality": "MAINTAINABILITY",
+            "severity": "MEDIUM"
+          }
+        ],
+        "issueStatus": "OPEN",
+        "projectName": "Nexus"
+      },
+      {
+        "key": "AZsSuPFWM3-8Um7cAeLy",
+        "rule": "python:S5886",
+        "severity": "MAJOR",
+        "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
+        "project": "nbcr_Nexus",
+        "line": 92,
+        "hash": "449f1214372c5738fe3cd1ae063cb034",
+        "textRange": {
+          "startLine": 92,
+          "endLine": 92,
+          "startOffset": 15,
+          "endOffset": 19
+        },
+        "flows": [
+          {
+            "locations": [
+              {
+                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
+                "textRange": {
+                  "startLine": 83,
+                  "endLine": 83,
+                  "startOffset": 8,
+                  "endOffset": 29
+                },
+                "msg": "Function definition."
+              }
+            ]
+          },
+          {
+            "locations": [
+              {
+                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
+                "textRange": {
+                  "startLine": 83,
+                  "endLine": 83,
+                  "startOffset": 68,
+                  "endOffset": 72
+                },
+                "msg": "Type hint."
+              }
+            ]
+          }
+        ],
+        "status": "OPEN",
+        "message": "Return a value of type \"dict\" instead of \"NoneType\" or update function \"_extract_json_entries\" type hint.",
+        "effort": "5min",
+        "debt": "5min",
+        "author": "840382+nbcr@users.noreply.github.com",
+        "tags": [
+          "typing"
+        ],
+        "creationDate": "2025-12-12T13:20:19+0000",
+        "updateDate": "2025-12-12T13:20:19+0000",
+        "type": "CODE_SMELL",
+        "organization": "nbcr",
+        "cleanCodeAttribute": "LOGICAL",
+        "cleanCodeAttributeCategory": "INTENTIONAL",
+        "impacts": [
+          {
+            "softwareQuality": "MAINTAINABILITY",
+            "severity": "MEDIUM"
+          }
+        ],
+        "issueStatus": "OPEN",
+        "projectName": "Nexus"
+      },
       {
         "key": "AZsSj9ACY155RdFNmAEi",
         "rule": "javascript:S1940",
@@ -454,84 +335,6 @@
         "organization": "nbcr",
         "cleanCodeAttribute": "CONVENTIONAL",
         "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSj89UY155RdFNmAEh",
-        "rule": "Web:S6851",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/index.html",
-        "project": "nbcr_Nexus",
-        "line": 107,
-        "hash": "e126953d37b6790fb01526a11229bf02",
-        "textRange": {
-          "startLine": 107,
-          "endLine": 107,
-          "startOffset": 0,
-          "endOffset": 101
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove redundant word \"image\" from the \"alt\" attribute of your \"img\" tag.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "accessibility"
-        ],
-        "creationDate": "2025-12-12T12:35:20+0000",
-        "updateDate": "2025-12-12T12:35:20+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          },
-          {
-            "softwareQuality": "RELIABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSjcvjKp2n72RmhUgT",
-        "rule": "javascript:S6647",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 5,
-        "hash": "018f246f3fae5d7d644ef9affdc1d128",
-        "textRange": {
-          "startLine": 5,
-          "endLine": 6,
-          "startOffset": 4,
-          "endOffset": 5
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Useless constructor.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [],
-        "creationDate": "2025-12-12T12:33:07+0000",
-        "updateDate": "2025-12-12T12:33:07+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
         "impacts": [
           {
             "softwareQuality": "MAINTAINABILITY",
@@ -623,84 +426,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZsSgU-qkCO5uz6W5Puw",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/HeaderAuth.js",
-        "project": "nbcr_Nexus",
-        "line": 39,
-        "hash": "2ce8323bdb3ec84f77d7b6b761b3bc29",
-        "textRange": {
-          "startLine": 39,
-          "endLine": 39,
-          "startOffset": 8,
-          "endOffset": 14
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-12-12T12:19:31+0000",
-        "updateDate": "2025-12-12T12:19:31+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSgU-qkCO5uz6W5Pux",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/HeaderAuth.js",
-        "project": "nbcr_Nexus",
-        "line": 166,
-        "hash": "60e826677ffae3f41d2ca7266ff0d358",
-        "textRange": {
-          "startLine": 166,
-          "endLine": 166,
-          "startOffset": 8,
-          "endOffset": 14
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-12-12T12:19:31+0000",
-        "updateDate": "2025-12-12T12:19:31+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZsSe8lYBijvWl0td0sN",
         "rule": "python:S1135",
         "severity": "INFO",
@@ -733,73 +458,6 @@
           {
             "softwareQuality": "MAINTAINABILITY",
             "severity": "INFO"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSe8q6BijvWl0td0sV",
-        "rule": "python:S5886",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/core/input_validation.py",
-        "project": "nbcr_Nexus",
-        "line": 203,
-        "hash": "449f1214372c5738fe3cd1ae063cb034",
-        "textRange": {
-          "startLine": 203,
-          "endLine": 203,
-          "startOffset": 15,
-          "endOffset": 19
-        },
-        "flows": [
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/core/input_validation.py",
-                "textRange": {
-                  "startLine": 198,
-                  "endLine": 198,
-                  "startOffset": 8,
-                  "endOffset": 24
-                },
-                "msg": "Function definition."
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/core/input_validation.py",
-                "textRange": {
-                  "startLine": 198,
-                  "endLine": 198,
-                  "startOffset": 46,
-                  "endOffset": 49
-                },
-                "msg": "Type hint."
-              }
-            ]
-          }
-        ],
-        "status": "OPEN",
-        "message": "Return a value of type \"int\" instead of \"NoneType\" or update function \"_parse_id_string\" type hint.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "typing"
-        ],
-        "creationDate": "2025-12-12T12:13:46+0000",
-        "updateDate": "2025-12-12T12:13:46+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "LOGICAL",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
           }
         ],
         "issueStatus": "OPEN",
@@ -844,443 +502,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZsSe8ooBijvWl0td0sS",
-        "rule": "javascript:S7785",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/login.html",
-        "project": "nbcr_Nexus",
-        "line": 81,
-        "hash": "6ecb85f8ecd2144fa75249f174f1d4d8",
-        "textRange": {
-          "startLine": 81,
-          "endLine": 81,
-          "startOffset": 10,
-          "endOffset": 12
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer top-level await over an async IIFE.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "async",
-          "es2022",
-          "modernize"
-        ],
-        "creationDate": "2025-12-12T12:13:46+0000",
-        "updateDate": "2025-12-12T12:13:46+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSe8ooBijvWl0td0sT",
-        "rule": "javascript:S905",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/login.html",
-        "project": "nbcr_Nexus",
-        "line": 164,
-        "hash": "b40dbfc1c7e5d6c32ff648b8feae74cb",
-        "textRange": {
-          "startLine": 164,
-          "endLine": 164,
-          "startOffset": 8,
-          "endOffset": 17
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Expected an assignment or function call and instead saw an expression.",
-        "effort": "10min",
-        "debt": "10min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe",
-          "unused"
-        ],
-        "creationDate": "2025-12-12T12:13:46+0000",
-        "updateDate": "2025-12-12T12:13:46+0000",
-        "type": "BUG",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "RELIABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSe8oABijvWl0td0sO",
-        "rule": "javascript:S7721",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 167,
-        "hash": "f39cd60916a11634ff168dc049bdaaab",
-        "textRange": {
-          "startLine": 167,
-          "endLine": 167,
-          "startOffset": 8,
-          "endOffset": 32
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Move function 'clearFormErrors' to the outer scope.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "javascript",
-          "optimization",
-          "performance"
-        ],
-        "creationDate": "2025-12-12T12:13:46+0000",
-        "updateDate": "2025-12-12T12:13:46+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "EFFICIENT",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSe8oABijvWl0td0sP",
-        "rule": "javascript:S7721",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 173,
-        "hash": "dad163c4c3f1219b20410864e449d4f7",
-        "textRange": {
-          "startLine": 173,
-          "endLine": 173,
-          "startOffset": 8,
-          "endOffset": 37
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Move function 'validatePasswordReqs' to the outer scope.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "javascript",
-          "optimization",
-          "performance"
-        ],
-        "creationDate": "2025-12-12T12:13:46+0000",
-        "updateDate": "2025-12-12T12:13:46+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "EFFICIENT",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSe8oABijvWl0td0sR",
-        "rule": "javascript:S7721",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 201,
-        "hash": "7041d2344d862ea033c2db0fc877e60c",
-        "textRange": {
-          "startLine": 201,
-          "endLine": 201,
-          "startOffset": 8,
-          "endOffset": 36
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Move function 'handleErrorResponse' to the outer scope.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "javascript",
-          "optimization",
-          "performance"
-        ],
-        "creationDate": "2025-12-12T12:13:46+0000",
-        "updateDate": "2025-12-12T12:13:46+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "EFFICIENT",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSciaKRwHSb8VV4ExB",
-        "rule": "python:S3776",
-        "severity": "CRITICAL",
-        "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-        "project": "nbcr_Nexus",
-        "line": 83,
-        "hash": "7eff04de2cca3ff1c9c1b31e5ac18c7a",
-        "textRange": {
-          "startLine": 83,
-          "endLine": 83,
-          "startOffset": 8,
-          "endOffset": 25
-        },
-        "flows": [
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-                "textRange": {
-                  "startLine": 87,
-                  "endLine": 87,
-                  "startOffset": 12,
-                  "endOffset": 14
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-                "textRange": {
-                  "startLine": 88,
-                  "endLine": 88,
-                  "startOffset": 16,
-                  "endOffset": 19
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-                "textRange": {
-                  "startLine": 89,
-                  "endLine": 89,
-                  "startOffset": 20,
-                  "endOffset": 22
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-                "textRange": {
-                  "startLine": 91,
-                  "endLine": 91,
-                  "startOffset": 24,
-                  "endOffset": 26
-                },
-                "msg": "+4 (incl 3 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-                "textRange": {
-                  "startLine": 92,
-                  "endLine": 92,
-                  "startOffset": 48,
-                  "endOffset": 50
-                },
-                "msg": "+5 (incl 4 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/utils/async_rss_parser.py",
-                "textRange": {
-                  "startLine": 96,
-                  "endLine": 96,
-                  "startOffset": 8,
-                  "endOffset": 14
-                },
-                "msg": "+1"
-              }
-            ]
-          }
-        ],
-        "status": "OPEN",
-        "message": "Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.",
-        "effort": "6min",
-        "debt": "6min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "brain-overload"
-        ],
-        "creationDate": "2025-12-12T12:03:09+0000",
-        "updateDate": "2025-12-12T12:03:09+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "FOCUSED",
-        "cleanCodeAttributeCategory": "ADAPTABLE",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "HIGH"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSbnp03cIrTWdxmKac",
-        "rule": "javascript:S905",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/static/js/header.js",
-        "project": "nbcr_Nexus",
-        "line": 265,
-        "hash": "bf44051de8005c907ad46610962a07e6",
-        "textRange": {
-          "startLine": 265,
-          "endLine": 265,
-          "startOffset": 4,
-          "endOffset": 42
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Expected an assignment or function call and instead saw an expression.",
-        "effort": "10min",
-        "debt": "10min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe",
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "BUG",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "RELIABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSbnp03cIrTWdxmKad",
-        "rule": "javascript:S1481",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/header.js",
-        "project": "nbcr_Nexus",
-        "line": 371,
-        "hash": "8ef521d2340891ccaad5e521528f8521",
-        "textRange": {
-          "startLine": 371,
-          "endLine": 371,
-          "startOffset": 8,
-          "endOffset": 21
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the declaration of the unused 'lastScrollTop' variable.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "nexus@nexus.comdat.ca",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSbnp03cIrTWdxmKae",
-        "rule": "javascript:S125",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/static/js/header.js",
-        "project": "nbcr_Nexus",
-        "line": 386,
-        "hash": "597fc7d129e18785b4f9e4d62adb4abb",
-        "textRange": {
-          "startLine": 386,
-          "endLine": 386,
-          "startOffset": 8,
-          "endOffset": 66
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove this commented out code.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZsSbn3z3cIrTWdxmKag",
         "rule": "python:S1481",
         "severity": "MINOR",
@@ -1319,160 +540,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZsSbn5a3cIrTWdxmKah",
-        "rule": "python:S1481",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:storage_monitor.py",
-        "project": "nbcr_Nexus",
-        "line": 195,
-        "hash": "05a9af3ef486f3a78e90ce2964f00ade",
-        "textRange": {
-          "startLine": 195,
-          "endLine": 195,
-          "startOffset": 60,
-          "endOffset": 61
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the unused local variable \"e\".",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSbn5a3cIrTWdxmKai",
-        "rule": "python:S1481",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:storage_monitor.py",
-        "project": "nbcr_Nexus",
-        "line": 236,
-        "hash": "05a9af3ef486f3a78e90ce2964f00ade",
-        "textRange": {
-          "startLine": 236,
-          "endLine": 236,
-          "startOffset": 60,
-          "endOffset": 61
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the unused local variable \"e\".",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSbn5a3cIrTWdxmKaj",
-        "rule": "python:S1481",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:storage_monitor.py",
-        "project": "nbcr_Nexus",
-        "line": 279,
-        "hash": "05a9af3ef486f3a78e90ce2964f00ade",
-        "textRange": {
-          "startLine": 279,
-          "endLine": 279,
-          "startOffset": 56,
-          "endOffset": 57
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the unused local variable \"e\".",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-12T11:58:57+0000",
-        "updateDate": "2025-12-12T11:58:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSYI8Xj5CRici0sXdY",
-        "rule": "javascript:S6544",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/static/js/HeaderAuth.js",
-        "project": "nbcr_Nexus",
-        "line": 175,
-        "hash": "16ccc0e1718bb47ad1bb1781f2c69941",
-        "textRange": {
-          "startLine": 175,
-          "endLine": 175,
-          "startOffset": 24,
-          "endOffset": 36
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Promise-returning function provided to variable where a void return was expected.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "async",
-          "promise",
-          "type-dependent"
-        ],
-        "creationDate": "2025-12-12T11:43:43+0000",
-        "updateDate": "2025-12-12T11:43:43+0000",
-        "type": "BUG",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "LOGICAL",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "RELIABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZsSX5g93cIrTWdxlfZH",
         "rule": "javascript:S6582",
         "severity": "MAJOR",
@@ -1499,803 +566,6 @@
         "organization": "nbcr",
         "cleanCodeAttribute": "CLEAR",
         "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsSX5g93cIrTWdxlfZI",
-        "rule": "javascript:S4624",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/static/js/FeedRenderer.js",
-        "project": "nbcr_Nexus",
-        "line": 124,
-        "hash": "d57cb8f55fbdf2040409a707edd16d08",
-        "textRange": {
-          "startLine": 124,
-          "endLine": 124,
-          "startOffset": 71,
-          "endOffset": 104
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Refactor this code to not use nested template literals.",
-        "effort": "10min",
-        "debt": "10min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "brain-overload",
-          "confusing"
-        ],
-        "creationDate": "2025-12-12T11:42:57+0000",
-        "updateDate": "2025-12-12T11:42:57+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsHjh-5cR2-lG0kZxpf",
-        "rule": "python:S3776",
-        "severity": "CRITICAL",
-        "component": "nbcr_Nexus:block_china_russia.py",
-        "project": "nbcr_Nexus",
-        "line": 133,
-        "hash": "36999f0b7d2b4dd75cc52066ae8a601f",
-        "textRange": {
-          "startLine": 133,
-          "endLine": 133,
-          "startOffset": 4,
-          "endOffset": 8
-        },
-        "flows": [
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 138,
-                  "endLine": 138,
-                  "startOffset": 4,
-                  "endOffset": 6
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 138,
-                  "endLine": 138,
-                  "startOffset": 19,
-                  "endOffset": 21
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 155,
-                  "endLine": 155,
-                  "startOffset": 4,
-                  "endOffset": 7
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 160,
-                  "endLine": 160,
-                  "startOffset": 8,
-                  "endOffset": 11
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 163,
-                  "endLine": 163,
-                  "startOffset": 12,
-                  "endOffset": 14
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 166,
-                  "endLine": 166,
-                  "startOffset": 12,
-                  "endOffset": 16
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 167,
-                  "endLine": 167,
-                  "startOffset": 16,
-                  "endOffset": 18
-                },
-                "msg": "+4 (incl 3 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 170,
-                  "endLine": 170,
-                  "startOffset": 16,
-                  "endOffset": 20
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 184,
-                  "endLine": 184,
-                  "startOffset": 4,
-                  "endOffset": 6
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:block_china_russia.py",
-                "textRange": {
-                  "startLine": 187,
-                  "endLine": 187,
-                  "startOffset": 4,
-                  "endOffset": 8
-                },
-                "msg": "+1"
-              }
-            ]
-          }
-        ],
-        "status": "OPEN",
-        "message": "Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.",
-        "effort": "6min",
-        "debt": "6min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "brain-overload"
-        ],
-        "creationDate": "2025-12-10T09:11:18+0000",
-        "updateDate": "2025-12-12T08:13:24+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "FOCUSED",
-        "cleanCodeAttributeCategory": "ADAPTABLE",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "HIGH"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsHjiDEcR2-lG0kZxps",
-        "rule": "python:S1172",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:intrusion_detector.py",
-        "project": "nbcr_Nexus",
-        "line": 180,
-        "hash": "926bf0d5ed9ab205491907f8abe5048a",
-        "textRange": {
-          "startLine": 180,
-          "endLine": 180,
-          "startOffset": 43,
-          "endOffset": 46
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the unused function parameter \"url\".",
-        "effort": "5min",
-        "debt": "5min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-10T08:49:52+0000",
-        "updateDate": "2025-12-12T08:13:24+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsBxnZLXm1SJ0fKenlZ",
-        "rule": "javascript:S6535",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 94,
-        "hash": "a159d394e0eff4dedbe7eb7f4160bb28",
-        "textRange": {
-          "startLine": 94,
-          "endLine": 94,
-          "startOffset": 38,
-          "endOffset": 39
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Unnecessary escape character: \\[.",
-        "effort": "5min",
-        "debt": "5min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [],
-        "creationDate": "2025-12-09T06:21:33+0000",
-        "updateDate": "2025-12-12T08:13:24+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZsBxnihXm1SJ0fKenlc",
-        "rule": "python:S3776",
-        "severity": "CRITICAL",
-        "component": "nbcr_Nexus:nexus_service.py",
-        "project": "nbcr_Nexus",
-        "line": 268,
-        "hash": "74a99f54a942b9b2741ade8eb144d100",
-        "textRange": {
-          "startLine": 268,
-          "endLine": 268,
-          "startOffset": 8,
-          "endOffset": 19
-        },
-        "flows": [
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 271,
-                  "endLine": 271,
-                  "startOffset": 8,
-                  "endOffset": 10
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 279,
-                  "endLine": 279,
-                  "startOffset": 8,
-                  "endOffset": 13
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 283,
-                  "endLine": 283,
-                  "startOffset": 16,
-                  "endOffset": 18
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 291,
-                  "endLine": 291,
-                  "startOffset": 16,
-                  "endOffset": 18
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 292,
-                  "endLine": 292,
-                  "startOffset": 20,
-                  "endOffset": 23
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 293,
-                  "endLine": 293,
-                  "startOffset": 24,
-                  "endOffset": 26
-                },
-                "msg": "+4 (incl 3 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 296,
-                  "endLine": 296,
-                  "startOffset": 16,
-                  "endOffset": 18
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 300,
-                  "endLine": 300,
-                  "startOffset": 20,
-                  "endOffset": 22
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 303,
-                  "endLine": 303,
-                  "startOffset": 12,
-                  "endOffset": 18
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:nexus_service.py",
-                "textRange": {
-                  "startLine": 305,
-                  "endLine": 305,
-                  "startOffset": 16,
-                  "endOffset": 18
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          }
-        ],
-        "status": "OPEN",
-        "message": "Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed.",
-        "effort": "13min",
-        "debt": "13min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "brain-overload"
-        ],
-        "creationDate": "2025-12-09T04:19:28+0000",
-        "updateDate": "2025-12-12T12:03:09+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "FOCUSED",
-        "cleanCodeAttributeCategory": "ADAPTABLE",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "HIGH"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZr0nviZ_yW0j27_nQRH",
-        "rule": "python:S3457",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:storage_monitor.py",
-        "project": "nbcr_Nexus",
-        "line": 399,
-        "hash": "b328259360c89722ce08f8754a2a9449",
-        "textRange": {
-          "startLine": 399,
-          "endLine": 399,
-          "startOffset": 12,
-          "endOffset": 46
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Add replacement fields or use a normal string instead of an f-string.",
-        "effort": "1min",
-        "debt": "1min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "confusing"
-        ],
-        "creationDate": "2025-12-06T17:03:17+0000",
-        "updateDate": "2025-12-12T08:13:24+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "LOGICAL",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZr0iXKy3DlPyLSGoAST",
-        "rule": "python:S3457",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:benchmark_feeds.py",
-        "project": "nbcr_Nexus",
-        "line": 189,
-        "hash": "f6baae298bf9c2ffb0c35b279a1d148d",
-        "textRange": {
-          "startLine": 189,
-          "endLine": 189,
-          "startOffset": 10,
-          "endOffset": 49
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Add replacement fields or use a normal string instead of an f-string.",
-        "effort": "1min",
-        "debt": "1min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "confusing"
-        ],
-        "creationDate": "2025-12-06T16:39:45+0000",
-        "updateDate": "2025-12-12T08:13:24+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "LOGICAL",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZr0fhIx3DlPyLSGnko2",
-        "rule": "python:S3776",
-        "severity": "CRITICAL",
-        "component": "nbcr_Nexus:test_fetch_performance.py",
-        "project": "nbcr_Nexus",
-        "line": 46,
-        "hash": "12d53f7b42fbbb98311421cd146441d4",
-        "textRange": {
-          "startLine": 46,
-          "endLine": 46,
-          "startOffset": 10,
-          "endOffset": 30
-        },
-        "flows": [
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 56,
-                  "endLine": 56,
-                  "startOffset": 4,
-                  "endOffset": 9
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 67,
-                  "endLine": 67,
-                  "startOffset": 12,
-                  "endOffset": 15
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 71,
-                  "endLine": 71,
-                  "startOffset": 16,
-                  "endOffset": 18
-                },
-                "msg": "+4 (incl 3 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 84,
-                  "endLine": 84,
-                  "startOffset": 8,
-                  "endOffset": 10
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 97,
-                  "endLine": 97,
-                  "startOffset": 4,
-                  "endOffset": 7
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 98,
-                  "endLine": 98,
-                  "startOffset": 24,
-                  "endOffset": 26
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 99,
-                  "endLine": 99,
-                  "startOffset": 8,
-                  "endOffset": 10
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 104,
-                  "endLine": 104,
-                  "startOffset": 4,
-                  "endOffset": 6
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 106,
-                  "endLine": 106,
-                  "startOffset": 8,
-                  "endOffset": 11
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 107,
-                  "endLine": 107,
-                  "startOffset": 12,
-                  "endOffset": 14
-                },
-                "msg": "+3 (incl 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 111,
-                  "endLine": 111,
-                  "startOffset": 8,
-                  "endOffset": 10
-                },
-                "msg": "+2 (incl 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:test_fetch_performance.py",
-                "textRange": {
-                  "startLine": 118,
-                  "endLine": 118,
-                  "startOffset": 8,
-                  "endOffset": 12
-                },
-                "msg": "+1"
-              }
-            ]
-          }
-        ],
-        "status": "OPEN",
-        "message": "Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed.",
-        "effort": "14min",
-        "debt": "14min",
-        "assignee": "nbcr-sNuJf@github",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "brain-overload"
-        ],
-        "creationDate": "2025-12-06T16:27:18+0000",
-        "updateDate": "2025-12-12T08:13:24+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "FOCUSED",
-        "cleanCodeAttributeCategory": "ADAPTABLE",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "HIGH"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbs1kXnx3O3DGNZC",
-        "rule": "javascript:S6660",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/static/js/HoverTracker.js",
-        "project": "nbcr_Nexus",
-        "line": 389,
-        "hash": "b3c5fbc56acdd02369f0806b3dd99791",
-        "textRange": {
-          "startLine": 389,
-          "endLine": 389,
-          "startOffset": 16,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "'If' statement should not be the only statement in 'else' block",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "nexus@nexus.comdat.ca",
-        "tags": [],
-        "creationDate": "2025-12-05T01:14:34+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
         "impacts": [
           {
             "softwareQuality": "MAINTAINABILITY",
@@ -2382,89 +652,6 @@
           {
             "softwareQuality": "MAINTAINABILITY",
             "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb0hkXnx3O3DGNbX",
-        "rule": "javascript:S7721",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 130,
-        "hash": "4486c6895d3ff4326e6e89056c66d613",
-        "textRange": {
-          "startLine": 130,
-          "endLine": 130,
-          "startOffset": 8,
-          "endOffset": 38
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Move function 'summarizeErrorMessage' to the outer scope.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "nexus@nexus.comdat.ca",
-        "tags": [
-          "javascript",
-          "optimization",
-          "performance"
-        ],
-        "creationDate": "2025-12-04T23:00:27+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "EFFICIENT",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb0hkXnx3O3DGNbY",
-        "rule": "javascript:S7781",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 132,
-        "hash": "c7228f6f175db0d8e6ac7cf696502c6e",
-        "textRange": {
-          "startLine": 132,
-          "endLine": 132,
-          "startOffset": 38,
-          "endOffset": 45
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `String#replaceAll()` over `String#replace()`.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "nexus@nexus.comdat.ca",
-        "tags": [
-          "es2021",
-          "readability"
-        ],
-        "creationDate": "2025-12-04T23:00:27+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "RELIABILITY",
-            "severity": "LOW"
-          },
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
           }
         ],
         "issueStatus": "OPEN",
@@ -2597,182 +784,16 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZrsPbyykXnx3O3DGNau",
-        "rule": "javascript:S3776",
-        "severity": "CRITICAL",
-        "component": "nbcr_Nexus:app/static/js/header.js",
-        "project": "nbcr_Nexus",
-        "line": 206,
-        "hash": "30022a0de4b4060644db88ad778a14c0",
-        "textRange": {
-          "startLine": 206,
-          "endLine": 206,
-          "startOffset": 9,
-          "endOffset": 25
-        },
-        "flows": [
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 207,
-                  "endLine": 207,
-                  "startOffset": 4,
-                  "endOffset": 6
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 210,
-                  "endLine": 210,
-                  "startOffset": 39,
-                  "endOffset": 40
-                },
-                "msg": "+2 (incl. 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 212,
-                  "endLine": 212,
-                  "startOffset": 4,
-                  "endOffset": 6
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 214,
-                  "endLine": 214,
-                  "startOffset": 41,
-                  "endOffset": 42
-                },
-                "msg": "+2 (incl. 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 216,
-                  "endLine": 216,
-                  "startOffset": 4,
-                  "endOffset": 6
-                },
-                "msg": "+1"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 218,
-                  "endLine": 218,
-                  "startOffset": 8,
-                  "endOffset": 10
-                },
-                "msg": "+2 (incl. 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 221,
-                  "endLine": 221,
-                  "startOffset": 38,
-                  "endOffset": 39
-                },
-                "msg": "+3 (incl. 2 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 224,
-                  "endLine": 224,
-                  "startOffset": 8,
-                  "endOffset": 10
-                },
-                "msg": "+2 (incl. 1 for nesting)"
-              }
-            ]
-          },
-          {
-            "locations": [
-              {
-                "component": "nbcr_Nexus:app/static/js/header.js",
-                "textRange": {
-                  "startLine": 226,
-                  "endLine": 226,
-                  "startOffset": 39,
-                  "endOffset": 40
-                },
-                "msg": "+3 (incl. 2 for nesting)"
-              }
-            ]
-          }
-        ],
-        "status": "OPEN",
-        "message": "Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.",
-        "effort": "7min",
-        "debt": "7min",
-        "author": "nexus@nexus.comdat.ca",
-        "tags": [
-          "architecture",
-          "brain-overload"
-        ],
-        "creationDate": "2025-12-03T04:19:57+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "FOCUSED",
-        "cleanCodeAttributeCategory": "ADAPTABLE",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "HIGH"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZrsPbyykXnx3O3DGNax",
         "rule": "javascript:S7764",
         "severity": "MINOR",
         "component": "nbcr_Nexus:app/static/js/header.js",
         "project": "nbcr_Nexus",
-        "line": 393,
+        "line": 407,
         "hash": "a64cd7949ccbe79c0a925182224ea0b4",
         "textRange": {
-          "startLine": 393,
-          "endLine": 393,
+          "startLine": 407,
+          "endLine": 407,
           "startOffset": 12,
           "endOffset": 18
         },
@@ -2960,6 +981,45 @@
         "projectName": "Nexus"
       },
       {
+        "key": "AZrsPbyykXnx3O3DGNav",
+        "rule": "javascript:S3735",
+        "severity": "CRITICAL",
+        "component": "nbcr_Nexus:app/static/js/header.js",
+        "project": "nbcr_Nexus",
+        "line": 282,
+        "hash": "52494476a3af09c918bfbdf4530a26f1",
+        "textRange": {
+          "startLine": 282,
+          "endLine": 282,
+          "startOffset": 4,
+          "endOffset": 8
+        },
+        "flows": [],
+        "status": "OPEN",
+        "message": "Remove this use of the \"void\" operator.",
+        "effort": "5min",
+        "debt": "5min",
+        "author": "840382+nbcr@users.noreply.github.com",
+        "tags": [
+          "confusing",
+          "type-dependent"
+        ],
+        "creationDate": "2025-12-03T00:23:59+0000",
+        "updateDate": "2025-12-12T13:20:19+0000",
+        "type": "CODE_SMELL",
+        "organization": "nbcr",
+        "cleanCodeAttribute": "CLEAR",
+        "cleanCodeAttributeCategory": "INTENTIONAL",
+        "impacts": [
+          {
+            "softwareQuality": "MAINTAINABILITY",
+            "severity": "HIGH"
+          }
+        ],
+        "issueStatus": "OPEN",
+        "projectName": "Nexus"
+      },
+      {
         "key": "AZrsPbp1kXnx3O3DGNXc",
         "rule": "css:S7924",
         "severity": "MAJOR",
@@ -3073,241 +1133,6 @@
         "organization": "nbcr",
         "cleanCodeAttribute": "CONVENTIONAL",
         "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb0hkXnx3O3DGNbZ",
-        "rule": "javascript:S7770",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 175,
-        "hash": "f10011d0b287e870fbb53979b3392fff",
-        "textRange": {
-          "startLine": 175,
-          "endLine": 175,
-          "startOffset": 45,
-          "endOffset": 47
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "arrow function is equivalent to `Boolean`. Use `Boolean` directly.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "performance",
-          "unnecessary"
-        ],
-        "creationDate": "2025-12-01T00:26:45+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb0hkXnx3O3DGNba",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/templates/register.html",
-        "project": "nbcr_Nexus",
-        "line": 198,
-        "hash": "608e7d620e7cc4c6ce5e76c847d23f74",
-        "textRange": {
-          "startLine": 198,
-          "endLine": 198,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-12-01T00:26:45+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb09kXnx3O3DGNbk",
-        "rule": "javascript:S7721",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/login.html",
-        "project": "nbcr_Nexus",
-        "line": 51,
-        "hash": "4a6f151c2b1968d1fbb7faf86c6ddc34",
-        "textRange": {
-          "startLine": 51,
-          "endLine": 51,
-          "startOffset": 0,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Move function 'getCookie' to the outer scope.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "javascript",
-          "optimization",
-          "performance"
-        ],
-        "creationDate": "2025-12-01T00:19:29+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "EFFICIENT",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb09kXnx3O3DGNbm",
-        "rule": "javascript:S2486",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/templates/login.html",
-        "project": "nbcr_Nexus",
-        "line": 74,
-        "hash": "161b8313784081f5965c2da97df48970",
-        "textRange": {
-          "startLine": 74,
-          "endLine": 78,
-          "startOffset": 10,
-          "endOffset": 9
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Handle this exception or don't catch it at all.",
-        "effort": "1h",
-        "debt": "1h",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe",
-          "error-handling",
-          "suspicious"
-        ],
-        "creationDate": "2025-12-01T00:19:29+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb09kXnx3O3DGNbp",
-        "rule": "javascript:S1481",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/templates/login.html",
-        "project": "nbcr_Nexus",
-        "line": 101,
-        "hash": "2f85dac287502845ad52c05dc6aa7c9f",
-        "textRange": {
-          "startLine": 101,
-          "endLine": 101,
-          "startOffset": 10,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove the declaration of the unused 'password' variable.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-12-01T00:19:29+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb09kXnx3O3DGNbq",
-        "rule": "javascript:S1854",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:app/templates/login.html",
-        "project": "nbcr_Nexus",
-        "line": 101,
-        "hash": "2f85dac287502845ad52c05dc6aa7c9f",
-        "textRange": {
-          "startLine": 101,
-          "endLine": 101,
-          "startOffset": 10,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove this useless assignment to variable \"password\".",
-        "effort": "1min",
-        "debt": "1min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "cwe",
-          "unused"
-        ],
-        "creationDate": "2025-12-01T00:19:29+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "LOGICAL",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
         "impacts": [
           {
             "softwareQuality": "MAINTAINABILITY",
@@ -3927,45 +1752,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZrsPbsdkXnx3O3DGNYv",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/feed-notifier.js",
-        "project": "nbcr_Nexus",
-        "line": 158,
-        "hash": "8be3ccc7438b867011994bafccce32ff",
-        "textRange": {
-          "startLine": 158,
-          "endLine": 158,
-          "startOffset": 25,
-          "endOffset": 31
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-25T01:10:24+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZrsPbyykXnx3O3DGNal",
         "rule": "javascript:S6594",
         "severity": "MINOR",
@@ -4084,45 +1870,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZrsPbsdkXnx3O3DGNYw",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/feed-notifier.js",
-        "project": "nbcr_Nexus",
-        "line": 160,
-        "hash": "0fb8979cc8aab04f3fc523537e60eeb7",
-        "textRange": {
-          "startLine": 160,
-          "endLine": 160,
-          "startOffset": 36,
-          "endOffset": 42
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-25T00:16:25+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZrsPbs-kXnx3O3DGNZI",
         "rule": "javascript:S7764",
         "severity": "MINOR",
@@ -4147,123 +1894,6 @@
           "portability"
         ],
         "creationDate": "2025-11-21T13:06:44+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbsdkXnx3O3DGNYx",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/feed-notifier.js",
-        "project": "nbcr_Nexus",
-        "line": 243,
-        "hash": "2ff02658f9916b7413f4c257274424ca",
-        "textRange": {
-          "startLine": 243,
-          "endLine": 243,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-21T12:29:24+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbsdkXnx3O3DGNYy",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/feed-notifier.js",
-        "project": "nbcr_Nexus",
-        "line": 244,
-        "hash": "4b1f8923a17231152e4b953f56eb56ab",
-        "textRange": {
-          "startLine": 244,
-          "endLine": 244,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-21T12:29:24+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbsdkXnx3O3DGNYz",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/feed-notifier.js",
-        "project": "nbcr_Nexus",
-        "line": 248,
-        "hash": "844534933eb9c613f5f6f2e3308ef82c",
-        "textRange": {
-          "startLine": 248,
-          "endLine": 248,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-21T12:29:24+0000",
         "updateDate": "2025-12-05T02:00:12+0000",
         "type": "CODE_SMELL",
         "organization": "nbcr",
@@ -4785,197 +2415,6 @@
         "projectName": "Nexus"
       },
       {
-        "key": "AZrsPb4-kXnx3O3DGNdO",
-        "rule": "plsql:S125",
-        "severity": "MAJOR",
-        "component": "nbcr_Nexus:add_content_fields.sql",
-        "project": "nbcr_Nexus",
-        "line": 16,
-        "hash": "e87342eed157a4bb133cfc05eb03488c",
-        "textRange": {
-          "startLine": 16,
-          "endLine": 16,
-          "startOffset": 0,
-          "endOffset": 61
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Remove this commented out code.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "unused"
-        ],
-        "creationDate": "2025-11-15T19:42:38+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbrakXnx3O3DGNXy",
-        "rule": "javascript:S7735",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/trending.js",
-        "project": "nbcr_Nexus",
-        "line": 20,
-        "hash": "6171e40a4dedba2b507a8557d02f0325",
-        "textRange": {
-          "startLine": 20,
-          "endLine": 20,
-          "startOffset": 16,
-          "endOffset": 23
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Unexpected negated condition.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "readability"
-        ],
-        "creationDate": "2025-11-06T23:32:13+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbrakXnx3O3DGNX2",
-        "rule": "javascript:S7780",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/trending.js",
-        "project": "nbcr_Nexus",
-        "line": 93,
-        "hash": "66020f17c8e82dfbf9f70d0572c8fd65",
-        "textRange": {
-          "startLine": 93,
-          "endLine": 93,
-          "startOffset": 16,
-          "endOffset": 179
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "`String.raw` should be used to avoid escaping `\\`.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "readability"
-        ],
-        "creationDate": "2025-11-06T22:45:44+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbrakXnx3O3DGNX4",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/trending.js",
-        "project": "nbcr_Nexus",
-        "line": 158,
-        "hash": "87a80c4acc181337bc9b8052cbe486ca",
-        "textRange": {
-          "startLine": 158,
-          "endLine": 158,
-          "startOffset": 0,
-          "endOffset": 6
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T22:45:44+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbrakXnx3O3DGNX3",
-        "rule": "javascript:S7735",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/trending.js",
-        "project": "nbcr_Nexus",
-        "line": 136,
-        "hash": "aa2970a94be2acd72352eb956022a1e2",
-        "textRange": {
-          "startLine": 136,
-          "endLine": 136,
-          "startOffset": 22,
-          "endOffset": 45
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Unexpected negated condition.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "840382+nbcr@users.noreply.github.com",
-        "tags": [
-          "readability"
-        ],
-        "creationDate": "2025-11-06T22:26:58+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
         "key": "AZrsPbp_kXnx3O3DGNXg",
         "rule": "css:S7924",
         "severity": "MAJOR",
@@ -5011,45 +2450,6 @@
           {
             "softwareQuality": "MAINTAINABILITY",
             "severity": "MEDIUM"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPb3wkXnx3O3DGNc9",
-        "rule": "python:S2208",
-        "severity": "CRITICAL",
-        "component": "nbcr_Nexus:alembic/env.py",
-        "project": "nbcr_Nexus",
-        "line": 27,
-        "hash": "2e2ff0b417fa09a4d37b2e275e903536",
-        "textRange": {
-          "startLine": 27,
-          "endLine": 27,
-          "startOffset": 4,
-          "endOffset": 28
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Import only needed names or import the module and then use its members.",
-        "effort": "5min",
-        "debt": "5min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "bad-practice",
-          "pitfall"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CLEAR",
-        "cleanCodeAttributeCategory": "INTENTIONAL",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "HIGH"
           }
         ],
         "issueStatus": "OPEN",
@@ -5136,357 +2536,6 @@
         ],
         "issueStatus": "OPEN",
         "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZw",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 41,
-        "hash": "2612f37855f83c3677bb3b66f2e25352",
-        "textRange": {
-          "startLine": 41,
-          "endLine": 41,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZz",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 44,
-        "hash": "9da1e4cdf7c374c990380805bd47b1d5",
-        "textRange": {
-          "startLine": 44,
-          "endLine": 44,
-          "startOffset": 51,
-          "endOffset": 57
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ0",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 50,
-        "hash": "c840c2f0c20d7fd23e2c078525cbc020",
-        "textRange": {
-          "startLine": 50,
-          "endLine": 50,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ1",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 51,
-        "hash": "f479c00a02c66316960035742e1dfcae",
-        "textRange": {
-          "startLine": 51,
-          "endLine": 51,
-          "startOffset": 12,
-          "endOffset": 18
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ2",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 73,
-        "hash": "1f821137894a429a729696757535b907",
-        "textRange": {
-          "startLine": 73,
-          "endLine": 73,
-          "startOffset": 29,
-          "endOffset": 35
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ3",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 78,
-        "hash": "67b9ecf2b589e511a92e9d5b461a17a8",
-        "textRange": {
-          "startLine": 78,
-          "endLine": 78,
-          "startOffset": 18,
-          "endOffset": 24
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ4",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 90,
-        "hash": "88e93f7efa61499c7d403ed9de902fb4",
-        "textRange": {
-          "startLine": 90,
-          "endLine": 90,
-          "startOffset": 29,
-          "endOffset": 35
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ5",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 100,
-        "hash": "2ecbbfced32b24c10ab4863da8b847cb",
-        "textRange": {
-          "startLine": 100,
-          "endLine": 100,
-          "startOffset": 8,
-          "endOffset": 14
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
-      },
-      {
-        "key": "AZrsPbuGkXnx3O3DGNZ6",
-        "rule": "javascript:S7764",
-        "severity": "MINOR",
-        "component": "nbcr_Nexus:app/static/js/ui.js",
-        "project": "nbcr_Nexus",
-        "line": 103,
-        "hash": "406fd08f1f27892aba10c269bd5e565e",
-        "textRange": {
-          "startLine": 103,
-          "endLine": 103,
-          "startOffset": 8,
-          "endOffset": 14
-        },
-        "flows": [],
-        "status": "OPEN",
-        "message": "Prefer `globalThis` over `window`.",
-        "effort": "2min",
-        "debt": "2min",
-        "author": "admin@ip-172-31-31-56",
-        "tags": [
-          "es2020",
-          "portability"
-        ],
-        "creationDate": "2025-11-06T20:45:39+0000",
-        "updateDate": "2025-12-05T02:00:12+0000",
-        "type": "CODE_SMELL",
-        "organization": "nbcr",
-        "cleanCodeAttribute": "CONVENTIONAL",
-        "cleanCodeAttributeCategory": "CONSISTENT",
-        "impacts": [
-          {
-            "softwareQuality": "MAINTAINABILITY",
-            "severity": "LOW"
-          }
-        ],
-        "issueStatus": "OPEN",
-        "projectName": "Nexus"
       }
     ],
     "components": [
@@ -5499,6 +2548,16 @@
         "name": "500.html",
         "longName": "nginx/500.html",
         "path": "nginx/500.html"
+      },
+      {
+        "organization": "nbcr",
+        "key": "nbcr_Nexus:app/api/v1/routes/settings.py",
+        "uuid": "AZrsPbNlkXnx3O3DGNVd",
+        "enabled": true,
+        "qualifier": "FIL",
+        "name": "settings.py",
+        "longName": "app/api/v1/routes/settings.py",
+        "path": "app/api/v1/routes/settings.py"
       },
       {
         "organization": "nbcr",
@@ -5522,16 +2581,6 @@
       },
       {
         "organization": "nbcr",
-        "key": "nbcr_Nexus:app/static/js/ui.js",
-        "uuid": "AZrsPbNlkXnx3O3DGNVF",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "ui.js",
-        "longName": "app/static/js/ui.js",
-        "path": "app/static/js/ui.js"
-      },
-      {
-        "organization": "nbcr",
         "key": "nbcr_Nexus:app/static/js/hover-tracker.js",
         "uuid": "AZrsPbNlkXnx3O3DGNVH",
         "enabled": true,
@@ -5539,26 +2588,6 @@
         "name": "hover-tracker.js",
         "longName": "app/static/js/hover-tracker.js",
         "path": "app/static/js/hover-tracker.js"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/static/js/HeaderAuth.js",
-        "uuid": "AZrsPbNlkXnx3O3DGNVJ",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "HeaderAuth.js",
-        "longName": "app/static/js/HeaderAuth.js",
-        "path": "app/static/js/HeaderAuth.js"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:add_content_fields.sql",
-        "uuid": "AZrsPbNmkXnx3O3DGNWj",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "add_content_fields.sql",
-        "longName": "add_content_fields.sql",
-        "path": "add_content_fields.sql"
       },
       {
         "organization": "nbcr",
@@ -5579,16 +2608,6 @@
         "name": "db_setup.sh",
         "longName": "db_setup.sh",
         "path": "db_setup.sh"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:intrusion_detector.py",
-        "uuid": "AZsHjhTJcR2-lG0kZxoZ",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "intrusion_detector.py",
-        "longName": "intrusion_detector.py",
-        "path": "intrusion_detector.py"
       },
       {
         "organization": "nbcr",
@@ -5622,6 +2641,16 @@
       },
       {
         "organization": "nbcr",
+        "key": "nbcr_Nexus:app/templates/admin.html",
+        "uuid": "AZrsPbNlkXnx3O3DGNVo",
+        "enabled": true,
+        "qualifier": "FIL",
+        "name": "admin.html",
+        "longName": "app/templates/admin.html",
+        "path": "app/templates/admin.html"
+      },
+      {
+        "organization": "nbcr",
         "key": "nbcr_Nexus:app/static/css/components.css",
         "uuid": "AZrsPbNlkXnx3O3DGNUo",
         "enabled": true,
@@ -5632,13 +2661,23 @@
       },
       {
         "organization": "nbcr",
-        "key": "nbcr_Nexus:app/static/js/trending.js",
-        "uuid": "AZrsPbNlkXnx3O3DGNU0",
+        "key": "nbcr_Nexus:app/services/content_recommendation.py",
+        "uuid": "AZrsPbNlkXnx3O3DGNV0",
         "enabled": true,
         "qualifier": "FIL",
-        "name": "trending.js",
-        "longName": "app/static/js/trending.js",
-        "path": "app/static/js/trending.js"
+        "name": "content_recommendation.py",
+        "longName": "app/services/content_recommendation.py",
+        "path": "app/services/content_recommendation.py"
+      },
+      {
+        "organization": "nbcr",
+        "key": "nbcr_Nexus:app/templates/history.html",
+        "uuid": "AZrsPbNlkXnx3O3DGNVp",
+        "enabled": true,
+        "qualifier": "FIL",
+        "name": "history.html",
+        "longName": "app/templates/history.html",
+        "path": "app/templates/history.html"
       },
       {
         "organization": "nbcr",
@@ -5672,16 +2711,6 @@
       },
       {
         "organization": "nbcr",
-        "key": "nbcr_Nexus:app/static/js/feed-notifier.js",
-        "uuid": "AZrsPbNlkXnx3O3DGNU6",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "feed-notifier.js",
-        "longName": "app/static/js/feed-notifier.js",
-        "path": "app/static/js/feed-notifier.js"
-      },
-      {
-        "organization": "nbcr",
         "key": "nbcr_Nexus:app/utils/async_rss_parser.py",
         "uuid": "AZrtboPnJ0k3gr_P6voe",
         "enabled": true,
@@ -5689,16 +2718,6 @@
         "name": "async_rss_parser.py",
         "longName": "app/utils/async_rss_parser.py",
         "path": "app/utils/async_rss_parser.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/static/js/HoverTracker.js",
-        "uuid": "AZrsPbNlkXnx3O3DGNU8",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "HoverTracker.js",
-        "longName": "app/static/js/HoverTracker.js",
-        "path": "app/static/js/HoverTracker.js"
       },
       {
         "organization": "nbcr",
@@ -5718,146 +2737,6 @@
         "qualifier": "TRK",
         "name": "Nexus",
         "longName": "Nexus"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/api/v1/routes/settings.py",
-        "uuid": "AZrsPbNlkXnx3O3DGNVd",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "settings.py",
-        "longName": "app/api/v1/routes/settings.py",
-        "path": "app/api/v1/routes/settings.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:storage_monitor.py",
-        "uuid": "AZr0nu97_yW0j27_nQRC",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "storage_monitor.py",
-        "longName": "storage_monitor.py",
-        "path": "storage_monitor.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/templates/register.html",
-        "uuid": "AZrsPbNlkXnx3O3DGNVk",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "register.html",
-        "longName": "app/templates/register.html",
-        "path": "app/templates/register.html"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:benchmark_feeds.py",
-        "uuid": "AZr0iWtN3DlPyLSGoASS",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "benchmark_feeds.py",
-        "longName": "benchmark_feeds.py",
-        "path": "benchmark_feeds.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/templates/index.html",
-        "uuid": "AZrsPbNlkXnx3O3DGNVm",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "index.html",
-        "longName": "app/templates/index.html",
-        "path": "app/templates/index.html"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/templates/login.html",
-        "uuid": "AZrsPbNlkXnx3O3DGNVn",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "login.html",
-        "longName": "app/templates/login.html",
-        "path": "app/templates/login.html"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/templates/admin.html",
-        "uuid": "AZrsPbNlkXnx3O3DGNVo",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "admin.html",
-        "longName": "app/templates/admin.html",
-        "path": "app/templates/admin.html"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/services/content_recommendation.py",
-        "uuid": "AZrsPbNlkXnx3O3DGNV0",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "content_recommendation.py",
-        "longName": "app/services/content_recommendation.py",
-        "path": "app/services/content_recommendation.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/templates/history.html",
-        "uuid": "AZrsPbNlkXnx3O3DGNVp",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "history.html",
-        "longName": "app/templates/history.html",
-        "path": "app/templates/history.html"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:app/core/input_validation.py",
-        "uuid": "AZsRr7e1ulkPnFCcOpE6",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "input_validation.py",
-        "longName": "app/core/input_validation.py",
-        "path": "app/core/input_validation.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:test_fetch_performance.py",
-        "uuid": "AZr0fgrl3DlPyLSGnkoz",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "test_fetch_performance.py",
-        "longName": "test_fetch_performance.py",
-        "path": "test_fetch_performance.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:alembic/env.py",
-        "uuid": "AZrsPbNlkXnx3O3DGNWU",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "env.py",
-        "longName": "alembic/env.py",
-        "path": "alembic/env.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:block_china_russia.py",
-        "uuid": "AZsHjhTGcR2-lG0kZxoT",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "block_china_russia.py",
-        "longName": "block_china_russia.py",
-        "path": "block_china_russia.py"
-      },
-      {
-        "organization": "nbcr",
-        "key": "nbcr_Nexus:nexus_service.py",
-        "uuid": "AZsBxm39Xm1SJ0fKenlR",
-        "enabled": true,
-        "qualifier": "FIL",
-        "name": "nexus_service.py",
-        "longName": "nexus_service.py",
-        "path": "nexus_service.py"
       }
     ],
     "organizations": [
@@ -5871,20 +2750,20 @@
         "property": "severities",
         "values": [
           {
-            "val": "MINOR",
-            "count": 52
-          },
-          {
             "val": "MAJOR",
-            "count": 51
+            "count": 33
           },
           {
-            "val": "CRITICAL",
-            "count": 6
+            "val": "MINOR",
+            "count": 22
           },
           {
             "val": "INFO",
             "count": 2
+          },
+          {
+            "val": "CRITICAL",
+            "count": 1
           },
           {
             "val": "BLOCKER",
@@ -5897,11 +2776,11 @@
         "values": [
           {
             "val": "CODE_SMELL",
-            "count": 108
+            "count": 58
           },
           {
             "val": "BUG",
-            "count": 3
+            "count": 0
           },
           {
             "val": "VULNERABILITY",

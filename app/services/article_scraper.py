@@ -194,14 +194,14 @@ class ArticleScraperService:
             Condensed key facts as bullet points or summarized excerpt
         """
         sentences = re.split(r"(?<=[.!?])\s+", content)
-        
+
         if len(sentences) <= 3:
             return content
 
         scored_sentences = self._score_all_sentences(sentences)
         extracted_facts = self._select_important_facts(scored_sentences)
         ordered_facts = self._maintain_narrative_order(sentences, extracted_facts)
-        
+
         return self._format_facts_or_fallback(ordered_facts, content)
 
     def _score_all_sentences(self, sentences: List[str]) -> List[Tuple[float, str]]:
@@ -211,11 +211,13 @@ class ArticleScraperService:
             if len(sentence.strip()) >= 20:
                 score = self._score_sentence_importance(sentence)
                 scored_sentences.append((score, sentence.strip()))
-        
+
         scored_sentences.sort(reverse=True, key=lambda x: x[0])
         return scored_sentences
 
-    def _select_important_facts(self, scored_sentences: List[Tuple[float, str]]) -> List[str]:
+    def _select_important_facts(
+        self, scored_sentences: List[Tuple[float, str]]
+    ) -> List[str]:
         """Select facts based on importance and word count targets"""
         extracted_facts = []
         word_count = 0
@@ -223,16 +225,20 @@ class ArticleScraperService:
 
         for score, sentence in scored_sentences:
             sentence_words = len(sentence.split())
-            
+
             if self._should_include_sentence(score, word_count, target_words):
                 extracted_facts.append(sentence)
                 word_count += sentence_words
-            elif word_count >= target_words and not self._is_high_value_sentence(score, word_count):
+            elif word_count >= target_words and not self._is_high_value_sentence(
+                score, word_count
+            ):
                 break
-                
+
         return extracted_facts
 
-    def _should_include_sentence(self, score: float, word_count: int, target_words: int) -> bool:
+    def _should_include_sentence(
+        self, score: float, word_count: int, target_words: int
+    ) -> bool:
         """Determine if sentence should be included based on score and word count"""
         return word_count < target_words or (score > 1.5 and word_count < 400)
 
@@ -240,18 +246,24 @@ class ArticleScraperService:
         """Check if sentence is high value and should be included despite word count"""
         return score > 3.0 and word_count < 450
 
-    def _maintain_narrative_order(self, sentences: List[str], extracted_facts: List[str]) -> List[str]:
+    def _maintain_narrative_order(
+        self, sentences: List[str], extracted_facts: List[str]
+    ) -> List[str]:
         """Re-sort facts by original document order to maintain narrative flow"""
         fact_sentences_set = set(extracted_facts)
-        return [sentence.strip() for sentence in sentences if sentence.strip() in fact_sentences_set]
+        return [
+            sentence.strip()
+            for sentence in sentences
+            if sentence.strip() in fact_sentences_set
+        ]
 
     def _format_facts_or_fallback(self, ordered_facts: List[str], content: str) -> str:
         """Format facts as bullet points or return fallback content"""
         if ordered_facts:
             return "\n\n".join([f"• {fact}" for fact in ordered_facts])
-        
+
         words = content.split()
-        return " ".join(words[:self.MAX_EXCERPT_WORDS])
+        return " ".join(words[: self.MAX_EXCERPT_WORDS])
 
     def _score_sentence_importance(self, sentence: str) -> float:
         """
@@ -725,10 +737,14 @@ class ArticleScraperService:
 
     def _parse_single_result(self, result_div) -> Dict[str, str]:
         """Parse a single search result element"""
-        title_elem = result_div.find("h2") or result_div.find("a", class_=re.compile("result__a"))
+        title_elem = result_div.find("h2") or result_div.find(
+            "a", class_=re.compile("result__a")
+        )
         title = title_elem.get_text().strip() if title_elem else ""
 
-        snippet_elem = result_div.find("div", class_=re.compile("snippet|result__snippet"))
+        snippet_elem = result_div.find(
+            "div", class_=re.compile("snippet|result__snippet")
+        )
         if not snippet_elem:
             snippet_elem = result_div.find("span", class_=re.compile("result__snippet"))
         snippet = snippet_elem.get_text().strip() if snippet_elem else ""
@@ -916,9 +932,7 @@ class ArticleScraperService:
             return img_url
         return self._extract_image_from_article_body(soup, base_url)
 
-    def download_and_optimize_image(
-        self, image_url: str
-    ) -> Optional[bytes]:
+    def download_and_optimize_image(self, image_url: str) -> Optional[bytes]:
         """
         Download image from URL and optimize it for database storage.
         Converts to WebP at 600px width for responsive scaling.

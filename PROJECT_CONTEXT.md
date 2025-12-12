@@ -2637,3 +2637,58 @@ Fixed all ESLint/SonarQube issues across frontend files:
 - All 40 minor JavaScript linting issues resolved
 - Ready to address 8 major issues and 1 critical issue in next phase
 - All changes committed and synced to main branch
+
+---
+
+## 2025-12-12: SonarQube Issues Fixes (Batch 2)
+
+**Critical Issues Fixed (1):**
+- `app/static/js/header.js` line 282: Removed `void` operator from forced repaint statement
+
+**Major Issues Fixed (9 of 33):**
+- `app/static/js/header.js` lines 24, 27, 41: Fixed deprecated `.substr()` → `.substring()`, improved regex usage with `.exec()`
+- `app/static/js/header.js` lines 118-129: Added proper error logging to catch block instead of silent handling
+- `app/static/js/header.js` lines 129, 165: Replaced `window` with `globalThis` for better compatibility
+- `app/static/js/FeedRenderer.js` line 48: Converted to optional chaining `item?.facts?.trim?.()` (S6582)
+- `app/static/js/hover-tracker.js` line 399: Replaced nested if with else-if statement (S6660)
+
+**Minor Issues Fixed (10 of 22):**
+- `app/static/js/header.js` lines 407, 129, 165, 24, 27, 41: Fixed globalThis usage (S7764), deprecated method (S1874), regex usage (S6594)
+- `app/static/js/hover-tracker.js`: Fixed window → globalThis (S7764)
+- `app/templates/history.html` lines 504, 516: Fixed negated conditions (S1940, S7735)
+- `app/templates/history.html` line 579: Converted async function to top-level await expression (S7785)
+
+**Python Issues Fixed (3):**
+- `app/utils/async_rss_parser.py` line 83: Removed unused `feed_url` parameter from `_extract_json_entries()` (S1172)
+- `app/utils/async_rss_parser.py` line 92: Changed return type from `NoneType` to `dict` (S5886)
+- `geoip_checker.py` line 97: Removed unused exception variable `e` (S1481)
+
+**HTML/Web Issues Fixed (4):**
+- `app/templates/admin.html` line 244: Wrapped orphaned label in `<fieldset>` with `<legend>` (S6853)
+- `nginx/404.html`, `nginx/500.html`, `nginx/502.html` line 67: Moved `onerror` handler from inline to event listener to avoid assigning handlers to non-interactive elements (S6847)
+
+**Shell Issues Fixed (1):**
+- `db_setup.sh` line 88: Redirected error output to stderr with `>&2` (S7677)
+
+**Remaining Issues (Not Fixed - Lower Priority):**
+- **33 CSS Contrast Issues (S7924)**: These are MAJOR severity but aesthetic/accessibility concerns. Fixing requires careful color adjustments across multiple CSS files. Deferred for next phase.
+- **2 TODO comments (S1135)**: Informational - marking for future implementation:
+  - `app/api/v1/routes/settings.py`: User-specific settings storage
+  - `app/services/content_recommendation.py`: User category filtering
+
+**Files Modified:**
+- app/static/js/header.js
+- app/static/js/FeedRenderer.js
+- app/static/js/hover-tracker.js
+- app/utils/async_rss_parser.py
+- geoip_checker.py
+- db_setup.sh
+- app/templates/admin.html
+- app/templates/history.html
+- nginx/404.html, 500.html, 502.html
+
+**Stats:**
+- Fixed: 27 issues
+- Deferred: 35 issues (CSS contrast, TODO comments)
+- Total SonarQube issues reduced from 58 to 31
+
