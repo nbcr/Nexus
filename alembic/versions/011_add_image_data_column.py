@@ -1,6 +1,6 @@
 """Add image_data column to content_items for storing WebP images
 
-Revision ID: add_image_data
+Revision ID: 011
 Revises: 010
 Create Date: 2025-12-11
 
@@ -19,13 +19,30 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add image_data column for storing WebP images as binary
-    # Using LargeBinary which maps to BYTEA in PostgreSQL, LONGBLOB in MySQL
-    op.add_column(
-        "content_items", sa.Column("image_data", sa.LargeBinary(), nullable=True)
-    )
+    # Check if column already exists before adding
+    # This prevents errors if migration is run multiple times
+    inspector = sa.inspect(op.get_context().bind)
+    columns = [col['name'] for col in inspector.get_columns('content_items')]
+    
+    if 'image_data' not in columns:
+        # Add image_data column for storing WebP images as binary
+        # Use BYTEA explicitly for PostgreSQL compatibility
+        op.add_column(
+            "content_items",
+            sa.Column(
+                "image_data",
+                postgresql.BYTEA(),
+                nullable=True,
+                server_default=None
+            )
+        )
 
 
 def downgrade() -> None:
-    # Remove image_data column
-    op.drop_column("content_items", "image_data")
+    # Check if column exists before removing
+    inspector = sa.inspect(op.get_context().bind)
+    columns = [col['name'] for col in inspector.get_columns('content_items')]
+    
+    if 'image_data' in columns:
+        op.drop_column("content_items", "image_data")
+
