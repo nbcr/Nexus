@@ -10,6 +10,12 @@ if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
 
+# Check and install dependencies before importing the app
+from check_dependencies import ensure_dependencies
+if not ensure_dependencies():
+    print("[ERROR] Failed to verify/install dependencies. Exiting.")
+    sys.exit(1)
+
 import uvicorn
 from app.core.config import settings
 import logging
