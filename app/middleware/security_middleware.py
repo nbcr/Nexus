@@ -29,17 +29,15 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         
         try:
-            # Check if IP is blocked FIRST - before any processing
+            # Check if IP is blocked FIRST - drop silently with logging
             if self._is_ip_blocked(client_ip):
+                # Log for forensics but send no response (connection dropped)
                 self.logger.warning(
-                    "Blocked request from IP: %s - %s %s",
+                    "SILENT_DROP: %s - %s %s",
                     client_ip, request.method, request.url.path
                 )
-                # Return 403 with no additional information
-                return JSONResponse(
-                    status_code=403,
-                    content={"detail": "Access denied"}
-                )
+                # Return empty 502 Bad Gateway to close connection without info
+                return Response(status_code=502, content=b"")
             
             self._validate_request_basics(request)
             self._validate_query_params(request)
@@ -56,6 +54,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return self._handle_http_exception(e, request)
         except Exception as e:
             return self._handle_general_exception(e, request)
+
     
     def _is_ip_blocked(self, ip: str) -> bool:
         """Check if IP is currently blocked in the intrusion detector database."""
