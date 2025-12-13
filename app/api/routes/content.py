@@ -430,7 +430,7 @@ async def _download_article_image(content: ContentItem, article_data: dict) -> N
     if not image_url:
         print(f"⚠️ No image URL for content {content.id}")
         return
-    
+
     print(f"🖼️  Attempting to download image from: {image_url[:80]}...")
     try:
         image_data = await asyncio.to_thread(
@@ -439,13 +439,15 @@ async def _download_article_image(content: ContentItem, article_data: dict) -> N
         )
         if image_data:
             content.image_data = image_data
-            print(f"✅ Stored optimized image for content {content.id} ({len(image_data)} bytes)")
+            print(
+                f"✅ Stored optimized image for content {content.id} ({len(image_data)} bytes)"
+            )
         else:
             print(f"⚠️ Image download returned None for content {content.id}")
     except (OSError, ValueError, TypeError) as e:
         print(f"⚠️ Failed to optimize image: {e}")
     except Exception as e:
-            print(f"⚠️ Unexpected error optimizing image: {e}")
+        print(f"⚠️ Unexpected error optimizing image: {e}")
 
 
 def _generate_snippet(content: ContentItem) -> Optional[str]:

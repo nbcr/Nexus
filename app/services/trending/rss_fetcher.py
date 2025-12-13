@@ -314,6 +314,20 @@ class RSSFetcher:
             return data.get(url_key)
         return None
 
+    def _extract_image_from_html(self, html_text: Optional[str]) -> Optional[str]:
+        """Extract the first image URL from HTML content"""
+        if not html_text:
+            return None
+        import re
+        # Try to extract from img src attribute
+        img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html_text)
+        if img_match:
+            url = img_match.group(1)
+            # Filter out tiny placeholder images (typically < 100 pixels)
+            if url and len(url) > 10:
+                return url
+        return None
+
     def _extract_image_from_dict_entry(self, entry: Dict) -> Optional[str]:
         """Extract image URL from dict-based entry"""
         url = self._get_url_from_data(entry.get("media_content"))
@@ -350,6 +364,10 @@ class RSSFetcher:
             image_url = self._extract_image_from_dict_entry(entry)
         else:
             image_url = self._extract_image_from_object_entry(entry)
+
+        # If no image found in metadata, try extracting from description HTML
+        if not image_url and description:
+            image_url = self._extract_image_from_html(description)
 
         # Clean HTML from snippet
         clean_snippet = self._clean_html_description(description)
