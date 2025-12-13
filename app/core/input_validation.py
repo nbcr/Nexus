@@ -360,7 +360,7 @@ class InputValidator:
 
 def _validate_key_name(key: str) -> None:
     """Validate parameter key name."""
-    if not isinstance(key, str) or not re.match(r"^[a-zA-Z_][\w]*$", key):
+    if not isinstance(key, str) or not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", key):
         raise HTTPException(status_code=400, detail=f"Invalid parameter name: {key}")
 
 
