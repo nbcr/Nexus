@@ -232,7 +232,9 @@ class IntrusionDetector:
         cursor.execute("SELECT count FROM suspicious_ips WHERE ip = ?", (ip,))
         result = cursor.fetchone()
         if result and result[0] >= 10:
-            self.logger.info(f"[THRESHOLD] IP {ip} reached 10 suspicious requests - blocking")
+            self.logger.info(
+                f"[THRESHOLD] IP {ip} reached 10 suspicious requests - blocking"
+            )
             self.block_ip(ip)
 
         conn.close()
@@ -321,14 +323,16 @@ class IntrusionDetector:
                 try:
                     error_data = response.json()
                     errors = error_data.get("errors", [])
-                    if errors and errors[0].get("code") == 10009:  # duplicate_of_existing code
+                    if (
+                        errors and errors[0].get("code") == 10009
+                    ):  # duplicate_of_existing code
                         self.logger.info(
                             f"[CLOUDFLARE] IP {ip} already blocked (rule exists)"
                         )
                         return
                 except (ValueError, KeyError, IndexError):
                     pass
-                
+
                 # Other 400 errors are actual failures
                 self.logger.error(
                     f"[CLOUDFLARE] Failed to block {ip}: {response.status_code} - {response.text}"
@@ -339,7 +343,6 @@ class IntrusionDetector:
                 )
         except Exception as e:
             self.logger.error(f"[ERROR] Cloudflare blocking failed for {ip}: {e}")
-
 
     def unblock_ip(self, ip):
         """Unblock an IP address"""

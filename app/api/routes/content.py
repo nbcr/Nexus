@@ -390,7 +390,6 @@ async def _download_article_image(content: ContentItem, article_data: dict) -> N
             image_data = await asyncio.to_thread(
                 article_scraper.download_and_optimize_image,
                 article_data["image_url"],
-                content.id,
             )
             if image_data:
                 content.image_data = image_data

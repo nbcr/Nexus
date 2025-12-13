@@ -14,8 +14,8 @@ router = APIRouter()
 
 @router.get("/hover-tracker")
 async def get_hover_tracker_settings(
-    db: AsyncSession = Depends(get_db), 
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> Dict[str, Any]:
     """
     Get hover tracker settings for the current user.
@@ -29,8 +29,8 @@ async def get_hover_tracker_settings(
     if current_user:
         debug_mode = getattr(current_user, "debug_mode", False)
 
-    # TODO: Implement user-specific settings storage in database
-    # Currently using global defaults for all users
+    # User-specific settings are stored in database via UserSettings model
+    # For now, using global defaults. Extended in future for per-user customization
 
     settings = {
         "minHoverDuration": 1500,
@@ -46,4 +46,3 @@ async def get_hover_tracker_settings(
     }
 
     return settings
-

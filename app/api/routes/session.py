@@ -43,13 +43,13 @@ async def track_content_interest(
 
     session_token = get_session_token(request)
     visitor_id = request.cookies.get("visitor_id")
-    
+
     # Validate visitor_id before using it
     if visitor_id:
         visitor_id = InputValidator.validate_visitor_id(visitor_id)
 
     # Persist the session token for subsequent requests
-    if not request.cookies.get("nexus_session"):
+    if not request.cookies.get("nexus_session") and session_token:
         response.set_cookie(
             "nexus_session",
             session_token,
@@ -86,10 +86,10 @@ async def track_content_interest(
 # Note: get_db imported from app.db is reused across routes
 
 
-def get_session_token(request: Request):
+def get_session_token(request: Request) -> str:
     """Get or create session token from cookies or headers"""
     # Try to get from cookies first
-    session_token = request.cookies.get("nexus_session")
+    session_token: str | None = request.cookies.get("nexus_session")
 
     # If not in cookies, check Authorization header for session token
     if not session_token:
@@ -100,12 +100,21 @@ def get_session_token(request: Request):
     # If still no token, create one (frontend will need to store it)
     if not session_token:
         import uuid
-        session_token = str(uuid.uuid4())
-    
-    # Always validate the session token before use
-    session_token = InputValidator.validate_session_token(session_token)
 
-    return session_token
+        session_token = str(uuid.uuid4())
+
+    # Always validate the session token before use
+    validated_token = InputValidator.validate_session_token(session_token)
+    
+    # Ensure we always return a valid token (validation should not return None after creation)
+    if not validated_token:
+        import uuid
+        session_token = str(uuid.uuid4())
+        validated_token = InputValidator.validate_session_token(session_token)
+        if not validated_token:
+            raise ValueError("Failed to generate valid session token")
+
+    return validated_token
 
 
 @router.post("/track-view/{content_id}")
@@ -115,13 +124,15 @@ async def track_content_view(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
-    # Validate content_id
-    content_id = InputValidator.validate_integer(content_id, min_val=1, max_val=999999999)
     """Track when a user views content"""
+    # Validate content_id
+    content_id = InputValidator.validate_integer(
+        content_id, min_val=1, max_val=999999999
+    )
     session_token = get_session_token(request)
 
     # Ensure the session token is persisted for subsequent calls
-    if not request.cookies.get("nexus_session"):
+    if not request.cookies.get("nexus_session") and session_token:
         response.set_cookie(
             "nexus_session",
             session_token,
