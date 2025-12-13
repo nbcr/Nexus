@@ -1015,8 +1015,7 @@ async def image_proxy(
     """Proxy and optionally resize remote images to avoid mixed-content/CORS issues."""
     logger = logging.getLogger("uvicorn.error")
 
-    # Validate URL parameter to prevent path traversal and SSRF
-    url = InputValidator.validate_xss_safe(url)
+    # Validate URL parameter to prevent SSRF (don't use aggressive XSS sanitization on URLs)
     _validate_image_url(url)
 
     try:

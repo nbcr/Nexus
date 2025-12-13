@@ -319,6 +319,7 @@ class RSSFetcher:
         if not html_text:
             return None
         import re
+
         # Try to extract from img src attribute
         img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html_text)
         if img_match:
