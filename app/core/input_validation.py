@@ -243,6 +243,74 @@ class InputValidator:
         return cursor
 
     @classmethod
+    def validate_visitor_id(cls, visitor_id: Optional[str]) -> Optional[str]:
+        """
+        Validate visitor_id to prevent injection attacks.
+        
+        Visitor IDs should be:
+        - UUIDs (36 chars: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+        - Or hex strings (32 chars: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)
+        - Or timestamp-based IDs (16+ chars alphanumeric)
+        
+        Args:
+            visitor_id: The visitor ID to validate
+            
+        Returns:
+            Validated visitor_id or None
+            
+        Raises:
+            HTTPException: If visitor_id is invalid
+        """
+        if not visitor_id:
+            return None
+        
+        visitor_id = str(visitor_id).strip()
+        
+        # Check length (UUIDs are 36 chars, hex strings 32, timestamp-based 16-64)
+        if len(visitor_id) < 16 or len(visitor_id) > 64:
+            raise HTTPException(status_code=400, detail="Invalid visitor ID format")
+        
+        # Only allow alphanumeric, hyphens, and underscores (valid for UUIDs and hex strings)
+        if not re.match(r"^[a-zA-Z0-9\-_]+$", visitor_id):
+            raise HTTPException(status_code=400, detail="Invalid visitor ID format")
+        
+        return visitor_id
+
+    @classmethod
+    def validate_session_token(cls, session_token: Optional[str]) -> Optional[str]:
+        """
+        Validate session_token to prevent injection attacks.
+        
+        Session tokens should be:
+        - UUIDs (36 chars)
+        - Or valid UUID format strings
+        
+        Args:
+            session_token: The session token to validate
+            
+        Returns:
+            Validated session_token or None
+            
+        Raises:
+            HTTPException: If session_token is invalid
+        """
+        if not session_token:
+            return None
+        
+        session_token = str(session_token).strip()
+        
+        # Session tokens are typically UUIDs - should be exactly 36 chars
+        # But allow some flexibility for other token formats (alphanumeric, hyphens, underscores)
+        if len(session_token) < 20 or len(session_token) > 64:
+            raise HTTPException(status_code=400, detail="Invalid session token format")
+        
+        # Only allow alphanumeric, hyphens, and underscores
+        if not re.match(r"^[a-zA-Z0-9\-_]+$", session_token):
+            raise HTTPException(status_code=400, detail="Invalid session token format")
+        
+        return session_token
+
+    @classmethod
     def _remove_control_chars(cls, safe_str: str) -> str:
         """Remove control characters and ANSI sequences."""
         safe_str = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\n\r\t]", "", safe_str)

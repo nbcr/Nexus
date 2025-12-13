@@ -43,6 +43,10 @@ async def track_content_interest(
 
     session_token = get_session_token(request)
     visitor_id = request.cookies.get("visitor_id")
+    
+    # Validate visitor_id before using it
+    if visitor_id:
+        visitor_id = InputValidator.validate_visitor_id(visitor_id)
 
     # Persist the session token for subsequent requests
     if not request.cookies.get("nexus_session"):
@@ -96,8 +100,10 @@ def get_session_token(request: Request):
     # If still no token, create one (frontend will need to store it)
     if not session_token:
         import uuid
-
         session_token = str(uuid.uuid4())
+    
+    # Always validate the session token before use
+    session_token = InputValidator.validate_session_token(session_token)
 
     return session_token
 
