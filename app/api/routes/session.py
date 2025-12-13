@@ -105,10 +105,11 @@ def get_session_token(request: Request) -> str:
 
     # Always validate the session token before use
     validated_token = InputValidator.validate_session_token(session_token)
-    
+
     # Ensure we always return a valid token (validation should not return None after creation)
     if not validated_token:
         import uuid
+
         session_token = str(uuid.uuid4())
         validated_token = InputValidator.validate_session_token(session_token)
         if not validated_token:

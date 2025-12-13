@@ -29,14 +29,12 @@ def upgrade() -> None:
                 return  # Column already exists, skip
     except Exception:
         pass  # Proceed with adding column if inspection fails
-    
+
     # Add image_data column for storing WebP images as binary
     # Use BYTEA explicitly for PostgreSQL compatibility
     op.add_column(
         "content_items",
-        sa.Column(
-            "image_data", postgresql.BYTEA(), nullable=True, server_default=None
-        ),
+        sa.Column("image_data", postgresql.BYTEA(), nullable=True, server_default=None),
     )
 
 
@@ -50,5 +48,5 @@ def downgrade() -> None:
                 return  # Column doesn't exist, skip
     except Exception:
         return  # Proceed without downgrade if inspection fails
-    
+
     op.drop_column("content_items", "image_data")

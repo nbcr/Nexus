@@ -28,7 +28,11 @@ from app.services.content_recommendation import recommendation_service
 from app.services.article_scraper import article_scraper
 from app.services.deduplication import deduplication_service
 from app.services.rss_discovery import rss_discovery_service
-from app.core.input_validation import InputValidator, validate_request_data, get_safe_user_input
+from app.core.input_validation import (
+    InputValidator,
+    validate_request_data,
+    get_safe_user_input,
+)
 
 router = APIRouter()
 
@@ -83,7 +87,9 @@ def _parse_exclude_ids(exclude_ids: Optional[str]) -> list[int]:
     return InputValidator.validate_exclude_ids(exclude_ids)
 
 
-def _parse_categories(categories: Optional[str], category: Optional[str]) -> Optional[list[str]]:
+def _parse_categories(
+    categories: Optional[str], category: Optional[str]
+) -> Optional[list[str]]:
     """Parse categories parameter with multi-select support and security validation."""
     if categories:
         return InputValidator.validate_category_list(categories)
@@ -91,13 +97,15 @@ def _parse_categories(categories: Optional[str], category: Optional[str]) -> Opt
         # Validate single category
         validated_category = InputValidator.validate_xss_safe(category)
         validated_category = InputValidator.validate_sql_safe(validated_category)
-        if not re.match(r'^[a-zA-Z0-9\s\-_]+$', validated_category):
+        if not re.match(r"^[a-zA-Z0-9\s\-_]+$", validated_category):
             raise HTTPException(status_code=400, detail="Invalid category name")
         return [validated_category]
     return None
 
 
-async def _get_feed_data(db, page_size, excluded_ids, cursor, category_list, safe_category_list, logger):
+async def _get_feed_data(
+    db, page_size, excluded_ids, cursor, category_list, safe_category_list, logger
+):
     """Get feed data based on category selection."""
     if category_list and "all" in [c.lower() for c in category_list]:
         logger.info("Category 'All' selected: returning all items")
@@ -144,7 +152,9 @@ async def get_all_categories(db: AsyncSession = Depends(get_db)):
         categories.update([row[0] for row in result2.fetchall() if row[0]])
         return CategoriesResponse(categories=sorted(categories))
     except Exception as e:
-        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        safe_error = "".join(
+            c for c in str(e)[:200] if c.isprintable() and c not in "\n\r\t"
+        )
         logger.error("Error in /categories endpoint: %s", safe_error)
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
@@ -156,16 +166,21 @@ def _validate_feed_params(exclude_ids, categories, category, cursor):
     cursor = InputValidator.validate_cursor(cursor)
     return excluded_ids, category_list, cursor
 
+
 def _log_feed_request(logger, page, category_list, exclude_ids, cursor):
     """Log feed request with sanitized parameters."""
     safe_category_list = InputValidator.sanitize_for_logging(category_list)
     safe_exclude_ids = InputValidator.sanitize_for_logging(exclude_ids)
     safe_cursor = InputValidator.sanitize_for_logging(cursor)
-    
+
     logger.info(
         "Feed request: page=%d, categories=%s, exclude_ids=%s, cursor=%s",
-        page, safe_category_list, safe_exclude_ids, safe_cursor
+        page,
+        safe_category_list,
+        safe_exclude_ids,
+        safe_cursor,
     )
+
 
 def _build_response_data(page, page_size, result, session_token):
     """Build response data structure."""
@@ -178,6 +193,7 @@ def _build_response_data(page, page_size, result, session_token):
         "is_personalized": session_token is not None,
     }
 
+
 def _create_cached_response(response_data):
     """Create cached JSON response for public feeds."""
     return JSONResponse(
@@ -187,6 +203,7 @@ def _create_cached_response(response_data):
             "Vary": "Accept-Encoding",
         },
     )
+
 
 @router.get("/feed")
 async def get_feed(
@@ -204,27 +221,43 @@ async def get_feed(
     logger = logging.getLogger(LOGGER_NAME)
     logger.info("[FEED] Endpoint called")
 
-    excluded_ids, category_list, cursor = _validate_feed_params(exclude_ids, categories, category, cursor)
+    excluded_ids, category_list, cursor = _validate_feed_params(
+        exclude_ids, categories, category, cursor
+    )
     session_token = nexus_session or request.cookies.get("nexus_session")
-    
+
     _log_feed_request(logger, page, category_list, exclude_ids, cursor)
-    
-    result = await _get_feed_data(db, page_size, excluded_ids, cursor, category_list, 
-                                 InputValidator.sanitize_for_logging(category_list), logger)
-    
+
+    result = await _get_feed_data(
+        db,
+        page_size,
+        excluded_ids,
+        cursor,
+        category_list,
+        InputValidator.sanitize_for_logging(category_list),
+        logger,
+    )
+
     _trigger_background_scraping(result)
-    
+
     response_data = _build_response_data(page, page_size, result, session_token)
-    
-    return _create_cached_response(response_data) if session_token is None else response_data
+
+    return (
+        _create_cached_response(response_data)
+        if session_token is None
+        else response_data
+    )
+
 
 def _find_articles_to_scrape(items: list) -> list:
     """Find articles that need content scraping."""
     return [
-        item for item in items
+        item
+        for item in items
         if (not item.get("facts") or not item.get("facts").strip())
         and item.get("source_urls")
     ]
+
 
 async def _scrape_single_article(item: dict, bg_db: AsyncSession, logger) -> None:
     """Scrape a single article with error handling."""
@@ -235,13 +268,18 @@ async def _scrape_single_article(item: dict, bg_db: AsyncSession, logger) -> Non
             if source_url:
                 await asyncio.wait_for(
                     _scrape_and_store_article(content, source_url, bg_db),
-                    timeout=SCRAPE_TIMEOUT
+                    timeout=SCRAPE_TIMEOUT,
                 )
     except asyncio.TimeoutError:
-        logger.debug("Background scrape timed out for %s", item['content_id'])
+        logger.debug("Background scrape timed out for %s", item["content_id"])
     except Exception as e:
-        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
-        logger.debug("Background scrape error for %s: %s", item['content_id'], safe_error)
+        safe_error = "".join(
+            c for c in str(e)[:200] if c.isprintable() and c not in "\n\r\t"
+        )
+        logger.debug(
+            "Background scrape error for %s: %s", item["content_id"], safe_error
+        )
+
 
 async def _background_scrape_articles(result):
     """Background scraping task - runs in separate worker"""
@@ -253,8 +291,11 @@ async def _background_scrape_articles(result):
                 for item in articles_to_scrape[:1]:
                     await _scrape_single_article(item, bg_db, logger)
     except Exception as e:
-        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        safe_error = "".join(
+            c for c in str(e)[:200] if c.isprintable() and c not in "\n\r\t"
+        )
         logger.debug("Background scraping task failed: %s", safe_error)
+
 
 def _trigger_background_scraping(result):
     """Trigger background scraping for articles without content."""
@@ -339,7 +380,7 @@ async def _scrape_and_store_article(
     """Scrape article and persist to database. Returns snippet or None."""
     # Validate URL before scraping to prevent SSRF
     _validate_scraping_url(source_url)
-    
+
     article_data = await asyncio.to_thread(article_scraper.fetch_article, source_url)
 
     # Always mark scraping as attempted
@@ -418,7 +459,11 @@ def _get_content_for_snippet(content_id: int, db: AsyncSession):
 def _check_existing_snippet(content: ContentItem) -> Optional[dict]:
     """Check if content already has a snippet and return response if so."""
     if content.facts and content.facts.strip():
-        snippet = content.facts[:SNIPPET_LENGTH] if len(content.facts) > SNIPPET_LENGTH else content.facts
+        snippet = (
+            content.facts[:SNIPPET_LENGTH]
+            if len(content.facts) > SNIPPET_LENGTH
+            else content.facts
+        )
         return {
             "snippet": snippet,
             "full_content_available": True,
@@ -557,7 +602,9 @@ async def get_content_snippet_priority(
         if _is_rate_limit_error(e):
             return _get_rate_limit_response()
         logger = logging.getLogger(LOGGER_NAME)
-        safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+        safe_error = "".join(
+            c for c in str(e)[:200] if c.isprintable() and c not in "\n\r\t"
+        )
         logger.debug("Priority scrape error for %s: %s", content_id, safe_error)
         # Return failed status when scraping fails
         return {
@@ -620,7 +667,7 @@ async def _fetch_article_by_type(source_url: str) -> dict | None:
     """Fetch article content based on URL type (search vs regular article)."""
     # Validate URL before scraping to prevent SSRF
     _validate_scraping_url(source_url)
-    
+
     if _is_search_url(source_url):
         return await asyncio.to_thread(article_scraper.fetch_search_context, source_url)
     else:
@@ -722,7 +769,7 @@ def _get_safe_domain(url: str) -> Optional[str]:
             # Only return domain, sanitized and length-limited
             domain = parsed.netloc.lower()[:100]
             # Remove any suspicious characters
-            safe_domain = ''.join(c for c in domain if c.isalnum() or c in '.-')
+            safe_domain = "".join(c for c in domain if c.isalnum() or c in ".-")
             return safe_domain if safe_domain else None
     except Exception:
         pass
@@ -747,7 +794,9 @@ def _build_article_from_cache(content: ContentItem) -> dict:
             if content.source_metadata
             else None
         ),
-        "domain": _get_safe_domain(content.source_urls[0]) if content.source_urls else None,
+        "domain": (
+            _get_safe_domain(content.source_urls[0]) if content.source_urls else None
+        ),
     }
 
 
@@ -761,9 +810,7 @@ async def _scrape_article_content(
 
     article_data = await _fetch_article_by_type(source_url)
     if not article_data:
-        raise HTTPException(
-            status_code=404, detail=ERROR_UNABLE_TO_FETCH
-        )
+        raise HTTPException(status_code=404, detail=ERROR_UNABLE_TO_FETCH)
 
     await _save_scraped_content(content, article_data, content_id, db)
     return article_data
@@ -859,7 +906,7 @@ async def _scrape_thumbnail(
     try:
         # Validate URL before scraping to prevent SSRF
         _validate_scraping_url(source_url)
-        
+
         if is_search_url:
             data = await asyncio.to_thread(
                 article_scraper.fetch_search_context, source_url
@@ -1012,14 +1059,25 @@ def _validate_scraping_url(url: str) -> None:
         except ValueError:
             # Not an IP address, check hostname patterns
             hostname_lower = hostname.lower()
-            
+
             # Block localhost variants and internal domains
             blocked_patterns = [
-                "localhost", "127.", "0.0.0.0", "::1", "::ffff:127.0.0.1",
-                ".local", ".internal", ".corp", ".lan", "metadata.google.internal",
-                "169.254.", "metadata", "consul", "vault"
+                "localhost",
+                "127.",
+                "0.0.0.0",
+                "::1",
+                "::ffff:127.0.0.1",
+                ".local",
+                ".internal",
+                ".corp",
+                ".lan",
+                "metadata.google.internal",
+                "169.254.",
+                "metadata",
+                "consul",
+                "vault",
             ]
-            
+
             if any(pattern in hostname_lower for pattern in blocked_patterns):
                 raise HTTPException(
                     status_code=403, detail=ERROR_INTERNAL_ACCESS_FORBIDDEN
@@ -1036,7 +1094,7 @@ def _validate_image_url(url: str) -> None:
     try:
         # First validate with InputValidator to prevent path traversal
         url = InputValidator.validate_path_safe(url)
-        
+
         parsed = urlparse(url)
 
         if parsed.scheme not in ("http", "https"):
@@ -1060,14 +1118,25 @@ def _validate_image_url(url: str) -> None:
         except ValueError:
             # Not an IP address, check hostname patterns
             hostname_lower = hostname.lower()
-            
+
             # Block localhost variants and internal domains
             blocked_patterns = [
-                "localhost", "127.", "0.0.0.0", "::1", "::ffff:127.0.0.1",
-                ".local", ".internal", ".corp", ".lan", "metadata.google.internal",
-                "169.254.", "metadata", "consul", "vault"
+                "localhost",
+                "127.",
+                "0.0.0.0",
+                "::1",
+                "::ffff:127.0.0.1",
+                ".local",
+                ".internal",
+                ".corp",
+                ".lan",
+                "metadata.google.internal",
+                "169.254.",
+                "metadata",
+                "consul",
+                "vault",
             ]
-            
+
             if any(pattern in hostname_lower for pattern in blocked_patterns):
                 raise HTTPException(
                     status_code=403, detail=ERROR_INTERNAL_ACCESS_FORBIDDEN
@@ -1085,7 +1154,7 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
         # Validate and sanitize URL for logging to prevent malicious content
         if len(url) > 2000:  # Reject extremely long URLs
             raise HTTPException(status_code=400, detail="URL too long")
-        
+
         # Only log domain part to prevent sensitive data exposure
         try:
             parsed_url = urlparse(url)
@@ -1095,15 +1164,15 @@ async def _fetch_image_data(url: str, logger) -> tuple[bytes, str]:
             logger.info("Image proxy fetch from invalid URL")
         resp = await client.get(url)
         resp.raise_for_status()
-        
+
         # Limit response size to prevent DoS
         if int(resp.headers.get("content-length", 0)) > MAX_IMAGE_SIZE:
             raise HTTPException(status_code=413, detail=ERROR_IMAGE_TOO_LARGE)
-            
+
         content_type = resp.headers.get("content-type", "image/jpeg")
         if not content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail=ERROR_INVALID_CONTENT_TYPE)
-            
+
         return resp.content, content_type
 
 
@@ -1127,7 +1196,9 @@ def _resize_image_if_needed(
             img.save(output, format="WEBP", **save_kwargs)
             return output.getvalue(), IMAGE_WEBP
         except Exception as e:
-            safe_error = ''.join(c for c in str(e)[:200] if c.isprintable() and c not in '\n\r\t')
+            safe_error = "".join(
+                c for c in str(e)[:200] if c.isprintable() and c not in "\n\r\t"
+            )
             logger.warning("Image resize failed: %s, returning original", safe_error)
 
     return image_data, content_type
@@ -1231,10 +1302,16 @@ async def find_related_content(
     if not priority_keywords:
         return []
 
-    safe_title = ''.join(c for c in str(content.title)[:200] if c.isprintable() and c not in '\n\r\t')
-    safe_keywords = ''.join(c for c in str(priority_keywords)[:200] if c.isprintable() and c not in '\n\r\t')
+    safe_title = "".join(
+        c for c in str(content.title)[:200] if c.isprintable() and c not in "\n\r\t"
+    )
+    safe_keywords = "".join(
+        c for c in str(priority_keywords)[:200] if c.isprintable() and c not in "\n\r\t"
+    )
     print(
-        "🔍 Finding related content for '%s' using keywords: %s", safe_title, safe_keywords
+        "🔍 Finding related content for '%s' using keywords: %s",
+        safe_title,
+        safe_keywords,
     )
 
     # Build and execute query
