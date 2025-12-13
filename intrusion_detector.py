@@ -315,12 +315,30 @@ class IntrusionDetector:
                 self.logger.info(
                     f"[CLOUDFLARE] IP {ip} blocked successfully (Rule ID: {rule_id})"
                 )
+            elif response.status_code == 400:
+                # Check if error is "duplicate_of_existing" - this is not an error, rule is already active
+                try:
+                    error_data = response.json()
+                    errors = error_data.get("errors", [])
+                    if errors and errors[0].get("code") == 10009:  # duplicate_of_existing code
+                        self.logger.info(
+                            f"[CLOUDFLARE] IP {ip} already blocked (rule exists)"
+                        )
+                        return
+                except (ValueError, KeyError, IndexError):
+                    pass
+                
+                # Other 400 errors are actual failures
+                self.logger.error(
+                    f"[CLOUDFLARE] Failed to block {ip}: {response.status_code} - {response.text}"
+                )
             else:
                 self.logger.error(
                     f"[CLOUDFLARE] Failed to block {ip}: {response.status_code} - {response.text}"
                 )
         except Exception as e:
             self.logger.error(f"[ERROR] Cloudflare blocking failed for {ip}: {e}")
+
 
     def unblock_ip(self, ip):
         """Unblock an IP address"""
