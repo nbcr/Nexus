@@ -426,18 +426,25 @@ def _update_article_metadata(content: ContentItem, article_data: dict) -> None:
 
 async def _download_article_image(content: ContentItem, article_data: dict) -> None:
     """Download and optimize image for content."""
-    if article_data.get("image_url"):
-        try:
-            image_data = await asyncio.to_thread(
-                article_scraper.download_and_optimize_image,
-                article_data["image_url"],
-            )
-            if image_data:
-                content.image_data = image_data
-                print(f"✅ Stored optimized image for content {content.id}")
-        except (OSError, ValueError, TypeError) as e:
-            print(f"⚠️ Failed to optimize image: {e}")
-        except Exception as e:
+    image_url = article_data.get("image_url")
+    if not image_url:
+        print(f"⚠️ No image URL for content {content.id}")
+        return
+    
+    print(f"🖼️  Attempting to download image from: {image_url[:80]}...")
+    try:
+        image_data = await asyncio.to_thread(
+            article_scraper.download_and_optimize_image,
+            image_url,
+        )
+        if image_data:
+            content.image_data = image_data
+            print(f"✅ Stored optimized image for content {content.id} ({len(image_data)} bytes)")
+        else:
+            print(f"⚠️ Image download returned None for content {content.id}")
+    except (OSError, ValueError, TypeError) as e:
+        print(f"⚠️ Failed to optimize image: {e}")
+    except Exception as e:
             print(f"⚠️ Unexpected error optimizing image: {e}")
 
 

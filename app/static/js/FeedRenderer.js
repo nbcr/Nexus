@@ -146,17 +146,22 @@ class FeedRenderer {
     }
 
     getImageSrc(item) {
-        if (item.content_id) {
-            return `/api/v1/content/${item.content_id}/image?size=800`;
-        }
-        if (item.local_image_path) {
-            return item.local_image_path.startsWith("/") ? item.local_image_path : `/api/v1/content/proxy/image?url=${encodeURIComponent(item.local_image_path)}&w=743&h=413`;
-        }
-        
+        // Try thumbnail_url or picture_url first (RSS/external images)
         const imageUrl = item.thumbnail_url || item.source_metadata?.picture_url;
         if (imageUrl) {
             return imageUrl.startsWith("/") ? imageUrl : `/api/v1/content/proxy/image?url=${encodeURIComponent(imageUrl)}&w=743&h=413`;
         }
+        
+        // Try stored image_data endpoint as fallback
+        if (item.content_id) {
+            return `/api/v1/content/${item.content_id}/image?size=800`;
+        }
+        
+        // Try local image path
+        if (item.local_image_path) {
+            return item.local_image_path.startsWith("/") ? item.local_image_path : `/api/v1/content/proxy/image?url=${encodeURIComponent(item.local_image_path)}&w=743&h=413`;
+        }
+        
         return null;
     }
 
