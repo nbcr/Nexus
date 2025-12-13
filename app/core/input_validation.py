@@ -230,7 +230,7 @@ class InputValidator:
     def _validate_cursor_format(cls, cursor: str) -> None:
         """Validate cursor format (ISO datetime or base64-like)."""
         # Allow ISO datetime format (with colons and periods) and base64-like strings
-        if not re.match(r"^[a-zA-Z0-9+/=_:\-\.T]+$", cursor):
+        if not re.match(r"^[a-zA-Z0-9+/=_:.\-T]+$", cursor):
             raise HTTPException(status_code=400, detail="Invalid cursor format")
 
     @classmethod
