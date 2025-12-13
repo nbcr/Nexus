@@ -103,7 +103,14 @@ function updateUIForUnauthenticatedUser() {
 async function checkAuthStatus() {
     try {
         const accessToken = getAccessToken();
-        const headers = accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {};
+        
+        // If no token, skip the API call and show unauthenticated UI
+        if (!accessToken) {
+            updateUIForUnauthenticatedUser();
+            return;
+        }
+        
+        const headers = { 'Authorization': `Bearer ${accessToken}` };
         const response = await fetch('/api/v1/auth/me', {
             credentials: 'include',
             headers
