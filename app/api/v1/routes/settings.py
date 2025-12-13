@@ -3,10 +3,10 @@ Settings API endpoint to serve hover tracker configuration to clients
 """
 
 from fastapi import APIRouter, Depends
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.deps import get_db, get_current_user
+from app.api.v1.deps import get_db, get_current_user_optional
 from app.models import User
 
 router = APIRouter()
@@ -14,15 +14,17 @@ router = APIRouter()
 
 @router.get("/hover-tracker")
 async def get_hover_tracker_settings(
-    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: AsyncSession = Depends(get_db), 
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ) -> Dict[str, Any]:
     """
     Get hover tracker settings for the current user.
+    Works for both authenticated and anonymous users.
     Returns custom settings if available, otherwise returns global defaults.
-    Also returns debug_mode status.
+    Also returns debug_mode status for authenticated users.
     """
 
-    # Check if user has debug mode enabled
+    # Check if user has debug mode enabled (only if authenticated)
     debug_mode = False
     if current_user:
         debug_mode = getattr(current_user, "debug_mode", False)
@@ -44,3 +46,4 @@ async def get_hover_tracker_settings(
     }
 
     return settings
+

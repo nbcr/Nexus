@@ -91,6 +91,50 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Optional[User]:
+    """
+    Dependency to optionally get the current user if authenticated.
+    Returns None if user is not authenticated.
+    Does not raise HTTPException for unauthenticated requests.
+
+    Args:
+        request: HTTP request
+        db: Database session
+
+    Returns:
+        User or None: Current user if authenticated, None otherwise
+
+    Example:
+        ```python
+        @router.get("/settings")
+        async def get_settings(user: Optional[User] = Depends(get_current_user_optional)):
+            if user:
+                return user_specific_settings()
+            else:
+                return default_settings()
+        ```
+    """
+    try:
+        # Try to get token from Authorization header
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return None
+        
+        token = auth_header[7:]  # Remove "Bearer " prefix
+        username = verify_token(token)
+        
+        if username is None:
+            return None
+
+        user = await get_user_by_username(db, username=username)
+        return user
+    except Exception:
+        return None
+
+
 def get_current_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
