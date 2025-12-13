@@ -160,7 +160,7 @@ class GeoIPChecker:
             octets = [int(x) for x in ip.split(".")]
             if len(octets) != 4:
                 return False
-            
+
             # 127.0.0.0/8 (loopback)
             if octets[0] == 127:
                 return True
@@ -176,7 +176,7 @@ class GeoIPChecker:
             # 169.254.0.0/16 (link-local)
             if octets[0] == 169 and octets[1] == 254:
                 return True
-            
+
             return False
         except (ValueError, IndexError):
             return False
@@ -186,7 +186,7 @@ class GeoIPChecker:
         # Never block private/local IPs
         if self.is_private_ip(ip):
             return False
-        
+
         octet = self.get_first_octet(ip)
         if octet is None:
             return False

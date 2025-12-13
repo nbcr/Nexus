@@ -13,16 +13,16 @@ from pathlib import Path
 def run_server():
     """Run the server with dependency checking"""
     project_root = Path(__file__).parent
-    
+
     # Change to project root
     os.chdir(project_root)
-    
+
     print("[STARTUP] Platform-agnostic Nexus Server Launcher")
     print(f"[STARTUP] Python: {sys.executable}")
     print(f"[STARTUP] Platform: {sys.platform}")
     print(f"[STARTUP] Working Directory: {os.getcwd()}")
     print()
-    
+
     # Run the server with dependency checking
     try:
         result = subprocess.run(

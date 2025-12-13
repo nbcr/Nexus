@@ -15,10 +15,10 @@ def get_requirements_file():
     """Find requirements.txt in the project root"""
     root_dir = Path(__file__).parent
     req_file = root_dir / "requirements.txt"
-    
+
     if req_file.exists():
         return str(req_file)
-    
+
     raise FileNotFoundError("requirements.txt not found in project root")
 
 
@@ -26,13 +26,13 @@ def is_package_installed(package_name):
     """Check if a package is installed without importing it"""
     # Handle special cases where import name differs from package name
     import_names = {
-        'pillow': 'PIL',
-        'pyyaml': 'yaml',
-        'python-dotenv': 'dotenv',
+        "pillow": "PIL",
+        "pyyaml": "yaml",
+        "python-dotenv": "dotenv",
     }
-    
+
     import_name = import_names.get(package_name.lower(), package_name.lower())
-    
+
     try:
         importlib.util.find_spec(import_name)
         return True
@@ -48,9 +48,9 @@ def get_python_executable():
 def install_dependencies(requirements_file):
     """Install dependencies from requirements.txt"""
     print(f"[DEPENDENCY CHECK] Installing dependencies from {requirements_file}...")
-    
+
     python_exe = get_python_executable()
-    
+
     try:
         # Use pip to install from requirements.txt
         result = subprocess.run(
@@ -58,14 +58,16 @@ def install_dependencies(requirements_file):
             capture_output=False,
             timeout=300,  # 5 minute timeout
         )
-        
+
         if result.returncode == 0:
             print("[DEPENDENCY CHECK] ✓ All dependencies installed successfully")
             return True
         else:
-            print(f"[DEPENDENCY CHECK] ✗ pip install failed with code {result.returncode}")
+            print(
+                f"[DEPENDENCY CHECK] ✗ pip install failed with code {result.returncode}"
+            )
             return False
-    
+
     except subprocess.TimeoutExpired:
         print("[DEPENDENCY CHECK] ✗ Dependency installation timed out")
         return False
@@ -77,18 +79,18 @@ def install_dependencies(requirements_file):
 def check_critical_imports():
     """Check that critical packages are importable"""
     critical_packages = [
-        'fastapi',
-        'uvicorn',
-        'sqlalchemy',
-        'aiofiles',
-        'pydantic',
+        "fastapi",
+        "uvicorn",
+        "sqlalchemy",
+        "aiofiles",
+        "pydantic",
     ]
-    
+
     missing = []
     for package in critical_packages:
         if not is_package_installed(package):
             missing.append(package)
-    
+
     return missing
 
 
@@ -98,31 +100,33 @@ def ensure_dependencies():
     Returns True if all dependencies are available, False otherwise.
     """
     print("[DEPENDENCY CHECK] Starting dependency verification...")
-    
+
     # First check if critical packages are available
     missing = check_critical_imports()
-    
+
     if missing:
         print(f"[DEPENDENCY CHECK] Missing packages: {', '.join(missing)}")
-        
+
         try:
             req_file = get_requirements_file()
             success = install_dependencies(req_file)
-            
+
             if not success:
                 print("[DEPENDENCY CHECK] ✗ Failed to install dependencies")
                 return False
-            
+
             # Verify installation
             missing_after = check_critical_imports()
             if missing_after:
-                print(f"[DEPENDENCY CHECK] ✗ Still missing after install: {', '.join(missing_after)}")
+                print(
+                    f"[DEPENDENCY CHECK] ✗ Still missing after install: {', '.join(missing_after)}"
+                )
                 return False
-        
+
         except FileNotFoundError as e:
             print(f"[DEPENDENCY CHECK] ✗ {e}")
             return False
-    
+
     print("[DEPENDENCY CHECK] ✓ All dependencies are available")
     return True
 

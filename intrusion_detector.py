@@ -388,7 +388,7 @@ class IntrusionDetector:
             # Exact match
             if ip == whitelist_entry:
                 return True
-            
+
             # CIDR range match
             if "/" in whitelist_entry:
                 if self._ip_in_cidr(ip, whitelist_entry):
@@ -401,18 +401,27 @@ class IntrusionDetector:
             ip_parts = [int(x) for x in ip.split(".")]
             network_parts = [int(x) for x in cidr.split("/")[0].split(".")]
             mask_bits = int(cidr.split("/")[1])
-            
+
             # Convert IPs to 32-bit integers
-            ip_int = (ip_parts[0] << 24) + (ip_parts[1] << 16) + (ip_parts[2] << 8) + ip_parts[3]
-            network_int = (network_parts[0] << 24) + (network_parts[1] << 16) + (network_parts[2] << 8) + network_parts[3]
-            
+            ip_int = (
+                (ip_parts[0] << 24)
+                + (ip_parts[1] << 16)
+                + (ip_parts[2] << 8)
+                + ip_parts[3]
+            )
+            network_int = (
+                (network_parts[0] << 24)
+                + (network_parts[1] << 16)
+                + (network_parts[2] << 8)
+                + network_parts[3]
+            )
+
             # Create mask
             mask = (0xFFFFFFFF << (32 - mask_bits)) & 0xFFFFFFFF
-            
+
             return (ip_int & mask) == (network_int & mask)
         except (ValueError, IndexError):
             return False
-
 
     def is_excessive_request(self, line):
         """Detect excessive requests (simple rate limiting)"""

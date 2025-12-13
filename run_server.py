@@ -12,6 +12,7 @@ if sys.platform == "win32":
 
 # Check and install dependencies before importing the app
 from check_dependencies import ensure_dependencies
+
 if not ensure_dependencies():
     print("[ERROR] Failed to verify/install dependencies. Exiting.")
     sys.exit(1)
