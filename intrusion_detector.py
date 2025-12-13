@@ -228,10 +228,11 @@ class IntrusionDetector:
 
         conn.commit()
 
-        # Check if IP should be blocked
+        # Check if IP should be blocked (after 10 suspicious requests)
         cursor.execute("SELECT count FROM suspicious_ips WHERE ip = ?", (ip,))
         result = cursor.fetchone()
-        if result and result[0] > self.config["threshold"]:
+        if result and result[0] >= 10:
+            self.logger.info(f"[THRESHOLD] IP {ip} reached 10 suspicious requests - blocking")
             self.block_ip(ip)
 
         conn.close()

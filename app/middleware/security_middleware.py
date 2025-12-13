@@ -5,11 +5,13 @@ Prevents injection attacks at the application level.
 
 import logging
 import time
+import sqlite3
 from typing import Callable
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.input_validation import InputValidator
+from datetime import datetime
 
 
 class SecurityMiddleware(BaseHTTPMiddleware):
@@ -19,12 +21,26 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.max_request_size = max_request_size
         self.logger = logging.getLogger("security")
+        self.blocked_ips_cache = {}  # Simple in-memory cache for blocked IPs
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request through security validation."""
         start_time = time.time()
+        client_ip = request.client.host if request.client else "unknown"
         
         try:
+            # Check if IP is blocked FIRST - before any processing
+            if self._is_ip_blocked(client_ip):
+                self.logger.warning(
+                    "Blocked request from IP: %s - %s %s",
+                    client_ip, request.method, request.url.path
+                )
+                # Return 403 with no additional information
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "Access denied"}
+                )
+            
             self._validate_request_basics(request)
             self._validate_query_params(request)
             self._validate_headers(request)
@@ -40,6 +56,58 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return self._handle_http_exception(e, request)
         except Exception as e:
             return self._handle_general_exception(e, request)
+    
+    def _is_ip_blocked(self, ip: str) -> bool:
+        """Check if IP is currently blocked in the intrusion detector database."""
+        try:
+            # Check in-memory cache first
+            if ip in self.blocked_ips_cache:
+                block_until = self.blocked_ips_cache[ip]
+                if datetime.now() < block_until:
+                    return True
+                else:
+                    # Cache entry expired, remove it
+                    del self.blocked_ips_cache[ip]
+                    return False
+            
+            # Query the intrusion detector database
+            conn = sqlite3.connect("intrusion_data.db")
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT block_until FROM suspicious_ips 
+                WHERE ip = ? AND is_blocked = 1
+                """,
+                (ip,)
+            )
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result:
+                block_until_str = result[0]
+                if block_until_str:
+                    block_until = datetime.fromisoformat(block_until_str)
+                    if datetime.now() < block_until:
+                        # Cache it for faster lookups
+                        self.blocked_ips_cache[ip] = block_until
+                        return True
+                    else:
+                        # Block has expired, update DB
+                        conn = sqlite3.connect("intrusion_data.db")
+                        cursor = conn.cursor()
+                        cursor.execute(
+                            "UPDATE suspicious_ips SET is_blocked = 0 WHERE ip = ?",
+                            (ip,)
+                        )
+                        conn.commit()
+                        conn.close()
+                        return False
+            
+            return False
+        except Exception as e:
+            self.logger.error(f"Error checking blocked IPs: {e}")
+            return False
+
     
     def _validate_request_basics(self, request: Request) -> None:
         """Validate basic request properties."""
