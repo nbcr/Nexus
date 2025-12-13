@@ -40,7 +40,14 @@ class IntrusionDetector:
             self.config = {
                 "threshold": 10,  # Requests per minute to trigger blocking
                 "block_duration": 3600,  # Block for 1 hour
-                "whitelist": ["127.0.0.1", "::1"],
+                "whitelist": [
+                    "127.0.0.1",
+                    "::1",
+                    "10.0.0.0/8",
+                    "172.16.0.0/12",
+                    "192.168.0.0/16",
+                    "169.254.0.0/16",
+                ],
                 "log_types": ["access", "error"],
                 "alert_email": None,
                 "cloudflare_enabled": True,
@@ -377,10 +384,35 @@ class IntrusionDetector:
 
     def is_whitelisted(self, ip):
         """Check if IP is in whitelist"""
-        for whitelist_ip in self.config.get("whitelist", []):
-            if ip == whitelist_ip:
+        for whitelist_entry in self.config.get("whitelist", []):
+            # Exact match
+            if ip == whitelist_entry:
                 return True
+            
+            # CIDR range match
+            if "/" in whitelist_entry:
+                if self._ip_in_cidr(ip, whitelist_entry):
+                    return True
         return False
+
+    def _ip_in_cidr(self, ip, cidr):
+        """Check if IP is within CIDR range"""
+        try:
+            ip_parts = [int(x) for x in ip.split(".")]
+            network_parts = [int(x) for x in cidr.split("/")[0].split(".")]
+            mask_bits = int(cidr.split("/")[1])
+            
+            # Convert IPs to 32-bit integers
+            ip_int = (ip_parts[0] << 24) + (ip_parts[1] << 16) + (ip_parts[2] << 8) + ip_parts[3]
+            network_int = (network_parts[0] << 24) + (network_parts[1] << 16) + (network_parts[2] << 8) + network_parts[3]
+            
+            # Create mask
+            mask = (0xFFFFFFFF << (32 - mask_bits)) & 0xFFFFFFFF
+            
+            return (ip_int & mask) == (network_int & mask)
+        except (ValueError, IndexError):
+            return False
+
 
     def is_excessive_request(self, line):
         """Detect excessive requests (simple rate limiting)"""

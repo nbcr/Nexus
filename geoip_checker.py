@@ -154,8 +154,39 @@ class GeoIPChecker:
         except (ValueError, IndexError):
             return None
 
+    def is_private_ip(self, ip):
+        """Check if IP is a private/local address"""
+        try:
+            octets = [int(x) for x in ip.split(".")]
+            if len(octets) != 4:
+                return False
+            
+            # 127.0.0.0/8 (loopback)
+            if octets[0] == 127:
+                return True
+            # 10.0.0.0/8
+            if octets[0] == 10:
+                return True
+            # 172.16.0.0/12
+            if octets[0] == 172 and 16 <= octets[1] <= 31:
+                return True
+            # 192.168.0.0/16
+            if octets[0] == 192 and octets[1] == 168:
+                return True
+            # 169.254.0.0/16 (link-local)
+            if octets[0] == 169 and octets[1] == 254:
+                return True
+            
+            return False
+        except (ValueError, IndexError):
+            return False
+
     def is_blocked_country(self, ip):
         """Check if IP is from any blocked country"""
+        # Never block private/local IPs
+        if self.is_private_ip(ip):
+            return False
+        
         octet = self.get_first_octet(ip)
         if octet is None:
             return False
