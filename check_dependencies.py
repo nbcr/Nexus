@@ -33,10 +33,13 @@ def is_package_installed(package_name):
 
     import_name = import_names.get(package_name.lower(), package_name.lower())
 
+    if import_name is None:
+        return False
+
     try:
         importlib.util.find_spec(import_name)
         return True
-    except (ImportError, ModuleNotFoundError, ValueError):
+    except (ImportError, ValueError):
         return False
 
 

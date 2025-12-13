@@ -300,7 +300,8 @@ class IntrusionDetector:
 
             if response.status_code in [200, 201]:
                 rule_id = response.json().get("result", {}).get("id")
-                cursor = self.conn.cursor()
+                conn = self.get_db_connection()
+                cursor = conn.cursor()
                 cursor.execute(
                     """
                     UPDATE suspicious_ips 
@@ -309,7 +310,8 @@ class IntrusionDetector:
                 """,
                     (rule_id, ip),
                 )
-                self.conn.commit()
+                conn.commit()
+                conn.close()
                 self.logger.info(
                     f"[CLOUDFLARE] IP {ip} blocked successfully (Rule ID: {rule_id})"
                 )
@@ -390,9 +392,8 @@ class IntrusionDetector:
                 return True
 
             # CIDR range match
-            if "/" in whitelist_entry:
-                if self._ip_in_cidr(ip, whitelist_entry):
-                    return True
+            if "/" in whitelist_entry and self._ip_in_cidr(ip, whitelist_entry):
+                return True
         return False
 
     def _ip_in_cidr(self, ip, cidr):
